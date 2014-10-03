@@ -45,7 +45,7 @@ object MessageParser extends RegexParsers {
    */
   abstract class TransactionComponent(val ident: String, val mark: Option[UsageNotationMark], val ordinal: Option[Int], val require: SegmentRequirement) extends TransactionItem
   case class SegmentReference(id: String, mrk: Option[UsageNotationMark], ord: Option[Int], val mask: Int, req: SegmentRequirement, val usage: MaximumUsage) extends TransactionComponent(id, mrk, ord, req)
-  case class Group(id: String, mrk: Option[UsageNotationMark], ord: Option[Int], req: SegmentRequirement, val repeat: Int, val items: Seq[TransactionItem]) extends TransactionComponent(id, mrk, ord, req)
+  case class TransGroup(id: String, mrk: Option[UsageNotationMark], ord: Option[Int], req: SegmentRequirement, val repeat: Int, val items: Seq[TransactionItem]) extends TransactionComponent(id, mrk, ord, req)
   
   case class TransactionTable(val comps: Seq[TransactionItem])
   
@@ -56,7 +56,7 @@ object MessageParser extends RegexParsers {
   // setsSection := ".SETS\n" transSet*
   // transSet := id "=" table* "\n"
   // table := "^"+ transItem*
-  // transItem := segRef | group | increment
+  // transItem := segRef | transGroup | increment
   // segRef := "[" useMark? id maskNum? ordNum? ("," stdReq? maxUse?)? "]"
   // useMark := "." | "!" | "$" | "-" | "&"
   // maskNum := "*" posInt
@@ -67,7 +67,7 @@ object MessageParser extends RegexParsers {
   // position := [0-9]*
   // id := [0-9,A-Z]*
   // increment := ("+" | "-") posInt
-  // group := ordNum? "{" groupLead? transItem* "}"
+  // transGroup := ordNum? "{" groupLead? transItem* "}"
   // groupLead := id? ":" posInt
 
   // simple base parsers
@@ -126,18 +126,18 @@ object MessageParser extends RegexParsers {
   @tailrec
   def firstSegment(items: Seq[TransactionItem]): SegmentReference = items match {
     case (segref: SegmentReference) :: _ => segref
-    case (group: Group) :: _ => firstSegment(group.items)
+    case (group: TransGroup) :: _ => firstSegment(group.items)
     case _ :: tail => firstSegment(tail)
     case Nil => throw new IllegalStateException("No segment definition in item list")
   }
-  val group: Parser[Group] = ordNum.? ~ ("{" ~> groupLead.? ~ transItem.+ <~ "}") ^^ {
+  val transGroup: Parser[TransGroup] = ordNum.? ~ ("{" ~> groupLead.? ~ transItem.+ <~ "}") ^^ {
     case opord ~ (Some((opid, rep)) ~ items) => {
       val first = firstSegment(items)
-      Group(opid getOrElse first.id, first.mark, None, first.require, rep, items)
+      TransGroup(opid getOrElse first.id, first.mark, None, first.require, rep, items)
     }
     case opord ~ (None ~ items) => {
       val first = firstSegment(items)
-      Group(first.id, first.mark, None, first.require, 1, items)
+      TransGroup(first.id, first.mark, None, first.require, 1, items)
     }
   }
 
@@ -147,8 +147,8 @@ object MessageParser extends RegexParsers {
     case "-" ~ num => PositionIncrement(-num)
   }
 
-  // parser for transaction item = segRef | group | increment
-  val transItem: Parser[TransactionItem] = segRef | group | increment
+  // parser for transaction item = segRef | transGroup | increment
+  val transItem: Parser[TransactionItem] = segRef | transGroup | increment
   
   // parser for table = "^"+ transItem*
   val table: Parser[TransactionTable] = ("""\^""".r+) ~> transItem.+ ^^ {
@@ -163,7 +163,8 @@ object MessageParser extends RegexParsers {
   // parser for .SETS section = ".SETS\n" transSet*
   val setsSection: Parser[Seq[TransactionSet]] = ".SETS" ~> separator ~> transSet.*
   
-  // definitions for .SEGS and COMS
+  //
+  // Definitions for .SEGS and .COMS sections
   sealed trait ValueListItem
   case class GroupValue(val repeatCount: Int, val items: Seq[ValueListItem]) extends ValueListItem
   case class BaseValue(val ident: String, val mark: Option[UsageNotationMark], val ordinal: Option[Int], val lengths: MinMaxPair, val usage: SegmentRequirement, val repeat: Int) extends ValueListItem
@@ -326,4 +327,53 @@ object MessageParser extends RegexParsers {
   
   // parser for .COMS section = ".COMS\n" comDef*
   val comsSection: Parser[Seq[CompositeDef]] = ".COMS" ~> separator ~> comDef.*
+  
+  //
+  // Definitions for .ELMS section
+  case class ElementDef(val id: String, val dataType: ElementType, val minLength: Int, val maxLength: Int)
+  
+  // Grammar for .ELMS section
+  //
+  // Note that the only difference between composite definitions and segment definitions is that the former do not
+  // include element repeat counts.
+  //
+  // elmsSection := ".ELMS\n" elmDef*
+  // elmDef := id "=" elmType "," posInt "," posInt "\n"
+  // elmType := "R" | "ID" | "AN" | "A" | "DT" | "TM" | "B" | "N" | "N0" | "N[1-9]"
+  
+  // parser for element type = "R" | "ID" | "AN" | "A" | "DT" | "TM" | "B" | "N" | "N0" | "N[1-9]"
+  val elmType = new Parser[ElementType] {
+    def apply(input: Input): ParseResult[ElementType] = {
+      def matchChars(lead: Char, rest: Int, remain: Input): ParseResult[ElementType] = (lead, rest) match {
+        case (RealType.lead, RealType.rest) => Success(RealType, remain)
+        case (IdType.lead, IdType.rest) => Success(IdType, remain)
+        case (AlphaNumericType.lead, AlphaNumericType.rest) => Success(AlphaNumericType, remain)
+        case (AlphaType.lead, AlphaType.rest) => Success(AlphaType, remain)
+        case (DateType.lead, DateType.rest) => Success(DateType, remain)
+        case (TimeType.lead, TimeType.rest) => Success(TimeType, remain)
+        case (BinaryType.lead, BinaryType.rest) => Success(BinaryType, remain)
+        case (NumberType.lead, NumberType.rest) => Success(NumberType, remain)
+        case (IntegerType.lead, IntegerType.rest) => Success(IntegerType, remain)
+        case ('N', digit) if (digit >= '1' && digit <= '9') => Success(DecimalType(digit - '0'), remain)
+        case _ => Failure("No match", input)
+        }
+      def tryOne() = matchChars(input.first, -1, input.rest)
+      def tryTwo() = {
+        val two = matchChars(input.first, input.rest.first, input.rest.rest)
+        if (two.successful) two
+        else tryOne
+      }
+      if (input.atEnd) Failure("End of input", input)
+      else if (!input.rest.atEnd) tryTwo
+      else tryOne
+    }
+  }
+  
+  // parser for element definition = id "=" elmType "," posInt "," posInt "\n"
+  val elmDef: Parser[ElementDef] = (id <~ "=") ~ (elmType <~ ",") ~ (posInt <~ ",") ~ (posInt <~ separator) ^^ {
+    case id ~ typ ~ min ~ max => ElementDef(id, typ, min, max)
+  }
+  
+  // parser for .ELMS section = ".ELMS\n" elmDef*
+  val elmsSection: Parser[Seq[ElementDef]] = ".ELMS" ~> separator ~> elmDef.*
 }

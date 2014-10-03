@@ -6,22 +6,47 @@ import scala.util.matching.Regex
 import scala.util.parsing.combinator._
 import scala.util.parsing.input.CharArrayReader
 import scala.util.parsing.input.Reader
-
 import MessageParser._
 import com.anypoint.df.edi.schema.EdiSchema._
+import scala.util.parsing.input.CharSequenceReader
+import org.scalatest.matchers.ShouldMatchers
 
-class SetsParserTest extends FlatSpec {
-  
+trait TestBase {
+
   val lineEnd = sys.props("line.separator")
   
-  behavior of "posInt"
-  
-  it should "parse a zero value" in {
-    val result = posInt(new CharArrayReader("0".toArray))
-    assert(result.successful)
-    assert(0 === result.get)
+  def parsing[T](s: String)(implicit p: Parser[T]) = p(new CharSequenceReader(s))
+
+  def parsingAll[T](s: String)(implicit p: Parser[T]): T = {
+    val phraseParser = phrase(p)
+    val input = new CharSequenceReader(s)
+    phraseParser(input) match {
+      case Success(t, _) => t
+      case NoSuccess(msg, _) => throw new IllegalArgumentException("Failed parsing '" + s + "': " + msg)
+    }
   }
   
+  def parsingLead[T](s: String)(implicit p: Parser[T]): T = {
+    val input = new CharSequenceReader(s)
+    p(input) match {
+      case Success(t, _) => t
+      case NoSuccess(msg, _) => throw new IllegalArgumentException("Failed parsing '" + s + "': " + msg)
+    }
+  }
+}
+
+class SetsParserTest extends FlatSpec with TestBase with ShouldMatchers {
+
+  behavior of "posInt"
+
+  it should "parse a zero value" in {
+    implicit val parserToTest = posInt
+    parsingAll("0") should equal(0)
+    //    val result = posInt(new CharArrayReader("0".toArray))
+    //    assert(result.successful)
+    //    assert(0 === result.get)
+  }
+
   it should "parse positive values" in {
     val result1 = posInt(new CharArrayReader("1".toArray))
     assert(result1.successful)
@@ -30,15 +55,15 @@ class SetsParserTest extends FlatSpec {
     assert(result2.successful)
     assert(814371 === result2.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!posInt(new CharArrayReader("".toArray)).successful)
     assert(!posInt(new CharArrayReader("-4".toArray)).successful)
     assert(!posInt(new CharArrayReader("abc123".toArray)).successful)
   }
-  
+
   behavior of "position"
-  
+
   it should "parse number values" in {
     val result1 = position(new CharArrayReader("1".toArray))
     assert(result1.successful)
@@ -50,15 +75,15 @@ class SetsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(410 === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!position(new CharArrayReader("".toArray)).successful)
     assert(!position(new CharArrayReader("-4".toArray)).successful)
     assert(!position(new CharArrayReader("abc123".toArray)).successful)
   }
-  
+
   behavior of "id"
-  
+
   it should "parse alphanumeric values" in {
     val result1 = id(new CharArrayReader("1abcd".toArray))
     assert(result1.successful)
@@ -70,27 +95,27 @@ class SetsParserTest extends FlatSpec {
     assert(result3.successful)
     assert("0ab410" === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!id(new CharArrayReader("".toArray)).successful)
     assert(!id(new CharArrayReader("-4".toArray)).successful)
     assert(!id(new CharArrayReader("*abc123".toArray)).successful)
   }
-  
+
   "maskNum" should "parse a mask number" in {
     val result = maskNum(new CharArrayReader("*5".toArray))
     assert(result.successful)
     assert(5 === result.get)
   }
-  
+
   "ordNum" should "parse an ordinal number" in {
     val result = ordNum(new CharArrayReader("@5".toArray))
     assert(result.successful)
     assert(5 === result.get)
   }
-  
+
   behavior of "useMark"
-  
+
   it should "parse a mark character" in {
     val result1 = useMark(new CharArrayReader(".adadf".toArray))
     assert(result1.successful)
@@ -102,15 +127,15 @@ class SetsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(RecommendedMark === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!useMark(new CharArrayReader("".toArray)).successful)
     assert(!useMark(new CharArrayReader("(4".toArray)).successful)
     assert(!useMark(new CharArrayReader("*abc123".toArray)).successful)
   }
-  
+
   behavior of "segReq"
-  
+
   it should "parse a requirement character" in {
     val result1 = stdReq(new CharArrayReader("Madadf".toArray))
     assert(result1.successful)
@@ -122,15 +147,15 @@ class SetsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(ConditionalRequirement === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!stdReq(new CharArrayReader("".toArray)).successful)
     assert(!stdReq(new CharArrayReader("X4".toArray)).successful)
     assert(!stdReq(new CharArrayReader("Aabc123".toArray)).successful)
   }
-  
+
   behavior of "maxUse"
-  
+
   it should "parse an integer count" in {
     val result1 = maxUse(new CharArrayReader(",10".toArray))
     assert(result1.successful)
@@ -139,21 +164,21 @@ class SetsParserTest extends FlatSpec {
     assert(result2.successful)
     assert(FiniteUsage(1) === result2.get)
   }
-  
+
   it should "parse an unlimited indication" in {
     val result = maxUse(new CharArrayReader(",>1".toArray))
     assert(result.successful)
     assert(UnlimitedUsage === result.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!maxUse(new CharArrayReader(".123".toArray)).successful)
     assert(!maxUse(new CharArrayReader(",".toArray)).successful)
     assert(!maxUse(new CharArrayReader(",abc".toArray)).successful)
   }
-  
+
   behavior of "groupLead"
-  
+
   it should "parse with only a repeat count" in {
     val result1 = groupLead(new CharArrayReader(":10".toArray))
     assert(result1.successful)
@@ -162,7 +187,7 @@ class SetsParserTest extends FlatSpec {
     assert(result2.successful)
     assert((None, 2) === result2.get)
   }
-  
+
   it should "parse with only an identifier" in {
     val result1 = groupLead(new CharArrayReader("abc:".toArray))
     assert(result1.successful)
@@ -171,7 +196,7 @@ class SetsParserTest extends FlatSpec {
     assert(result2.successful)
     assert((Some("0100"), 1) === result2.get)
   }
-  
+
   it should "parse with identifier and repeat count" in {
     val result1 = groupLead(new CharArrayReader("abc:10".toArray))
     assert(result1.successful)
@@ -180,13 +205,13 @@ class SetsParserTest extends FlatSpec {
     assert(result2.successful)
     assert((Some("0100"), 2) === result2.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!groupLead(new CharArrayReader("123".toArray)).successful)
   }
-  
+
   behavior of "segRef"
-  
+
   it should "parse all forms of segment reference" in {
     val result1 = segRef(new CharArrayReader("[ABC]".toArray))
     assert(result1.successful)
@@ -210,37 +235,37 @@ class SetsParserTest extends FlatSpec {
     assert(result7.successful)
     assert(SegmentReference("ABC", None, Some(123), 2, MandatoryRequirement, UsageDefault) === result7.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!segRef(new CharArrayReader("123[AA]".toArray)).successful)
     assert(!segRef(new CharArrayReader("[,]".toArray)).successful)
     assert(!segRef(new CharArrayReader("[ABC/]".toArray)).successful)
   }
-  
-  behavior of "group"
-  
+
+  behavior of "transGroup"
+
   it should "parse all forms of group definitions" in {
-    val result1 = group(new CharArrayReader("{:10[ABC,M][DTM]}".toArray))
+    val result1 = transGroup(new CharArrayReader("{:10[ABC,M][DTM]}".toArray))
     assert(result1.successful)
     val segref1 = SegmentReference("ABC", None, None, 0, MandatoryRequirement, UsageDefault)
     val segref2 = SegmentReference("DTM", None, None, 0, RequirementDefault, UsageDefault)
-    assert(Group("ABC", None, None, MandatoryRequirement, 10, List(segref1, segref2)) === result1.get)
-    val result2 = group(new CharArrayReader("{LOOP:+8[ABC,M]+10[DTM]}".toArray))
+    assert(TransGroup("ABC", None, None, MandatoryRequirement, 10, List(segref1, segref2)) === result1.get)
+    val result2 = transGroup(new CharArrayReader("{LOOP:+8[ABC,M]+10[DTM]}".toArray))
     assert(result2.successful)
-    assert(Group("LOOP", None, None, MandatoryRequirement, 1, List(PositionIncrement(8), segref1, PositionIncrement(10), segref2)) === result2.get)
-    val result3 = group(new CharArrayReader("@123{LOOP:+8[ABC,M]+10[DTM]}".toArray))
+    assert(TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(PositionIncrement(8), segref1, PositionIncrement(10), segref2)) === result2.get)
+    val result3 = transGroup(new CharArrayReader("@123{LOOP:+8[ABC,M]+10[DTM]}".toArray))
     assert(result3.successful)
-    assert(Group("LOOP", None, None, MandatoryRequirement, 1, List(PositionIncrement(8), segref1, PositionIncrement(10), segref2)) === result3.get)
+    assert(TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(PositionIncrement(8), segref1, PositionIncrement(10), segref2)) === result3.get)
   }
-  
+
   it should "fail on other values" in {
-    assert(!group(new CharArrayReader("{:10[ABC,M}]".toArray)).successful)
-    assert(!group(new CharArrayReader(":abc{}".toArray)).successful)
-    assert(!group(new CharArrayReader("abc:[]".toArray)).successful)
+    assert(!transGroup(new CharArrayReader("{:10[ABC,M}]".toArray)).successful)
+    assert(!transGroup(new CharArrayReader(":abc{}".toArray)).successful)
+    assert(!transGroup(new CharArrayReader("abc:[]".toArray)).successful)
   }
-  
+
   behavior of "table"
-  
+
   it should "parse different lists of items" in {
     val result1 = table(new CharArrayReader("^[ABC,M][DTM]".toArray))
     assert(result1.successful)
@@ -249,17 +274,17 @@ class SetsParserTest extends FlatSpec {
     assert(TransactionTable(List(segref1, segref2)) === result1.get)
     val result2 = table(new CharArrayReader("^+5[ABC,M][DTM]+1{LOOP:[ABC,M][DTM]}".toArray))
     assert(result2.successful)
-    assert(TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), Group("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2)))) === result2.get)
+    assert(TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2)))) === result2.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!table(new CharArrayReader("^{:10[ABC,M}]".toArray)).successful)
     assert(!table(new CharArrayReader(":abc{}".toArray)).successful)
     assert(!table(new CharArrayReader("^abc:[]".toArray)).successful)
   }
-  
+
   behavior of "transSet"
-  
+
   it should "parse one or more tables" in {
     val result1 = transSet(new CharArrayReader("ORDER=^[ABC,M][DTM]".toArray))
     assert(result1.successful)
@@ -269,18 +294,18 @@ class SetsParserTest extends FlatSpec {
     assert(TransactionSet("ORDER", List(transtab1)) === result1.get)
     val result2 = transSet(new CharArrayReader(("ORDER=^[ABC,M][DTM]^+5[ABC,M][DTM]+1{LOOP:[ABC,M][DTM]}" + lineEnd).toArray))
     assert(result2.successful)
-    val transtab2 = TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), Group("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2)))) 
+    val transtab2 = TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2))))
     assert(TransactionSet("ORDER", List(transtab1, transtab2)) === result2.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!transSet(new CharArrayReader("^{:10[ABC,M}]".toArray)).successful)
     assert(!transSet(new CharArrayReader(":abc{}".toArray)).successful)
     assert(!transSet(new CharArrayReader("^abc:[]".toArray)).successful)
   }
-  
+
   behavior of "sets"
-  
+
   it should "parse a .SETS section with zero or more transactions" in {
     val result1 = setsSection(new CharArrayReader(s".SETS${lineEnd}ORDER=^[ABC,M][DTM]".toArray))
     assert(result1.successful)
@@ -290,10 +315,10 @@ class SetsParserTest extends FlatSpec {
     assert(List(TransactionSet("ORDER", List(transtab1))) === result1.get)
     val result2 = setsSection(new CharArrayReader(s".SETS${lineEnd}ORDER=^[ABC,M][DTM]${lineEnd}OTHER=^[ABC,M][DTM]^+5[ABC,M][DTM]+1{LOOP:[ABC,M][DTM]}${lineEnd}".toArray))
     assert(result2.successful)
-    val transtab2 = TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), Group("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2)))) 
+    val transtab2 = TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2))))
     assert(List(TransactionSet("ORDER", List(transtab1)), TransactionSet("OTHER", List(transtab1, transtab2))) === result2.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!setsSection(new CharArrayReader("^{:10[ABC,M}]".toArray)).successful)
     assert(!setsSection(new CharArrayReader(":abc{}".toArray)).successful)
@@ -301,12 +326,10 @@ class SetsParserTest extends FlatSpec {
   }
 }
 
-class SegsParserTest extends FlatSpec {
-  
-  val lineEnd = sys.props("line.separator")
-  
+class SegsParserTest extends FlatSpec with TestBase with ShouldMatchers {
+
   behavior of "useMask"
-  
+
   it should "parse a mask character" in {
     val result1 = useMask(new CharArrayReader(".adadf".toArray))
     assert(result1.successful)
@@ -318,15 +341,15 @@ class SegsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(MustUseMask === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!useMask(new CharArrayReader("!".toArray)).successful)
     assert(!useMask(new CharArrayReader("(4".toArray)).successful)
     assert(!useMask(new CharArrayReader("*abc123".toArray)).successful)
   }
-  
+
   behavior of "minMax"
-  
+
   it should "parse a pair or partial pair" in {
     val result1 = minMax(new CharArrayReader("12:14".toArray))
     assert(result1.successful)
@@ -344,7 +367,7 @@ class SegsParserTest extends FlatSpec {
     assert(result5.successful)
     assert(DefaultMinMaxPair === result5.get)
   }
-  
+
   it should "return the default when pair or partial pair not present" in {
     val result1 = minMax(new CharArrayReader("!".toArray))
     assert(result1.successful)
@@ -356,9 +379,9 @@ class SegsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(DefaultMinMaxPair === result3.get)
   }
-  
+
   behavior of "maskMod"
-  
+
   it should "parse a mask number or modification" in {
     val result1 = maskMod(new CharArrayReader("*5".toArray))
     assert(result1.successful)
@@ -376,7 +399,7 @@ class SegsParserTest extends FlatSpec {
     assert(result5.successful)
     assert(PropertiesMaskModification(Some(MandatoryRequirement), MinMaxPair(None, Some(5))) === result5.get)
   }
-  
+
   it should "return an empty modification if no mask number or modification found" in {
     val result1 = maskMod(new CharArrayReader("!".toArray))
     assert(result1.successful)
@@ -388,9 +411,9 @@ class SegsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(NoModification === result3.get)
   }
-  
+
   behavior of "maskItem"
-  
+
   it should "parse a mask item with or without modification" in {
     val result1 = maskItem(new CharArrayReader(".*5".toArray))
     assert(result1.successful)
@@ -411,15 +434,15 @@ class SegsParserTest extends FlatSpec {
     assert(result6.successful)
     assert(MaskItem(InheritMask, NoModification) === result6.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!maskItem(new CharArrayReader("!".toArray)).successful)
     assert(!maskItem(new CharArrayReader("(4".toArray)).successful)
     assert(!maskItem(new CharArrayReader("*abc123".toArray)).successful)
   }
-  
+
   behavior of "maskDef"
-  
+
   it should "parse a list of mask items" in {
     val item1 = MaskItem(InheritMask, NoModification)
     val item2 = MaskItem(InheritMask, UseMaskModification(5))
@@ -437,7 +460,7 @@ class SegsParserTest extends FlatSpec {
     assert(result4.successful)
     assert(Mask(Seq(item1, item1, item1, item1)) === result4.get)
   }
-  
+
   it should "return empty mask on other values" in {
     val empty = Mask(Nil)
     val result1 = maskDef(new CharArrayReader("!".toArray))
@@ -450,9 +473,9 @@ class SegsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(empty === result3.get)
   }
-  
+
   behavior of "depType"
-  
+
   it should "parse a dependendency code type" in {
     val result1 = depType(new CharArrayReader("1adadf".toArray))
     assert(result1.successful)
@@ -464,15 +487,15 @@ class SegsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(IfFirstNoneDependency === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!depType(new CharArrayReader("!".toArray)).successful)
     assert(!depType(new CharArrayReader("84".toArray)).successful)
     assert(!depType(new CharArrayReader("0abc123".toArray)).successful)
   }
-  
+
   behavior of "depList"
-  
+
   it should "parse a list of dependency items" in {
     val result1 = depList(new CharArrayReader("(25)".toArray))
     assert(result1.successful)
@@ -481,16 +504,16 @@ class SegsParserTest extends FlatSpec {
     assert(result2.successful)
     assert(Seq(48, 14, 371) === result2.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!depList(new CharArrayReader("()".toArray)).successful)
     assert(!depList(new CharArrayReader("(1,)".toArray)).successful)
     assert(!depList(new CharArrayReader("84".toArray)).successful)
     assert(!depList(new CharArrayReader("(1,2".toArray)).successful)
   }
-  
+
   behavior of "depNote"
-  
+
   it should "parse a dependency note" in {
     val result1 = depNote(new CharArrayReader("D3(25)".toArray))
     assert(result1.successful)
@@ -499,16 +522,16 @@ class SegsParserTest extends FlatSpec {
     assert(result2.successful)
     assert(DependencyNote(ExactlyOneDependency, Seq(48, 14, 371)) === result2.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!depNote(new CharArrayReader("D0(1,2)".toArray)).successful)
     assert(!depNote(new CharArrayReader("D8(1,5)".toArray)).successful)
     assert(!depNote(new CharArrayReader("C3(84,85)".toArray)).successful)
     assert(!depNote(new CharArrayReader("(1,2".toArray)).successful)
   }
-  
+
   behavior of "segSimple"
-  
+
   it should "parse all forms of simple value items" in {
     val result1 = segSimple(new CharArrayReader("[123]".toArray))
     assert(result1.successful)
@@ -532,15 +555,15 @@ class SegsParserTest extends FlatSpec {
     assert(result7.successful)
     assert(BaseValue("123", None, Some(5), MinMaxPair(Some(3), Some(10)), MandatoryRequirement, 1) === result7.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!segSimple(new CharArrayReader("123[AA]".toArray)).successful)
     assert(!segSimple(new CharArrayReader("[,]".toArray)).successful)
     assert(!segSimple(new CharArrayReader("[ABC/]".toArray)).successful)
   }
-  
+
   behavior of "segGroup"
-  
+
   it should "parse all forms of repeated item groups" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
@@ -558,15 +581,15 @@ class SegsParserTest extends FlatSpec {
     assert(result4.successful)
     assert(GroupValue(5, Seq(base1, base2, GroupValue(3, Seq(base2)))) === result4.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!segGroup(new CharArrayReader("[123]".toArray)).successful)
     assert(!segGroup(new CharArrayReader("{[123]}".toArray)).successful)
     assert(!segGroup(new CharArrayReader("{5[123]".toArray)).successful)
   }
-  
+
   behavior of "segDef"
-  
+
   it should "parse lists of items" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
@@ -581,7 +604,7 @@ class SegsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(SegmentDef("SEG", Seq(base1, GroupValue(5, Seq(base1, base2)), base3), Nil, Nil) === result3.get)
   }
-  
+
   it should "parse lists of items with masks and/or dependency notes" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
@@ -598,15 +621,15 @@ class SegsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(SegmentDef("SEG", Seq(base1, base2), deps, masks) === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!segDef(new CharArrayReader("SEG=[123".toArray)).successful)
     assert(!segDef(new CharArrayReader("=[123]".toArray)).successful)
     assert(!segDef(new CharArrayReader("{5[123]".toArray)).successful)
   }
-  
+
   behavior of "segsSection"
-  
+
   it should "parse a .SEGS section with zero or more definitions" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
@@ -622,7 +645,7 @@ class SegsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(Seq(SegmentDef("SEG1", Seq(base1, GroupValue(5, Seq(base1, base2)), base3), Nil, Nil), SegmentDef("SEG2", Seq(base1, base2), Nil, masks)) === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!segsSection(new CharArrayReader("SEG=[123".toArray)).successful)
     assert(!segsSection(new CharArrayReader("=[123]".toArray)).successful)
@@ -630,12 +653,10 @@ class SegsParserTest extends FlatSpec {
   }
 }
 
-class ComsParserTest extends FlatSpec {
-  
-  val lineEnd = sys.props("line.separator")
-  
+class ComsParserTest extends FlatSpec with TestBase with ShouldMatchers {
+
   behavior of "comSimple"
-  
+
   it should "parse all forms of simple value items" in {
     val result1 = comSimple(new CharArrayReader("[123]".toArray))
     assert(result1.successful)
@@ -659,15 +680,15 @@ class ComsParserTest extends FlatSpec {
     assert(result7.successful)
     assert(BaseValue("123", None, Some(5), MinMaxPair(Some(3), Some(10)), MandatoryRequirement, 1) === result7.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!comSimple(new CharArrayReader("123[AA]".toArray)).successful)
     assert(!comSimple(new CharArrayReader("[,]".toArray)).successful)
     assert(!comSimple(new CharArrayReader("[.123,M,100]".toArray)).successful)
   }
-  
+
   behavior of "comGroup"
-  
+
   it should "parse all forms of repeated item groups" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
@@ -685,15 +706,15 @@ class ComsParserTest extends FlatSpec {
     assert(result4.successful)
     assert(GroupValue(5, Seq(base1, base2, GroupValue(3, Seq(base2)))) === result4.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!comGroup(new CharArrayReader("[123]".toArray)).successful)
     assert(!comGroup(new CharArrayReader("{[123]}".toArray)).successful)
     assert(!comGroup(new CharArrayReader("{5[123]".toArray)).successful)
   }
-  
+
   behavior of "comDef"
-  
+
   it should "parse lists of items" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
@@ -708,7 +729,7 @@ class ComsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(CompositeDef("COM", Seq(base1, GroupValue(5, Seq(base1, base2)), base3), Nil, Nil) === result3.get)
   }
-  
+
   it should "parse lists of items with masks and/or dependency notes" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
@@ -725,15 +746,15 @@ class ComsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(CompositeDef("COM", Seq(base1, base2), deps, masks) === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!comDef(new CharArrayReader("COM=[123".toArray)).successful)
     assert(!comDef(new CharArrayReader("=[123]".toArray)).successful)
     assert(!comDef(new CharArrayReader("{5[123]".toArray)).successful)
   }
-  
+
   behavior of "comsSection"
-  
+
   it should "parse a .COMS section with zero or more definitions" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
@@ -749,10 +770,92 @@ class ComsParserTest extends FlatSpec {
     assert(result3.successful)
     assert(Seq(CompositeDef("COM1", Seq(base1, GroupValue(5, Seq(base1, base2)), base3), Nil, Nil), CompositeDef("COM2", Seq(base1, base2), Nil, masks)) === result3.get)
   }
-  
+
   it should "fail on other values" in {
     assert(!comsSection(new CharArrayReader("COM=[123".toArray)).successful)
     assert(!comsSection(new CharArrayReader("=[123]".toArray)).successful)
     assert(!comsSection(new CharArrayReader("{5[123]".toArray)).successful)
+  }
+}
+
+class ElmsParserTest extends FlatSpec with TestBase with ShouldMatchers {
+
+  behavior of "elmType"
+
+  it should "parse all forms of element types" in {
+    implicit val parserToTest = elmType
+    parsingAll("R") should equal(RealType)
+    parsingAll("ID") should equal(IdType)
+    parsingAll("AN") should equal(AlphaNumericType)
+    parsingAll("A") should equal(AlphaType)
+    parsingAll("DT") should equal(DateType)
+    parsingAll("TM") should equal(TimeType)
+    parsingAll("B") should equal(BinaryType)
+    parsingAll("N") should equal(NumberType)
+    parsingAll("N0") should equal(IntegerType)
+    parsingAll("N1") should equal(DecimalType(1))
+    parsingAll("N5") should equal(DecimalType(5))
+    parsingAll("N9") should equal(DecimalType(9))
+    parsingLead("IDA") should equal(IdType)
+    parsingLead("ANB") should equal(AlphaNumericType)
+    parsingLead("AB") should equal(AlphaType)
+    parsingLead("DTA") should equal(DateType)
+    parsingLead("TMA") should equal(TimeType)
+    parsingLead("BA") should equal(BinaryType)
+    parsingLead("NA") should equal(NumberType)
+    parsingLead("N012") should equal(IntegerType)
+    parsingLead("N101") should equal(DecimalType(1))
+    parsingLead("N51") should equal(DecimalType(5))
+    parsingLead("N932") should equal(DecimalType(9))
+  }
+
+  it should "fail on other values" in {
+    implicit val parserToTest = elmType
+    parsing("TX") should not be ('successful)
+    parsing("XAB") should not be ('successful)
+  }
+
+  behavior of "elmDef"
+
+  it should "parse element definitions" in {
+    implicit val parserToTest = elmDef
+    parsingAll("1=AN,1,13") should equal(ElementDef("1", AlphaNumericType, 1, 13))
+    parsingAll("2=N0,1,6") should equal(ElementDef("2", IntegerType, 1, 6))
+    parsingAll("4=ID,3,3") should equal(ElementDef("4", IdType, 3, 3))
+    parsingAll("6=DT,6,6") should equal(ElementDef("6", DateType, 6, 6))
+    parsingAll("0001=A,4,4") should equal(ElementDef("0001", AlphaType, 4, 4))
+    parsingAll("0002=N,1,1") should equal(ElementDef("0002", NumberType, 1, 1))
+    parsingAll("0073=A,1,1") should equal(ElementDef("0073", AlphaType, 1, 1))
+    parsingAll("18=TM,4,4") should equal(ElementDef("18", TimeType, 4, 4))
+    parsingAll("58=N2,1,9") should equal(ElementDef("58", DecimalType(2), 1, 9))
+    parsingAll("60=R,1,9") should equal(ElementDef("60", RealType, 1, 9))
+  }
+
+  it should "fail on other values" in {
+    implicit val parserToTest = elmDef
+    parsing("1=AX,1,13") should not be ('successful)
+    parsing("=AN,1,13") should not be ('successful)
+  }
+  
+  behavior of "elmsSection"
+
+  it should "parse a .ELMS section with zero or more definitions" in {
+    implicit val parserToTest = elmsSection
+    val elm1 = ElementDef("1", AlphaNumericType, 1, 13)
+    val elm2 = ElementDef("2", IntegerType, 1, 6)
+    val elm3 = ElementDef("0001", AlphaType, 4, 4)
+    val elm4 = ElementDef("58", DecimalType(2), 1, 9)
+    parsingAll(s".ELMS${lineEnd}1=AN,1,13") should equal(Seq(elm1))
+    parsingAll(s".ELMS${lineEnd}1=AN,1,13${lineEnd}") should equal(Seq(elm1))
+    parsingAll(s".ELMS${lineEnd}1=AN,1,13${lineEnd}2=N0,1,6") should equal(Seq(elm1, elm2))
+    parsingAll(s".ELMS${lineEnd}1=AN,1,13${lineEnd}2=N0,1,6${lineEnd}0001=A,4,4") should equal(Seq(elm1, elm2, elm3))
+    parsingAll(s".ELMS${lineEnd}1=AN,1,13${lineEnd}2=N0,1,6${lineEnd}0001=A,4,4${lineEnd}58=N2,1,9") should equal(Seq(elm1, elm2, elm3, elm4))
+  }
+
+  it should "fail on other values" in {
+    implicit val parserToTest = elmDef
+    parsing("ELMS=[123") should not be ('successful)
+    parsing(s".ELMS${lineEnd}1=AN,13") should not be ('successful)
+    parsing(s".ELMS${lineEnd}1=AN,1,13,") should not be ('successful)
   }
 }

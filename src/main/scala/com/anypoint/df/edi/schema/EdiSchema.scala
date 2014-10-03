@@ -20,17 +20,17 @@ object EdiSchema {
   // TODO: add dependency rules to schema representation
 
   // definitions for element types
-  abstract class ElementType(code: String)
-  case object RealType extends ElementType("R") // digits with explicit decimal point (if anywhere except rightmost)
-  case object IdType extends ElementType("ID")  // unique value from predefined list (X12 only?)
-  case object AlphaNumericType extends ElementType("AN") // alphanumerics and spaces, leading spaces preserved
-  case object AlphaType extends ElementType("A")    // alphas and spaces, leading spaces preserved
-  case object DateType extends ElementType("DT")    // date in YYMMDD form
-  case object TimeType extends ElementType("TM")    // time in HHMMSSd..d form (seconds and decimal seconds optional)
-  case object BinaryType extends ElementType("B")   // binary octets
-  case object NumberType extends ElementType("N")   // digits, optional decimal, optional minus (decimal requires leading/training digit(s))
-  case object IntegerType extends ElementType("N0") // integer digits, optional minus
-  case class DecimalType(places: Int) extends ElementType("N") // digits with implied decimal point, optional minus
+  abstract class ElementType(val lead: Char, val rest: Int)
+  case object RealType extends ElementType('R', -1) // digits with explicit decimal point (if anywhere except rightmost)
+  case object IdType extends ElementType('I', 'D')  // unique value from predefined list (X12 only?)
+  case object AlphaNumericType extends ElementType('A', 'N') // alphanumerics and spaces, leading spaces preserved
+  case object AlphaType extends ElementType('A', -1)    // alphas and spaces, leading spaces preserved
+  case object DateType extends ElementType('D', 'T')    // date in YYMMDD form
+  case object TimeType extends ElementType('T', 'M')    // time in HHMMSSd..d form (seconds and decimal seconds optional)
+  case object BinaryType extends ElementType('B', -1)   // binary octets
+  case object NumberType extends ElementType('N', -1)   // digits, optional decimal, optional minus (decimal requires leading/training digit(s))
+  case object IntegerType extends ElementType('N', '0') // integer digits, optional minus
+  case class DecimalType(places: Int) extends ElementType('N', 0) // digits with implied decimal point, optional minus
   
   abstract class ValueBase(val ident: String, val fullName: String, val minOccurs: Int, val maxOccurs: Int)
   case class SimpleValue(id: String, name: String, val dataType: ElementType, val minLength: Int, val maxLength: Int, min: Int, max: Int) extends ValueBase(id, name, min, max)
