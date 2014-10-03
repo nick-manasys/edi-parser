@@ -389,64 +389,64 @@ class SegsParserTest extends FlatSpec {
     assert(NoModification === result3.get)
   }
   
-  behavior of "segMaskItem"
+  behavior of "maskItem"
   
   it should "parse a mask item with or without modification" in {
-    val result1 = segMaskItem(new CharArrayReader(".*5".toArray))
+    val result1 = maskItem(new CharArrayReader(".*5".toArray))
     assert(result1.successful)
     assert(MaskItem(InheritMask, UseMaskModification(5)) === result1.get)
-    val result2 = segMaskItem(new CharArrayReader("+M".toArray))
+    val result2 = maskItem(new CharArrayReader("+M".toArray))
     assert(result2.successful)
     assert(MaskItem(UsedMask, PropertiesMaskModification(Some(MandatoryRequirement), DefaultMinMaxPair)) === result2.get)
-    val result3 = segMaskItem(new CharArrayReader("$F".toArray))
+    val result3 = maskItem(new CharArrayReader("$F".toArray))
     assert(result3.successful)
     assert(MaskItem(RecommendedMask, PropertiesMaskModification(Some(FunctionalRequirement), DefaultMinMaxPair)) === result3.get)
-    val result4 = segMaskItem(new CharArrayReader("-M[]".toArray))
+    val result4 = maskItem(new CharArrayReader("-M[]".toArray))
     assert(result4.successful)
     assert(MaskItem(NotRecommendMask, PropertiesMaskModification(Some(MandatoryRequirement), DefaultMinMaxPair)) === result4.get)
-    val result5 = segMaskItem(new CharArrayReader("&M[:5]".toArray))
+    val result5 = maskItem(new CharArrayReader("&M[:5]".toArray))
     assert(result5.successful)
     assert(MaskItem(DependentMask, PropertiesMaskModification(Some(MandatoryRequirement), MinMaxPair(None, Some(5)))) === result5.get)
-    val result6 = segMaskItem(new CharArrayReader(".".toArray))
+    val result6 = maskItem(new CharArrayReader(".".toArray))
     assert(result6.successful)
     assert(MaskItem(InheritMask, NoModification) === result6.get)
   }
   
   it should "fail on other values" in {
-    assert(!segMaskItem(new CharArrayReader("!".toArray)).successful)
-    assert(!segMaskItem(new CharArrayReader("(4".toArray)).successful)
-    assert(!segMaskItem(new CharArrayReader("*abc123".toArray)).successful)
+    assert(!maskItem(new CharArrayReader("!".toArray)).successful)
+    assert(!maskItem(new CharArrayReader("(4".toArray)).successful)
+    assert(!maskItem(new CharArrayReader("*abc123".toArray)).successful)
   }
   
-  behavior of "segMask"
+  behavior of "maskDef"
   
   it should "parse a list of mask items" in {
     val item1 = MaskItem(InheritMask, NoModification)
     val item2 = MaskItem(InheritMask, UseMaskModification(5))
     val item3 = MaskItem(DependentMask, PropertiesMaskModification(Some(MandatoryRequirement), MinMaxPair(None, Some(5))))
-    val result1 = segMask(new CharArrayReader("..*5".toArray))
+    val result1 = maskDef(new CharArrayReader("..*5".toArray))
     assert(result1.successful)
     assert(Mask(Seq(item1, item2)) === result1.get)
-    val result2 = segMask(new CharArrayReader("..*5&M[:5]".toArray))
+    val result2 = maskDef(new CharArrayReader("..*5&M[:5]".toArray))
     assert(result2.successful)
     assert(Mask(Seq(item1, item2, item3)) === result2.get)
-    val result3 = segMask(new CharArrayReader("..*5.".toArray))
+    val result3 = maskDef(new CharArrayReader("..*5.".toArray))
     assert(result3.successful)
     assert(Mask(Seq(item1, item2, item1)) === result3.get)
-    val result4 = segMask(new CharArrayReader("....".toArray))
+    val result4 = maskDef(new CharArrayReader("....".toArray))
     assert(result4.successful)
     assert(Mask(Seq(item1, item1, item1, item1)) === result4.get)
   }
   
   it should "return empty mask on other values" in {
     val empty = Mask(Nil)
-    val result1 = segMask(new CharArrayReader("!".toArray))
+    val result1 = maskDef(new CharArrayReader("!".toArray))
     assert(result1.successful)
     assert(empty === result1.get)
-    val result2 = segMask(new CharArrayReader("(4".toArray))
+    val result2 = maskDef(new CharArrayReader("(4".toArray))
     assert(result2.successful)
     assert(empty === result2.get)
-    val result3 = segMask(new CharArrayReader("*abc123".toArray))
+    val result3 = maskDef(new CharArrayReader("*abc123".toArray))
     assert(result3.successful)
     assert(empty === result3.get)
   }
@@ -507,36 +507,36 @@ class SegsParserTest extends FlatSpec {
     assert(!depNote(new CharArrayReader("(1,2".toArray)).successful)
   }
   
-  behavior of "simpleValue"
+  behavior of "segSimple"
   
   it should "parse all forms of simple value items" in {
-    val result1 = simpleValue(new CharArrayReader("[123]".toArray))
+    val result1 = segSimple(new CharArrayReader("[123]".toArray))
     assert(result1.successful)
     assert(BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1) === result1.get)
-    val result2 = simpleValue(new CharArrayReader("[123,M]".toArray))
+    val result2 = segSimple(new CharArrayReader("[123,M]".toArray))
     assert(result2.successful)
     assert(BaseValue("123", None, None, DefaultMinMaxPair, MandatoryRequirement, 1) === result2.get)
-    val result3 = simpleValue(new CharArrayReader("[.123,M,100]".toArray))
+    val result3 = segSimple(new CharArrayReader("[.123,M,100]".toArray))
     assert(result3.successful)
     assert(BaseValue("123", Some(NotUsedMark), None, DefaultMinMaxPair, MandatoryRequirement, 100) === result3.get)
-    val result4 = simpleValue(new CharArrayReader("[$123@1,M,100]".toArray))
+    val result4 = segSimple(new CharArrayReader("[$123@1,M,100]".toArray))
     assert(result4.successful)
     assert(BaseValue("123", Some(RecommendedMark), Some(1), DefaultMinMaxPair, MandatoryRequirement, 100) === result4.get)
-    val result5 = simpleValue(new CharArrayReader("[-C123,,10]".toArray))
+    val result5 = segSimple(new CharArrayReader("[-C123,,10]".toArray))
     assert(result5.successful)
     assert(BaseValue("C123", Some(NotRecommendMark), None, DefaultMinMaxPair, RequirementDefault, 10) === result5.get)
-    val result6 = simpleValue(new CharArrayReader("[123;:5,M]".toArray))
+    val result6 = segSimple(new CharArrayReader("[123;:5,M]".toArray))
     assert(result6.successful)
     assert(BaseValue("123", None, None, MinMaxPair(None, Some(5)), MandatoryRequirement, 1) === result6.get)
-    val result7 = simpleValue(new CharArrayReader("[123@5;3:10,M]".toArray))
+    val result7 = segSimple(new CharArrayReader("[123@5;3:10,M]".toArray))
     assert(result7.successful)
     assert(BaseValue("123", None, Some(5), MinMaxPair(Some(3), Some(10)), MandatoryRequirement, 1) === result7.get)
   }
   
   it should "fail on other values" in {
-    assert(!simpleValue(new CharArrayReader("123[AA]".toArray)).successful)
-    assert(!simpleValue(new CharArrayReader("[,]".toArray)).successful)
-    assert(!simpleValue(new CharArrayReader("[ABC/]".toArray)).successful)
+    assert(!segSimple(new CharArrayReader("123[AA]".toArray)).successful)
+    assert(!segSimple(new CharArrayReader("[,]".toArray)).successful)
+    assert(!segSimple(new CharArrayReader("[ABC/]".toArray)).successful)
   }
   
   behavior of "repGroup"
