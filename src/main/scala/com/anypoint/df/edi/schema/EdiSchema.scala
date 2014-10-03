@@ -8,14 +8,14 @@ object EdiSchema {
   val UsageDefault = FiniteUsage(1)
   
   // dependency notes - note syntax rules are different for X12, using only single character
-  abstract class DependencyType(code: String)
-  case object ExactlyOneDependency extends DependencyType("D1")
-  case object AllOrNoneDependency extends DependencyType("D2")
-  case object OneOrMoreDependency extends DependencyType("D3")
-  case object OneOrNoneDependency extends DependencyType("D4")
-  case object IfFirstAllDependency extends DependencyType("D5")
-  case object IfFirstAtLeastOneDependency extends DependencyType("D6")
-  case object IfFirstNoneDependency extends DependencyType("D7")
+  abstract class DependencyType(val code: Char)
+  case object ExactlyOneDependency extends DependencyType('1')
+  case object AllOrNoneDependency extends DependencyType('2')
+  case object OneOrMoreDependency extends DependencyType('3')
+  case object OneOrNoneDependency extends DependencyType('4')
+  case object IfFirstAllDependency extends DependencyType('5')
+  case object IfFirstAtLeastOneDependency extends DependencyType('6')
+  case object IfFirstNoneDependency extends DependencyType('7')
   case class DependencyNote(kind: DependencyType, items: Seq[Int])
   // TODO: add dependency rules to schema representation
 

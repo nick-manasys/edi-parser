@@ -31,8 +31,6 @@ object MessageParser extends RegexParsers {
   case object NotRecommendMark extends UsageNotationMark('-')
   case object DependentMark extends UsageNotationMark('&')
 
-  case class SegmentGroup(val ordNum: Int, val loopId: String, val repCount: MaximumUsage)
-
   /** Every kind of item in a transaction definition. */
   sealed trait TransactionItem
   /** Position increment change. */
@@ -55,7 +53,7 @@ object MessageParser extends RegexParsers {
 
   // Grammar for .SETS section
   //
-  // sets := ".SETS\n" transSet*
+  // setsSection := ".SETS\n" transSet*
   // transSet := id "=" table* "\n"
   // table := "^"+ transItem*
   // transItem := segRef | group | increment
@@ -74,7 +72,7 @@ object MessageParser extends RegexParsers {
 
   // simple base parsers
   val posInt: Parser[Int] = """(0|[1-9]\d*)""".r ^^ { _.toInt }
-  val position: Parser[String] = """\d+""".r
+  val position: Parser[Int] = """\d+""".r ^^ { _.toInt }
   val id: Parser[String] = """\w+""".r
   val maskNum: Parser[Int] = "*" ~> posInt
   val ordNum: Parser[Int] = "@" ~> posInt
@@ -132,7 +130,7 @@ object MessageParser extends RegexParsers {
     case _ :: tail => firstSegment(tail)
     case Nil => throw new IllegalStateException("No segment definition in item list")
   }
-  val group: Parser[Group] = ordNum.? ~ ("{" ~> groupLead.? ~ (transItem+) <~ "}") ^^ {
+  val group: Parser[Group] = ordNum.? ~ ("{" ~> groupLead.? ~ transItem.+ <~ "}") ^^ {
     case opord ~ (Some((opid, rep)) ~ items) => {
       val first = firstSegment(items)
       Group(opid getOrElse first.id, first.mark, None, first.require, rep, items)
@@ -153,34 +151,151 @@ object MessageParser extends RegexParsers {
   val transItem: Parser[TransactionItem] = segRef | group | increment
   
   // parser for table = "^"+ transItem*
-  val table: Parser[TransactionTable] = ("""\^""".r+) ~> (transItem+) ^^ {
+  val table: Parser[TransactionTable] = ("""\^""".r+) ~> transItem.+ ^^ {
     case list => TransactionTable(list)
   }
   
   // parser for transaction set = id "=" table* "\n"
-  val transSet: Parser[TransactionSet] = (id <~ "=") ~ (table+) <~ separator ^^ {
+  val transSet: Parser[TransactionSet] = (id <~ "=") ~ table.+ <~ separator ^^ {
     case id ~ tables => TransactionSet(id, tables)
   }
   
   // parser for .SETS section = ".SETS\n" transSet*
-  val sets: Parser[Seq[TransactionSet]] = ".SETS" ~> separator ~> (transSet*)
+  val setsSection: Parser[Seq[TransactionSet]] = ".SETS" ~> separator ~> transSet.*
   
-  abstract class ValueItem(ordinal: Int, usage: SegmentRequirement, repeat: Int, minLength: Int, maxLength: Int)
-  case class ElementValue(ordinal: Int, etype: ElementType, usage: SegmentRequirement, repeat: Int, minLength: Int, maxLength: Int) extends ValueItem(ordinal, usage, repeat, minLength, maxLength)
-  case class CompositeValue(ordinal: Int, values: Seq[ValueItem], rules: Seq[DependencyNote], usage: SegmentRequirement, repeat: Int, minLength: Int, maxLength: Int) extends ValueItem(ordinal, usage, repeat, minLength, maxLength)
-  case class Segment(ident: String, values: Seq[ValueItem], rules: Seq[DependencyNote])
-
+  // definitions for .SEGS and COMS
+  sealed trait ValueListItem
+  case class GroupValue(val repeatCount: Int, val items: Seq[ValueListItem]) extends ValueListItem
+  case class BaseValue(val ident: String, val mark: Option[UsageNotationMark], val ordinal: Option[Int], val lengths: MinMaxPair, val usage: SegmentRequirement, val repeat: Int) extends ValueListItem
+  case class SegmentDef(val ident: String, val values: Seq[ValueListItem], val rules: Seq[DependencyNote], val masks: Seq[Mask])
+  case class CompositeDef(val ident: String, val values: Seq[ValueListItem], val rules: Seq[DependencyNote])
+  
+  sealed abstract class UsageNotationMask(val code: Char)
+  case object InheritMask extends UsageNotationMask('.')
+  case object NotUsedMask extends UsageNotationMask('#')
+  case object MustUseMask extends UsageNotationMask('@')
+  case object RecommendedMask extends UsageNotationMask('$')
+  case object NotRecommendMask extends UsageNotationMask('-')
+  case object DependentMask extends UsageNotationMask('&')
+  case object UsedMask extends UsageNotationMask('+')
+  
+  case class MaskItem(val usage: UsageNotationMask, val modify: MaskItemModification)
+  sealed trait MaskItemModification
+  case object NoModification extends MaskItemModification
+  case class UseMaskModification(val maskIndex: Int) extends MaskItemModification
+  case class PropertiesMaskModification(val segReq: Option[SegmentRequirement], val lengths: MinMaxPair) extends MaskItemModification
+  case class Mask(val items: Seq[MaskItem])
+  
+  case class MinMaxPair(val min: Option[Int], val max: Option[Int])
+  val DefaultMinMaxPair = MinMaxPair(None, None)
+  
   // Grammar for .SEGS section
   //
-  // segs := ".SEGS\n" segDef*
+  // segsSection := ".SEGS\n" segDef*
   // segDef := id "=" valueItem+ ("+" depNote+)? ("," segMask)*"\n"
   // valueItem := simpleValue | repGroup
-  // simpleValue := "[" useMark? id ordNum? (";" posInt? (":" posInt?)?) ("," stdReq? posInt?)? "]"
+  // simpleValue := "[" useMark? id ordNum? (";" minMax) ("," stdReq? posInt?)? "]"
+  // minMax := posInt? (":" posInt?)?
   // repGroup := "{" posInt valueItem* "}"
-  
-  
+  // depNote := "D" depType depList
+  // depList := "(" posInt ("," posInt)* ")"
+  // depType := "1" | "2" | "3" | "4" | "5" | "6" | "7"
+  // segMaskItem := (useMask maskMod?)*
+  // segMask := segMaskItem*
+  // maskMod := maskNum | (stdReq? ("[" minMax "]")?)
+  // useMask := "." | "#" | "@" | "$" | "-" | "&" | "+"
 
+  // parser for usage marker character in mask
+  val useMask = new Parser[UsageNotationMask] {
+    def apply(input: Input): ParseResult[UsageNotationMask] = {
+      if (input.atEnd) Failure("End of input", input)
+      else input.first match {
+        case InheritMask.code => Success(InheritMask, input.rest)
+        case NotUsedMask.code => Success(NotUsedMask, input.rest)
+        case MustUseMask.code => Success(MustUseMask, input.rest)
+        case RecommendedMask.code => Success(RecommendedMask, input.rest)
+        case NotRecommendMask.code => Success(NotRecommendMask, input.rest)
+        case DependentMask.code => Success(DependentMask, input.rest)
+        case UsedMask.code => Success(UsedMask, input.rest)
+        case _ => Failure("No match", input)
+      }
+    }
+  }
+  
+  // parser for minimum/maximum length pair = posInt? (":" posInt?)?
+  val minMax: Parser[MinMaxPair] = posInt.? ~ (":" ~> posInt?).? ^^ {
+    case None ~ None => DefaultMinMaxPair
+    case opmin ~ opopmax => MinMaxPair(opmin, opopmax getOrElse None)
+  }
+  
+  // parser for segment modification in mask = maskNum | (stdReq? ("[" minMax "]")?)
+  val maskMod: Parser[MaskItemModification] = maskNum.? ~ stdReq.? ~ ("[" ~> minMax <~ "]").? ^^ {
+    case Some(mnum) ~ None ~ None => UseMaskModification(mnum)
+    case None ~ None ~ None => NoModification
+    case None ~ opreq ~ opmm => PropertiesMaskModification(opreq, opmm getOrElse DefaultMinMaxPair)
+    // how to handle the error case where both mask and modification used?
+  }
+  
+  // parser for segment mask item = useMask maskMod?
+  val segMaskItem: Parser[MaskItem] = useMask ~ maskMod ^^ {
+    case use ~ mod => MaskItem(use, mod)
+  }
+  
+  // parser for segment mask = segMaskItem*
+  val segMask: Parser[Mask] = segMaskItem.* ^^ {
+    case items => Mask(items)
+  }
+  
+  // parser for dependency type
+  val depType = new Parser[DependencyType] {
+    def apply(input: Input): ParseResult[DependencyType] = {
+      if (input.atEnd) Failure("End of input", input)
+      else input.first match {
+        case ExactlyOneDependency.code => Success(ExactlyOneDependency, input.rest)
+        case AllOrNoneDependency.code => Success(AllOrNoneDependency, input.rest)
+        case OneOrMoreDependency.code => Success(OneOrMoreDependency, input.rest)
+        case OneOrNoneDependency.code => Success(OneOrNoneDependency, input.rest)
+        case IfFirstAllDependency.code => Success(IfFirstAllDependency, input.rest)
+        case IfFirstAtLeastOneDependency.code => Success(IfFirstAtLeastOneDependency, input.rest)
+        case IfFirstNoneDependency.code => Success(IfFirstNoneDependency, input.rest)
+        case _ => Failure("No match", input)
+      }
+    }
+  }
+  
+  // parser for dependency note item list = "(" id ("," id)* ")"
+  val depList: Parser[Seq[Int]] = "(" ~> rep1sep(position, ",") <~ ")"
+  
+  // parser for dependency note = "D" depType depList
+  val depNote: Parser[DependencyNote] = "D" ~> depType ~ depList ^^ {
+    case typ ~ list => DependencyNote(typ, list)
+  }
+  
+  // parser for simple value = "[" useMark? id ordNum? (";" minMax) ("," stdReq? posInt?)? "]"
+  val simpleValue: Parser[BaseValue] = "[" ~> useMark.? ~ id ~ ordNum.? ~ (";" ~> minMax).? ~ ("," ~> stdReq.? ~ ("," ~> posInt.?).?).? <~ "]" ^^ {
+    case opuse ~ id ~ opord ~ opmm ~ Some(opreq ~ Some(opmax)) => BaseValue(id, opuse, opord, opmm getOrElse DefaultMinMaxPair, opreq getOrElse RequirementDefault, opmax getOrElse 1)
+    case opuse ~ id ~ opord ~ opmm ~ Some(opreq ~ None) => BaseValue(id, opuse, opord, opmm getOrElse DefaultMinMaxPair, opreq getOrElse RequirementDefault, 1)
+    case opuse ~ id ~ opord ~ opmm ~ None => BaseValue(id, opuse, opord, opmm getOrElse DefaultMinMaxPair, RequirementDefault, 1)
+  }
+  
+  // parser for repeated group = "{" posInt valueItem* "}"
+  val repGroup: Parser[GroupValue] = "{" ~> posInt ~ valueItem.* <~ "}" ^^ {
+    case rep ~ items => GroupValue(rep, items)
+  }
+  
+  // parser for either simple value or repeated group = simpleValue | repGroup
+  val valueItem: Parser[ValueListItem] = simpleValue | repGroup
+  
+  // parser for segment definition = id "=" valueItem+ ("+" depNote+)? ("," segMask)*"\n"
+  val segDef: Parser[SegmentDef] = (id <~ "=") ~ valueItem.+ ~ ("""\+""".r ~> depNote.+).? ~ ("," ~> segMask).* <~ separator ^^ {
+    case id ~ items ~ opdeps ~ masks => SegmentDef(id, items, opdeps getOrElse Nil, masks)
+  }
+  
+  // parser for .SEGS section segsSection := ".SEGS\n" segDef*
+  val segsSection: Parser[Seq[SegmentDef]] = ".SEGS" ~> separator ~> segDef.*
+  
   // definitions for composites
+
   case class CompositeSubElement(id: Int, ordinal: Int, mark: UsageNotationMark, minUsage: Int, maxUsage: Int, require: SegmentRequirement)
 
   // segments and composites are lists of values
