@@ -539,30 +539,30 @@ class SegsParserTest extends FlatSpec {
     assert(!segSimple(new CharArrayReader("[ABC/]".toArray)).successful)
   }
   
-  behavior of "repGroup"
+  behavior of "segGroup"
   
   it should "parse all forms of repeated item groups" in {
     val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
     val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
     val base3 = BaseValue("123", None, Some(5), MinMaxPair(Some(3), Some(10)), MandatoryRequirement, 1)
-    val result1 = repGroup(new CharArrayReader("{5[123]}".toArray))
+    val result1 = segGroup(new CharArrayReader("{5[123]}".toArray))
     assert(result1.successful)
     assert(GroupValue(5, Seq(base1)) === result1.get)
-    val result2 = repGroup(new CharArrayReader("{5[123][124,M]}".toArray))
+    val result2 = segGroup(new CharArrayReader("{5[123][124,M]}".toArray))
     assert(result2.successful)
     assert(GroupValue(5, Seq(base1, base2)) === result2.get)
-    val result3 = repGroup(new CharArrayReader("{5[123][124,M][123@5;3:10,M]}".toArray))
+    val result3 = segGroup(new CharArrayReader("{5[123][124,M][123@5;3:10,M]}".toArray))
     assert(result3.successful)
     assert(GroupValue(5, Seq(base1, base2, base3)) === result3.get)
-    val result4 = repGroup(new CharArrayReader("{5[123][124,M]{3[124,M]}}".toArray))
+    val result4 = segGroup(new CharArrayReader("{5[123][124,M]{3[124,M]}}".toArray))
     assert(result4.successful)
     assert(GroupValue(5, Seq(base1, base2, GroupValue(3, Seq(base2)))) === result4.get)
   }
   
   it should "fail on other values" in {
-    assert(!repGroup(new CharArrayReader("[123]".toArray)).successful)
-    assert(!repGroup(new CharArrayReader("{[123]}".toArray)).successful)
-    assert(!repGroup(new CharArrayReader("{5[123]".toArray)).successful)
+    assert(!segGroup(new CharArrayReader("[123]".toArray)).successful)
+    assert(!segGroup(new CharArrayReader("{[123]}".toArray)).successful)
+    assert(!segGroup(new CharArrayReader("{5[123]".toArray)).successful)
   }
   
   behavior of "segDef"
@@ -627,5 +627,132 @@ class SegsParserTest extends FlatSpec {
     assert(!segsSection(new CharArrayReader("SEG=[123".toArray)).successful)
     assert(!segsSection(new CharArrayReader("=[123]".toArray)).successful)
     assert(!segsSection(new CharArrayReader("{5[123]".toArray)).successful)
+  }
+}
+
+class ComsParserTest extends FlatSpec {
+  
+  val lineEnd = sys.props("line.separator")
+  
+  behavior of "comSimple"
+  
+  it should "parse all forms of simple value items" in {
+    val result1 = comSimple(new CharArrayReader("[123]".toArray))
+    assert(result1.successful)
+    assert(BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1) === result1.get)
+    val result2 = comSimple(new CharArrayReader("[123,M]".toArray))
+    assert(result2.successful)
+    assert(BaseValue("123", None, None, DefaultMinMaxPair, MandatoryRequirement, 1) === result2.get)
+    val result3 = comSimple(new CharArrayReader("[.123,M]".toArray))
+    assert(result3.successful)
+    assert(BaseValue("123", Some(NotUsedMark), None, DefaultMinMaxPair, MandatoryRequirement, 1) === result3.get)
+    val result4 = comSimple(new CharArrayReader("[$123@1,M]".toArray))
+    assert(result4.successful)
+    assert(BaseValue("123", Some(RecommendedMark), Some(1), DefaultMinMaxPair, MandatoryRequirement, 1) === result4.get)
+    val result5 = comSimple(new CharArrayReader("[-C123,]".toArray))
+    assert(result5.successful)
+    assert(BaseValue("C123", Some(NotRecommendMark), None, DefaultMinMaxPair, RequirementDefault, 1) === result5.get)
+    val result6 = comSimple(new CharArrayReader("[123;:5,M]".toArray))
+    assert(result6.successful)
+    assert(BaseValue("123", None, None, MinMaxPair(None, Some(5)), MandatoryRequirement, 1) === result6.get)
+    val result7 = comSimple(new CharArrayReader("[123@5;3:10,M]".toArray))
+    assert(result7.successful)
+    assert(BaseValue("123", None, Some(5), MinMaxPair(Some(3), Some(10)), MandatoryRequirement, 1) === result7.get)
+  }
+  
+  it should "fail on other values" in {
+    assert(!comSimple(new CharArrayReader("123[AA]".toArray)).successful)
+    assert(!comSimple(new CharArrayReader("[,]".toArray)).successful)
+    assert(!comSimple(new CharArrayReader("[.123,M,100]".toArray)).successful)
+  }
+  
+  behavior of "comGroup"
+  
+  it should "parse all forms of repeated item groups" in {
+    val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
+    val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
+    val base3 = BaseValue("123", None, Some(5), MinMaxPair(Some(3), Some(10)), MandatoryRequirement, 1)
+    val result1 = comGroup(new CharArrayReader("{5[123]}".toArray))
+    assert(result1.successful)
+    assert(GroupValue(5, Seq(base1)) === result1.get)
+    val result2 = comGroup(new CharArrayReader("{5[123][124,M]}".toArray))
+    assert(result2.successful)
+    assert(GroupValue(5, Seq(base1, base2)) === result2.get)
+    val result3 = comGroup(new CharArrayReader("{5[123][124,M][123@5;3:10,M]}".toArray))
+    assert(result3.successful)
+    assert(GroupValue(5, Seq(base1, base2, base3)) === result3.get)
+    val result4 = comGroup(new CharArrayReader("{5[123][124,M]{3[124,M]}}".toArray))
+    assert(result4.successful)
+    assert(GroupValue(5, Seq(base1, base2, GroupValue(3, Seq(base2)))) === result4.get)
+  }
+  
+  it should "fail on other values" in {
+    assert(!comGroup(new CharArrayReader("[123]".toArray)).successful)
+    assert(!comGroup(new CharArrayReader("{[123]}".toArray)).successful)
+    assert(!comGroup(new CharArrayReader("{5[123]".toArray)).successful)
+  }
+  
+  behavior of "comDef"
+  
+  it should "parse lists of items" in {
+    val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
+    val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
+    val base3 = BaseValue("125", None, None, DefaultMinMaxPair, RequirementDefault, 1)
+    val result1 = comDef(new CharArrayReader("COM=[123]".toArray))
+    assert(result1.successful)
+    assert(CompositeDef("COM", Seq(base1), Nil, Nil) === result1.get)
+    val result2 = comDef(new CharArrayReader("COM={5[123][124,M]}".toArray))
+    assert(result2.successful)
+    assert(CompositeDef("COM", Seq(GroupValue(5, Seq(base1, base2))), Nil, Nil) === result2.get)
+    val result3 = comDef(new CharArrayReader("COM=[123]{5[123][124,M]}[125]".toArray))
+    assert(result3.successful)
+    assert(CompositeDef("COM", Seq(base1, GroupValue(5, Seq(base1, base2)), base3), Nil, Nil) === result3.get)
+  }
+  
+  it should "parse lists of items with masks and/or dependency notes" in {
+    val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
+    val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
+    val base3 = BaseValue("125", None, None, DefaultMinMaxPair, RequirementDefault, 1)
+    val deps = Seq(DependencyNote(OneOrMoreDependency, Seq(1, 2)), DependencyNote(ExactlyOneDependency, Seq(2, 1)))
+    val masks = Seq(Mask(Seq(MaskItem(InheritMask, NoModification), MaskItem(InheritMask, UseMaskModification(5)))), Mask(Seq(MaskItem(NotUsedMask, NoModification), MaskItem(InheritMask, NoModification))))
+    val result1 = comDef(new CharArrayReader("COM=[123][124,M]+D3(001,002)D1(002,001)".toArray))
+    assert(result1.successful)
+    assert(CompositeDef("COM", Seq(base1, base2), deps, Nil) === result1.get)
+    val result2 = comDef(new CharArrayReader("COM=[123][124,M],..*5,#.".toArray))
+    assert(result2.successful)
+    assert(CompositeDef("COM", Seq(base1, base2), Nil, masks) === result2.get)
+    val result3 = comDef(new CharArrayReader("COM=[123][124,M]+D3(001,002)D1(002,001),..*5,#.".toArray))
+    assert(result3.successful)
+    assert(CompositeDef("COM", Seq(base1, base2), deps, masks) === result3.get)
+  }
+  
+  it should "fail on other values" in {
+    assert(!comDef(new CharArrayReader("COM=[123".toArray)).successful)
+    assert(!comDef(new CharArrayReader("=[123]".toArray)).successful)
+    assert(!comDef(new CharArrayReader("{5[123]".toArray)).successful)
+  }
+  
+  behavior of "comsSection"
+  
+  it should "parse a .COMS section with zero or more definitions" in {
+    val base1 = BaseValue("123", None, None, DefaultMinMaxPair, RequirementDefault, 1)
+    val base2 = BaseValue("124", None, None, DefaultMinMaxPair, MandatoryRequirement, 1)
+    val base3 = BaseValue("125", None, None, DefaultMinMaxPair, RequirementDefault, 1)
+    val masks = Seq(Mask(Seq(MaskItem(InheritMask, NoModification), MaskItem(InheritMask, UseMaskModification(5)))), Mask(Seq(MaskItem(NotUsedMask, NoModification), MaskItem(InheritMask, NoModification))))
+    val result1 = comsSection(new CharArrayReader(s".COMS${lineEnd}COM1=[123]".toArray))
+    assert(result1.successful)
+    assert(Seq(CompositeDef("COM1", Seq(base1), Nil, Nil)) === result1.get)
+    val result2 = comsSection(new CharArrayReader(s".COMS${lineEnd}COM1=[123]${lineEnd}COM={5[123][124,M]}".toArray))
+    assert(result2.successful)
+    assert(Seq(CompositeDef("COM1", Seq(base1), Nil, Nil), CompositeDef("COM", Seq(GroupValue(5, Seq(base1, base2))), Nil, Nil)) === result2.get)
+    val result3 = comsSection(new CharArrayReader(s".COMS${lineEnd}COM1=[123]{5[123][124,M]}[125]${lineEnd}COM2=[123][124,M],..*5,#.".toArray))
+    assert(result3.successful)
+    assert(Seq(CompositeDef("COM1", Seq(base1, GroupValue(5, Seq(base1, base2)), base3), Nil, Nil), CompositeDef("COM2", Seq(base1, base2), Nil, masks)) === result3.get)
+  }
+  
+  it should "fail on other values" in {
+    assert(!comsSection(new CharArrayReader("COM=[123".toArray)).successful)
+    assert(!comsSection(new CharArrayReader("=[123]".toArray)).successful)
+    assert(!comsSection(new CharArrayReader("{5[123]".toArray)).successful)
   }
 }

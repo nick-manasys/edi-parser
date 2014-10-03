@@ -193,10 +193,10 @@ object MessageParser extends RegexParsers {
   //
   // segsSection := ".SEGS\n" segDef*
   // segDef := id "=" segItem+ ("+" depNote+)? ("," maskDef)*"\n"
-  // segItem := segSimple | repGroup
+  // segItem := segSimple | segGroup
   // segSimple := "[" useMark? id ordNum? (";" minMax) ("," stdReq? posInt?)? "]"
   // minMax := posInt? (":" posInt?)?
-  // repGroup := "{" posInt segItem* "}"
+  // segGroup := "{" posInt segItem* "}"
   // depNote := "D" depType depList
   // depList := "(" posInt ("," posInt)* ")"
   // depType := "1" | "2" | "3" | "4" | "5" | "6" | "7"
@@ -279,12 +279,12 @@ object MessageParser extends RegexParsers {
   }
   
   // parser for repeated group = "{" posInt segItem* "}"
-  val repGroup: Parser[GroupValue] = "{" ~> posInt ~ segItem.* <~ "}" ^^ {
+  val segGroup: Parser[GroupValue] = "{" ~> posInt ~ segItem.* <~ "}" ^^ {
     case rep ~ items => GroupValue(rep, items)
   }
   
-  // parser for either simple value or repeated group = segSimple | repGroup
-  val segItem: Parser[ValueListItem] = segSimple | repGroup
+  // parser for either simple value or repeated group = segSimple | segGroup
+  val segItem: Parser[ValueListItem] = segSimple | segGroup
   
   // parser for segment definition = id "=" segItem+ ("+" depNote+)? ("," maskDef)*"\n"
   val segDef: Parser[SegmentDef] = (id <~ "=") ~ segItem.+ ~ ("""\+""".r ~> depNote.+).? ~ ("," ~> maskDef).* <~ separator ^^ {
@@ -301,8 +301,9 @@ object MessageParser extends RegexParsers {
   //
   // comsSection := ".COMS\n" comDef*
   // comDef := id "=" compItem+ ("+" depNote+)? ("," maskDef)*"\n"
-  // comItem := compSimple | repGroup
+  // comItem := compSimple | comGroup
   // comSimple := "[" useMark? id ordNum? (";" minMax) ("," stdReq?)? "]"
+  // comGroup := "{" posInt comItem* "}"
   
   // parser for simple value = "[" useMark? id ordNum? (";" minMax) ("," stdReq?)? "]"
   val comSimple: Parser[BaseValue] = "[" ~> useMark.? ~ id ~ ordNum.? ~ (";" ~> minMax).? ~ ("," ~> stdReq.?).? <~ "]" ^^ {
@@ -315,8 +316,8 @@ object MessageParser extends RegexParsers {
     case rep ~ items => GroupValue(rep, items)
   }
   
-  // parser for either simple value or repeated group = comSimple | repGroup
-  val comItem: Parser[ValueListItem] = comSimple | repGroup
+  // parser for either simple value or repeated group = comSimple | comGroup
+  val comItem: Parser[ValueListItem] = comSimple | comGroup
   
   // parser for composite definition = id "=" comItem+ ("+" depNote+)? ("," maskDef)*"\n"
   val comDef: Parser[CompositeDef] = (id <~ "=") ~ comItem.+ ~ ("""\+""".r ~> depNote.+).? ~ ("," ~> maskDef).* <~ separator ^^ {
