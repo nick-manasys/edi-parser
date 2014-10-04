@@ -42,96 +42,77 @@ class SetsParserTest extends FlatSpec with TestBase with ShouldMatchers {
   it should "parse a zero value" in {
     implicit val parserToTest = posInt
     parsingAll("0") should equal(0)
-    //    val result = posInt(new CharArrayReader("0".toArray))
-    //    assert(result.successful)
-    //    assert(0 === result.get)
   }
 
   it should "parse positive values" in {
-    val result1 = posInt(new CharArrayReader("1".toArray))
-    assert(result1.successful)
-    assert(1 === result1.get)
-    val result2 = posInt(new CharArrayReader("814371".toArray))
-    assert(result2.successful)
-    assert(814371 === result2.get)
+    implicit val parserToTest = posInt
+    parsingAll("1") should equal(1)
+    parsingAll("814371") should equal(814371)
   }
 
   it should "fail on other values" in {
-    assert(!posInt(new CharArrayReader("".toArray)).successful)
-    assert(!posInt(new CharArrayReader("-4".toArray)).successful)
-    assert(!posInt(new CharArrayReader("abc123".toArray)).successful)
+    implicit val parserToTest = posInt
+    parsing("")  should not be ('successful)
+    parsing("-4")  should not be ('successful)
+    parsing("abc123")  should not be ('successful)
   }
 
   behavior of "position"
 
   it should "parse number values" in {
-    val result1 = position(new CharArrayReader("1".toArray))
-    assert(result1.successful)
-    assert(1 === result1.get)
-    val result2 = position(new CharArrayReader("814371".toArray))
-    assert(result2.successful)
-    assert(814371 === result2.get)
-    val result3 = position(new CharArrayReader("0410".toArray))
-    assert(result3.successful)
-    assert(410 === result3.get)
+    implicit val parserToTest = position
+    parsingAll("1") should equal(1)
+    parsingAll("814371") should equal(814371)
+    parsingAll("0410") should equal(410)
   }
 
   it should "fail on other values" in {
-    assert(!position(new CharArrayReader("".toArray)).successful)
-    assert(!position(new CharArrayReader("-4".toArray)).successful)
-    assert(!position(new CharArrayReader("abc123".toArray)).successful)
+    implicit val parserToTest = position
+    parsing("")  should not be ('successful)
+    parsing("-4")  should not be ('successful)
+    parsing("abc123")  should not be ('successful)
   }
 
   behavior of "id"
 
   it should "parse alphanumeric values" in {
-    val result1 = id(new CharArrayReader("1abcd".toArray))
-    assert(result1.successful)
-    assert("1abcd" === result1.get)
-    val result2 = id(new CharArrayReader("x814371".toArray))
-    assert(result2.successful)
-    assert("x814371" === result2.get)
-    val result3 = id(new CharArrayReader("0ab410".toArray))
-    assert(result3.successful)
-    assert("0ab410" === result3.get)
+    implicit val parserToTest = id
+    parsingAll("1abcd") should equal("1abcd")
+    parsingAll("x814371") should equal("x814371")
+    parsingAll("0ab410") should equal("0ab410")
   }
 
   it should "fail on other values" in {
-    assert(!id(new CharArrayReader("".toArray)).successful)
-    assert(!id(new CharArrayReader("-4".toArray)).successful)
-    assert(!id(new CharArrayReader("*abc123".toArray)).successful)
+    implicit val parserToTest = id
+    parsing("")  should not be ('successful)
+    parsing("-4")  should not be ('successful)
+    parsing("*abc123")  should not be ('successful)
   }
 
   "maskNum" should "parse a mask number" in {
-    val result = maskNum(new CharArrayReader("*5".toArray))
-    assert(result.successful)
-    assert(5 === result.get)
+    implicit val parserToTest = maskNum
+    parsingAll("*5") should equal(5)
   }
 
   "ordNum" should "parse an ordinal number" in {
-    val result = ordNum(new CharArrayReader("@5".toArray))
-    assert(result.successful)
-    assert(5 === result.get)
+    implicit val parserToTest = ordNum
+    parsingAll("@5") should equal(5)
   }
 
   behavior of "useMark"
 
-  it should "parse a mark character" in {
-    val result1 = useMark(new CharArrayReader(".adadf".toArray))
-    assert(result1.successful)
-    assert(NotUsedMark === result1.get)
-    val result2 = useMark(new CharArrayReader("!814371".toArray))
-    assert(result2.successful)
-    assert(MustUseMark === result2.get)
-    val result3 = useMark(new CharArrayReader("$0ab410".toArray))
-    assert(result3.successful)
-    assert(RecommendedMark === result3.get)
+  it should "parse a leading mark character" in {
+    implicit val parserToTest = useMark
+    parsingLead(".adadf") should equal(NotUsedMark)
+    parsingLead("!814371") should equal(MustUseMark)
+    parsingLead("$0ab410") should equal(RecommendedMark)
   }
 
   it should "fail on other values" in {
-    assert(!useMark(new CharArrayReader("".toArray)).successful)
-    assert(!useMark(new CharArrayReader("(4".toArray)).successful)
-    assert(!useMark(new CharArrayReader("*abc123".toArray)).successful)
+    implicit val parserToTest = useMark
+    parsing("")  should not be ('successful)
+    parsing("(4")  should not be ('successful)
+    parsing("*abc123")  should not be ('successful)
   }
 
   behavior of "segReq"
