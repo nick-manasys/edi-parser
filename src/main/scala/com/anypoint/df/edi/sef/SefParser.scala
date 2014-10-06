@@ -13,9 +13,9 @@ object MessageParser extends RegexParsers {
   
   import com.anypoint.df.edi.schema.EdiSchema._
   
-  private val eoi = """\z""".r
-  private val eol = sys.props("line.separator").r
-  private val separator = eoi | eol
+  sealed trait Section
+  
+  private val separator = """\z|\n""".r
   override val skipWhitespace = false
   
   sealed abstract class SegmentRequirement(val code: Char)
@@ -50,6 +50,8 @@ object MessageParser extends RegexParsers {
   case class TransactionTable(val comps: Seq[TransactionItem])
   
   case class TransactionSet(val ident: String, val tables: Seq[TransactionTable])
+  
+  case class TransactionsSection(val defs: Seq[TransactionSet]) extends Section
 
   // Grammar for .SETS section
   //
@@ -161,7 +163,9 @@ object MessageParser extends RegexParsers {
   }
   
   // parser for .SETS section = ".SETS\n" transSet*
-  val setsSection: Parser[Seq[TransactionSet]] = ".SETS" ~> separator ~> transSet.*
+  val setsSection: Parser[TransactionsSection] = ".SETS" ~> separator ~> transSet.* ^^ {
+    case sets => TransactionsSection(sets)
+  }
   
   //
   // Definitions for .SEGS and .COMS sections
@@ -170,6 +174,9 @@ object MessageParser extends RegexParsers {
   case class BaseValue(val ident: String, val mark: Option[UsageNotationMark], val ordinal: Option[Int], val lengths: MinMaxPair, val usage: SegmentRequirement, val repeat: Int) extends ValueListItem
   case class SegmentDef(val ident: String, val values: Seq[ValueListItem], val rules: Seq[DependencyNote], val masks: Seq[Mask])
   case class CompositeDef(val ident: String, val values: Seq[ValueListItem], val rules: Seq[DependencyNote], val masks: Seq[Mask])
+  
+  case class SegmentsSection(val defs: Seq[SegmentDef]) extends Section
+  case class CompositesSection(val defs: Seq[CompositeDef]) extends Section
   
   sealed abstract class UsageNotationMask(val code: Char)
   case object InheritMask extends UsageNotationMask('.')
@@ -293,7 +300,9 @@ object MessageParser extends RegexParsers {
   }
   
   // parser for .SEGS section = ".SEGS\n" segDef*
-  val segsSection: Parser[Seq[SegmentDef]] = ".SEGS" ~> separator ~> segDef.*
+  val segsSection: Parser[SegmentsSection] = ".SEGS" ~> separator ~> segDef.* ^^ {
+    case defs => SegmentsSection(defs)
+  }
   
   // Grammar for .COMS section
   //
@@ -326,11 +335,15 @@ object MessageParser extends RegexParsers {
   }
   
   // parser for .COMS section = ".COMS\n" comDef*
-  val comsSection: Parser[Seq[CompositeDef]] = ".COMS" ~> separator ~> comDef.*
+  val comsSection: Parser[CompositesSection] = ".COMS" ~> separator ~> comDef.* ^^ {
+    case defs => CompositesSection(defs)
+  }
   
   //
   // Definitions for .ELMS section
   case class ElementDef(val id: String, val dataType: ElementType, val minLength: Int, val maxLength: Int)
+  
+  case class ElementsSection(val elements: Seq[ElementDef]) extends Section
   
   // Grammar for .ELMS section
   //
@@ -375,5 +388,24 @@ object MessageParser extends RegexParsers {
   }
   
   // parser for .ELMS section = ".ELMS\n" elmDef*
-  val elmsSection: Parser[Seq[ElementDef]] = ".ELMS" ~> separator ~> elmDef.*
+  val elmsSection: Parser[ElementsSection] = ".ELMS" ~> separator ~> elmDef.* ^^ {
+    case defs => ElementsSection(defs)
+  }
+  
+  //
+  // Parsers for all the ignored sections
+  case class IgnoredSection() extends Section
+  
+  val discardLine: Parser[Option[Any]] = """.*""" ~> separator ^^ {
+    case _ => println("matched"); None
+  }
+    
+  val ignoredSection: Parser[IgnoredSection] = """\.""" ~> discardLine.* ^^ {
+    case _ => IgnoredSection()
+  }
+  
+  //
+  // Full SEF parser
+  // TODO: look into optimizing parse so it commits when it matches a section and won't try backtracking
+  val sefParser: Parser[Seq[Section]] = (setsSection | segsSection | comsSection | elmsSection | ignoredSection).*
 }
