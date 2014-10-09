@@ -1,15 +1,21 @@
 package com.anypoint.df.edi.sef
 
-import org.scalatest.FlatSpec
-import scala.collection.mutable.Stack
-import scala.util.matching.Regex
-import scala.util.parsing.combinator._
 import scala.util.parsing.input.CharArrayReader
-import scala.util.parsing.input.Reader
-import MessageParser._
-import com.anypoint.df.edi.schema.EdiSchema._
 import scala.util.parsing.input.CharSequenceReader
+
+import org.scalatest.FlatSpec
 import org.scalatest.matchers.ShouldMatchers
+
+import com.anypoint.df.edi.schema.EdiSchema.DependencyNote
+import com.anypoint.df.edi.schema.EdiSchema.ExactlyOneDependency
+import com.anypoint.df.edi.schema.EdiSchema.FiniteUsage
+import com.anypoint.df.edi.schema.EdiSchema.IfFirstNoneDependency
+import com.anypoint.df.edi.schema.EdiSchema.OneOrMoreDependency
+import com.anypoint.df.edi.schema.EdiSchema.OneOrNoneDependency
+import com.anypoint.df.edi.schema.EdiSchema.UnlimitedUsage
+import com.anypoint.df.edi.schema.EdiSchema.UsageDefault
+
+import MessageParser._
 
 trait TestBase {
 
