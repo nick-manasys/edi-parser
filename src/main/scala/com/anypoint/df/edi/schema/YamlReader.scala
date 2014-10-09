@@ -103,7 +103,6 @@ object YamlReader {
     val yaml = new Yaml(new IgnoringConstructor());
     val input = yaml.loadAs(reader, classOf[JavaMap[_, _]]);
     val transin = getChildList("transactions", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    println(transin)
     val transactions = transin.asScala.toList.map { transmap =>
       {
         val ident = getRequiredString("id", transmap)
@@ -113,9 +112,7 @@ object YamlReader {
         Transaction(ident, heading, detail, summary)
       }
     }
-    println(transactions)
     val segsin = getChildList("segments", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    println(segsin)
     val segments = segsin.asScala.toList.map { segmap =>
       {
         val ident = getRequiredString("id", segmap)
@@ -124,9 +121,7 @@ object YamlReader {
         Segment(ident, name, parseSegmentComponents(list))
       }
     }
-    println(segments)
     val elmsin = getChildList("elements", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    println(elmsin)
     val elements = elmsin.asScala.toList.map { elmmap =>
       {
         val ident = getRequiredString("id", elmmap)
@@ -136,22 +131,8 @@ object YamlReader {
         Element(ident, typ, min, max)
       }
     }
-    println(elements)
     Schema(elements, Nil, segments, transactions)
   }
-}
-
-object TestRead extends App {
-  val file = new File("/home/dennis/projects/mule/edi/yaml/schema-cdw850v3.yaml")
-  val schema = YamlReader.loadYaml(new FileReader(file))
-  val writer = new StringWriter
-  YamlWriter.write(schema, writer)
-  println(writer.toString)
-  val reader = new StringReader(writer.toString)
-  val schema2 = YamlReader.loadYaml(reader)
-  val writer2 = new StringWriter
-  YamlWriter.write(schema2, writer2)
-  println(writer2.toString)
 }
 
 private class IgnoringConstructor extends Constructor {
