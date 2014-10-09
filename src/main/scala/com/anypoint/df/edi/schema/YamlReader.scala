@@ -53,8 +53,7 @@ object YamlReader {
 
   def parseTransactionComponents(list: JavaList[JavaMap[Any, Any]]): List[TransactionComponent] = {
     def convertComponent(values: JavaMap[Any, Any]) = {
-      val id = getRequiredString("id", values)
-      val use = convertUsage(getRequiredString("use", values))
+      val use = convertUsage(getRequiredString("usage", values))
       val repeat = values.get("repeat") match {
         case n: Int => n
         case ">1" => -1
@@ -63,8 +62,8 @@ object YamlReader {
       }
       if (values.containsKey("items")) {
         val items = getChildList("items", values).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-        GroupComponent(id, use, repeat, parseTransactionComponents(items))
-      } else ReferenceComponent(id, use, repeat)
+        GroupComponent(getRequiredString("loopId", values), use, repeat, parseTransactionComponents(items))
+      } else ReferenceComponent(getRequiredString("idRef", values), use, repeat)
     }
     @tailrec
     def parseComponent(remain: List[JavaMap[Any, Any]], prior: List[TransactionComponent]): List[TransactionComponent] = remain match {
@@ -76,15 +75,15 @@ object YamlReader {
 
   def parseSegmentComponents(list: JavaList[JavaMap[Any, Any]]): List[SegmentComponent] = {
     def convertComponent(values: JavaMap[Any, Any]) = {
-      val id = getRequiredString("id", values)
+      val id = getRequiredString("idRef", values)
       val name = getRequiredString("name", values)
-      val use = convertUsage(getRequiredString("use", values))
+      val use = convertUsage(getRequiredString("usage", values))
       val repeat = values.get("repeat") match {
         case n: Int => n
         case null => 1
         case _ => throw new IllegalArgumentException("Value 'repeat' must be an integer")
       }
-      ValueComponent(id, name, use, repeat)
+      ElementComponent(id, name, use, repeat)
     }
     @tailrec
     def parseComponent(remain: List[JavaMap[Any, Any]], prior: List[SegmentComponent]): List[SegmentComponent] = remain match {
@@ -126,24 +125,24 @@ object YamlReader {
       }
     }
     println(segments)
-    val valsin = getChildList("values", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    println(valsin)
-    val values = valsin.asScala.toList.map { valmap =>
+    val elmsin = getChildList("elements", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
+    println(elmsin)
+    val elements = elmsin.asScala.toList.map { elmmap =>
       {
-        val ident = getRequiredString("id", valmap)
-        val typ = convertDataType(getRequiredString("type", valmap))
-        val min = getRequiredInt("minLength", valmap)
-        val max = getRequiredInt("maxLength", valmap)
-        SimpleValue(ident, typ, min, max)
+        val ident = getRequiredString("id", elmmap)
+        val typ = convertDataType(getRequiredString("type", elmmap))
+        val min = getRequiredInt("minLength", elmmap)
+        val max = getRequiredInt("maxLength", elmmap)
+        Element(ident, typ, min, max)
       }
     }
-    println(values)
-    Schema(values, Nil, segments, transactions)
+    println(elements)
+    Schema(elements, Nil, segments, transactions)
   }
 }
 
 object TestRead extends App {
-  val file = new File("/home/dennis/projects/mule/edi/yaml/schema-out.yaml")
+  val file = new File("/home/dennis/projects/mule/edi/yaml/schema-cdw850v3.yaml")
   val schema = YamlReader.loadYaml(new FileReader(file))
   val writer = new StringWriter
   YamlWriter.write(schema, writer)

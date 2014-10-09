@@ -35,13 +35,13 @@ object YamlWriter {
     writeIndented(label + ":", indent)
     segments foreach (segbase => segbase match {
       case refer: ReferenceComponent =>
-        writeIndented("- { " + keyValueQuote("id", refer.ident) + ", " +
-          keyValuePair("use", refer.usage.code toString) +
+        writeIndented("- { " + keyValueQuote("idRef", refer.ident) + ", " +
+          keyValuePair("usage", refer.usage.code toString) +
           (if (refer.count != 1) ", " + keyValuePair("count", countText(refer.count)) else "") +
           " }", indent)
       case group: GroupComponent => {
         writeIndented("- " + keyValueQuote("loopId", group.ident), indent)
-        writeIndented(keyValuePair("use", group.usage.code toString), indent + 1)
+        writeIndented(keyValuePair("usage", group.usage.code toString), indent + 1)
         if (group.count != 1) writeIndented(keyValuePair("count", countText(group.count)), indent + 1)
         writeTransactionComps("items", group.items, indent + 1)
       }
@@ -51,9 +51,9 @@ object YamlWriter {
   def writeSegmentComponents(label: String, comps: List[SegmentComponent], indent: Int): Unit = {
     writeIndented(label + ":", indent)
     comps foreach (comp => 
-        writeIndented("- { " + keyValueQuote("id", comp.ident) + ", " +
+        writeIndented("- { " + keyValueQuote("idRef", comp.ident) + ", " +
           keyValueQuote("name", comp.name) + ", " +
-          keyValuePair("use", comp.usage.code toString) +
+          keyValuePair("usage", comp.usage.code toString) +
           (if (comp.count != 1) ", " + keyValuePair("count", countText(comp.count)) else "") +
           " }", indent)
       )
@@ -71,12 +71,12 @@ object YamlWriter {
         writeIndented(keyValuePair("name", segment name), 1)
         writeSegmentComponents("values", segment.components, 1)
     })
-    writeIndented("values:", 0)
-    schema.values foreach (value =>
-        writeIndented("- { " + keyValueQuote("id", value.ident) + ", " +
-          keyValuePair("type", value.dataType code) + ", " +
-          keyValuePair("minLength", value.minLength toString) + ", " +
-          keyValuePair("maxLength", value.maxLength toString) + " }", 0)
+    writeIndented("elements:", 0)
+    schema.elements foreach (element =>
+        writeIndented("- { " + keyValueQuote("id", element.ident) + ", " +
+          keyValuePair("type", element.dataType code) + ", " +
+          keyValuePair("minLength", element.minLength toString) + ", " +
+          keyValuePair("maxLength", element.maxLength toString) + " }", 0)
     )
   }
 

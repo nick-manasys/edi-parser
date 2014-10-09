@@ -4,7 +4,6 @@ import static com.anypoint.df.edi.parser.EdiFactParser.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 

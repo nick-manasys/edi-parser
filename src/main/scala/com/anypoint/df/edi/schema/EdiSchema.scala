@@ -5,11 +5,7 @@ import scala.beans.BeanProperty
 
 object EdiSchema {
 
-  sealed trait MaximumUsage
-  case class FiniteUsage(val number: Int) extends MaximumUsage
-  case object UnlimitedUsage extends MaximumUsage
-  val UsageDefault = FiniteUsage(1)
-
+  // usage codes
   sealed abstract class Usage(val code: String)
   case object MandatoryUsage extends Usage("M")
   case object OptionalUsage extends Usage("O")
@@ -62,10 +58,10 @@ object EdiSchema {
       else throw new IllegalArgumentException("'" + value + "' is not an allowed data type code")
   }
 
-  case class SimpleValue(val ident: String, val dataType: DataType, val minLength: Int, val maxLength: Int)
+  case class Element(val ident: String, val dataType: DataType, val minLength: Int, val maxLength: Int)
 
   abstract class SegmentComponent(val ident: String, val name: String, val usage: Usage, val count: Int)
-  case class ValueComponent(id: String, nm: String, use: Usage, cnt: Int) extends SegmentComponent(id, nm, use, cnt)
+  case class ElementComponent(id: String, nm: String, use: Usage, cnt: Int) extends SegmentComponent(id, nm, use, cnt)
   case class CompositeComponent(id: String, nm: String, use: Usage, cnt: Int) extends SegmentComponent(id, nm, use, cnt)
 
   case class Composite(val ident: String, val name: String, val components: List[SegmentComponent])
@@ -80,5 +76,5 @@ object EdiSchema {
 
   type TransactionMap = Map[String, Transaction]
 
-  case class Schema(val values: List[SimpleValue], val composites: List[Composite], val segments: List[Segment], val transactions: List[Transaction])
+  case class Schema(val elements: List[Element], val composites: List[Composite], val segments: List[Segment], val transactions: List[Transaction])
 }

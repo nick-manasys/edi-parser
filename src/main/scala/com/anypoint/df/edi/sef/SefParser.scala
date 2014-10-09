@@ -14,6 +14,11 @@ object MessageParser extends RegexParsers {
   private val separator = """\z|\n""".r
   override val skipWhitespace = false
 
+  sealed trait MaximumUsage
+  case class FiniteUsage(val number: Int) extends MaximumUsage
+  case object UnlimitedUsage extends MaximumUsage
+  val UsageDefault = FiniteUsage(1)
+
   sealed abstract class SegmentRequirement(val code: Char)
   case object MandatoryRequirement extends SegmentRequirement('M')
   case object FunctionalRequirement extends SegmentRequirement('F')

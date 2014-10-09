@@ -8,12 +8,9 @@ import org.scalatest.matchers.ShouldMatchers
 
 import com.anypoint.df.edi.schema.EdiSchema.DependencyNote
 import com.anypoint.df.edi.schema.EdiSchema.ExactlyOneDependency
-import com.anypoint.df.edi.schema.EdiSchema.FiniteUsage
 import com.anypoint.df.edi.schema.EdiSchema.IfFirstNoneDependency
 import com.anypoint.df.edi.schema.EdiSchema.OneOrMoreDependency
 import com.anypoint.df.edi.schema.EdiSchema.OneOrNoneDependency
-import com.anypoint.df.edi.schema.EdiSchema.UnlimitedUsage
-import com.anypoint.df.edi.schema.EdiSchema.UsageDefault
 
 import MessageParser._
 
