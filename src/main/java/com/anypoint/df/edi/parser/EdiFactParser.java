@@ -5,16 +5,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * TODO
- *
+ * Parser variation for EDIFACT.
  */
-public class EdiFactParser
+public class EdiFactParser extends ParserBase
 {
     public static final String SYNTAX_IDENTIFIER = "Syntax identifier";
     public static final String SYNTAX_VERSION_NUMBER = "Syntax version number";
@@ -35,10 +33,6 @@ public class EdiFactParser
     public static final String ACKNOWLEDGEMENT_REQUEST = "Acknowledgement request";
     public static final String COMMUNICATIONS_AGREEMENT_ID = "Communications agreement id";
     public static final String TEST_INDICATOR = "Test indicator";
-    
-    public enum ItemType {  SEGMENT, DATA_ELEMENT, QUALIFIER, END }
-    
-    private static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
     
     private static final Map<String,Charset> EDIFACT_CHARSETS;
     static {
@@ -71,68 +65,14 @@ public class EdiFactParser
         }
     }
     
-    /** Stream supplying document data. */
-    private final InputStream stream;
-    
-    /** Reader wrapping document data stream (created by {@link #init()}). */
-    private Reader reader;
-    
-    /** Sub-element delimiter. */
-    private char subElement = ':';
-    
-    /** Data element delimiter. */
-    private char dataSeparator = '+';
-    
-    /** Decimal point character. */
-    private char decimalPoint;
-    
-    /** Release character. */
-    private char releaseIndicator = '?';
-    
-    /** Segment terminator. */
-    private char segmentTerminator = '\'';
-    
-    /** Next item type. */
-    private ItemType nextType;
-    
     /**
      * Constructor.
      *
      * @param is input
      */
     public EdiFactParser(InputStream is) {
-        stream = is;
-    }
-    
-    /**
-     * Read bytes from stream into array. Throws an IOException if not enough bytes are present to fill the array.
-     *
-     * @param byts array
-     * @param from starting offset in array
-     * @throws IOException
-     */
-    private void readArray(byte[] byts, int from) throws IOException {
-        int offset = from;
-        while (byts.length > offset) {
-            int count = stream.read(byts, offset, byts.length - offset);
-            if (count <= 0) {
-                throw new IOException("Required data missing from message");
-            }
-            offset += count;
-        }
-    }
-    
-    /**
-     * Read bytes from stream. Throws an IOException if the required number of bytes is not present.
-     *
-     * @param num required number of bytes
-     * @return bytes
-     * @throws IOException
-     */
-    private byte[] readBytes(int num) throws IOException {
-        byte[] byts = new byte[num];
-        readArray(byts, 0);
-        return byts;
+        super(is, '+', ':', '\'', '?');
+//        super(is, 0x1D, 0x1F, 0x1C, -1);
     }
     
     /**
@@ -154,7 +94,6 @@ public class EdiFactParser
             byts = readBytes(6);
             subElement = (char)byts[0];
             dataSeparator = (char)byts[1];
-            decimalPoint = (char)byts[2];
             releaseIndicator = (char)byts[3];
             segmentTerminator = (char)byts[5];
             
@@ -237,80 +176,5 @@ public class EdiFactParser
             props.put(TEST_INDICATOR, nextItem());
         }
         return props;
-    }
-   
-    /**
-     * Get the next item type.
-     *
-     * @return type
-     */
-    public ItemType nextType() {
-        return nextType;
-    }
-    
-    /**
-     * Get the next item value, removing it from the input. Once this returns, {@link #nextType()} returns the type of
-     * the following item in the input.
-     *
-     * @return value, <code>null</code> if empty
-     * @throws IOException 
-     */
-    public String nextItem() throws IOException {
-        
-        // start by skipping whitespace, if necessary
-        int value = reader.read();
-        if (nextType == ItemType.SEGMENT) {
-            while (value == '\n' || value == '\r' || value == ' ') {
-                value = reader.read();
-            }
-        }
-        if (value < 0) {
-            nextType = ItemType.END;
-            return null;
-        }
-        char chr = (char)value;
-        
-        // accumulate value text to next delimiter
-        StringBuilder builder = new StringBuilder();
-        boolean escape = false;
-        while (true) {
-            if (escape) {
-                builder.append(chr);
-                escape = false;
-            } else if (chr == subElement) {
-                nextType = ItemType.QUALIFIER;
-                break;
-            } else if (chr == dataSeparator) {
-                nextType = ItemType.DATA_ELEMENT;
-                break;
-            } else if (chr == segmentTerminator) {
-                nextType = ItemType.SEGMENT;
-                break;
-            } else if (chr == releaseIndicator) {
-                escape = true;
-            } else if (chr == -1) {
-                nextType = ItemType.END;
-                return null;
-            } else {
-                builder.append(chr);
-            }
-            chr = (char)reader.read();
-        }
-        return builder.length() > 0 ? builder.toString() : null;
-    }
-    
-    /**
-     * Get the next item value, which must be of the specified type. If the type matches, this returns the next item
-     * value, removing it from the input.
-     *
-     * @param type
-     * @return value, <code>null</code> if empty
-     * @throws IOException
-     */
-    public String requireNextItem(ItemType type) throws IOException {
-        if (nextType != type) {
-            throw new IOException("Missing required item");
-        }
-        return nextItem();
     }
 }
