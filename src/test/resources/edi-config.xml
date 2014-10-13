@@ -11,7 +11,7 @@
 
     <edi:config name="ediTx">
 		<edi:schemas>
-			<edi:schema key="850">clasess/850-schema.yml</edi:schema>
+			<edi:schema key="850">/home/dennis/projects/mule/edi/yaml/schema-cdw850v3.yaml</edi:schema>
 		</edi:schemas>    
     </edi:config>
 

@@ -26,7 +26,13 @@
         <licensePath>LICENSE.md</licensePath>
         <devkit.studio.package.skip>false</devkit.studio.package.skip>
     </properties>
+    
     <dependencies>
+        <dependency>
+            <groupId>org.mule.jam</groupId>
+            <artifactId>edi-module</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>eclipse</groupId>
             <artifactId>eclipse-runtime</artifactId>
@@ -34,6 +40,22 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+    
+ <build>
+    <pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.mule.tools.devkit</groupId>
+                <artifactId>mule-devkit-maven-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <excludeMuleDependencies>false</excludeMuleDependencies>
+                </configuration>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+</build>
+
     <repositories>
         <repository>
             <id>mulesoft-releases</id>
@@ -42,4 +64,5 @@
             <layout>default</layout>
         </repository>
     </repositories>
+    
 </project>
