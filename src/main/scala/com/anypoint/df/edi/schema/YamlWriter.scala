@@ -21,7 +21,7 @@ object YamlWriter {
     else count toString
 
 
-  def write(schema: Schema, writer: Writer) = {
+  def write(schema: EdiSchema, writer: Writer) = {
 
   def writeIndent(indent: Int) = writer append (indentText * indent)
 

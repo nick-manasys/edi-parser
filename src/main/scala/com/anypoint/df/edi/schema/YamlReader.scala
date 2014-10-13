@@ -131,7 +131,9 @@ object YamlReader {
         Element(ident, typ, min, max)
       }
     }
-    Schema(elements, Nil, segments, transactions)
+    
+    // TODO: add EDIFACT vs. X12 flag to YAML
+    EdiSchema(X12, elements, Nil, segments, transactions)
   }
 }
 
