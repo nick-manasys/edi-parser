@@ -11,16 +11,13 @@ import java.util.Map;
  */
 public class X12Parser extends ParserBase
 {
-
-    
     /**
      * Constructor.
      *
      * @param is input
      */
     public X12Parser(InputStream is) {
-        super(is, '+', ':', '\'', '?');
-//        super(is, 0x1D, 0x1F, 0x1C, -1);
+        super(is, '*', '\\', '^', '~', -1);
     }
     
     /**

@@ -3,6 +3,11 @@ package com.anypoint.df.edi.schema
 import org.yaml.snakeyaml.Yaml
 import scala.beans.BeanProperty
 
+/**
+ * EDI schema representation.
+ *
+ * @author MuleSoft, Inc.
+ */
 object EdiSchema {
 
   // usage codes
@@ -63,17 +68,17 @@ object EdiSchema {
     case NumberType.code => NumberType
     case IntegerType.code => IntegerType
     case _ if (value.size == 2 && value(0) == 'N') => value(1) match {
-        case '1' => Decimal1Type
-        case '2' => Decimal2Type
-        case '3' => Decimal3Type
-        case '4' => Decimal4Type
-        case '5' => Decimal5Type
-        case '6' => Decimal6Type
-        case '7' => Decimal7Type
-        case '8' => Decimal8Type
-        case '9' => Decimal9Type
-        case _ => throw new IllegalArgumentException(s"'$value' is not an allowed data type code")
-      }
+      case '1' => Decimal1Type
+      case '2' => Decimal2Type
+      case '3' => Decimal3Type
+      case '4' => Decimal4Type
+      case '5' => Decimal5Type
+      case '6' => Decimal6Type
+      case '7' => Decimal7Type
+      case '8' => Decimal8Type
+      case '9' => Decimal9Type
+      case _ => throw new IllegalArgumentException(s"'$value' is not an allowed data type code")
+    }
     case _ => throw new IllegalArgumentException(s"'$value' is not an allowed data type code")
   }
   // allow Java code access to instances (Eclipse doesn't like doing it directly)
@@ -100,7 +105,7 @@ object EdiSchema {
   case class Transaction(val ident: String, val heading: List[TransactionComponent], val detail: List[TransactionComponent], val summary: List[TransactionComponent])
 
   type TransactionMap = Map[String, Transaction]
-  
+
   sealed trait EdiForm
   case object EdiFact extends EdiForm
   case object X12 extends EdiForm
@@ -108,13 +113,11 @@ object EdiSchema {
 
 case class EdiSchema(val ediForm: EdiSchema.EdiForm, val elements: List[EdiSchema.Element], val composites: List[EdiSchema.Composite], val segments: List[EdiSchema.Segment], val transactions: List[EdiSchema.Transaction]) {
   import EdiSchema._
-  
-  val elementsByName = elements.foldLeft(Map[String,Element]())((map, elem) => map + (elem.ident -> elem))
-  val compositesByName = composites.foldLeft(Map[String,Composite]())((map, comp) => map + (comp.ident -> comp))
-  val segmentsByName = segments.foldLeft(Map[String,Segment]())((map, segment) => map + (segment.ident -> segment))
-  val transactionsByName = transactions.foldLeft(Map[String,Transaction]())((map, trans) => map + (trans.ident -> trans))
-}
 
-class SchemaParser(schema: EdiSchema) {
+  val elementsByName = elements.foldLeft(Map[String, Element]())((map, elem) => map + (elem.ident -> elem))
+  val compositesByName = composites.foldLeft(Map[String, Composite]())((map, comp) => map + (comp.ident -> comp))
+  val segmentsByName = segments.foldLeft(Map[String, Segment]())((map, segment) => map + (segment.ident -> segment))
+  val transactionsByName = transactions.foldLeft(Map[String, Transaction]())((map, trans) => map + (trans.ident -> trans))
   
+  // TODO: validate the schema by making sure all identifiers match up
 }

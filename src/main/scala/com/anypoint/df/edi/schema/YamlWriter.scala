@@ -4,8 +4,9 @@ import java.io.Writer
 import java.io.StringWriter
 
 /**
- * TODO
+ * Write YAML representation of EDI schema.
  *
+ * @author MuleSoft, Inc.
  */
 object YamlWriter {
 

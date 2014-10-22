@@ -17,8 +17,9 @@ import java.io.StringWriter
 import java.io.StringReader
 
 /**
- * TODO
+ * Read YAML representation of EDI schema.
  *
+ * @author MuleSoft, Inc.
  */
 object YamlReader {
 

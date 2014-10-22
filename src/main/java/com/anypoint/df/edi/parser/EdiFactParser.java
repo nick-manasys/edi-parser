@@ -71,7 +71,7 @@ public class EdiFactParser extends ParserBase
      * @param is input
      */
     public EdiFactParser(InputStream is) {
-        super(is, '+', ':', '\'', '?');
+        super(is, '+', ':', '*', '\'', '?');
 //        super(is, 0x1D, 0x1F, 0x1C, -1);
     }
     

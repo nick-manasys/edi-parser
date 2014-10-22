@@ -4,7 +4,11 @@ package com.anypoint.df.edi.parser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Map;
 
 /**
@@ -12,7 +16,10 @@ import java.util.Map;
  */
 public abstract class ParserBase
 {
-    public enum ItemType {  SEGMENT, DATA_ELEMENT, QUALIFIER, END }
+    /** Maximum year number accepted (otherwise wrapped to previous century). */
+    public static final int maximumYear = 2070;
+    
+    public enum ItemType {  SEGMENT, DATA_ELEMENT, QUALIFIER, REPETITION, END }
     
     protected static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
     
@@ -28,31 +35,11 @@ public abstract class ParserBase
     /** Data element delimiter. */
     protected char dataSeparator;
     
+    /** Repeated component delimiter. */
+    protected char repetitionSeparator;
+    
     /** Release character. */
     protected int releaseIndicator;
-    
-    /** Segment terminator. */
-    protected char segmentTerminator;
-    
-    /** Next item type. */
-    protected ItemType nextType;
-    
-    /**
-     * Constructor.
-     *
-     * @param is input
-     * @param datasep default data separator character
-     * @param subsep default sub-element separator character
-     * @param segterm default segment terminator character
-     * @param release default release character
-     */
-    public ParserBase(InputStream is, char datasep, char subsep, char segterm, int release) {
-        stream = is;
-        dataSeparator = datasep;
-        subElement = subsep;
-        segmentTerminator = segterm;
-        releaseIndicator = release;
-    }
     
     /**
      * Read bytes from stream into array. Throws an IOException if not enough bytes are present to fill the array.
@@ -70,6 +57,31 @@ public abstract class ParserBase
             }
             offset += count;
         }
+    }
+
+    /** Segment terminator. */
+    protected char segmentTerminator;
+    
+    /** Next item type. */
+    protected ItemType nextType;
+    
+    /**
+     * Constructor.
+     *
+     * @param is input
+     * @param datasep default data separator character
+     * @param subsep default sub-element separator character
+     * @param repsep default repetition separator character
+     * @param segterm default segment terminator character
+     * @param release default release character
+     */
+    public ParserBase(InputStream is, char datasep, char subsep, char repsep, char segterm, int release) {
+        stream = is;
+        dataSeparator = datasep;
+        subElement = subsep;
+        repetitionSeparator = repsep;
+        segmentTerminator = segterm;
+        releaseIndicator = release;
     }
     
     /**
@@ -141,6 +153,9 @@ public abstract class ParserBase
             } else if (chr == segmentTerminator) {
                 nextType = ItemType.SEGMENT;
                 break;
+            } else if (chr == repetitionSeparator) {
+                nextType = ItemType.REPETITION;
+                break;
             } else if (chr == releaseIndicator) {
                 escape = true;
             } else if (chr == -1) {
@@ -170,14 +185,13 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item, which must be of the specified type, as an alpha value.
+     * Get next item as an alpha value.
      *
-     * @param type
      * @return
      * @throws IOException
      */
-    public String parseAlpha(ItemType type) throws IOException {
-        String text = requireNextItem(type);
+    public String parseAlpha() throws IOException {
+        String text = nextItem();
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
@@ -188,25 +202,23 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item, which must be of the specified type, as an alphanumeric value.
+     * Get next item as an alphanumeric value.
      *
-     * @param type
      * @return
      * @throws IOException
      */
-    public String parseAlphanumeric(ItemType type) throws IOException {
-        return requireNextItem(type);
+    public String parseAlphanumeric() throws IOException {
+        return nextItem();
     }
     
     /**
-     * Get next item, which must be of the specified type, as an id value.
+     * Get next item as an id value.
      *
-     * @param type
      * @return
      * @throws IOException
      */
-    public String parseId(ItemType type) throws IOException {
-        String text = requireNextItem(type);
+    public String parseId() throws IOException {
+        String text = nextItem();
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
@@ -217,16 +229,40 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item, which must be of the specified type, as a EDIFACT number value or X12 real number value.
+     * Get next item as a EDIFACT number value.
      *
-     * @param type
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
      * @return
      * @throws IOException
      */
-    public String parseNumber(ItemType type, int minl, int maxl) throws IOException {
-        String text = requireNextItem(type);
+    public BigInteger parseInteger(int minl, int maxl) throws IOException {
+        String text = nextItem();
+        int length = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char chr = text.charAt(i);
+            if (chr >= '0' && chr <= '9') {
+                length++;
+            } else if (i != 0 || chr != '-') {
+                throw new ParseException("number value contains invalid character");
+            }
+        }
+        if (length < minl || length > maxl) {
+            throw new ParseException("number value incorrect length");
+        }
+        return new BigInteger(text);
+    }
+    
+    /**
+     * Get next item as an X12 real number value.
+     *
+     * @param minl minimum length (excluding sign and/or decimal)
+     * @param maxl maximum length (excluding sign and/or decimal)
+     * @return
+     * @throws IOException
+     */
+    public BigDecimal parseNumber(int minl, int maxl) throws IOException {
+        String text = nextItem();
         int length = 0;
         boolean decimal = false;
         for (int i = 0; i < text.length(); i++) {
@@ -242,18 +278,17 @@ public abstract class ParserBase
         if (length < minl || length > maxl) {
             throw new ParseException("number value incorrect length");
         }
-        return text;
+        return new BigDecimal(text);
     }
     
     /**
-     * Get next item, which must be of the specified type, as an X12 date value.
+     * Get next item as an X12 date value.
      *
-     * @param type
      * @return
      * @throws IOException
      */
-    public String parseDate(ItemType type) throws IOException {
-        String text = requireNextItem(type);
+    public Date parseDate() throws IOException {
+        String text = nextItem();
         if (text.length() != 6 && text.length() != 8) {
             throw new ParseException("date value must be either 6 or 8 characters");
         }
@@ -271,45 +306,40 @@ public abstract class ParserBase
         if (month == 0 || month > 12 || day == 0 || day > 31) {
             throw new ParseException("date value out of allowed ranges");
         }
-        return text;
+        int year;
+        if (length == 8) {
+            year = Integer.parseInt(text.substring(0, 4));
+        } else {
+            year = 2000 + (text.charAt(length-2) - '0') + (text.charAt(length-1)) * 10;
+            if (year > maximumYear) {
+                year -= 100;
+            }
+        }
+        return new GregorianCalendar(year, month, day).getTime();
     }
     
     /**
-     * Get next item, which must be of the specified type, as an X12 number value with implied decimal.
+     * Get next item as an X12 number value with implied decimal.
      *
-     * @param type
+     * @param scale inverse power of ten multiplier
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
      * @return
      * @throws IOException
      */
-    public String parseImpliedDecimalNumber(ItemType type, int minl, int maxl) throws IOException {
-        String text = requireNextItem(type);
-        int length = 0;
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
-            if (chr >= '0' && chr <= '9') {
-                length++;
-            } else if (i != 0 || chr != '-') {
-                throw new ParseException("implied decimal number value contains invalid character");
-            }
-        }
-        if (length < minl || length > maxl) {
-            throw new ParseException("number value incorrect length");
-        }
-        return text;
+    public BigDecimal parseImpliedDecimalNumber(int scale, int minl, int maxl) throws IOException {
+        return new BigDecimal(parseInteger(minl, maxl), scale);
     }
     
     /**
-     * Get next item, which must be of the specified type, as an X12 time value.
+     * Get next item as an X12 time value.
      *
-     * @param type
      * @return
      * @throws IOException
      */
-    public String parseTime(ItemType type) throws IOException {
-        String text = requireNextItem(type);
-        if (text.length() != 6 && text.length() != 8) {
+    public int parseTime() throws IOException {
+        String text = nextItem();
+        if (text.length() != 4 && (text.length() < 6 || text.length() > 8)) {
             throw new ParseException("time value must be either 4 or 6-8 characters");
         }
         for (int i = 0; i < text.length(); i++) {
@@ -322,9 +352,17 @@ public abstract class ParserBase
         // quick (and loose) check for time sanity
         int hour = (text.charAt(0) - '0') * 10 + (text.charAt(1) - '0');
         int minute = (text.charAt(2) - '0') * 10 + (text.charAt(3) - '0');
-        if (hour == 0 || hour > 24 || minute > 59) {
+        int second = text.length() < 6 ? 0 : (text.charAt(4) - '0') * 10 + (text.charAt(5) - '0');
+        if (hour > 23 || minute > 59 || second > 59) {
             throw new ParseException("time value out of allowed ranges");
         }
-        return text;
+        int milli = 0;
+        if (text.length() > 6) {
+            milli = (text.charAt(6) - '0') * 100;
+            if (text.length() > 7) {
+                milli = (text.charAt(7) - '0') * 10;
+            }
+        }
+        return ((hour * 60 + minute) * 60 + second) * 1000 + milli;
     }
 }
