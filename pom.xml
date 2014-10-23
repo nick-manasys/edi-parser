@@ -2,40 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.mule.modules</groupId>
-  <artifactId>edi-connector</artifactId>
+  <groupId>org.mule.edi</groupId>
+  <artifactId>edi-parser</artifactId>
   <version>1.0.0-SNAPSHOT</version>
-  <packaging>mule-module</packaging>
-  <name>Mule EDI Anypoint Connector</name>
-
-
-  <parent>
-    <groupId>org.mule.tools.devkit</groupId>
-    <artifactId>mule-devkit-parent</artifactId>
-    <version>3.5.1</version>
-  </parent>
+  <packaging>jar</packaging>
+  <name>Mule EDI Parser</name>
 
   <properties>
-    <testdata.plugin.version>1.1.5</testdata.plugin.version>
     <junit.version>4.9</junit.version>
-    <mockito.version>1.8.2</mockito.version>
-    <jersey.version>1.16</jersey.version>
-    <gson.version>2.2.2</gson.version>
-    <jdk.version>1.6</jdk.version>
+    <jdk.version>1.7</jdk.version>
     <base.scala.version>2.11</base.scala.version>
     <scala.version>${base.scala.version}.1</scala.version>
-    <category>Community</category>
-    <licensePath>LICENSE.md</licensePath>
-    <devkit.studio.package.skip>false</devkit.studio.package.skip>
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>eclipse</groupId>
-      <artifactId>eclipse-runtime</artifactId>
-      <version>2.1.0</version>
-      <scope>provided</scope>
-    </dependency>
     <dependency>
       <groupId>org.scala-lang</groupId>
       <artifactId>scala-compiler</artifactId>
@@ -58,25 +38,26 @@
       <version>2.2.2</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
-    <sourceDirectory>src/main/scala</sourceDirectory>
-    <testSourceDirectory>src/test/scala</testSourceDirectory>
     <pluginManagement>
       <plugins>
-        <plugin>
-          <groupId>org.mule.tools.devkit</groupId>
-          <artifactId>mule-devkit-maven-plugin</artifactId>
-          <extensions>true</extensions>
-          <configuration>
-            <excludeMuleDependencies>false</excludeMuleDependencies>
-          </configuration>
-        </plugin>
         <plugin>
           <groupId>net.alchim31.maven</groupId>
           <artifactId>scala-maven-plugin</artifactId>
           <version>3.2.0</version>
+          <configuration>
+            <recompileMode>incremental</recompileMode>
+            <source>${jdk.version}</source>
+            <target>${jdk.version}</target>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -121,10 +102,8 @@
 
   <repositories>
     <repository>
-      <id>mulesoft-releases</id>
-      <name>MuleSoft Releases Repository</name>
-      <url>http://repository.mulesoft.org/releases/</url>
-      <layout>default</layout>
+      <id>oss-sonatype-snapshots</id>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
   </repositories>
 
