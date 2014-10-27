@@ -90,17 +90,17 @@ object EdiSchema {
 
   case class Element(val ident: String, val dataType: DataType, val minLength: Int, val maxLength: Int)
 
-  abstract class SegmentComponent(val ident: String, val name: String, val usage: Usage, val count: Int)
-  case class ElementComponent(id: String, nm: String, use: Usage, cnt: Int) extends SegmentComponent(id, nm, use, cnt)
-  case class CompositeComponent(id: String, nm: String, use: Usage, cnt: Int) extends SegmentComponent(id, nm, use, cnt)
+  abstract class SegmentComponent(val name: String, val usage: Usage, val count: Int)
+  case class ElementComponent(val element: Element, nm: String, use: Usage, cnt: Int) extends SegmentComponent(nm, use, cnt)
+  case class CompositeComponent(val composite: Composite, nm: String, use: Usage, cnt: Int) extends SegmentComponent(nm, use, cnt)
 
   case class Composite(val ident: String, val name: String, val components: List[SegmentComponent])
 
   case class Segment(val ident: String, val name: String, val components: List[SegmentComponent])
 
-  sealed abstract class TransactionComponent(val ident: String, val usage: Usage, val count: Int)
-  case class ReferenceComponent(id: String, use: Usage, cnt: Int) extends TransactionComponent(id, use, cnt)
-  case class GroupComponent(id: String, use: Usage, cnt: Int, val items: List[TransactionComponent]) extends TransactionComponent(id, use, cnt)
+  sealed abstract class TransactionComponent(val usage: Usage, val count: Int)
+  case class ReferenceComponent(val segment: Segment, use: Usage, cnt: Int) extends TransactionComponent(use, cnt)
+  case class GroupComponent(val ident: String, use: Usage, cnt: Int, val items: List[TransactionComponent]) extends TransactionComponent(use, cnt)
 
   case class Transaction(val ident: String, val heading: List[TransactionComponent], val detail: List[TransactionComponent], val summary: List[TransactionComponent])
 
@@ -111,13 +111,6 @@ object EdiSchema {
   case object X12 extends EdiForm
 }
 
-case class EdiSchema(val ediForm: EdiSchema.EdiForm, val elements: List[EdiSchema.Element], val composites: List[EdiSchema.Composite], val segments: List[EdiSchema.Segment], val transactions: List[EdiSchema.Transaction]) {
-  import EdiSchema._
-
-  val elementsByName = elements.foldLeft(Map[String, Element]())((map, elem) => map + (elem.ident -> elem))
-  val compositesByName = composites.foldLeft(Map[String, Composite]())((map, comp) => map + (comp.ident -> comp))
-  val segmentsByName = segments.foldLeft(Map[String, Segment]())((map, segment) => map + (segment.ident -> segment))
-  val transactionsByName = transactions.foldLeft(Map[String, Transaction]())((map, trans) => map + (trans.ident -> trans))
-  
-  // TODO: validate the schema by making sure all identifiers match up
-}
+case class EdiSchema(val ediForm: EdiSchema.EdiForm, val elements: Map[String, EdiSchema.Element],
+  val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
+  val transactions: Map[String, EdiSchema.Transaction])
