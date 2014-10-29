@@ -102,7 +102,7 @@ object EdiSchema {
   case class ReferenceComponent(val segment: Segment, use: Usage, cnt: Int) extends TransactionComponent(use, cnt)
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, val items: List[TransactionComponent]) extends TransactionComponent(use, cnt)
 
-  case class Transaction(val ident: String, val heading: List[TransactionComponent], val detail: List[TransactionComponent], val summary: List[TransactionComponent])
+  case class Transaction(val ident: String, val name: String, val heading: List[TransactionComponent], val detail: List[TransactionComponent], val summary: List[TransactionComponent])
 
   type TransactionMap = Map[String, Transaction]
 

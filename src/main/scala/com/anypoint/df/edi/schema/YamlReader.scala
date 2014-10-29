@@ -190,10 +190,11 @@ object YamlReader {
     val transactions = transin.asScala.toList.foldLeft[Map[String, Transaction]](new InsertionOrderedMap[String, Transaction])((map, transmap) =>
       {
         val ident = getRequiredString("id", transmap)
+        val name = getRequiredString("name", transmap)
         val heading = parseTransactionPart("heading", transmap, segments)
         val detail = parseTransactionPart("detail", transmap, segments)
         val summary = parseTransactionPart("summary", transmap, segments)
-        map + (ident -> Transaction(ident, heading, detail, summary))
+        map + (ident -> Transaction(ident, name, heading, detail, summary))
       })
 
     // TODO: add EDIFACT vs. X12 flag to YAML
