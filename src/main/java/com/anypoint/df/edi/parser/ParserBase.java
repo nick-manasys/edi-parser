@@ -12,16 +12,22 @@ import java.util.GregorianCalendar;
 import java.util.Map;
 
 /**
- * Base EDI parser.
+ * Base EDI token scanner. The scanner supplies input tokens to consumers along with token delimiter types, with three
+ * properties exposed: the delimiter at the start of the current input token ({@link #currentType}), the delimiter at 
+ * the end of the current input token ({@link #nextType}), and the actual current token ({@link #token}). Various typed
+ * parseXXX methods work with the current token as typed data.
  */
 public abstract class ParserBase
 {
+    // standard character sets
+    public static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
+    public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
+    
     /** Maximum year number accepted (otherwise wrapped to previous century). */
     public static final int maximumYear = 2070;
     
+    /** Token delimiter types. */
     public enum ItemType {  SEGMENT, DATA_ELEMENT, QUALIFIER, REPETITION, END }
-    
-    protected static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
     
     /** Stream supplying document data. */
     protected final InputStream stream;
@@ -40,6 +46,18 @@ public abstract class ParserBase
     
     /** Release character. */
     protected int releaseIndicator;
+
+    /** Segment terminator. */
+    protected char segmentTerminator;
+    
+    /** Type of current token (starting delimiter). */
+    protected ItemType currentType;
+    
+    /** Current token. */
+    protected String token;
+    
+    /** Type of next token (ending delimiter of current token). */
+    protected ItemType nextType;
     
     /**
      * Read bytes from stream into array. Throws an IOException if not enough bytes are present to fill the array.
@@ -58,12 +76,6 @@ public abstract class ParserBase
             offset += count;
         }
     }
-
-    /** Segment terminator. */
-    protected char segmentTerminator;
-    
-    /** Next item type. */
-    protected ItemType nextType;
     
     /**
      * Constructor.
@@ -99,15 +111,43 @@ public abstract class ParserBase
     
     /**
      * Initialize document parse. This checks the start of the document to interpret any configuration information
-     * included. Returns with parser positioned past the header segment(s).
+     * included. Returns with parser positioned past the interchange header segment(s).
      *
+     * @param default interchange properties (from partner configuration)
      * @return interchange properties
      * @throws IOException 
      */
-    public abstract Map<String,Object> init() throws IOException;
+    public abstract Map<String,Object> init(Map<String,Object> dflts) throws IOException;
+    
+    /**
+     * Complete document parse. This must be called with the parser positioned at the start of the interchange trailer
+     * segment.
+     *
+     * @param props
+     * @throws IOException
+     */
+    public abstract void term(Map<String,Object> props) throws IOException;
+    
+    /**
+     * Get the current token.
+     *
+     * @return token
+     */
+    public String token() {
+        return token;
+    }
+    
+    /**
+     * Get the current token type (as determined by the preceding delimiter).
+     *
+     * @return type
+     */
+    public ItemType currentType() {
+        return currentType;
+    }
    
     /**
-     * Get the next item type.
+     * Get the next token type (as determined by the trailing delimiter of the current token).
      *
      * @return type
      */
@@ -116,24 +156,40 @@ public abstract class ParserBase
     }
     
     /**
-     * Get the next item value, removing it from the input. Once this returns, {@link #nextType()} returns the type of
-     * the following item in the input.
+     * Require particular item type.
      *
-     * @return value, <code>null</code> if empty
+     * @param type
+     * @throws IOException
+     */
+    public void require(ItemType type) throws IOException {
+        if (currentType != type) {
+            throw new IOException("expected type " + type);
+        }
+    }
+    
+    /**
+     * Parse next item from input and advance. This sets the current state to the pending state, and sets the new
+     * pending state to the item parsed.
+     *
+     * @return token
      * @throws IOException 
      */
-    public String nextItem() throws IOException {
+    public String advance() throws IOException {
+        
+        // set current state to pending state
+        currentType = nextType;
         
         // start by skipping whitespace, if necessary
         int value = reader.read();
-        if (nextType == ItemType.SEGMENT) {
+        if (currentType == ItemType.SEGMENT) {
             while (value == '\n' || value == '\r' || value == ' ') {
                 value = reader.read();
             }
         }
         if (value < 0) {
+            token = "";
             nextType = ItemType.END;
-            return null;
+            return token;
         }
         char chr = (char)value;
         
@@ -160,38 +216,42 @@ public abstract class ParserBase
                 escape = true;
             } else if (chr == -1) {
                 nextType = ItemType.END;
-                return null;
+                break;
             } else {
                 builder.append(chr);
             }
             chr = (char)reader.read();
         }
-        return builder.length() > 0 ? builder.toString() : null;
+        token = builder.length() > 0 ? builder.toString() : "";
+        return token;
     }
     
     /**
-     * Get the next item value, which must be of the specified type. If the type matches, this returns the next item
-     * value, removing it from the input.
+     * Advance to the next token, removing it from the input and verifying the text length.
      *
-     * @param type
+     * @param minl minimum length
+     * @param maxl maximum length
      * @return value, <code>null</code> if empty
-     * @throws IOException
+     * @throws IOException 
      */
-    public String requireNextItem(ItemType type) throws IOException {
-        if (nextType != type) {
-            throw new IOException("Missing required item");
+    public String nextToken(int minl, int maxl) throws IOException {
+        String text = advance();
+        if (text.length() < minl || text.length() > maxl) {
+            throw new ParseException("length outside of allowed range");
         }
-        return nextItem();
+        return text;
     }
     
     /**
-     * Get next item as an alpha value.
+     * Get next token as an alpha value.
      *
+     * @param minl minimum length
+     * @param maxl maximum length
      * @return
      * @throws IOException
      */
-    public String parseAlpha() throws IOException {
-        String text = nextItem();
+    public String parseAlpha(int minl, int maxl) throws IOException {
+        String text = nextToken(minl, maxl);
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
@@ -202,23 +262,27 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item as an alphanumeric value.
+     * Get next token as an alphanumeric value.
      *
+     * @param minl minimum length
+     * @param maxl maximum length
      * @return
      * @throws IOException
      */
-    public String parseAlphanumeric() throws IOException {
-        return nextItem();
+    public String parseAlphaNumeric(int minl, int maxl) throws IOException {
+        return nextToken(minl, maxl);
     }
     
     /**
-     * Get next item as an id value.
+     * Get next token as an id value.
      *
+     * @param minl minimum length
+     * @param maxl maximum length
      * @return
      * @throws IOException
      */
-    public String parseId() throws IOException {
-        String text = nextItem();
+    public String parseId(int minl, int maxl) throws IOException {
+        String text = nextToken(minl, maxl);
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
@@ -229,7 +293,7 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item as a EDIFACT number value.
+     * Get next token as a EDIFACT number value.
      *
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
@@ -237,7 +301,7 @@ public abstract class ParserBase
      * @throws IOException
      */
     public BigInteger parseInteger(int minl, int maxl) throws IOException {
-        String text = nextItem();
+        String text = advance();
         int length = 0;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
@@ -254,7 +318,7 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item as an X12 real number value.
+     * Get next token as an X12 real number value.
      *
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
@@ -262,7 +326,7 @@ public abstract class ParserBase
      * @throws IOException
      */
     public BigDecimal parseNumber(int minl, int maxl) throws IOException {
-        String text = nextItem();
+        String text = advance();
         int length = 0;
         boolean decimal = false;
         for (int i = 0; i < text.length(); i++) {
@@ -282,17 +346,20 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item as an X12 date value.
+     * Get next token as an X12 date value.
      *
+     * @param minl minimum length
+     * @param maxl maximum length
      * @return
      * @throws IOException
      */
-    public Date parseDate() throws IOException {
-        String text = nextItem();
-        if (text.length() != 6 && text.length() != 8) {
+    public Date parseDate(int minl, int maxl) throws IOException {
+        String text = nextToken(minl, maxl);
+        int length = text.length();
+        if (length != 6 && length != 8) {
             throw new ParseException("date value must be either 6 or 8 characters");
         }
-        for (int i = 0; i < text.length(); i++) {
+        for (int i = 0; i < length; i++) {
             char chr = text.charAt(i);
             if (chr < '0' || chr > '9') {
                 throw new ParseException("date value must consist only of digits");
@@ -300,7 +367,6 @@ public abstract class ParserBase
         }
         
         // quick (and loose) check for date sanity
-        int length = text.length();
         int day = (text.charAt(length-1) - '0') + (text.charAt(length-2) - '0') * 10;
         int month = (text.charAt(length-3) - '0') + (text.charAt(length-4) - '0') * 10;
         if (month == 0 || month > 12 || day == 0 || day > 31) {
@@ -319,7 +385,7 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item as an X12 number value with implied decimal.
+     * Get next token as an X12 number value with implied decimal.
      *
      * @param scale inverse power of ten multiplier
      * @param minl minimum length (excluding sign and/or decimal)
@@ -332,17 +398,20 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next item as an X12 time value.
+     * Get next token as an X12 time value.
      *
+     * @param minl minimum length
+     * @param maxl maximum length
      * @return
      * @throws IOException
      */
-    public int parseTime() throws IOException {
-        String text = nextItem();
-        if (text.length() != 4 && (text.length() < 6 || text.length() > 8)) {
+    public int parseTime(int minl, int maxl) throws IOException {
+        String text = nextToken(minl, maxl);
+        int length = text.length();
+        if (length != 4 && (length < 6 || length > 8)) {
             throw new ParseException("time value must be either 4 or 6-8 characters");
         }
-        for (int i = 0; i < text.length(); i++) {
+        for (int i = 0; i < length; i++) {
             char chr = text.charAt(i);
             if (chr < '0' || chr > '9') {
                 throw new ParseException("time value must consist only of digits");
@@ -357,9 +426,9 @@ public abstract class ParserBase
             throw new ParseException("time value out of allowed ranges");
         }
         int milli = 0;
-        if (text.length() > 6) {
+        if (length > 6) {
             milli = (text.charAt(6) - '0') * 100;
-            if (text.length() > 7) {
+            if (length > 7) {
                 milli = (text.charAt(7) - '0') * 10;
             }
         }

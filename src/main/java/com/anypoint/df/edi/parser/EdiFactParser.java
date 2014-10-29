@@ -12,27 +12,8 @@ import java.util.Map;
 /**
  * Parser variation for EDIFACT.
  */
-public class EdiFactParser extends ParserBase
+public class EdiFactParser extends ParserBase implements EdiFactConstants
 {
-    public static final String SYNTAX_IDENTIFIER = "Syntax identifier";
-    public static final String SYNTAX_VERSION_NUMBER = "Syntax version number";
-    public static final String SENDER_IDENTIFICATION = "Sender identification";
-    public static final String SENDER_IDENTIFICATION_CODE_QUALIFIER = "Sender partner identification code qualifier";
-    public static final String REVERSE_ROUTING_ADDRESS = "Address for reverse routing";
-    public static final String RECIPIENT_IDENTIFICATION = "Recipient identification";
-    public static final String RECIPIENT_IDENTIFICATION_CODE_QUALIFIER =
-        "Recipient partner identification code qualifier";
-    public static final String RECIPIENT_ROUTING_ADDRESS = "Onward routing address";
-    public static final String PREPARATION_DATE = "Date of preparation";
-    public static final String PREPARATION_TIME = "Time of preparation";
-    public static final String INTERCHANGE_CONTROL_REFERENCE = "Interchange control reference";
-    public static final String RECIPIENT_REFERENCE = "Recipient's reference/password";
-    public static final String RECIPIENT_REFERENCE_QUALIFIER = "Recipient's reference/password qualifier";
-    public static final String APPLICATION_REFERENCE = "Application reference";
-    public static final String PROCESSING_PRIORITY_CODE = "Processing priority code";
-    public static final String ACKNOWLEDGEMENT_REQUEST = "Acknowledgement request";
-    public static final String COMMUNICATIONS_AGREEMENT_ID = "Communications agreement id";
-    public static final String TEST_INDICATOR = "Test indicator";
     
     private static final Map<String,Charset> EDIFACT_CHARSETS;
     static {
@@ -76,14 +57,29 @@ public class EdiFactParser extends ParserBase
     }
     
     /**
+     * Get the next token, which must have been preceded with a particular type of delimiter.
+     *
+     * @param type
+     * @return token
+     * @throws IOException
+     */
+    private String requireNextItem(ItemType type) throws IOException {
+        if (nextType() != type) {
+            throw new IOException("expected delimiter " + type + ", found " + nextType());
+        }
+        return advance();
+    }
+    
+    /**
      * Initialize document parse. This checks the start of the document to find the separator characters used in
      * parsing, along with the character encoding. Returns with the parser positioned past the end of the UNB
      * Interchange Header segment.
      *
+     * @param default interchange properties (from partner configuration)
      * @return interchange properties
      * @throws IOException 
      */
-    public Map<String,Object> init() throws IOException {
+    public Map<String,Object> init(Map<String, Object> dflts) throws IOException {
         
         // check the segment tag
         byte[] byts = readBytes(3);
@@ -126,7 +122,7 @@ public class EdiFactParser extends ParserBase
         // turn stream into reader with appropriate character set
         reader = new BufferedReader(new InputStreamReader(stream, charset));
         nextType = ItemType.DATA_ELEMENT;
-        nextItem();
+        advance();
         
         // build interchange properties from segment data
         Map<String,Object> props = new HashMap<>();
@@ -134,16 +130,16 @@ public class EdiFactParser extends ParserBase
         props.put(SYNTAX_VERSION_NUMBER, requireNextItem(ItemType.QUALIFIER));
         props.put(SENDER_IDENTIFICATION, requireNextItem(ItemType.DATA_ELEMENT));
         if (ItemType.QUALIFIER == nextType()) {
-            props.put(SENDER_IDENTIFICATION_CODE_QUALIFIER, nextItem());
+            props.put(SENDER_IDENTIFICATION_CODE_QUALIFIER, advance());
             if (ItemType.QUALIFIER == nextType()) {
-                props.put(REVERSE_ROUTING_ADDRESS, nextItem());
+                props.put(REVERSE_ROUTING_ADDRESS, advance());
             }
         }
         props.put(RECIPIENT_IDENTIFICATION, requireNextItem(ItemType.DATA_ELEMENT));
         if (ItemType.QUALIFIER == nextType()) {
-            props.put(RECIPIENT_IDENTIFICATION_CODE_QUALIFIER, nextItem());
+            props.put(RECIPIENT_IDENTIFICATION_CODE_QUALIFIER, advance());
             if (ItemType.QUALIFIER == nextType()) {
-                props.put(RECIPIENT_ROUTING_ADDRESS, nextItem());
+                props.put(RECIPIENT_ROUTING_ADDRESS, advance());
             }
         }
         props.put(PREPARATION_DATE, requireNextItem(ItemType.DATA_ELEMENT));
@@ -152,29 +148,39 @@ public class EdiFactParser extends ParserBase
         if (ItemType.SEGMENT == nextType()) {
             return props;
         }
-        props.put(RECIPIENT_REFERENCE, nextItem());
+        props.put(RECIPIENT_REFERENCE, advance());
         if (ItemType.QUALIFIER == nextType()) {
-            props.put(RECIPIENT_REFERENCE_QUALIFIER, nextItem());
+            props.put(RECIPIENT_REFERENCE_QUALIFIER, advance());
         }
         if (ItemType.SEGMENT == nextType()) {
             return props;
         }
-        props.put(APPLICATION_REFERENCE, nextItem());
+        props.put(APPLICATION_REFERENCE, advance());
         if (ItemType.SEGMENT == nextType()) {
             return props;
         }
-        props.put(PROCESSING_PRIORITY_CODE, nextItem());
+        props.put(PROCESSING_PRIORITY_CODE, advance());
         if (ItemType.SEGMENT == nextType()) {
             return props;
         }
-        props.put(ACKNOWLEDGEMENT_REQUEST, nextItem());
+        props.put(ACKNOWLEDGEMENT_REQUEST, advance());
         if (ItemType.SEGMENT == nextType()) {
             return props;
         }
-        props.put(COMMUNICATIONS_AGREEMENT_ID, nextItem());
+        props.put(COMMUNICATIONS_AGREEMENT_ID, advance());
         if (ItemType.SEGMENT != nextType()) {
-            props.put(TEST_INDICATOR, nextItem());
+            props.put(TEST_INDICATOR, advance());
         }
         return props;
+    }
+
+    /**
+     * @param props
+     * @throws IOException
+     * @see com.anypoint.df.edi.parser.ParserBase#term(java.util.Map)
+     */
+    public void term(Map<String, Object> props) throws IOException {
+        // TODO Auto-generated method stub
+        
     }
 }
