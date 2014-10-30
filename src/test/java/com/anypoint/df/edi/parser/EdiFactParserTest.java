@@ -1,14 +1,25 @@
 package com.anypoint.df.edi.parser;
 
-import static com.anypoint.df.edi.parser.EdiFactParser.*;
+import static com.anypoint.df.edi.parser.EdiFactConstants.INTERCHANGE_CONTROL_REFERENCE;
+import static com.anypoint.df.edi.parser.EdiFactConstants.PREPARATION_DATE;
+import static com.anypoint.df.edi.parser.EdiFactConstants.PREPARATION_TIME;
+import static com.anypoint.df.edi.parser.EdiFactConstants.RECIPIENT_IDENTIFICATION;
+import static com.anypoint.df.edi.parser.EdiFactConstants.RECIPIENT_IDENTIFICATION_CODE_QUALIFIER;
+import static com.anypoint.df.edi.parser.EdiFactConstants.SENDER_IDENTIFICATION;
+import static com.anypoint.df.edi.parser.EdiFactConstants.SENDER_IDENTIFICATION_CODE_QUALIFIER;
+import static com.anypoint.df.edi.parser.EdiFactConstants.SYNTAX_IDENTIFIER;
+import static com.anypoint.df.edi.parser.EdiFactConstants.SYNTAX_VERSION_NUMBER;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import com.anypoint.df.edi.parser.ParserBase.ItemType;
 
 /**
  * EdiFactParser test
@@ -57,32 +68,32 @@ public class EdiFactParserTest
     @Test
     public void simpleEnvelope() throws Exception {
         EdiFactParser parser = new EdiFactParser(new ByteArrayInputStream(EDI1.getBytes("US-ASCII")));
-        Map<String, Object> props = parser.init();
+        Map<String, Object> props = parser.init(Collections.EMPTY_MAP);
         Assert.assertEquals(EXPECT1, props);
         Assert.assertEquals(ItemType.SEGMENT, parser.nextType());
-        Assert.assertEquals("UNZ", parser.nextItem());
+        Assert.assertEquals("UNZ", parser.advance());
         Assert.assertEquals(ItemType.DATA_ELEMENT, parser.nextType());
-        Assert.assertEquals("1", parser.nextItem());
+        Assert.assertEquals("1", parser.advance());
         Assert.assertEquals(ItemType.DATA_ELEMENT, parser.nextType());
-        Assert.assertEquals("6002", parser.nextItem());
+        Assert.assertEquals("6002", parser.advance());
         Assert.assertEquals(ItemType.SEGMENT, parser.nextType());
-        Assert.assertNull(parser.nextItem());
+        Assert.assertNull(parser.advance());
         Assert.assertEquals(ItemType.END, parser.nextType());
     }
     
     public static void main(String[] args) throws Exception {
         InputStream is = new ByteArrayInputStream(EDI1_FULL.getBytes("US-ASCII"));
         EdiFactParser parser = new EdiFactParser(is);
-        parser.init();
+        parser.init(Collections.EMPTY_MAP);
         while (ItemType.END != parser.nextType()) {
             switch (parser.nextType()) {
                 case DATA_ELEMENT:
                     System.out.print(" ");
                     break;
-                case QUALIFIER:
+                default:
                     System.out.print("  ");
             }
-            System.out.println(parser.nextType() + ": " + parser.nextItem());
+            System.out.println(parser.nextType() + ": " + parser.advance());
         }
     }
 }
