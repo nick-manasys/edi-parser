@@ -76,7 +76,7 @@ object YamlWriter {
     writeIndented("transactions:", 0)
     schema.transactions.values foreach (transact => {
       writeIndented("- " + keyValueQuote("id", transact.ident), 0)
-      writeIndented(keyValueQuote("name", transact.name), 1)
+      writeIndented(keyValuePair("name", transact.name), 1)
       if (transact.heading.size > 0) writeTransactionComps("heading", transact.heading, 1)
       if (transact.detail.size > 0) writeTransactionComps("detail", transact.detail, 1)
       if (transact.summary.size > 0) writeTransactionComps("summary", transact.summary, 1)

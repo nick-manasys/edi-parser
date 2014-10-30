@@ -1,5 +1,6 @@
 transactions:
 - id: '850'
+  name: Purchase order
   heading:
   - { idRef: 'ST', usage: M }
   - loopId: 'N1'
