@@ -6,6 +6,7 @@ import com.anypoint.df.edi.parser.ParserBase.ItemType
 import com.anypoint.df.edi.parser.ParserBase.ItemType._
 import com.anypoint.df.edi.parser.X12Parser
 import scala.util.Success
+import java.io.IOException
 
 /** Parser for X12 EDI documents.
   */
@@ -21,7 +22,7 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
     ElementComponent(Element("373", DateType, 8, 8), GROUP_DATE, MandatoryUsage, 1),
     ElementComponent(Element("337", TimeType, 4, 8), GROUP_TIME, MandatoryUsage, 1),
     ElementComponent(Element("28", IntegerType, 1, 9), GROUP_CONTROL_NUMBER, MandatoryUsage, 1),
-    ElementComponent(Element("455", IdType, 12, 2), RESPONSIBLE_AGENCY_CODE, MandatoryUsage, 1),
+    ElementComponent(Element("455", IdType, 1, 2), RESPONSIBLE_AGENCY_CODE, MandatoryUsage, 1),
     ElementComponent(Element("480", AlphaNumericType, 2, 12), VERSION_IDENTIFIER_CODE, MandatoryUsage, 1)))
 
   val GESegment = Segment("GE", "Functional group trailer", List[SegmentComponent](
@@ -40,22 +41,25 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
   def init() = baseParser.init(new ValueMapImpl())
 
   /** Parse start of a functional group. */
-  def openGroup() = parseSegment(GSSegment)
+  def openGroup() =
+    if (checkSegment(GSSegment)) parseSegment(GSSegment)
+    else throw new IOException("missing required GS segment")
 
   /** Check if at functional group close segment. */
-  def isGroupClose() = SEGMENT == baseParser.currentType && GESegment.ident == baseParser.token
+  def isGroupClose() = checkSegment(GESegment)
 
   /** Parse close of a functional group. */
   def closeGroup(props: ValueMap) = parseSegment(GESegment)
 
   /** Parse start of a transaction set. */
-  def openSet() = {
-    val values = parseSegment(STSegment)
-    (values.get(TRANSACTION_SET_IDENTIFIER_CODE).asInstanceOf[String], values)
-  }
+  def openSet() =
+    if (checkSegment(STSegment)) {
+      val values = parseSegment(STSegment)
+      (values.get(TRANSACTION_SET_IDENTIFIER_CODE).asInstanceOf[String], values)
+    } else throw new IOException("missing required ST segment")
 
   /** Check if at transaction set close segment. */
-  def isSetClose() = SEGMENT == baseParser.currentType && SESegment.ident == baseParser.token
+  def isSetClose() = checkSegment(SESegment)
 
   /** Parse close of a transaction set. */
   def closeSet(props: ValueMap) = parseSegment(SESegment)

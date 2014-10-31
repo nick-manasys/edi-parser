@@ -70,21 +70,25 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) {
     /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
     def parseCompList(comps: List[SegmentComponent], expect: ItemType, map: ValueMap) = {
       comps foreach { comp =>
-        if (expect == baseParser.nextType()) parseValue(comp, map)
-        else baseParser.nextType() match {
+        if (expect == baseParser.nextType) parseValue(comp, map)
+        else baseParser.nextType match {
           case SEGMENT | END =>
-            if (comp.usage == MandatoryUsage) throw new IOException(s"Missing required value '${comp.name}'")
-          case _ => throw new IOException(s"Wrong separator type")
+            if (comp.usage == MandatoryUsage) throw new IOException(s"missing required value '${comp.name}'")
+          case _ => throw new IOException("wrong separator type")
         }
       }
     }
 
     val map = new ValueMapImpl()
-    parseCompList(segment.components.tail, DATA_ELEMENT, map)
+    parseCompList(segment.components, DATA_ELEMENT, map)
+    baseParser.nextType match {
+          case SEGMENT | END => baseParser.advance
+          case _ => throw new IOException("too many values in segment")
+    }
     map
   }
 
-  def checkSegment(segment: Segment) = baseParser.currentType == segment.ident
+  def checkSegment(segment: Segment) = baseParser.currentType == SEGMENT && baseParser.token == segment.ident
 
   // value keys for top-level transaction parse result map
   val transactionId = "id"
@@ -218,13 +222,11 @@ object SchemaParser {
     }
   } */
 
-  /** Factory function to create initialized parser instances. */
+  /** Factory function to create parser instances. */
   def create(in: InputStream, schema: EdiSchema) = Try {
-    val parser = schema ediForm match {
+    schema ediForm match {
       case EdiFact => throw new IllegalArgumentException()
       case X12 => new X12SchemaParser(in, schema)
     }
-    parser.init
-    parser
   }
 }
