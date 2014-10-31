@@ -41,10 +41,10 @@ public abstract class ParserBase
     /** Data element delimiter. */
     protected char dataSeparator;
     
-    /** Repeated component delimiter. */
-    protected char repetitionSeparator;
+    /** Repeated component delimiter (-1 if unused). */
+    protected int repetitionSeparator;
     
-    /** Release character. */
+    /** Release character (-1 if unused). */
     protected int releaseIndicator;
 
     /** Segment terminator. */

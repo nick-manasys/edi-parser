@@ -9,10 +9,12 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.anypoint.df.edi.parser.X12Constants.*;
+
 /**
  * Parser variation for X12.
  */
-public class X12Parser extends ParserBase implements X12Constants
+public class X12Parser extends ParserBase
 {
     /**
      * Constructor.
@@ -62,13 +64,18 @@ public class X12Parser extends ParserBase implements X12Constants
         props.put(RECEIVER_ID, advance());
         props.put(INTERCHANGE_DATE, advance());
         props.put(INTERCHANGE_TIME, advance());
-        repetitionSeparator = (char)reader.read();
+        String sep = advance();
+        repetitionSeparator = "U".equals(sep) ? -1 : sep.charAt(0);
         props.put(VERSION_ID, advance());
         props.put(INTER_CONTROL, advance());
         props.put(ACK_REQUESTED, advance());
         props.put(TEST_INDICATOR, advance());
         subElement = (char)reader.read();
         segmentTerminator = (char)reader.read();
+        
+        // advance to start of next segment
+        nextType = ItemType.SEGMENT;
+        advance();
         return props;
     }
 

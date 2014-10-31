@@ -4,8 +4,10 @@ package com.anypoint.df.edi.parser;
 /**
  * Constants for EDIFACT documents.
  */
-public interface EdiFactConstants
+public final class EdiFactConstants
 {
+    private EdiFactConstants() {}
+    
     public static final String SYNTAX_IDENTIFIER = "Syntax identifier";
     public static final String SYNTAX_VERSION_NUMBER = "Syntax version number";
     public static final String SENDER_IDENTIFICATION = "Sender identification";

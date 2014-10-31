@@ -4,8 +4,10 @@ package com.anypoint.df.edi.parser;
 /**
  * Constants for X12 documents.
  */
-public interface X12Constants
+public final class X12Constants
 {
+    private X12Constants() {}
+    
     // configuration properties
     public static final String CHAR_SET = "Character set";
     

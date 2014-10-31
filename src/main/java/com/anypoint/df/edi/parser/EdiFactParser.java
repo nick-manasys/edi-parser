@@ -9,10 +9,12 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.anypoint.df.edi.parser.EdiFactConstants.*;
+
 /**
  * Parser variation for EDIFACT.
  */
-public class EdiFactParser extends ParserBase implements EdiFactConstants
+public class EdiFactParser extends ParserBase
 {
     
     private static final Map<String,Charset> EDIFACT_CHARSETS;
