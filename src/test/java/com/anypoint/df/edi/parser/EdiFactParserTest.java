@@ -77,7 +77,7 @@ public class EdiFactParserTest
         Assert.assertEquals(ItemType.DATA_ELEMENT, parser.nextType());
         Assert.assertEquals("6002", parser.advance());
         Assert.assertEquals(ItemType.SEGMENT, parser.nextType());
-        Assert.assertNull(parser.advance());
+        Assert.assertEquals("", parser.advance());
         Assert.assertEquals(ItemType.END, parser.nextType());
     }
     

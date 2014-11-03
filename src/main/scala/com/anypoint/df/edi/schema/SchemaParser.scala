@@ -11,14 +11,13 @@ import com.anypoint.df.edi.parser.ParserBase.ItemType._
 import com.anypoint.df.edi.parser.X12Parser
 import com.anypoint.df.edi.schema.EdiSchema._
 import scala.annotation.tailrec
-import scala.xml.dtd.REQUIRED
 
 /** Parse EDI document based on schema.
   *
   * @author MuleSoft, Inc.
   */
 
-abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) {
+trait SchemaParserDefs {
 
   type ValueMap = java.util.Map[String, Object]
   type ValueMapImpl = java.util.HashMap[String, Object]
@@ -27,12 +26,21 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) {
   type RealNumber = java.math.BigDecimal
   type IntegerNumber = Integer
 
+  // value keys for top-level transaction parse result map
+  val transactionId = "id"
+  val transactionName = "name"
+  val transactionHeading = "heading"
+  val transactionDetail = "detail"
+  val transactionSummary = "summary"
+
+}
+
+abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) extends SchemaParserDefs {
+
   /** Initialize parser and read header segments. */
   protected def init(): ValueMap
 
-  /** Parse a segment to a map of values. The base parser must be positioned following the segment tag when this is
-    * called.
-    */
+  /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   protected def parseSegment(segment: Segment): ValueMap = {
 
     /** Parse a value, adding it to map. */
@@ -70,8 +78,11 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) {
     /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
     def parseCompList(comps: List[SegmentComponent], expect: ItemType, map: ValueMap) = {
       comps foreach { comp =>
-        if (expect == baseParser.nextType) parseValue(comp, map)
-        else baseParser.nextType match {
+        if (expect == baseParser.currentType) {
+          if (baseParser.token.length > 0) parseValue(comp, map)
+          else if (comp.usage == MandatoryUsage) throw new IOException(s"missing required value '${comp.name}'")
+          else baseParser.advance
+        } else baseParser.currentType match {
           case SEGMENT | END =>
             if (comp.usage == MandatoryUsage) throw new IOException(s"missing required value '${comp.name}'")
           case _ => throw new IOException("wrong separator type")
@@ -80,22 +91,16 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) {
     }
 
     val map = new ValueMapImpl()
+    baseParser.advance
     parseCompList(segment.components, DATA_ELEMENT, map)
-    baseParser.nextType match {
-          case SEGMENT | END => baseParser.advance
-          case _ => throw new IOException("too many values in segment")
+    baseParser.currentType match {
+      case SEGMENT | END =>
+      case _ => throw new IOException("too many values in segment")
     }
     map
   }
 
   def checkSegment(segment: Segment) = baseParser.currentType == SEGMENT && baseParser.token == segment.ident
-
-  // value keys for top-level transaction parse result map
-  val transactionId = "id"
-  val transactionName = "name"
-  val transactionHeading = "heading"
-  val transactionDetail = "detail"
-  val transactionSummary = "summary"
 
   /** Parse a complete transaction. The returned map has a maximum of five values: the transaction id and name, and
     * separate child maps for each of the three sections of a transaction (heading, detail, and summary). Each child map
@@ -151,12 +156,13 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) {
           if (checkSegment(segment)) values put (segment.name,
             if (ref.count > 0) parseRepeatingSegment(segment, ref.count) else parseSegment(segment))
           else if (ref.usage == MandatoryUsage) throw new IllegalStateException(s"missing required segment ${segment ident}")
-          else parseComponents(tail)
+          parseComponents(tail)
         }
         case (group: GroupComponent) :: tail => {
           val repeats = parseRepeatingGroup(group)
           if (repeats.size() > 0) values put (group.ident, repeats)
           else if (group.usage == MandatoryUsage) throw new IllegalStateException(s"missing required loop ${group ident}")
+          parseComponents(tail)
         }
         case _ =>
       }
@@ -196,8 +202,10 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) {
     val map = new ValueMapImpl
     val interchange = init
     map.put("interchange", interchange)
+    // TODO: check for (and ignore) anything other than a group header
     val group = openGroup
     map.put("group", group)
+    // TODO: check for (and ignore) anything other than a set header
     val set = openSet
     map.put("set", set._2)
     schema.transactions(set._1) match {

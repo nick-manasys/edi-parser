@@ -43,24 +43,38 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
   /** Parse start of a functional group. */
   def openGroup() =
     if (checkSegment(GSSegment)) parseSegment(GSSegment)
-    else throw new IOException("missing required GS segment")
+    else throw new IllegalStateException("missing required GS segment")
 
   /** Check if at functional group close segment. */
   def isGroupClose() = checkSegment(GESegment)
 
   /** Parse close of a functional group. */
-  def closeGroup(props: ValueMap) = parseSegment(GESegment)
+  def closeGroup(props: ValueMap) = {
+    if (checkSegment(GESegment)) {
+      val endprops = parseSegment(GESegment)
+      if (props.get(GROUP_CONTROL_NUMBER) != endprops.get(GROUP_CONTROL_NUMBER)) {
+        throw new IllegalStateException("group control number in trailer does not match header")
+      }
+    } else throw new IllegalStateException("not positioned at GE segment")
+  }
 
   /** Parse start of a transaction set. */
   def openSet() =
     if (checkSegment(STSegment)) {
       val values = parseSegment(STSegment)
       (values.get(TRANSACTION_SET_IDENTIFIER_CODE).asInstanceOf[String], values)
-    } else throw new IOException("missing required ST segment")
+    } else throw new IllegalStateException("missing required ST segment")
 
   /** Check if at transaction set close segment. */
   def isSetClose() = checkSegment(SESegment)
 
   /** Parse close of a transaction set. */
-  def closeSet(props: ValueMap) = parseSegment(SESegment)
+  def closeSet(props: ValueMap) = {
+    if (checkSegment(SESegment)) {
+      val endprops = parseSegment(SESegment)
+      if (props.get(TRANSACTION_SET_CONTROL_NUMBER) != endprops.get(TRANSACTION_SET_CONTROL_NUMBER)) {
+        throw new IllegalStateException("transaction set control number in trailer does not match header")
+      }
+    } else throw new IllegalStateException("not positioned at SE segment")
+  }
 }

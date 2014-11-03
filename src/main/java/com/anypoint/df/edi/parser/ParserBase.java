@@ -227,23 +227,21 @@ public abstract class ParserBase
     }
     
     /**
-     * Advance to the next token, removing it from the input and verifying the text length.
+     * Verifying the current token text length.
      *
      * @param minl minimum length
      * @param maxl maximum length
      * @return value, <code>null</code> if empty
      * @throws IOException 
      */
-    public String nextToken(int minl, int maxl) throws IOException {
-        String text = advance();
-        if (text.length() < minl || text.length() > maxl) {
+    public void checkLength(int minl, int maxl) throws IOException {
+        if (token.length() < minl || token.length() > maxl) {
             throw new ParseException("length outside of allowed range");
         }
-        return text;
     }
     
     /**
-     * Get next token as an alpha value.
+     * Get current token as an alpha value and advance to next token.
      *
      * @param minl minimum length
      * @param maxl maximum length
@@ -251,18 +249,20 @@ public abstract class ParserBase
      * @throws IOException
      */
     public String parseAlpha(int minl, int maxl) throws IOException {
-        String text = nextToken(minl, maxl);
+        checkLength(minl, maxl);
+        String text = token;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
                 throw new ParseException("alpha value type cannot contain digit");
             }
         }
+        advance();
         return text;
     }
     
     /**
-     * Get next token as an alphanumeric value.
+     * Get current token as an alphanumeric value and advance to next token.
      *
      * @param minl minimum length
      * @param maxl maximum length
@@ -270,11 +270,14 @@ public abstract class ParserBase
      * @throws IOException
      */
     public String parseAlphaNumeric(int minl, int maxl) throws IOException {
-        return nextToken(minl, maxl);
+        checkLength(minl, maxl);
+        String text = token;
+        advance();
+        return text;
     }
     
     /**
-     * Get next token as an id value.
+     * Get current token as an id value and advance to next token.
      *
      * @param minl minimum length
      * @param maxl maximum length
@@ -282,18 +285,20 @@ public abstract class ParserBase
      * @throws IOException
      */
     public String parseId(int minl, int maxl) throws IOException {
-        String text = nextToken(minl, maxl);
+        checkLength(minl, maxl);
+        String text = token;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
                 throw new ParseException("id value type characters must be alphas or digits");
             }
         }
+        advance();
         return text;
     }
     
     /**
-     * Get next token as a EDIFACT number value.
+     * Get current token as an integer value and advance to next token.
      *
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
@@ -301,7 +306,7 @@ public abstract class ParserBase
      * @throws IOException
      */
     public BigInteger parseInteger(int minl, int maxl) throws IOException {
-        String text = advance();
+        String text = token;
         int length = 0;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
@@ -314,11 +319,12 @@ public abstract class ParserBase
         if (length < minl || length > maxl) {
             throw new ParseException("number value incorrect length");
         }
+        advance();
         return new BigInteger(text);
     }
     
     /**
-     * Get next token as an X12 real number value.
+     * Get current token as an X12 real number value and advance to next token.
      *
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
@@ -326,7 +332,7 @@ public abstract class ParserBase
      * @throws IOException
      */
     public BigDecimal parseNumber(int minl, int maxl) throws IOException {
-        String text = advance();
+        String text = token;
         int length = 0;
         boolean decimal = false;
         for (int i = 0; i < text.length(); i++) {
@@ -342,11 +348,12 @@ public abstract class ParserBase
         if (length < minl || length > maxl) {
             throw new ParseException("number value incorrect length");
         }
+        advance();
         return new BigDecimal(text);
     }
     
     /**
-     * Get next token as an X12 date value.
+     * Get current token as an X12 date value and advance to next token.
      *
      * @param minl minimum length
      * @param maxl maximum length
@@ -354,7 +361,8 @@ public abstract class ParserBase
      * @throws IOException
      */
     public Date parseDate(int minl, int maxl) throws IOException {
-        String text = nextToken(minl, maxl);
+        checkLength(minl, maxl);
+        String text = token;
         int length = text.length();
         if (length != 6 && length != 8) {
             throw new ParseException("date value must be either 6 or 8 characters");
@@ -381,11 +389,12 @@ public abstract class ParserBase
                 year -= 100;
             }
         }
+        advance();
         return new GregorianCalendar(year, month, day).getTime();
     }
     
     /**
-     * Get next token as an X12 number value with implied decimal.
+     * Get current token as an X12 number value and advance to next token.
      *
      * @param scale inverse power of ten multiplier
      * @param minl minimum length (excluding sign and/or decimal)
@@ -398,7 +407,7 @@ public abstract class ParserBase
     }
     
     /**
-     * Get next token as an X12 time value.
+     * Get current token as an X12 time value and advance to next token.
      *
      * @param minl minimum length
      * @param maxl maximum length
@@ -406,7 +415,8 @@ public abstract class ParserBase
      * @throws IOException
      */
     public int parseTime(int minl, int maxl) throws IOException {
-        String text = nextToken(minl, maxl);
+        checkLength(minl, maxl);
+        String text = token;
         int length = text.length();
         if (length != 4 && (length < 6 || length > 8)) {
             throw new ParseException("time value must be either 4 or 6-8 characters");
@@ -432,6 +442,7 @@ public abstract class ParserBase
                 milli = (text.charAt(7) - '0') * 10;
             }
         }
+        advance();
         return ((hour * 60 + minute) * 60 + second) * 1000 + milli;
     }
 }

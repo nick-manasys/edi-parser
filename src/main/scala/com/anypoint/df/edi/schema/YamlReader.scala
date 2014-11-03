@@ -191,10 +191,11 @@ object YamlReader {
       {
         val ident = getRequiredString("id", transmap)
         val name = getRequiredString("name", transmap)
+        val group = if (transmap.containsKey("group")) transmap.get("group").asInstanceOf[String] else ""
         val heading = parseTransactionPart("heading", transmap, segments)
         val detail = parseTransactionPart("detail", transmap, segments)
         val summary = parseTransactionPart("summary", transmap, segments)
-        map + (ident -> Transaction(ident, name, heading, detail, summary))
+        map + (ident -> Transaction(ident, name, group, heading, detail, summary))
       })
 
     // TODO: add EDIFACT vs. X12 flag to YAML

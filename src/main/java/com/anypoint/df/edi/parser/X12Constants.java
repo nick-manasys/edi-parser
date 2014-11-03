@@ -35,7 +35,7 @@ public final class X12Constants
     public static final String GROUP_TIME = "Group time";
     public static final String GROUP_CONTROL_NUMBER = "Group control number";
     public static final String RESPONSIBLE_AGENCY_CODE = "Responsible agency code";
-    public static final String VERSION_IDENTIFIER_CODE = "Version / release/ industry identifier code";
+    public static final String VERSION_IDENTIFIER_CODE = "Version / release / industry identifier code";
     
     // group properties from GE segment
     public static final String NUMBER_OF_TRANSACTION_SETS = "Number of transaction sets included";
