@@ -1,5 +1,5 @@
 
-package com.anypoint.df.edi.parser;
+package com.anypoint.df.edi.lexical;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,19 +9,19 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.anypoint.df.edi.parser.X12Constants.*;
+import static com.anypoint.df.edi.lexical.X12Constants.*;
 
 /**
  * Parser variation for X12.
  */
-public class X12Parser extends ParserBase
+public class X12Lexer extends LexerBase
 {
     /**
      * Constructor.
      *
      * @param is input
      */
-    public X12Parser(InputStream is) {
+    public X12Lexer(InputStream is) {
         super(is, '*', '\\', '^', '~', -1);
     }
     
@@ -82,7 +82,7 @@ public class X12Parser extends ParserBase
     /**
      * @param props
      * @throws IOException
-     * @see com.anypoint.df.edi.parser.ParserBase#term(java.util.Map)
+     * @see com.anypoint.df.edi.lexical.LexerBase#term(java.util.Map)
      */
     public void term(Map<String, Object> props) throws IOException {
         // TODO Auto-generated method stub

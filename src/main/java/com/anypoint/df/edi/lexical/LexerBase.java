@@ -1,5 +1,5 @@
 
-package com.anypoint.df.edi.parser;
+package com.anypoint.df.edi.lexical;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,7 +17,7 @@ import java.util.Map;
  * the end of the current input token ({@link #nextType}), and the actual current token ({@link #token}). Various typed
  * parseXXX methods work with the current token as typed data.
  */
-public abstract class ParserBase
+public abstract class LexerBase
 {
     // standard character sets
     public static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
@@ -87,7 +87,7 @@ public abstract class ParserBase
      * @param segterm default segment terminator character
      * @param release default release character
      */
-    public ParserBase(InputStream is, char datasep, char subsep, char repsep, char segterm, int release) {
+    public LexerBase(InputStream is, char datasep, char subsep, char repsep, char segterm, int release) {
         stream = is;
         dataSeparator = datasep;
         subElement = subsep;

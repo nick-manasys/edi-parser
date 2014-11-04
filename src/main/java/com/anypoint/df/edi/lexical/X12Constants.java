@@ -1,5 +1,5 @@
 
-package com.anypoint.df.edi.parser;
+package com.anypoint.df.edi.lexical;
 
 /**
  * Constants for X12 documents.

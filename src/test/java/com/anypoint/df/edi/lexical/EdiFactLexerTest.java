@@ -1,14 +1,14 @@
-package com.anypoint.df.edi.parser;
+package com.anypoint.df.edi.lexical;
 
-import static com.anypoint.df.edi.parser.EdiFactConstants.INTERCHANGE_CONTROL_REFERENCE;
-import static com.anypoint.df.edi.parser.EdiFactConstants.PREPARATION_DATE;
-import static com.anypoint.df.edi.parser.EdiFactConstants.PREPARATION_TIME;
-import static com.anypoint.df.edi.parser.EdiFactConstants.RECIPIENT_IDENTIFICATION;
-import static com.anypoint.df.edi.parser.EdiFactConstants.RECIPIENT_IDENTIFICATION_CODE_QUALIFIER;
-import static com.anypoint.df.edi.parser.EdiFactConstants.SENDER_IDENTIFICATION;
-import static com.anypoint.df.edi.parser.EdiFactConstants.SENDER_IDENTIFICATION_CODE_QUALIFIER;
-import static com.anypoint.df.edi.parser.EdiFactConstants.SYNTAX_IDENTIFIER;
-import static com.anypoint.df.edi.parser.EdiFactConstants.SYNTAX_VERSION_NUMBER;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.INTERCHANGE_CONTROL_REFERENCE;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.PREPARATION_DATE;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.PREPARATION_TIME;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.RECIPIENT_IDENTIFICATION;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.RECIPIENT_IDENTIFICATION_CODE_QUALIFIER;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.SENDER_IDENTIFICATION;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.SENDER_IDENTIFICATION_CODE_QUALIFIER;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.SYNTAX_IDENTIFIER;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.SYNTAX_VERSION_NUMBER;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -19,12 +19,13 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.anypoint.df.edi.parser.ParserBase.ItemType;
+import com.anypoint.df.edi.lexical.EdiFactLexer;
+import com.anypoint.df.edi.lexical.LexerBase.ItemType;
 
 /**
  * EdiFactParser test
  */
-public class EdiFactParserTest
+public class EdiFactLexerTest
 {
     private static final String EDI1 = "UNA:+.? 'UNB+UNOB:4+STYLUSSTUDIO:1+DATADIRECT:1+20051107:1159+6002'UNZ+1+6002'";
     private static final Map<String, Object> EXPECT1;
@@ -67,7 +68,7 @@ public class EdiFactParserTest
     
     @Test
     public void simpleEnvelope() throws Exception {
-        EdiFactParser parser = new EdiFactParser(new ByteArrayInputStream(EDI1.getBytes("US-ASCII")));
+        EdiFactLexer parser = new EdiFactLexer(new ByteArrayInputStream(EDI1.getBytes("US-ASCII")));
         Map<String, Object> props = parser.init(Collections.EMPTY_MAP);
         Assert.assertEquals(EXPECT1, props);
         Assert.assertEquals(ItemType.SEGMENT, parser.nextType());
@@ -83,7 +84,7 @@ public class EdiFactParserTest
     
     public static void main(String[] args) throws Exception {
         InputStream is = new ByteArrayInputStream(EDI1_FULL.getBytes("US-ASCII"));
-        EdiFactParser parser = new EdiFactParser(is);
+        EdiFactLexer parser = new EdiFactLexer(is);
         parser.init(Collections.EMPTY_MAP);
         while (ItemType.END != parser.nextType()) {
             switch (parser.nextType()) {

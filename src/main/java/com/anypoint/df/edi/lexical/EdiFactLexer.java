@@ -1,5 +1,5 @@
 
-package com.anypoint.df.edi.parser;
+package com.anypoint.df.edi.lexical;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,12 +9,12 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.anypoint.df.edi.parser.EdiFactConstants.*;
+import static com.anypoint.df.edi.lexical.EdiFactConstants.*;
 
 /**
  * Parser variation for EDIFACT.
  */
-public class EdiFactParser extends ParserBase
+public class EdiFactLexer extends LexerBase
 {
     
     private static final Map<String,Charset> EDIFACT_CHARSETS;
@@ -53,7 +53,7 @@ public class EdiFactParser extends ParserBase
      *
      * @param is input
      */
-    public EdiFactParser(InputStream is) {
+    public EdiFactLexer(InputStream is) {
         super(is, '+', ':', '*', '\'', '?');
 //        super(is, 0x1D, 0x1F, 0x1C, -1);
     }
@@ -179,7 +179,7 @@ public class EdiFactParser extends ParserBase
     /**
      * @param props
      * @throws IOException
-     * @see com.anypoint.df.edi.parser.ParserBase#term(java.util.Map)
+     * @see com.anypoint.df.edi.lexical.LexerBase#term(java.util.Map)
      */
     public void term(Map<String, Object> props) throws IOException {
         // TODO Auto-generated method stub

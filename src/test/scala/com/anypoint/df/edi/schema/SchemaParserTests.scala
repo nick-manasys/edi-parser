@@ -3,18 +3,21 @@ package com.anypoint.df.edi.schema
 import java.io.InputStreamReader
 import java.io.StringReader
 import java.io.StringWriter
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
+
 import scala.io.Source
+
 import java.io.ByteArrayInputStream
-import com.anypoint.df.edi.parser.X12Constants
+
 import java.util.GregorianCalendar
 import java.math.BigInteger
 
 class SchemaParserTests extends FlatSpec with Matchers with SchemaParserDefs {
 
   import EdiSchema._
-  import X12Constants._
+  import com.anypoint.df.edi.lexical.X12Constants._
 
   val ISA = "ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *090604*1205*U*00401*000001244*0*P*>~"
   val GS = "GS*PO*006927180*IAIYUCAFOO*20080604*1205*168*X*004010~"
@@ -73,7 +76,7 @@ class SchemaParserTests extends FlatSpec with Matchers with SchemaParserDefs {
     parser.isGroupClose should be(true)
     parser.closeGroup(gprops)
   }
-  
+
   it should "throw an exception when positioned at wrong segment" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
     val create = SchemaParser.create(in, EdiSchema(X12, Map.empty, Map.empty, Map.empty, Map.empty))

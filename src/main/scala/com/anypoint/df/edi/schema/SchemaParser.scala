@@ -2,20 +2,16 @@ package com.anypoint.df.edi.schema
 
 import java.io.IOException
 import java.io.InputStream
-import scala.util.Success
-import scala.util.Try
-import com.anypoint.df.edi.parser.EdiFactParser
-import com.anypoint.df.edi.parser.ParserBase
-import com.anypoint.df.edi.parser.ParserBase.ItemType
-import com.anypoint.df.edi.parser.ParserBase.ItemType._
-import com.anypoint.df.edi.parser.X12Parser
-import com.anypoint.df.edi.schema.EdiSchema._
-import scala.annotation.tailrec
 
-/** Parse EDI document based on schema.
-  *
-  * @author MuleSoft, Inc.
-  */
+import scala.annotation.tailrec
+import scala.util.Try
+
+import com.anypoint.df.edi.lexical.LexerBase
+import com.anypoint.df.edi.lexical.LexerBase.ItemType
+import com.anypoint.df.edi.lexical.LexerBase.ItemType._
+import com.anypoint.df.edi.schema.EdiSchema._
+
+/** Parse EDI document based on schema. */
 
 trait SchemaParserDefs {
 
@@ -35,7 +31,7 @@ trait SchemaParserDefs {
 
 }
 
-abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) extends SchemaParserDefs {
+abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends SchemaParserDefs {
 
   /** Initialize parser and read header segments. */
   protected def init(): ValueMap
@@ -48,14 +44,14 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) e
       comp match {
         case ElementComponent(elem, name, use, count) => {
           elem.dataType match {
-            case AlphaType => map put (name, baseParser.parseAlpha(elem.minLength, elem.maxLength))
-            case AlphaNumericType | IdType => map put (name, baseParser.parseAlphaNumeric(elem.minLength, elem.maxLength))
+            case AlphaType => map put (name, lexer.parseAlpha(elem.minLength, elem.maxLength))
+            case AlphaNumericType | IdType => map put (name, lexer.parseAlphaNumeric(elem.minLength, elem.maxLength))
             case BinaryType => throw new IOException("Handling not implemented for binary values")
-            case DateType => map put (name, baseParser.parseDate(elem.minLength, elem.maxLength))
-            case IntegerType => map put (name, baseParser.parseInteger(elem.minLength, elem.maxLength))
-            case decimal: DecimalType => map put (name, baseParser.parseImpliedDecimalNumber(decimal.places, elem.minLength, elem.maxLength))
-            case NumberType | RealType => map put (name, baseParser.parseNumber(elem.minLength, elem.maxLength))
-            case TimeType => map put (name, Integer.valueOf(baseParser.parseTime(elem.minLength, elem.maxLength)))
+            case DateType => map put (name, lexer.parseDate(elem.minLength, elem.maxLength))
+            case IntegerType => map put (name, lexer.parseInteger(elem.minLength, elem.maxLength))
+            case decimal: DecimalType => map put (name, lexer.parseImpliedDecimalNumber(decimal.places, elem.minLength, elem.maxLength))
+            case NumberType | RealType => map put (name, lexer.parseNumber(elem.minLength, elem.maxLength))
+            case TimeType => map put (name, Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength)))
           }
         }
         case CompositeComponent(comp, name, use, count) => {
@@ -78,11 +74,11 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) e
     /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
     def parseCompList(comps: List[SegmentComponent], expect: ItemType, map: ValueMap) = {
       comps foreach { comp =>
-        if (expect == baseParser.currentType) {
-          if (baseParser.token.length > 0) parseValue(comp, map)
+        if (expect == lexer.currentType) {
+          if (lexer.token.length > 0) parseValue(comp, map)
           else if (comp.usage == MandatoryUsage) throw new IOException(s"missing required value '${comp.name}'")
-          else baseParser.advance
-        } else baseParser.currentType match {
+          else lexer.advance
+        } else lexer.currentType match {
           case SEGMENT | END =>
             if (comp.usage == MandatoryUsage) throw new IOException(s"missing required value '${comp.name}'")
           case _ => throw new IOException("wrong separator type")
@@ -91,16 +87,16 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) e
     }
 
     val map = new ValueMapImpl()
-    baseParser.advance
+    lexer.advance
     parseCompList(segment.components, DATA_ELEMENT, map)
-    baseParser.currentType match {
+    lexer.currentType match {
       case SEGMENT | END =>
       case _ => throw new IOException("too many values in segment")
     }
     map
   }
 
-  def checkSegment(segment: Segment) = baseParser.currentType == SEGMENT && baseParser.token == segment.ident
+  def checkSegment(segment: Segment) = lexer.currentType == SEGMENT && lexer.token == segment.ident
 
   /** Parse a complete transaction. The returned map has a maximum of five values: the transaction id and name, and
     * separate child maps for each of the three sections of a transaction (heading, detail, and summary). Each child map
@@ -219,10 +215,10 @@ abstract class SchemaParser(val baseParser: ParserBase, val schema: EdiSchema) e
 object SchemaParser {
 
   /** Parser for EDIFACT messages. */
-  /*  private class EdiFactSchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new EdiFactParser(in), sc) {
+  /*  private class EdiFactSchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new EdiFactLexer(in), sc) {
     def init() = {
-      val params = baseParser.init(new ValueMapImpl())
-      val second = baseParser.requireNextItem(SEGMENT)
+      val params = lexer.init(new ValueMapImpl())
+      val second = lexer.requireNextItem(SEGMENT)
       params
     }
     def parse() = {

@@ -1,18 +1,19 @@
 package com.anypoint.df.edi.schema
 
 import java.io.InputStream
-import com.anypoint.df.edi.parser.ParserBase
-import com.anypoint.df.edi.parser.ParserBase.ItemType
-import com.anypoint.df.edi.parser.ParserBase.ItemType._
-import com.anypoint.df.edi.parser.X12Parser
-import scala.util.Success
 import java.io.IOException
+
+import scala.util.Success
+
+import com.anypoint.df.edi.lexical.LexerBase
+import com.anypoint.df.edi.lexical.LexerBase.ItemType._
+import com.anypoint.df.edi.lexical.X12Lexer
 
 /** Parser for X12 EDI documents.
   */
-class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X12Parser(in), sc) {
+class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X12Lexer(in), sc) {
 
-  import com.anypoint.df.edi.parser.X12Constants._
+  import com.anypoint.df.edi.lexical.X12Constants._
   import EdiSchema._
 
   val GSSegment = Segment("GS", "Functional group header", List[SegmentComponent](
@@ -38,7 +39,7 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
     ElementComponent(Element("96", IntegerType, 1, 10), NUMBER_OF_INCLUDED_SEGMENTS, MandatoryUsage, 1),
     ElementComponent(Element("329", AlphaNumericType, 4, 9), TRANSACTION_SET_CONTROL_NUMBER, MandatoryUsage, 1)))
 
-  def init() = baseParser.init(new ValueMapImpl())
+  def init() = lexer.init(new ValueMapImpl())
 
   /** Parse start of a functional group. */
   def openGroup() =
