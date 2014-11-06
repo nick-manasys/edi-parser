@@ -19,8 +19,8 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.anypoint.df.edi.lexical.EdiConstants.*;
 import com.anypoint.df.edi.lexical.EdiFactLexer;
-import com.anypoint.df.edi.lexical.LexerBase.ItemType;
 
 /**
  * EdiFactParser test

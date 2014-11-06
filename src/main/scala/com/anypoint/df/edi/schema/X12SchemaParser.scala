@@ -5,8 +5,9 @@ import java.io.IOException
 
 import scala.util.Success
 
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.LexerBase
-import com.anypoint.df.edi.lexical.LexerBase.ItemType._
 import com.anypoint.df.edi.lexical.X12Lexer
 
 /** Parser for X12 EDI documents.

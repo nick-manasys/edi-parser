@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.anypoint.df.edi.lexical.EdiConstants.*;
 import static com.anypoint.df.edi.lexical.X12Constants.*;
 
 /**

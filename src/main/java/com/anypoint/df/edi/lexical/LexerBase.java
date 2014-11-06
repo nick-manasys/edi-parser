@@ -6,10 +6,11 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;
+
+import static com.anypoint.df.edi.lexical.EdiConstants.*;
 
 /**
  * Base EDI token scanner. The scanner supplies input tokens to consumers along with token delimiter types, with three
@@ -19,16 +20,6 @@ import java.util.Map;
  */
 public abstract class LexerBase
 {
-    // standard character sets
-    public static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
-    public static final Charset UTF8_CHARSET = Charset.forName("UTF-8");
-    
-    /** Maximum year number accepted (otherwise wrapped to previous century). */
-    public static final int maximumYear = 2070;
-    
-    /** Token delimiter types. */
-    public enum ItemType {  SEGMENT, DATA_ELEMENT, QUALIFIER, REPETITION, END }
-    
     /** Stream supplying document data. */
     protected final InputStream stream;
     

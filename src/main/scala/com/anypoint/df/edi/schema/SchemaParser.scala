@@ -6,9 +6,9 @@ import java.io.InputStream
 import scala.annotation.tailrec
 import scala.util.Try
 
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.LexerBase
-import com.anypoint.df.edi.lexical.LexerBase.ItemType
-import com.anypoint.df.edi.lexical.LexerBase.ItemType._
 import com.anypoint.df.edi.schema.EdiSchema._
 
 /** Parse EDI document based on schema. */
