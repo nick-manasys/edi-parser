@@ -72,7 +72,10 @@ object YamlWriter {
       })
     }
     
-    // start by writing transaction details
+    // start with schema type
+    writeIndented(keyValuePair("form", schema.ediForm.text), 0)
+    
+    // write transaction details
     writeIndented("transactions:", 0)
     schema.transactions.values foreach (transact => {
       writeIndented("- " + keyValueQuote("id", transact.ident), 0)
@@ -91,7 +94,15 @@ object YamlWriter {
       writeSegmentComponents("values", segment.components, 1)
     })
     
-    // TODO: composite details
+    // next write composites details
+    if (!schema.composites.isEmpty) {
+        writeIndented("composites:", 0)
+        schema.composites.values foreach (composite => {
+            writeIndented("- " + keyValueQuote("id", composite.ident), 0)
+            writeIndented(keyValuePair("name", composite name), 1)
+            writeSegmentComponents("values", composite.components, 1)
+        })
+    }
     
     // finish with element details
     writeIndented("elements:", 0)

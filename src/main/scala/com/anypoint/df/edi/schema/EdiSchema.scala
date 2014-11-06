@@ -106,9 +106,13 @@ object EdiSchema {
 
   type TransactionMap = Map[String, Transaction]
 
-  sealed trait EdiForm
-  case object EdiFact extends EdiForm
-  case object X12 extends EdiForm
+  sealed class EdiForm(val text: String)
+  case object EdiFact extends EdiForm("EDIFACT")
+  case object X12 extends EdiForm("X12")
+  def convertEdiForm(value: String) = value match {
+    case EdiFact.text => EdiFact
+    case X12.text => X12
+  }
 }
 
 case class EdiSchema(val ediForm: EdiSchema.EdiForm, val elements: Map[String, EdiSchema.Element],

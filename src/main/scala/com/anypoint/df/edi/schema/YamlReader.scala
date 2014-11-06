@@ -64,14 +64,13 @@ object YamlReader {
    * Build segment components from input data.
    * @param list list of maps of component data
    * @param elements known elements map
+   * @param composites known composites map
    * @returns components
    */
-  def parseSegmentComponents(list: JavaList[JavaMap[Any, Any]], elements: Map[String, Element]): List[SegmentComponent] = {
+  def parseSegmentComponents(list: JavaList[JavaMap[Any, Any]], elements: Map[String, Element],
+    composites: Map[String, Composite]): List[SegmentComponent] = {
     def convertComponent(values: JavaMap[Any, Any]) = {
       val id = getRequiredString("idRef", values)
-      if (!elements.contains(id)) {
-        throw new IllegalArgumentException(s"No element with id '$id'")
-      }
       val name = getRequiredString("name", values)
       val use = convertUsage(getRequiredString("usage", values))
       val repeat = values.get("repeat") match {
@@ -79,10 +78,13 @@ object YamlReader {
         case null => 1
         case _ => throw new IllegalArgumentException("Value 'repeat' must be an integer")
       }
-      ElementComponent(elements(id), name, use, repeat)
+      if (elements.contains(id)) ElementComponent(elements(id), name, use, repeat)
+      else if (composites.contains(id)) CompositeComponent(composites(id), name, use, repeat)
+      else throw new IllegalArgumentException(s"No element or composite with id '$id'")
     }
     @tailrec
-    def parseComponent(remain: List[JavaMap[Any, Any]], prior: List[SegmentComponent]): List[SegmentComponent] = remain match {
+    def parseComponent(remain: List[JavaMap[Any, Any]], prior: List[SegmentComponent]): List[SegmentComponent] =
+      remain match {
       case values :: t => parseComponent(t, convertComponent(values) :: prior)
       case _ => prior.reverse
     }
@@ -96,7 +98,8 @@ object YamlReader {
    * @param segments known segments map
    * @returns components
    */
-  def parseTransactionComponents(list: JavaList[JavaMap[Any, Any]], segments: Map[String, Segment]): List[TransactionComponent] = {
+  def parseTransactionComponents(list: JavaList[JavaMap[Any, Any]], segments: Map[String, Segment]):
+  List[TransactionComponent] = {
     def convertComponent(values: JavaMap[Any, Any]) = {
       val use = convertUsage(getRequiredString("usage", values))
       val repeat = values.get("repeat") match {
@@ -117,7 +120,8 @@ object YamlReader {
       }
     }
     @tailrec
-    def parseComponent(remain: List[JavaMap[Any, Any]], prior: List[TransactionComponent]): List[TransactionComponent] = remain match {
+    def parseComponent(remain: List[JavaMap[Any, Any]], prior: List[TransactionComponent]): List[TransactionComponent] =
+      remain match {
       case values :: t => parseComponent(t, convertComponent(values) :: prior)
       case _ => prior.reverse
     }
@@ -158,6 +162,19 @@ object YamlReader {
     def get(key: K) = base get (key)
     def iterator = keys.iterator.map(k => (k, base(k)))
   }
+  
+  /** Convert composite definitions. */
+  private def convertComposites(input: JavaMap[Any, Any], elements: Map[String, Element]) = {
+    val compsin = getChildList("composites", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
+    compsin.asScala.toList.foldLeft[Map[String, Composite]](new InsertionOrderedMap[String, Composite])(
+      (map, compmap) =>
+      {
+        val ident = getRequiredString("id", compmap)
+        val name = getRequiredString("name", compmap)
+        val list = getChildList("values", compmap).asInstanceOf[JavaList[JavaMap[Any, Any]]]
+        map + (ident -> Composite(ident, name, parseSegmentComponents(list, elements, map)))
+      })
+  }
 
   /**
    * Read schema from YAML document.
@@ -167,9 +184,10 @@ object YamlReader {
    */
   def loadYaml(reader: Reader) = {
     val yaml = new Yaml(new IgnoringConstructor());
-    val input = yaml.loadAs(reader, classOf[JavaMap[_, _]]);
+    val input = yaml.loadAs(reader, classOf[JavaMap[Any, Any]]);
     val elmsin = getChildList("elements", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    val elements = elmsin.asScala.toList.foldLeft[Map[String, Element]](new InsertionOrderedMap[String, Element])((map, elmmap) =>
+    val elements = elmsin.asScala.toList.foldLeft[Map[String, Element]](new InsertionOrderedMap[String, Element])(
+      (map, elmmap) =>
       {
         val ident = getRequiredString("id", elmmap)
         val typ = convertDataType(getRequiredString("type", elmmap))
@@ -177,17 +195,22 @@ object YamlReader {
         val max = getRequiredInt("maxLength", elmmap)
         map + (ident -> Element(ident, typ, min, max))
       })
+    val composites =
+      if (input.containsKey("composites")) convertComposites(input, elements)
+      else Map.empty[String, Composite]
     val segsin = getChildList("segments", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    val segments = segsin.asScala.toList.foldLeft[Map[String, Segment]](new InsertionOrderedMap[String, Segment])((map, segmap) =>
+    val segments = segsin.asScala.toList.foldLeft[Map[String, Segment]](new InsertionOrderedMap[String, Segment])(
+      (map, segmap) =>
       {
         val ident = getRequiredString("id", segmap)
         val name = getRequiredString("name", segmap)
         val list = getChildList("values", segmap).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-        map + (ident -> Segment(ident, name, parseSegmentComponents(list, elements)))
+        map + (ident -> Segment(ident, name, parseSegmentComponents(list, elements, composites)))
       })
 
     val transin = getChildList("transactions", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-    val transactions = transin.asScala.toList.foldLeft[Map[String, Transaction]](new InsertionOrderedMap[String, Transaction])((map, transmap) =>
+    val transactions = transin.asScala.toList.foldLeft[Map[String, Transaction]](
+      new InsertionOrderedMap[String, Transaction])((map, transmap) =>
       {
         val ident = getRequiredString("id", transmap)
         val name = getRequiredString("name", transmap)
@@ -198,7 +221,7 @@ object YamlReader {
         map + (ident -> Transaction(ident, name, group, heading, detail, summary))
       })
 
-    // TODO: add EDIFACT vs. X12 flag to YAML
+    val form = convertEdiForm(input.get("form").toString)
     EdiSchema(X12, elements, Map.empty[String, Composite], segments, transactions)
   }
 }
