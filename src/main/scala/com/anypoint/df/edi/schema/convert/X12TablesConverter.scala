@@ -6,38 +6,38 @@ import java.io.InputStream
 import scala.annotation.tailrec
 import com.anypoint.df.edi.schema.EdiSchema._
 import java.io.FileInputStream
+import com.anypoint.df.edi.schema.EdiSchema
+import java.io.FileOutputStream
+import com.anypoint.df.edi.schema.YamlWriter
+import java.io.OutputStreamWriter
 
 /** Application to generate X12 transaction schemas from table data.
   */
 object X12TablesConverter {
 
   // file names
-  val transHeadersName = "SETHEAD.TXT"
-  val transDetailsName = "SETDETL.TXT"
-  val segmentHeadersName = "SEGHEAD.TXT"
-  val segmentDetailsName = "SEGDETL.TXT"
-  val compositeHeadersName = "COMHEAD.TXT"
-  val compositeDetailsName = "COMDETL.TXT"
-  val elementHeadersName = "ELEHEAD.TXT"
-  val elementDetailsName = "ELEDETL.TXT"
+  val transHeadersName = "sethead.txt"
+  val transDetailsName = "setdetl.txt"
+  val segmentHeadersName = "seghead.txt"
+  val segmentDetailsName = "segdetl.txt"
+  val compositeHeadersName = "comhead.txt"
+  val compositeDetailsName = "comdetl.txt"
+  val elementHeadersName = "elehead.txt"
+  val elementDetailsName = "eledetl.txt"
 
   /** Split comma-separated quoted values from string into list. */
   def splitValues(s: String) = {
-
-    /** Extract quoted substring from string. */
-    def extract(start: Int, end: Int) =
-      if (s.charAt(start) == '"' && s.charAt(end - 1) == '"') s.substring(start + 1, end - 1)
-      else throw new IllegalArgumentException("missing required quote characters")
-
-    /** Recursively split values from input string. */
-    @tailrec
-    def splitr(from: Int, acc: List[String]): List[String] =
-      (from until s.length()).find(i => s.charAt(i) == ',') match {
-        case Some(to) => splitr(to + 1, extract(from, to) :: acc)
-        case None => extract(from, s.length()) :: acc
-      }
-
-    splitr(0, Nil).reverse
+    def stripComma(remain: Seq[Char], acc: List[String]): List[String] =
+      if (remain.isEmpty) acc reverse
+      else if (remain.head == ',') splitQuotes(remain.tail, acc)
+      else throw new IllegalArgumentException(s"missing expected comma after closing quote: $s")
+    def splitQuotes(remain: Seq[Char], acc: List[String]): List[String] = 
+      if (remain.head == '"') {
+        val (text, rest) = remain.tail span(c => c != '"')
+        if (rest.isEmpty) throw new IllegalArgumentException(s"missing closing quote character: $s")
+        else stripComma(rest.tail, text.toString :: acc)
+      } else throw new IllegalArgumentException(s"missing required quote character: $s")
+    splitQuotes(s, Nil)
   }
 
   /** Get input stream for file in directory. */
@@ -47,7 +47,8 @@ object X12TablesConverter {
     * will be in reversed order (if ordered).
     */
   def foldInput[T](in: InputStream, z: T)(f: (T, List[String]) => T) =
-    Source.fromInputStream(in).getLines.foldLeft(z)((z, line) => f(z, splitValues(line)))
+    Source.fromInputStream(in, "ISO-8859-1").getLines.filter(line => line.length > 0).foldLeft(z)((z, line) =>
+      f(z, splitValues(line)))
 
   /** Generate map from id to name from an input with two columns. */
   def nameMap(in: InputStream) = foldInput(in, Map.empty[String, String])((map, list) =>
@@ -100,8 +101,7 @@ object X12TablesConverter {
         }
       })
 
-  /** Build map from segment ids to definitions.
-    */
+  /** Build map from segment ids to definitions. */
   def defineSegments(elemNames: Map[String, String], elements: Map[String, Element], compNames: Map[String, String],
     composites: Map[String, Composite], segNames: Map[String, String], groups: ListOfKeyedLists) =
     groups.foldLeft(Map.empty[String, Segment])((map, pair) =>
@@ -119,43 +119,121 @@ object X12TablesConverter {
           map + (key -> Segment(key, segNames(key), comps))
         }
       })
-      
-  /** Build map from transaction ids to definitions.
-    */
-  def defineTransactions(segments: Map[String, Segment], transNames: Map[String, String], groups: ListOfKeyedLists) = {
-    type ComponentInfo = (Segment, Usage, Int, Int, Int, String)
-    def convertMax(text: String) = if (text == ">1") 0 else text.toInt
-    def splitArea(area: String, details: List[List[String]]): (List[List[String]], List[ComponentInfo]) = {
+
+  /** Build map from transaction ids to definitions. */
+  def defineTransactions(segments: Map[String, Segment], transHeads: Map[String, (String, String)],
+    groups: ListOfKeyedLists) = {
+
+    /** Converted form of component information from transaction details row. */
+    case class ComponentInfo(segment: Segment, usage: Usage, repeat: Int, loop: List[ComponentInfo])
+
+    /** Map from area name to component information list. */
+    type AreaMap = Map[String, List[ComponentInfo]]
+
+    /** Convert transaction components from lists of strings to trees of data tuples, grouping them by area. */
+    def convertComponents(rows: List[List[String]]): AreaMap = {
+      def descend(remain: List[List[String]], depth: Int): (List[List[String]], List[ComponentInfo]) =
+        convertr(remain, depth, Nil)
+      def info(segid: String, req: String, max: String, nested: List[ComponentInfo]) = {
+        val segment = segments(segid)
+        val usage = convertUsage(req)
+        val repeat = if (max == ">1") 0 else max.toInt
+        ComponentInfo(segment, usage, repeat, nested)
+      }
       @tailrec
-      def splitr(remain: List[List[String]], acc: List[ComponentInfo]): (List[List[String]], List[ComponentInfo]) =
-        remain match {
-        case (areaid :: _ :: segid :: req :: max :: level :: repeat :: loopid :: Nil) :: tail if (area == areaid) => {
-          val segment = segments(segid)
-          val usage = convertUsage(req)
-          val count = if (max == ">1") 0 else max.toInt
-          splitr(tail, (segment, usage, count, level.toInt, repeat.toInt, loopid) :: acc)
+      def convertr(remain: List[List[String]], depth: Int,
+        acc: List[ComponentInfo]): (List[List[String]], List[ComponentInfo]) = remain match {
+        case (areaid :: _ :: segid :: req :: max :: level :: repeat :: loopid :: Nil) :: tail => {
+          val at = level.toInt
+          if (depth == at) {
+            convertr(tail, at, info(segid, req, max, Nil) :: acc)
+          } else if (depth > at) (remain, acc.reverse)
+          else {
+            val (rest, nested) = descend(remain, depth + 1)
+            convertr(rest, depth, info(segid, req, max, nested) :: acc)
           }
-        case _ => (remain, acc.reverse)
+        }
+        case Nil => (Nil, acc)
+        case _ => throw new IllegalArgumentException("wrong number of values")
       }
-      splitr(details, Nil)
+      rows.groupBy(_.head) map { case (key, list) => key -> convertr(list, 0, Nil)._2 }
     }
-    def splitDepth(infos: List[ComponentInfo], depth: Int): (List[ComponentInfo], List[ComponentInfo]) = {
-      @tailrec
-      def splitr(remain: List[ComponentInfo], acc: List[ComponentInfo]): (List[ComponentInfo], List[ComponentInfo]) =
-        remain match {
-        case head :: tail if (head._4 >= depth) => splitr(tail, head :: acc)
-        case _ => (acc.reverse, remain)
-      }
-      splitr(infos, Nil)
-    }
-    def buildr(remain: List[ComponentInfo], depth: Int, acc: List[TransactionComponent]): List[TransactionComponent] =
+
+    /** Recursively convert component information list into transaction component list. */
+    def descend(remain: List[ComponentInfo]) = buildr(remain, Nil)
+    @tailrec
+    def buildr(remain: List[ComponentInfo], acc: List[TransactionComponent]): List[TransactionComponent] =
       remain match {
-      case (segment, usage, count, level, repeat, loop) :: tail =>
-        if (depth == level) buildr(tail, depth, ReferenceComponent(segment, usage, count) :: acc)
-        else if (depth > level) acc
-        else acc
-      case _ => acc.reverse
+        case ComponentInfo(segment, usage, repeat, loop) :: tail => {
+          val list =
+            if (loop.isEmpty) ReferenceComponent(segment, usage, repeat) :: acc
+            else GroupComponent(segment.ident, usage, repeat, descend(loop)) :: acc
+          buildr(tail, list)
+        }
+        case _ => acc
+      }
+
+    groups.foldLeft(Map.empty[String, Transaction]) {
+      case (map, (key, list)) => map + (key -> {
+        val areas = convertComponents(list).map { case (key, list) => key -> buildr(list, Nil) }
+        val (name, group) = transHeads(key)
+        Transaction(key, name, group, areas.getOrElse("1", Nil), areas.getOrElse("2", Nil), areas.getOrElse("3", Nil))
+      })
     }
+  }
+  
+  /** Convert length value, which may use exponential notation. */
+  def convertLength(text: String) = {
+    val split = text.indexOf("E+")
+    if (split < 0) text.toInt
+    else {
+      val value: Long = text.substring(0, split).toInt
+      val exponent: Long = text.substring(split + 2).toInt
+      val result = value * 10 ^ exponent
+      if (result > Int.MaxValue) Int.MaxValue 
+      else result.asInstanceOf[Int]
+    }
+  }
+  
+  /** Convert element data type, extending base conversion to allow empty type. */
+  def convertType(text: String) = if (text.length > 0) convertDataType(text) else AlphaNumericType
+  
+  /** Write schema for a single transaction to file. */
+  def writeTransaction(transact: Transaction, yamldir: File) = {
+    
+    /** Recursively collect segments used in transaction. */
+    def descendSeg(comps: List[TransactionComponent], segs: Set[Segment]) = segmentr(comps, segs)
+    def segmentr(remain: List[TransactionComponent], segs: Set[Segment]): Set[Segment] = remain match {
+      case ReferenceComponent(seg, _, _) :: tail => segmentr(tail, segs + seg)
+      case GroupComponent(_, _, _, comps) :: tail => segmentr(tail, descendSeg(comps, segs))
+      case _ => segs
+    }
+    
+    /** Recursively collect composites and elements used in segment. */
+    def descendComp(list: List[SegmentComponent], comps: Set[Composite], elems: Set[Element]) =
+      compositer(list, comps, elems)
+    def compositer(remain: List[SegmentComponent], comps: Set[Composite],
+      elems: Set[Element]): (Set[Composite], Set[Element]) = remain match {
+      case ElementComponent(elem, _, _, _) :: tail => compositer(tail, comps, elems + elem)
+      case CompositeComponent(comp, _, _, _) :: tail => {
+        val (ncomps, nelems) = descendComp(comp.components, comps + comp, elems)
+        compositer(tail, ncomps, nelems)
+        }
+      case _ => (comps, elems)
+    }
+    
+    println(s"writing transaction ${transact.name}")
+    val segs = segmentr(transact.summary, segmentr(transact.detail, segmentr(transact.heading, Set())))
+    val (comps, elems) = segs.foldLeft((Set[Composite](), Set[Element]()))((acc, seg) =>
+      compositer(seg.components, acc._1, acc._2))
+    val schema = EdiSchema(X12,
+      elems.foldLeft(Map.empty[String, Element])((acc, elem) => acc + (elem.ident -> elem)),
+      comps.foldLeft(Map.empty[String, Composite])((acc, comp) => acc + (comp.ident -> comp)),
+      segs.foldLeft(Map.empty[String, Segment])((acc, seg) => acc + (seg.ident -> seg)),
+      Map(transact.ident -> transact))
+    val writer = new OutputStreamWriter(new FileOutputStream(new File(yamldir, transact.ident + ".yaml")), "UTF-8")
+    YamlWriter.write(schema, writer)
+    writer.close
   }
 
   /** Builds schemas from X12 table data and outputs the schemas in YAML form. The arguments are 1) path to the
@@ -172,7 +250,7 @@ object X12TablesConverter {
     val elementDefs = foldInput(fileInput(x12dir, elementDetailsName), Map.empty[String, Element])((map, list) =>
       list match {
         case number :: typ :: min :: max :: Nil =>
-          map + (number -> Element(number, convertDataType(typ), min.toInt, max.toInt))
+          map + (number -> Element(number, convertType(typ), convertLength(min), convertLength(max)))
         case _ => throw new IllegalArgumentException("wrong number of values in file")
       })
     val compNames = nameMap(fileInput(x12dir, compositeHeadersName))
@@ -187,5 +265,7 @@ object X12TablesConverter {
         case _ => throw new IllegalArgumentException("wrong number of values in file")
       })
     val setGroups = gatherGroups(fileInput(x12dir, transDetailsName), 9)
+    val transactions = defineTransactions(segDefs, setHeads, setGroups)
+    transactions.values.foreach(transact => writeTransaction(transact, yamldir))
   }
 }
