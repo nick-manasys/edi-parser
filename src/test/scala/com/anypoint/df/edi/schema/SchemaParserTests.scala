@@ -14,7 +14,7 @@ import java.io.ByteArrayInputStream
 import java.util.GregorianCalendar
 import java.math.BigInteger
 
-class SchemaParserTests extends FlatSpec with Matchers with SchemaParserDefs {
+class SchemaParserTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
   import EdiSchema._
   import com.anypoint.df.edi.lexical.X12Constants._

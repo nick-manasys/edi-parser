@@ -13,25 +13,7 @@ import com.anypoint.df.edi.schema.EdiSchema._
 
 /** Parse EDI document based on schema. */
 
-trait SchemaParserDefs {
-
-  type ValueMap = java.util.Map[String, Object]
-  type ValueMapImpl = java.util.HashMap[String, Object]
-  type MapList = java.util.List[ValueMap]
-  type MapListImpl = java.util.ArrayList[ValueMap]
-  type RealNumber = java.math.BigDecimal
-  type IntegerNumber = Integer
-
-  // value keys for top-level transaction parse result map
-  val transactionId = "id"
-  val transactionName = "name"
-  val transactionHeading = "heading"
-  val transactionDetail = "detail"
-  val transactionSummary = "summary"
-
-}
-
-abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends SchemaParserDefs {
+abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends SchemaJavaDefs {
 
   /** Initialize parser and read header segments. */
   protected def init(): ValueMap
@@ -160,7 +142,6 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
           else if (group.usage == MandatoryUsage) throw new IllegalStateException(s"missing required loop ${group ident}")
           parseComponents(tail)
         }
-        case _ =>
       }
       parseComponents(comps)
       values

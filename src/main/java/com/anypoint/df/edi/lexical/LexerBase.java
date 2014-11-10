@@ -41,6 +41,9 @@ public abstract class LexerBase
     /** Segment terminator. */
     protected char segmentTerminator;
     
+    /** Number of groups in interchange. */
+    protected int groupCount;
+    
     /** Type of current token (starting delimiter). */
     protected ItemType currentType;
     
@@ -85,6 +88,13 @@ public abstract class LexerBase
         repetitionSeparator = repsep;
         segmentTerminator = segterm;
         releaseIndicator = release;
+    }
+    
+    /**
+     * Count a group present in interchange.
+     */
+    public void countGroup() {
+        groupCount++;
     }
     
     /**
@@ -227,7 +237,7 @@ public abstract class LexerBase
      */
     public void checkLength(int minl, int maxl) throws IOException {
         if (token.length() < minl || token.length() > maxl) {
-            throw new ParseException("length outside of allowed range");
+            throw new LexicalException("length outside of allowed range");
         }
     }
     
@@ -245,7 +255,7 @@ public abstract class LexerBase
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
-                throw new ParseException("alpha value type cannot contain digit");
+                throw new LexicalException("alpha value type cannot contain digit");
             }
         }
         advance();
@@ -281,7 +291,7 @@ public abstract class LexerBase
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
-                throw new ParseException("id value type characters must be alphas or digits");
+                throw new LexicalException("id value type characters must be alphas or digits");
             }
         }
         advance();
@@ -304,11 +314,11 @@ public abstract class LexerBase
             if (chr >= '0' && chr <= '9') {
                 length++;
             } else if (i != 0 || chr != '-') {
-                throw new ParseException("number value contains invalid character");
+                throw new LexicalException("number value contains invalid character");
             }
         }
         if (length < minl || length > maxl) {
-            throw new ParseException("number value incorrect length");
+            throw new LexicalException("number value incorrect length");
         }
         advance();
         return new BigInteger(text);
@@ -316,6 +326,7 @@ public abstract class LexerBase
     
     /**
      * Get current token as an X12 real number value and advance to next token.
+     * TODO: handle exponential indicators, allow comma decimal point for EDIFACT
      *
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
@@ -330,21 +341,22 @@ public abstract class LexerBase
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
                 length++;
-            } else if (!decimal && (chr == ',' || chr == '.')) {
+            } else if (!decimal && chr == '.') {
                 decimal = true;
             } else if (i != 0 || chr != '-') {
-                throw new ParseException("number value contains invalid character");
+                throw new LexicalException("number value contains invalid character");
             }
         }
         if (length < minl || length > maxl) {
-            throw new ParseException("number value incorrect length");
+            throw new LexicalException("number value incorrect length");
         }
         advance();
         return new BigDecimal(text);
     }
     
     /**
-     * Get current token as an X12 date value and advance to next token.
+     * Get current token as an X12 date value and advance to next token. Note that this avoids the use of the Java
+     * DateFormat class, which has high time and memory overhead.
      *
      * @param minl minimum length
      * @param maxl maximum length
@@ -356,12 +368,12 @@ public abstract class LexerBase
         String text = token;
         int length = text.length();
         if (length != 6 && length != 8) {
-            throw new ParseException("date value must be either 6 or 8 characters");
+            throw new LexicalException("date value must be either 6 or 8 characters");
         }
         for (int i = 0; i < length; i++) {
             char chr = text.charAt(i);
             if (chr < '0' || chr > '9') {
-                throw new ParseException("date value must consist only of digits");
+                throw new LexicalException("date value must consist only of digits");
             }
         }
         
@@ -369,13 +381,13 @@ public abstract class LexerBase
         int day = (text.charAt(length-1) - '0') + (text.charAt(length-2) - '0') * 10;
         int month = (text.charAt(length-3) - '0') + (text.charAt(length-4) - '0') * 10;
         if (month == 0 || month > 12 || day == 0 || day > 31) {
-            throw new ParseException("date value out of allowed ranges");
+            throw new LexicalException("date value out of allowed ranges");
         }
         int year;
         if (length == 8) {
             year = Integer.parseInt(text.substring(0, 4));
         } else {
-            year = 2000 + (text.charAt(length-2) - '0') + (text.charAt(length-1)) * 10;
+            year = 2000 + (text.charAt(1) - '0') + (text.charAt(0) - '0') * 10;
             if (year > maximumYear) {
                 year -= 100;
             }
@@ -410,12 +422,12 @@ public abstract class LexerBase
         String text = token;
         int length = text.length();
         if (length != 4 && (length < 6 || length > 8)) {
-            throw new ParseException("time value must be either 4 or 6-8 characters");
+            throw new LexicalException("time value must be either 4 or 6-8 characters");
         }
         for (int i = 0; i < length; i++) {
             char chr = text.charAt(i);
             if (chr < '0' || chr > '9') {
-                throw new ParseException("time value must consist only of digits");
+                throw new LexicalException("time value must consist only of digits");
             }
         }
         
@@ -424,7 +436,7 @@ public abstract class LexerBase
         int minute = (text.charAt(2) - '0') * 10 + (text.charAt(3) - '0');
         int second = text.length() < 6 ? 0 : (text.charAt(4) - '0') * 10 + (text.charAt(5) - '0');
         if (hour > 23 || minute > 59 || second > 59) {
-            throw new ParseException("time value out of allowed ranges");
+            throw new LexicalException("time value out of allowed ranges");
         }
         int milli = 0;
         if (length > 6) {

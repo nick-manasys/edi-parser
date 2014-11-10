@@ -106,7 +106,7 @@ object EdiSchema {
 
   type TransactionMap = Map[String, Transaction]
 
-  sealed class EdiForm(val text: String)
+  sealed abstract class EdiForm(val text: String)
   case object EdiFact extends EdiForm("EDIFACT")
   case object X12 extends EdiForm("X12")
   def convertEdiForm(value: String) = value match {
