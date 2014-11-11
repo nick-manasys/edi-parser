@@ -1,5 +1,6 @@
 package com.anypoint.df.edi.schema
 
+import java.io.OutputStream
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.Date
@@ -7,27 +8,28 @@ import java.util.Date
 import scala.collection.JavaConversions
 import scala.util.Try
 
-import com.anypoint.df.edi.lexical.WriteException
-import com.anypoint.df.edi.lexical.WriterBase
-
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
-import com.anypoint.df.edi.lexical.LexerBase
+import com.anypoint.df.edi.lexical.WriteException
+import com.anypoint.df.edi.lexical.WriterBase
 import com.anypoint.df.edi.schema.EdiSchema._
 
 /** Write EDI document based on schema. */
 
 abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) extends SchemaJavaDefs {
 
-  /** Initialize writer and output header segments. */
-  protected def init(map: ValueMap): Unit
+  /** Initialize writer and output interchange header segment(s). */
+  def init(delims: String, encoding: String, props: ValueMap): Unit
+
+  /** Output interchange trailer segment(s) and finish with stream. */
+  def term(props: ValueMap): Unit
 
   /** Write a segment from a map of values. */
   protected def writeSegment(map: ValueMap, segment: Segment): Unit = {
 
     /** Write a value from map. */
     def writeValue(map: ValueMap, typ: ItemType, comp: SegmentComponent): Unit = {
-      
+
       def writeSimple(value: Any, dtype: DataType, min: Int, max: Int) = dtype match {
         case AlphaType => writer.writeAlpha(value.asInstanceOf[String], min, max)
         case AlphaNumericType => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
@@ -40,12 +42,20 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         case TimeType => writer.writeTime(value.asInstanceOf[Integer], min, max)
         case BinaryType => throw new WriteException("Handling not implemented for binary values")
       }
-      
-      def writeComponent(value: Object) = comp match {
-        case ElementComponent(elem, name, use, count) =>
-          writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
-        case CompositeComponent(comp, name, use, count) =>
-          writeCompList(value.asInstanceOf[ValueMap], QUALIFIER, comp.components)
+
+      def writeComponent(value: Object) = {
+        typ match {
+          case SEGMENT => writer.writeSegmentTerminator
+          case DATA_ELEMENT => writer.writeDataSeparator
+          case QUALIFIER => writer.writeSubDelimiter
+          case REPETITION => writer.writeRepetitionSeparator
+        }
+        comp match {
+          case ElementComponent(elem, name, use, count) =>
+            writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
+          case CompositeComponent(comp, name, use, count) =>
+            writeCompList(value.asInstanceOf[ValueMap], QUALIFIER, comp.components)
+        }
       }
 
       if (map.containsKey(comp.name)) {
@@ -73,6 +83,9 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     def writeCompList(map: ValueMap, typ: ItemType, comps: List[SegmentComponent]) =
       comps foreach { comp => writeValue(map, typ, comp) }
 
+    writer.writeToken(segment.ident)
+    writeCompList(map, DATA_ELEMENT, segment.components)
+    writer.writeSegmentTerminator
   }
 
   /** Write a complete transaction. The supplied map has a maximum of five values: the transaction id and name, and
@@ -96,7 +109,8 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       val iter = JavaConversions.asScalaIterator(list.iterator)
       iter.foreach(map => writeSection(map, group.items))
     }
-    
+
+    /** Get the map key for a component segment reference or group. */
     def getKey(comp: TransactionComponent) = comp match {
       case ref: ReferenceComponent => ref.segment.name
       case group: GroupComponent => group.ident
@@ -107,21 +121,31 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       */
     def writeSection(map: ValueMap, comps: List[TransactionComponent]): Unit = comps.foreach(comp => {
       val key = getKey(comp)
-      if (map.containsKey(key)) {
-        val value = map.get(key)
-        comp match {
-        case ref: ReferenceComponent =>
-          if (ref.count != 1) writeRepeatingSegment(value.asInstanceOf[MapList], ref.segment, ref.count)
-          else writeSegment(value.asInstanceOf[ValueMap], ref.segment)
-        case group: GroupComponent => 
-          if (group.count != 1) writeRepeatingGroup(value.asInstanceOf[MapList], group)
-          else writeSection(value.asInstanceOf[ValueMap], group.items)
-        }
-      } else comp.usage match {
+      def checkMissing() = comp.usage match {
         case MandatoryUsage => throw new WriteException(s"missing required value '$key'")
         case _ =>
       }
+      comp match {
+        case ref: ReferenceComponent =>
+          if (!isEnvelopeSegment(ref.segment)) {
+            if (map.containsKey(key)) {
+              val value = map.get(key)
+              if (ref.count != 1) writeRepeatingSegment(getRequiredMapList(key, map), ref.segment, ref.count)
+              else writeSegment(getRequiredValueMap(key, map), ref.segment)
+            } else checkMissing()
+          }
+        case group: GroupComponent =>
+          if (map.containsKey(key)) writeRepeatingGroup(getRequiredMapList(key, map), group)
+          else checkMissing()
+      }
     })
+
+    if (!transaction.heading.isEmpty) writeSection(
+      getRequiredValueMap(transactionHeading, map), transaction.heading)
+    if (!transaction.detail.isEmpty) writeSection(
+      getRequiredValueMap(transactionDetail, map), transaction.detail)
+    if (!transaction.summary.isEmpty) writeSection(
+      getRequiredValueMap(transactionSummary, map), transaction.summary)
   }
 
   /** Write start of a functional group. */
@@ -131,13 +155,45 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   def closeGroup(props: ValueMap): Unit
 
   /** Write start of a transaction set. */
-  def openSet(name: String, props: ValueMap): Unit
+  def openSet(ident: String, props: ValueMap): Unit
 
   /** Write close of a transaction set. */
   def closeSet(props: ValueMap): Unit
 
+  /** Check if an envelope segment (handled directly, outside of transaction). */
+  def isEnvelopeSegment(segment: Segment): Boolean
+
   /** Write the output message. */
   def write(map: ValueMap): Try[Unit] = Try({
-    init(map.get("interchange").asInstanceOf[ValueMap])
+    val interProps = getRequiredValueMap(interchangeProperties, map)
+    init(getRequiredString(delimiterCharacters, map), getRequiredString(characterEncoding, map), interProps)
+    val groupProps = getRequiredValueMap(groupProperties, map)
+    openGroup(groupProps)
+    writer.countGroup
+    val setType = getRequiredString(setIdentifier, map)
+    val setProps = getRequiredValueMap(setProperties, map)
+    openSet(setType, setProps)
+    val list = getRequiredMapList(transactionsList, map)
+    schema.transactions(setType) match {
+      case t: Transaction => {
+        val iter = JavaConversions.asScalaIterator(list.iterator)
+        iter.foreach(map => writeTransaction(map, t))
+      }
+      case _ => throw new IllegalStateException(s"unknown transaction type $setType")
+    }
+    closeSet(setProps)
+    closeGroup(groupProps)
+    term(interProps)
   })
+}
+
+object SchemaWriter {
+
+  /** Factory function to create writer instances. */
+  def create(out: OutputStream, schema: EdiSchema) = Try {
+    schema ediForm match {
+      case EdiFact => throw new IllegalArgumentException()
+      case X12 => new X12SchemaWriter(out, schema)
+    }
+  }
 }

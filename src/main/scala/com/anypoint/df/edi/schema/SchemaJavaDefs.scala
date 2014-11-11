@@ -12,6 +12,19 @@ trait SchemaJavaDefs {
   type RealNumber = java.math.BigDecimal
   type IntegerNumber = Integer
 
+  // value keys for configuration
+  val delimiterCharacters = "delimiters"
+  val characterEncoding = "encoding"
+  val partnerIdentifer = "partner interchange ID"
+  val selfIdentifier = "self interchange ID"
+
+  // value keys for transaction set
+  val interchangeProperties = "interchange"
+  val groupProperties = "group"
+  val setProperties = "set"
+  val setIdentifier = "identifier"
+  val transactionsList = "transactions"
+
   // value keys for top-level transaction parse result map
   val transactionId = "id"
   val transactionName = "name"
@@ -19,4 +32,25 @@ trait SchemaJavaDefs {
   val transactionDetail = "detail"
   val transactionSummary = "summary"
 
+  def getRequiredValue(key: String, map: ValueMap) =
+    if (map containsKey (key)) map.get(key)
+    else throw new IllegalArgumentException(s"missing required value '$key'")
+  
+  def getRequiredString(key: String, map: ValueMap): String = {
+    def value = getRequiredValue(key, map)
+    if (value.isInstanceOf[String]) value.asInstanceOf[String]
+    else throw new IllegalArgumentException(s"not a string value '$key'")
+  }
+  
+  def getRequiredValueMap(key: String, map: ValueMap): ValueMap = {
+    def value = getRequiredValue(key, map)
+    if (value.isInstanceOf[ValueMap]) value.asInstanceOf[ValueMap]
+    else throw new IllegalArgumentException(s"not a value map '$key'")
+  }
+  
+  def getRequiredMapList(key: String, map: ValueMap): MapList = {
+    def value = getRequiredValue(key, map)
+    if (value.isInstanceOf[MapList]) value.asInstanceOf[MapList]
+    else throw new IllegalArgumentException(s"not a map list '$key'")
+  }
 }

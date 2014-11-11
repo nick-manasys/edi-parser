@@ -4,8 +4,7 @@ package com.anypoint.df.edi.lexical;
 import java.nio.charset.Charset;
 
 /**
- * TODO
- *
+ * Constants used for all EDI variations.
  */
 public final class EdiConstants
 {

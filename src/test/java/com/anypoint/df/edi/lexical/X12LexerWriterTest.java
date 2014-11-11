@@ -29,7 +29,8 @@ public class X12LexerWriterTest
         Map<String, Object> props = lexer.init(dflts);
         lexer.term(props);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        X12Writer writer = new X12Writer(os, UTF8_CHARSET, '*', '>', -1, '~');
+        X12Writer writer = new X12Writer();
+        writer.configureX12(os, UTF8_CHARSET, '*', '>', -1, '~');
         writer.init(props);
         writer.term(props);
         String result = new String(os.toByteArray(), UTF8_CHARSET);

@@ -91,6 +91,51 @@ public abstract class LexerBase
     }
     
     /**
+     * Get sub-element delimiter character.
+     *
+     * @return delimiter
+     */
+    public char getSubElement() {
+        return subElement;
+    }
+
+    /**
+     * Get data separator character.
+     *
+     * @return separator
+     */
+    public char getDataSeparator() {
+        return dataSeparator;
+    }
+
+    /**
+     * Get repetition character.
+     *
+     * @return repetition character, or -1 if none
+     */
+    public int getRepetitionSeparator() {
+        return repetitionSeparator;
+    }
+
+    /**
+     * Get release (escape) character.
+     *
+     * @return release character, or -1 if none
+     */
+    public int getReleaseIndicator() {
+        return releaseIndicator;
+    }
+
+    /**
+     * Get segment terminator character.
+     *
+     * @return terminator
+     */
+    public char getSegmentTerminator() {
+        return segmentTerminator;
+    }
+
+    /**
      * Count a group present in interchange.
      */
     public void countGroup() {

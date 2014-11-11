@@ -18,6 +18,9 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   /** Initialize parser and read header segments. */
   protected def init(): ValueMap
 
+  /** Read interchange trailer segment(s) and finish with stream. */
+  protected def term(props: ValueMap): Unit
+
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   protected def parseSegment(segment: Segment): ValueMap = {
 
@@ -80,13 +83,13 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   def checkSegment(segment: Segment) = lexer.currentType == SEGMENT && lexer.token == segment.ident
 
-  /** Parse a complete transaction. The returned map has a maximum of five values: the transaction id and name, and
-    * separate child maps for each of the three sections of a transaction (heading, detail, and summary). Each child map
-    * is keyed by segment name (with the ID suffixed in parenthesis) or group id. For a segment with no repeats allowed
-    * the associated value is the map of the values in the segment. For a segment with repeats allowed the value is a
-    * list of maps, one for each occurrence of the segment. For a group the value is also a list of maps, with each map
-    * of the same form as the child maps of the top-level result (so keys are segment or nested group names, values are
-    * maps or lists).
+  /** Parse a complete transaction body (not including any envelope segments). The returned map has a maximum of five
+    * values: the transaction id and name, and separate child maps for each of the three sections of a transaction
+    * (heading, detail, and summary). Each child map is keyed by segment name (with the ID suffixed in parenthesis) or
+    * group id. For a segment with no repeats allowed the associated value is the map of the values in the segment. For
+    * a segment with repeats allowed the value is a list of maps, one for each occurrence of the segment. For a group
+    * the value is also a list of maps, with each map of the same form as the child maps of the top-level result (so
+    * keys are segment or nested group names, values are maps or lists).
     */
   def parseTransaction(transaction: Transaction) = {
 
@@ -131,9 +134,11 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       def parseComponents(comps: List[TransactionComponent]): Unit = comps match {
         case (ref: ReferenceComponent) :: tail => {
           val segment = ref.segment
-          if (checkSegment(segment)) values put (segment.name,
-            if (ref.count > 0) parseRepeatingSegment(segment, ref.count) else parseSegment(segment))
-          else if (ref.usage == MandatoryUsage) throw new IllegalStateException(s"missing required segment ${segment ident}")
+          if (!isEnvelopeSegment(segment)) {
+            if (checkSegment(segment)) values put (segment.name,
+              if (ref.count != 1) parseRepeatingSegment(segment, ref.count) else parseSegment(segment))
+            else if (ref.usage == MandatoryUsage) throw new IllegalStateException(s"missing required segment ${segment ident}")
+          }
           parseComponents(tail)
         }
         case (group: GroupComponent) :: tail => {
@@ -142,6 +147,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
           else if (group.usage == MandatoryUsage) throw new IllegalStateException(s"missing required loop ${group ident}")
           parseComponents(tail)
         }
+        case Nil =>
       }
       parseComponents(comps)
       values
@@ -163,32 +169,48 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   def isGroupClose(): Boolean
 
   /** Parse close of a functional group. */
-  def closeGroup(props: ValueMap)
+  def closeGroup(props: ValueMap): Unit
 
   /** Parse start of a transaction set. */
   def openSet(): (String, ValueMap)
 
-  /** Check if at transaction set close segment. */
-  def isSetClose(): Boolean
-
   /** Parse close of a transaction set. */
-  def closeSet(props: ValueMap)
+  def closeSet(props: ValueMap): Unit
+
+  /** Check if an envelope segment (handled directly, outside of transaction). */
+  def isEnvelopeSegment(segment: Segment): Boolean
 
   /** Parse the input message. */
   def parse(): Try[ValueMap] = Try({
     val map = new ValueMapImpl
     val interchange = init
-    map.put("interchange", interchange)
-    // TODO: check for (and ignore) anything other than a group header
+    map.put(interchangeProperties, interchange)
+    val builder = new StringBuilder
+    builder.append(lexer.getDataSeparator)
+    builder.append(lexer.getSubElement)
+    builder.append(if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
+    builder.append(lexer.getSegmentTerminator)
+    builder.append(if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
+    map.put(delimiterCharacters, builder.toString)
+    // TODO: check for (and ignore) anything other than a group header?
     val group = openGroup
-    map.put("group", group)
-    // TODO: check for (and ignore) anything other than a set header
-    val set = openSet
-    map.put("set", set._2)
-    schema.transactions(set._1) match {
-      case t: Transaction => map.put("transaction", parseTransaction(t))
-      case _ => throw new IllegalStateException(s"unknown transaction type ${set._1}")
+    map.put(groupProperties, group)
+    lexer.countGroup()
+    val list = new MapListImpl
+    map.put(transactionsList, list)
+    while (!isGroupClose) {
+      val set = openSet
+      map.put(setIdentifier, set._1)
+      map.put(setProperties, set._2)
+      schema.transactions(set._1) match {
+        case t: Transaction => list.add(parseTransaction(t))
+        case _ => throw new IllegalStateException(s"unknown transaction type ${set._1}")
+      }
+      closeSet(set._2)
     }
+    // TODO: general case needs to handle multiple groups
+    closeGroup(group)
+    term(interchange)
     map
   })
 }

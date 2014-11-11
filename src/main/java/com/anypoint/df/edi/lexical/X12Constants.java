@@ -26,27 +26,4 @@ public final class X12Constants
     public static final String INTER_CONTROL = "Interchange control";
     public static final String ACK_REQUESTED = "Ack requested";
     public static final String TEST_INDICATOR = "Test indicator";
-    
-    // group properties from GS segment
-    public static final String FUNCTIONAL_IDENTIFIER_CODE = "Functional identifier code";
-    public static final String APPLICATION_SENDERS_CODE = "Application sender's code";
-    public static final String APPLICATION_RECEIVERS_CODE = "Application receiver's code";
-    public static final String GROUP_DATE = "Group date";
-    public static final String GROUP_TIME = "Group time";
-    public static final String GROUP_CONTROL_NUMBER = "Group control number";
-    public static final String RESPONSIBLE_AGENCY_CODE = "Responsible agency code";
-    public static final String VERSION_IDENTIFIER_CODE = "Version / release / industry identifier code";
-    
-    // group properties from GE segment
-    public static final String NUMBER_OF_TRANSACTION_SETS = "Number of transaction sets included";
-//    public static final String GROUP_CONTROL_NUMBER = "Group control number";
-    
-    // transaction set properties from ST segment
-    public static final String TRANSACTION_SET_IDENTIFIER_CODE = "Transaction set identifier code";
-    public static final String TRANSACTION_SET_CONTROL_NUMBER = "Transaction set control number";
-    public static final String IMPLEMENTATION_CONVENTION_REFERENCE = "Implementation convention reference";
-    
-    // transaction set properties from SE segment
-    public static final String NUMBER_OF_INCLUDED_SEGMENTS = "Number of included segments";
-//    public static final String TRANSACTION_SET_CONTROL_NUMBER = "Transaction set control number";
 }

@@ -17,7 +17,7 @@ import java.util.Map;
 public class X12Writer extends WriterBase
 {
     /**
-     * Constructor.
+     * Configure writer for use.
      *
      * @param os
      * @param encoding
@@ -26,8 +26,8 @@ public class X12Writer extends WriterBase
      * @param repsep
      * @param segterm
      */
-    public X12Writer(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm) {
-        super(os, encoding, datasep, subsep, repsep, segterm, -1);
+    public void configureX12(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm) {
+        configure(os, encoding, datasep, subsep, repsep, segterm, -1);
     }
     
     /**

@@ -38,10 +38,10 @@ public abstract class WriterBase
     private static final int MILLIS_PER_HOUR = MILLIS_PER_MINUTE * 60;
     
     /** Destination stream for document data. */
-    protected final OutputStream stream;
+    protected OutputStream stream;
     
     /** Writer wrapping document data stream. */
-    protected final Writer writer;
+    protected Writer writer;
     
     /** Sub-element delimiter. */
     protected char subElement;
@@ -58,6 +58,9 @@ public abstract class WriterBase
     /** Segment terminator. */
     protected char segmentTerminator;
     
+    /** Number of segments written. */
+    protected int segmentCount;
+    
     /** Number of groups in interchange. */
     protected int groupCount;
     
@@ -68,7 +71,7 @@ public abstract class WriterBase
     protected int skippedSubCount;
     
     /**
-     * Constructor.
+     * Configure writer for use.
      *
      * @param os output
      * @param encoding character set encoding
@@ -78,7 +81,7 @@ public abstract class WriterBase
      * @param segterm segment terminator character
      * @param release release character
      */
-    public WriterBase(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
+    protected void configure(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
         int release) {
         stream = os;
         dataSeparator = datasep;
@@ -94,6 +97,15 @@ public abstract class WriterBase
      */
     public void countGroup() {
         groupCount++;
+    }
+    
+    /**
+     * Get number of segments written.
+     *
+     * @return count
+     */
+    public int getSegmentCount() {
+        return segmentCount; 
     }
     
     /**
@@ -168,6 +180,7 @@ public abstract class WriterBase
         writer.write(segmentTerminator);
         skippedElementCount = 0;
         skippedSubCount = 0;
+        segmentCount++;
     }
     
     /**
