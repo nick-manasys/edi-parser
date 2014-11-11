@@ -147,10 +147,11 @@ object X12TablesConverter {
           val at = level.toInt
           if (depth == at) {
             convertr(tail, at, info(segid, req, max, Nil) :: acc)
-          } else if (depth > at) (remain, acc.reverse)
-          else {
+          } else if (depth > at) {
+            (remain, acc.reverse)
+          } else {
             val (rest, nested) = descend(remain, depth + 1)
-            convertr(rest, depth, info(segid, req, max, nested) :: acc)
+            convertr(rest, depth, info(segid, req, repeat, nested) :: acc)
           }
         }
         case Nil => (Nil, acc)
