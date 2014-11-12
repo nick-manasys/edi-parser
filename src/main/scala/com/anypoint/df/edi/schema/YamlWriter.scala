@@ -2,12 +2,12 @@ package com.anypoint.df.edi.schema
 
 import java.io.Writer
 import java.io.StringWriter
+import scala.annotation.tailrec
 
-/**
- * Write YAML representation of EDI schema.
- *
- * @author MuleSoft, Inc.
- */
+/** Write YAML representation of EDI schema.
+  *
+  * @author MuleSoft, Inc.
+  */
 object YamlWriter {
 
   import EdiSchema._
@@ -16,7 +16,7 @@ object YamlWriter {
 
   /** Write simple key-value pair. */
   def keyValuePair(key: String, value: String) = key + ": " + value
-  
+
   /** Write key-quoted value pair. */
   def keyValueQuote(key: String, value: String) = key + ": '" + value + '\''
 
@@ -26,10 +26,10 @@ object YamlWriter {
     else count toString
 
   /** Write schema in YAML form.
-   *  
-   * @param schema
-   * @param writer
-   */
+    *
+    * @param schema
+    * @param writer
+    */
   def write(schema: EdiSchema, writer: Writer) = {
 
     def writeIndent(indent: Int) = writer append (indentText * indent)
@@ -58,23 +58,31 @@ object YamlWriter {
     }
 
     def writeSegmentComponents(label: String, comps: List[SegmentComponent], indent: Int): Unit = {
-    def componentId(component: SegmentComponent) = component match {
-      case ElementComponent(element, _, _, _) => element.ident
-      case CompositeComponent(composite, _, _, _) => composite.ident
-    }
+      def componentId(component: SegmentComponent) = component match {
+        case ElementComponent(element, _, _, _, _) => element.ident
+        case CompositeComponent(composite, _, _, _, _) => composite.ident
+      }
+      @tailrec
+      def writer(remain: List[SegmentComponent], dfltpos: Int): Unit = remain match {
+        case comp :: t =>
+          {
+            writeIndented("- { " + keyValueQuote("idRef", componentId(comp)) + ", " +
+              keyValueQuote("name", comp.name) + ", " +
+              (if (comp.position == dfltpos) "" else (keyValueQuote("position", comp.position.toString) + ", ")) +
+              keyValuePair("usage", comp.usage.code toString) +
+              (if (comp.count != 1) ", " + keyValuePair("count", countText(comp.count)) else "") +
+              " }", indent)
+            writer(t, dfltpos + 1)
+          }
+        case _ =>
+      }
       writeIndented(label + ":", indent)
-      comps foreach (comp => {
-        writeIndented("- { " + keyValueQuote("idRef", componentId(comp)) + ", " +
-          keyValueQuote("name", comp.name) + ", " +
-          keyValuePair("usage", comp.usage.code toString) +
-          (if (comp.count != 1) ", " + keyValuePair("count", countText(comp.count)) else "") +
-          " }", indent)
-      })
+      writer(comps, 1)
     }
-    
+
     // start with schema type
     writeIndented(keyValuePair("form", schema.ediForm.text), 0)
-    
+
     // write transaction details
     writeIndented("transactions:", 0)
     schema.transactions.values foreach (transact => {
@@ -85,7 +93,7 @@ object YamlWriter {
       if (transact.detail.size > 0) writeTransactionComps("detail", transact.detail, 1)
       if (transact.summary.size > 0) writeTransactionComps("summary", transact.summary, 1)
     })
-    
+
     // next write segment details
     writeIndented("segments:", 0)
     schema.segments.values foreach (segment => {
@@ -93,17 +101,17 @@ object YamlWriter {
       writeIndented(keyValuePair("name", segment name), 1)
       writeSegmentComponents("values", segment.components, 1)
     })
-    
+
     // next write composites details
     if (!schema.composites.isEmpty) {
-        writeIndented("composites:", 0)
-        schema.composites.values foreach (composite => {
-            writeIndented("- " + keyValueQuote("id", composite.ident), 0)
-            writeIndented(keyValuePair("name", composite name), 1)
-            writeSegmentComponents("values", composite.components, 1)
-        })
+      writeIndented("composites:", 0)
+      schema.composites.values foreach (composite => {
+        writeIndented("- " + keyValueQuote("id", composite.ident), 0)
+        writeIndented(keyValuePair("name", composite name), 1)
+        writeSegmentComponents("values", composite.components, 1)
+      })
     }
-    
+
     // finish with element details
     writeIndented("elements:", 0)
     schema.elements.values foreach (element =>

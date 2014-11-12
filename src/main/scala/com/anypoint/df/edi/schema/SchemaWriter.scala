@@ -51,15 +51,15 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
           case REPETITION => writer.writeRepetitionSeparator
         }
         comp match {
-          case ElementComponent(elem, name, use, count) =>
+          case ElementComponent(elem, name, pos, use, count) =>
             writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
-          case CompositeComponent(comp, name, use, count) =>
-            writeCompList(value.asInstanceOf[ValueMap], QUALIFIER, comp.components)
+          case CompositeComponent(composite, name, pos, use, count) =>
+            writeCompList(value.asInstanceOf[ValueMap], QUALIFIER, composite.components)
         }
       }
 
-      if (map.containsKey(comp.name)) {
-        val value = map.get(comp.name)
+      if (map.containsKey(comp.key)) {
+        val value = map.get(comp.key)
         if (comp.count > 1) {
           if (!value.isInstanceOf[SimpleList]) {
             throw new WriteException(s"expected list of values for property ${comp.name}")

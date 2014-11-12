@@ -367,6 +367,7 @@ public abstract class WriterBase
         // if no decimal point needed just write as an integer
         if (value.scale() <= 0) {
             writeInteger(value.toBigIntegerExact(), minl, maxl);
+            return;
         }
         
         // check against maximum length, not counting decimal point or minus sign

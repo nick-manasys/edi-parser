@@ -31,9 +31,9 @@ object X12TablesConverter {
       if (remain.isEmpty) acc reverse
       else if (remain.head == ',') splitQuotes(remain.tail, acc)
       else throw new IllegalArgumentException(s"missing expected comma after closing quote: $s")
-    def splitQuotes(remain: Seq[Char], acc: List[String]): List[String] = 
+    def splitQuotes(remain: Seq[Char], acc: List[String]): List[String] =
       if (remain.head == '"') {
-        val (text, rest) = remain.tail span(c => c != '"')
+        val (text, rest) = remain.tail span (c => c != '"')
         if (rest.isEmpty) throw new IllegalArgumentException(s"missing closing quote character: $s")
         else stripComma(rest.tail, text.toString :: acc)
       } else throw new IllegalArgumentException(s"missing required quote character: $s")
@@ -93,8 +93,8 @@ object X12TablesConverter {
       pair match {
         case (key, list) => {
           val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
-            case _ :: elem :: req :: Nil =>
-              ElementComponent(elements(elem), elemNames(elem), convertUsage(req), 1) :: acc
+            case pos :: elem :: req :: Nil =>
+              ElementComponent(elements(elem), elemNames(elem), pos.toInt, convertUsage(req), 1) :: acc
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
           map + (key -> Composite(key, compNames(key), comps))
@@ -108,11 +108,11 @@ object X12TablesConverter {
       pair match {
         case (key, list) => {
           val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
-            case _ :: ident :: req :: reps :: Nil => {
+            case pos :: ident :: req :: reps :: Nil => {
               val count = reps.toInt
               val usage = convertUsage(req)
-              if (elements.contains(ident)) ElementComponent(elements(ident), elemNames(ident), usage, count) :: acc
-              else CompositeComponent(composites(ident), compNames(ident), usage, count) :: acc
+              if (elements.contains(ident)) ElementComponent(elements(ident), elemNames(ident), pos.toInt, usage, count) :: acc
+              else CompositeComponent(composites(ident), compNames(ident), pos.toInt, usage, count) :: acc
             }
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
@@ -182,7 +182,7 @@ object X12TablesConverter {
       })
     }
   }
-  
+
   /** Convert length value, which may use exponential notation. */
   def convertLength(text: String) = {
     val split = text.indexOf("E+")
@@ -191,17 +191,17 @@ object X12TablesConverter {
       val value: Long = text.substring(0, split).toInt
       val exponent: Long = text.substring(split + 2).toInt
       val result = value * 10 ^ exponent
-      if (result > Int.MaxValue) Int.MaxValue 
+      if (result > Int.MaxValue) Int.MaxValue
       else result.asInstanceOf[Int]
     }
   }
-  
+
   /** Convert element data type, extending base conversion to allow empty type. */
   def convertType(text: String) = if (text.length > 0) convertDataType(text) else AlphaNumericType
-  
+
   /** Write schema for a single transaction to file. */
   def writeTransaction(transact: Transaction, yamldir: File) = {
-    
+
     /** Recursively collect segments used in transaction. */
     def descendSeg(comps: List[TransactionComponent], segs: Set[Segment]) = segmentr(comps, segs)
     def segmentr(remain: List[TransactionComponent], segs: Set[Segment]): Set[Segment] = remain match {
@@ -209,20 +209,20 @@ object X12TablesConverter {
       case GroupComponent(_, _, _, comps) :: tail => segmentr(tail, descendSeg(comps, segs))
       case _ => segs
     }
-    
+
     /** Recursively collect composites and elements used in segment. */
     def descendComp(list: List[SegmentComponent], comps: Set[Composite], elems: Set[Element]) =
       compositer(list, comps, elems)
     def compositer(remain: List[SegmentComponent], comps: Set[Composite],
       elems: Set[Element]): (Set[Composite], Set[Element]) = remain match {
-      case ElementComponent(elem, _, _, _) :: tail => compositer(tail, comps, elems + elem)
-      case CompositeComponent(comp, _, _, _) :: tail => {
+      case ElementComponent(elem, _, _, _, _) :: tail => compositer(tail, comps, elems + elem)
+      case CompositeComponent(comp, _, _, _, _) :: tail => {
         val (ncomps, nelems) = descendComp(comp.components, comps + comp, elems)
         compositer(tail, ncomps, nelems)
-        }
+      }
       case _ => (comps, elems)
     }
-    
+
     println(s"writing transaction ${transact.name}")
     val segs = segmentr(transact.summary, segmentr(transact.detail, segmentr(transact.heading, Set())))
     val (comps, elems) = segs.foldLeft((Set[Composite](), Set[Element]()))((acc, seg) =>

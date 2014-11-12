@@ -60,6 +60,7 @@ segments:
   - { idRef: '234', name: 'Product/Service ID', usage: U }
   - { idRef: '235', name: 'Product/Service ID Qualifier', usage: U }
   - { idRef: '234', name: 'Product/Service ID', usage: U }
+  - { idRef: '350', name: 'Not a real value - testing YAML support', position: 99, usage: O }
 - id: 'ST'
   name: Transaction Set Header
   values:

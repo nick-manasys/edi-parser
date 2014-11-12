@@ -69,26 +69,27 @@ object YamlReader {
    */
   def parseSegmentComponents(list: JavaList[JavaMap[Any, Any]], elements: Map[String, Element],
     composites: Map[String, Composite]): List[SegmentComponent] = {
-    def convertComponent(values: JavaMap[Any, Any]) = {
+    def convertComponent(values: JavaMap[Any, Any], dfltpos: Int) = {
       val id = getRequiredString("idRef", values)
       val name = getRequiredString("name", values)
+      val position = if (values.containsKey("position")) getRequiredInt("position", values) else dfltpos
       val use = convertUsage(getRequiredString("usage", values))
       val repeat = values.get("repeat") match {
         case n: Int => n
         case null => 1
         case _ => throw new IllegalArgumentException("Value 'repeat' must be an integer")
       }
-      if (elements.contains(id)) ElementComponent(elements(id), name, use, repeat)
-      else if (composites.contains(id)) CompositeComponent(composites(id), name, use, repeat)
+      if (elements.contains(id)) ElementComponent(elements(id), name, position, use, repeat)
+      else if (composites.contains(id)) CompositeComponent(composites(id), name, position, use, repeat)
       else throw new IllegalArgumentException(s"No element or composite with id '$id'")
     }
     @tailrec
-    def parseComponent(remain: List[JavaMap[Any, Any]], prior: List[SegmentComponent]): List[SegmentComponent] =
+    def parseComponent(remain: List[JavaMap[Any, Any]], position: Int, prior: List[SegmentComponent]): List[SegmentComponent] =
       remain match {
-      case values :: t => parseComponent(t, convertComponent(values) :: prior)
+      case values :: t => parseComponent(t, position + 1, convertComponent(values, position) :: prior)
       case _ => prior.reverse
     }
-    parseComponent(list.asScala.toList, Nil)
+    parseComponent(list.asScala.toList, 1, Nil)
   }
 
   /**

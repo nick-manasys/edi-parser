@@ -61,19 +61,19 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val parser = create.get
     val props = parser.init
     val gprops = parser.openGroup
-    gprops.get(functionalIdentifierCode) should be("PO")
-    gprops.get(applicationSendersCode) should be("006927180")
-    gprops.get(applicationReceiversCode) should be("IAIYUCAFOO")
-    gprops.get(groupDate) should be(new GregorianCalendar(2008, 6, 4).getTime())
-    gprops.get(groupTime) should be((12 * 60 + 5) * 60000)
-    gprops.get(groupControlNumber) should be(new BigInteger("168"))
-    gprops.get(responsibleAgencyCode) should be("X")
-    gprops.get(versionIdentifierCode) should be("004010")
+    gprops.get(functionalIdentifierKey) should be("PO")
+    gprops.get(applicationSendersKey) should be("006927180")
+    gprops.get(applicationReceiversKey) should be("IAIYUCAFOO")
+    gprops.get(groupDateKey) should be(new GregorianCalendar(2008, 6, 4).getTime())
+    gprops.get(groupTimeKey) should be((12 * 60 + 5) * 60000)
+    gprops.get(groupControlKey) should be(new BigInteger("168"))
+    gprops.get(responsibleAgencyKey) should be("X")
+    gprops.get(versionIdentifierKey) should be("004010")
     val (transid, sprops) = parser.openSet
     transid should be("850")
-    sprops.get(transactionSetIdentifierCode) should be("850")
-    sprops.get(transactionSetControlNumber) should be("000000176")
-    sprops.containsKey(implementationConventionReference) should be(false)
+    sprops.get(transactionSetIdentifierKey) should be("850")
+    sprops.get(transactionSetControlKey) should be("000000176")
+    sprops.containsKey(implementationConventionKey) should be(false)
     parser.isSetClose should be(true)
     parser.closeSet(sprops)
     parser.isGroupClose should be(true)
@@ -157,6 +157,9 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     props.put(characterEncoding, "UTF-8")
     val writeResult = writer.write(props)
     val text = new String(out.toByteArray)
-    text should be (ISA + IEA)
+    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")).getLines
+    val builder = new StringBuilder
+    lines.foreach(line => builder.append(line))
+    text should be (builder.toString)
   }
 }

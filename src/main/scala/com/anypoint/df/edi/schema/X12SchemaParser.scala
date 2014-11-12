@@ -33,7 +33,7 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
   def closeGroup(props: ValueMap) = {
     if (checkSegment(GESegment)) {
       val endprops = parseSegment(GESegment)
-      if (props.get(groupControlNumber) != endprops.get(groupControlNumber)) {
+      if (props.get(groupControlKey) != endprops.get(groupControlEndKey)) {
         throw new IllegalStateException("group control number in trailer does not match header")
       }
     } else throw new IllegalStateException("not positioned at GE segment")
@@ -43,7 +43,7 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
   def openSet() =
     if (checkSegment(STSegment)) {
       val values = parseSegment(STSegment)
-      (values.get(transactionSetIdentifierCode).asInstanceOf[String], values)
+      (values.get(transactionSetIdentifierKey).asInstanceOf[String], values)
     } else throw new IllegalStateException("missing required ST segment")
 
   /** Check if at transaction set close segment. */
@@ -53,7 +53,7 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
   def closeSet(props: ValueMap) = {
     if (checkSegment(SESegment)) {
       val endprops = parseSegment(SESegment)
-      if (props.get(transactionSetControlNumber) != endprops.get(transactionSetControlNumber)) {
+      if (props.get(transactionSetControlKey) != endprops.get(transactionSetControlEndKey)) {
         throw new IllegalStateException("transaction set control number in trailer does not match header")
       }
     } else throw new IllegalStateException("not positioned at SE segment")

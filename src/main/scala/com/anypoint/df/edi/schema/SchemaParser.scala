@@ -27,31 +27,31 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     /** Parse a value, adding it to map. */
     def parseValue(comp: SegmentComponent, map: ValueMap): Unit = {
       comp match {
-        case ElementComponent(elem, name, use, count) => {
+        case ElementComponent(elem, name, pos, use, count) => {
           elem.dataType match {
-            case AlphaType => map put (name, lexer.parseAlpha(elem.minLength, elem.maxLength))
-            case AlphaNumericType | IdType => map put (name, lexer.parseAlphaNumeric(elem.minLength, elem.maxLength))
+            case AlphaType => map put (comp.key, lexer.parseAlpha(elem.minLength, elem.maxLength))
+            case AlphaNumericType | IdType => map put (comp.key, lexer.parseAlphaNumeric(elem.minLength, elem.maxLength))
             case BinaryType => throw new IOException("Handling not implemented for binary values")
-            case DateType => map put (name, lexer.parseDate(elem.minLength, elem.maxLength))
-            case IntegerType => map put (name, lexer.parseInteger(elem.minLength, elem.maxLength))
-            case decimal: DecimalType => map put (name, lexer.parseImpliedDecimalNumber(decimal.places, elem.minLength, elem.maxLength))
-            case NumberType | RealType => map put (name, lexer.parseNumber(elem.minLength, elem.maxLength))
-            case TimeType => map put (name, Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength)))
+            case DateType => map put (comp.key, lexer.parseDate(elem.minLength, elem.maxLength))
+            case IntegerType => map put (comp.key, lexer.parseInteger(elem.minLength, elem.maxLength))
+            case decimal: DecimalType => map put (comp.key, lexer.parseImpliedDecimalNumber(decimal.places, elem.minLength, elem.maxLength))
+            case NumberType | RealType => map put (comp.key, lexer.parseNumber(elem.minLength, elem.maxLength))
+            case TimeType => map put (comp.key, Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength)))
           }
         }
-        case CompositeComponent(comp, name, use, count) => {
+        case CompositeComponent(composite, name, pos, use, count) => {
           def parseCompInst(): ValueMap = {
             val compmap = new ValueMapImpl()
-            parseCompList(comp.components, QUALIFIER, compmap)
+            parseCompList(composite.components, QUALIFIER, compmap)
             compmap
           }
           if (count > 1) {
             val complist = new MapListImpl()
-            map put (name, complist)
+            map put (comp.key, complist)
             (1 until count) foreach { index =>
               complist add (parseCompInst())
             }
-          } else map put (name, parseCompInst())
+          } else map put (comp.key, parseCompInst())
         }
       }
     }

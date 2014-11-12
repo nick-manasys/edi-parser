@@ -90,9 +90,12 @@ object EdiSchema {
 
   case class Element(val ident: String, val dataType: DataType, val minLength: Int, val maxLength: Int)
 
-  abstract class SegmentComponent(val name: String, val usage: Usage, val count: Int)
-  case class ElementComponent(val element: Element, nm: String, use: Usage, cnt: Int) extends SegmentComponent(nm, use, cnt)
-  case class CompositeComponent(val composite: Composite, nm: String, use: Usage, cnt: Int) extends SegmentComponent(nm, use, cnt)
+  abstract class SegmentComponent(val name: String, val position: Int, val usage: Usage, val count: Int) {
+    val key = name + " (" + (if (position >= 10) position.toString else "0" + position.toString) + ")"
+
+  }
+  case class ElementComponent(val element: Element, nm: String, pos: Int, use: Usage, cnt: Int) extends SegmentComponent(nm, pos, use, cnt)
+  case class CompositeComponent(val composite: Composite, nm: String, pos: Int, use: Usage, cnt: Int) extends SegmentComponent(nm, pos, use, cnt)
 
   case class Composite(val ident: String, val name: String, val components: List[SegmentComponent])
 
