@@ -3,7 +3,6 @@ package com.anypoint.df.edi.schema
 import com.anypoint.df.edi.lexical.X12Writer
 import java.io.OutputStream
 import java.nio.charset.Charset
-import java.math.BigInteger
 
 /** Writer for X12 EDI documents.
   */
@@ -38,7 +37,7 @@ class X12SchemaWriter(out: OutputStream, sc: EdiSchema) extends SchemaWriter(new
   /** Write close of a functional group. */
   def closeGroup(props: ValueMap) = {
     val modprops = new ValueMapImpl(props)
-    modprops.put(numberOfSetsKey, BigInteger.valueOf(setCount))
+    modprops.put(numberOfSetsKey, Integer.valueOf(setCount))
     modprops.put(groupControlEndKey, props.get(groupControlKey))
     writeSegment(modprops, GESegment)
   }
@@ -52,7 +51,7 @@ class X12SchemaWriter(out: OutputStream, sc: EdiSchema) extends SchemaWriter(new
   /** Write close of a transaction set. */
   def closeSet(props: ValueMap) = {
     val modprops = new ValueMapImpl(props)
-    modprops.put(numberOfSegmentsKey, BigInteger.valueOf(writer.getSegmentCount - setCount))
+    modprops.put(numberOfSegmentsKey, Integer.valueOf(writer.getSegmentCount - setCount))
     modprops.put(transactionSetControlEndKey, props.get(transactionSetControlKey))
     writeSegment(modprops, SESegment)
     setCount += 1

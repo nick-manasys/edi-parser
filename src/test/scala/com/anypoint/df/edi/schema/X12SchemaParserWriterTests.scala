@@ -8,7 +8,6 @@ import org.scalatest.Matchers
 import scala.io.Source
 import java.io.ByteArrayInputStream
 import java.util.GregorianCalendar
-import java.math.BigInteger
 import scala.util.Success
 import java.util.Calendar
 import java.io.ByteArrayOutputStream
@@ -66,7 +65,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     gprops.get(applicationReceiversKey) should be("IAIYUCAFOO")
     gprops.get(groupDateKey) should be(new GregorianCalendar(2008, 6, 4).getTime())
     gprops.get(groupTimeKey) should be((12 * 60 + 5) * 60000)
-    gprops.get(groupControlKey) should be(new BigInteger("168"))
+    gprops.get(groupControlKey) should be(Integer.valueOf(168))
     gprops.get(responsibleAgencyKey) should be("X")
     gprops.get(versionIdentifierKey) should be("004010")
     val (transid, sprops) = parser.openSet

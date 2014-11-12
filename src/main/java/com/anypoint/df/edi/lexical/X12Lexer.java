@@ -71,7 +71,7 @@ public class X12Lexer extends LexerBase
         repetitionSeparator = "U".equals(sep) ? -1 : sep.charAt(0);
         props.put(VERSION_ID, advance());
         advance();
-        props.put(INTER_CONTROL, Integer.valueOf(parseInteger(9, 9).intValue()));
+        props.put(INTER_CONTROL, parseInteger(9, 9));
         props.put(ACK_REQUESTED, token());
         props.put(TEST_INDICATOR, advance());
         subElement = (char)reader.read();

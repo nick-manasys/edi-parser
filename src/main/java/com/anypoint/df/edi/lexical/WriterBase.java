@@ -328,7 +328,7 @@ public abstract class WriterBase
      * @param maxl
      * @throws IOException
      */
-    public void writeInteger(BigInteger value, int minl, int maxl) throws IOException {
+    public void writeBigInteger(BigInteger value, int minl, int maxl) throws IOException {
         String text = padZeroes(value.toString(), minl);
         if (text.length() > maxl) {
             if (!text.startsWith("-") || (text.length() -1 > maxl)) {
@@ -349,7 +349,7 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeImplicitDecimal(BigDecimal value, int scale, int minl, int maxl) throws IOException {
-        writeInteger(value.movePointRight(scale).setScale(scale, RoundingMode.HALF_UP).toBigIntegerExact(), minl, maxl);
+        writeBigInteger(value.movePointRight(scale).setScale(scale, RoundingMode.HALF_UP).toBigIntegerExact(), minl, maxl);
     }
     
     /**
@@ -366,7 +366,7 @@ public abstract class WriterBase
         
         // if no decimal point needed just write as an integer
         if (value.scale() <= 0) {
-            writeInteger(value.toBigIntegerExact(), minl, maxl);
+            writeBigInteger(value.toBigIntegerExact(), minl, maxl);
             return;
         }
         

@@ -83,8 +83,7 @@ object EdiSchema {
   }
   // allow Java code access to instances (Eclipse doesn't like doing it directly)
   val RealDataTypes = List[DataType](RealType, NumberType, Decimal1Type, Decimal2Type, Decimal3Type, Decimal4Type, Decimal5Type, Decimal6Type, Decimal7Type, Decimal8Type, Decimal9Type)
-  val IntegerDataTypes = List[DataType](IntegerType)
-  val LongDataTypes = List[DataType](TimeType)
+  val IntegerDataTypes = List[DataType](IntegerType, TimeType)
   val DateDataTypes = List[DataType](DateType)
   val StringDataTypes = List[DataType](IdType, AlphaNumericType, AlphaType)
 

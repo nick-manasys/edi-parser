@@ -344,14 +344,14 @@ public abstract class LexerBase
     }
     
     /**
-     * Get current token as an integer value and advance to next token.
+     * Check that the current token is an integer number is valid (contains only decimal digits) and of an allowed
+     * length.
      *
-     * @param minl minimum length (excluding sign and/or decimal)
-     * @param maxl maximum length (excluding sign and/or decimal)
-     * @return
+     * @param minl
+     * @param maxl
      * @throws IOException
      */
-    public BigInteger parseInteger(int minl, int maxl) throws IOException {
+    private void checkInteger(int minl, int maxl) throws IOException {
         String text = token;
         int length = 0;
         for (int i = 0; i < text.length(); i++) {
@@ -365,6 +365,34 @@ public abstract class LexerBase
         if (length < minl || length > maxl) {
             throw new LexicalException("number value incorrect length");
         }
+    }
+    
+    /**
+     * Get current token as an integer value and advance to next token.
+     *
+     * @param minl minimum length (excluding sign and/or decimal)
+     * @param maxl maximum length (excluding sign and/or decimal)
+     * @return
+     * @throws IOException
+     */
+    public Integer parseInteger(int minl, int maxl) throws IOException {
+        checkInteger(minl, maxl);
+        String text = token;
+        advance();
+        return Integer.valueOf(text);
+    }
+    
+    /**
+     * Get current token as an integer value and advance to next token.
+     *
+     * @param minl minimum length (excluding sign and/or decimal)
+     * @param maxl maximum length (excluding sign and/or decimal)
+     * @return
+     * @throws IOException
+     */
+    public BigInteger parseBigInteger(int minl, int maxl) throws IOException {
+        checkInteger(minl, maxl);
+        String text = token;
         advance();
         return new BigInteger(text);
     }
@@ -451,7 +479,7 @@ public abstract class LexerBase
      * @throws IOException
      */
     public BigDecimal parseImpliedDecimalNumber(int scale, int minl, int maxl) throws IOException {
-        return new BigDecimal(parseInteger(minl, maxl), scale);
+        return new BigDecimal(parseBigInteger(minl, maxl), scale);
     }
     
     /**
