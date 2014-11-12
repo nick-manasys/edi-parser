@@ -16,6 +16,7 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
   
   import EdiSchema._
   import com.anypoint.df.edi.lexical.X12Constants._
+  import X12SchemaValues._
 
   def init() = lexer.init(new ValueMapImpl())
   

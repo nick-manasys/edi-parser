@@ -14,6 +14,8 @@ import com.anypoint.df.edi.schema.EdiSchema._
 /** Parse EDI document based on schema. */
 
 abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends SchemaJavaDefs {
+  
+  import SchemaJavaValues._
 
   /** Initialize parser and read header segments. */
   protected def init(): ValueMap

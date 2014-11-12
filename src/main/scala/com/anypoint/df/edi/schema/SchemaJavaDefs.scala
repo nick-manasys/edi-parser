@@ -12,26 +12,6 @@ trait SchemaJavaDefs {
   type RealNumber = java.math.BigDecimal
   type IntegerNumber = Integer
 
-  // value keys for configuration
-  val delimiterCharacters = "delimiters"
-  val characterEncoding = "encoding"
-  val partnerIdentifer = "partner interchange ID"
-  val selfIdentifier = "self interchange ID"
-
-  // value keys for transaction set
-  val interchangeProperties = "interchange"
-  val groupProperties = "group"
-  val setProperties = "set"
-  val setIdentifier = "identifier"
-  val transactionsList = "transactions"
-
-  // value keys for top-level transaction parse result map
-  val transactionId = "id"
-  val transactionName = "name"
-  val transactionHeading = "heading"
-  val transactionDetail = "detail"
-  val transactionSummary = "summary"
-
   def getRequiredValue(key: String, map: ValueMap) =
     if (map containsKey (key)) map.get(key)
     else throw new IllegalArgumentException(s"missing required value '$key'")
@@ -53,4 +33,28 @@ trait SchemaJavaDefs {
     if (value.isInstanceOf[MapList]) value.asInstanceOf[MapList]
     else throw new IllegalArgumentException(s"not a map list '$key'")
   }
+}
+
+object SchemaJavaValues {
+
+  // value keys for configuration
+  val delimiterCharacters = "delimiters"
+  val characterEncoding = "encoding"
+  val partnerIdentifer = "partner interchange ID"
+  val selfIdentifier = "self interchange ID"
+
+  // value keys for transaction set
+  val interchangeProperties = "interchange"
+  val groupProperties = "group"
+  val setProperties = "set"
+  val setIdentifier = "identifier"
+  val transactionsList = "transactions"
+
+  // value keys for top-level transaction parse result map
+  val transactionId = "id"
+  val transactionName = "name"
+  val transactionHeading = "heading"
+  val transactionDetail = "detail"
+  val transactionSummary = "summary"
+  
 }

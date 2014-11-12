@@ -16,6 +16,8 @@ import com.anypoint.df.edi.schema.EdiSchema._
 /** Write EDI document based on schema. */
 
 abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) extends SchemaJavaDefs {
+  
+  import SchemaJavaValues._
 
   /** Initialize writer and output interchange header segment(s). */
   def init(delims: String, encoding: String, props: ValueMap): Unit

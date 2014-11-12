@@ -16,6 +16,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   import EdiSchema._
   import com.anypoint.df.edi.lexical.X12Constants._
+  import SchemaJavaValues._
+  import X12SchemaValues._
 
   val ISA = "ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *090604*1205*U*00401*000001244*0*P*>~"
   val GS = "GS*PO*006927180*IAIYUCAFOO*20080604*1205*168*X*004010~"

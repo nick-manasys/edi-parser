@@ -10,6 +10,7 @@ class X12SchemaWriter(out: OutputStream, sc: EdiSchema) extends SchemaWriter(new
 
   import com.anypoint.df.edi.lexical.X12Constants._
   import EdiSchema._
+  import X12SchemaValues._
 
   var setCount = 0
   var setSegmentBase = 0
