@@ -41,7 +41,7 @@ public class X12Lexer extends LexerBase
         byte[] byts = readBytes(3);
         String tag = new String(byts, ASCII_CHARSET);
         if (!"ISA".equals(tag)) {
-            throw new IOException("Message is missing ISA segment");
+            throw new IOException(String.format("Message is missing ISA segment (starts with bytes %02X, %02X, %02X)", byts[0], byts[1], byts[2]));
         }
         
         // get record separator as next character
