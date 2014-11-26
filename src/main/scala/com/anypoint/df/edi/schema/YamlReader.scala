@@ -103,21 +103,21 @@ object YamlReader {
   List[TransactionComponent] = {
     def convertComponent(values: JavaMap[Any, Any]) = {
       val use = convertUsage(getRequiredString("usage", values))
-      val repeat = values.get("repeat") match {
+      val count = values.get("count") match {
         case n: Int => n
         case ">1" => -1
         case null => 1
-        case _ => throw new IllegalArgumentException("Value 'repeat' must be an integer or a string")
+        case _ => throw new IllegalArgumentException("Value 'count' must be an integer or a string")
       }
       if (values.containsKey("items")) {
         val items = getChildList("items", values).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-        GroupComponent(getRequiredString("loopId", values), use, repeat, parseComponent(items.asScala.toList, Nil))
+        GroupComponent(getRequiredString("loopId", values), use, count, parseComponent(items.asScala.toList, Nil))
       } else {
         val id = getRequiredString("idRef", values)
         if (!segments.contains(id)) {
           throw new IllegalArgumentException(s"No segment with id '$id'")
         }
-        ReferenceComponent(segments(id), use, repeat)
+        ReferenceComponent(segments(id), use, count)
       }
     }
     @tailrec
