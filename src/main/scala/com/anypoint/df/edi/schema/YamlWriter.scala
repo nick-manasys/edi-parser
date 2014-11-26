@@ -22,7 +22,7 @@ object YamlWriter {
 
   /** Get repetition count text value. */
   def countText(count: Int) =
-    if (count == 0) ">1"
+    if (count == 0) "'>1'"
     else count toString
 
   /** Write schema in YAML form.
