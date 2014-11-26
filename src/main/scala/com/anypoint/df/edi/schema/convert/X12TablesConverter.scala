@@ -134,32 +134,41 @@ object X12TablesConverter {
 
     /** Convert transaction components from lists of strings to trees of data tuples, grouping them by area. */
     def convertComponents(rows: List[List[String]]): AreaMap = {
-      def descend(remain: List[List[String]], depth: Int): (List[List[String]], List[ComponentInfo]) =
-        convertr(remain, depth, Nil)
+      
+      /** Convert string values to component information structure. */
       def info(segid: String, req: String, max: String, nested: List[ComponentInfo]) = {
         val segment = segments(segid)
         val usage = convertUsage(req)
         val repeat = if (max == ">1") 0 else max.toInt
         ComponentInfo(segment, usage, repeat, nested)
       }
+      
+      /** Start a new loop (need separate function to keep convertr tail recursive). */
+      def descend(remain: List[List[String]], depth: Int): (List[List[String]], List[ComponentInfo]) =
+        convertr(remain, depth, true, Nil)
+        
+      /** Recursively convert lists of strings to data tuples, checking and handling loops. */
       @tailrec
-      def convertr(remain: List[List[String]], depth: Int,
+      def convertr(remain: List[List[String]], depth: Int, loop: Boolean,
         acc: List[ComponentInfo]): (List[List[String]], List[ComponentInfo]) = remain match {
         case (areaid :: _ :: segid :: req :: max :: level :: repeat :: loopid :: Nil) :: tail => {
           val at = level.toInt
-          if (depth == at) {
-            convertr(tail, at, info(segid, req, max, Nil) :: acc)
-          } else if (depth > at) {
-            (remain, acc.reverse)
+          if (depth > at || (!loop && depth == at && loopid != "")) {
+            // loop closed (either back to containing level, or starting another loop at same level)
+            (remain, acc)
+          } else if (depth == at) {
+            // continuing at current loop level
+            convertr(tail, at, false, info(segid, req, max, Nil) :: acc)
           } else {
+            // starting a nested loop
             val (rest, nested) = descend(remain, depth + 1)
-            convertr(rest, depth, info(segid, req, repeat, nested) :: acc)
+            convertr(rest, depth, false, info(segid, req, repeat, nested) :: acc)
           }
         }
         case Nil => (Nil, acc)
         case _ => throw new IllegalArgumentException("wrong number of values")
       }
-      rows.groupBy(_.head) map { case (key, list) => key -> convertr(list, 0, Nil)._2 }
+      rows.groupBy(_.head) map { case (key, list) => key -> convertr(list, 0, false, Nil)._2 }
     }
 
     /** Recursively convert component information list into transaction component list. */
@@ -247,7 +256,7 @@ object X12TablesConverter {
   def verifySchema(baseSchema: EdiSchema, name: String, yamldir: File) = {
     val reader = new InputStreamReader(new FileInputStream(new File(yamldir, name + ".yaml")), "UTF-8")
     val readSchema = YamlReader.loadYaml(reader)
-//    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
+    //    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }
 
   /** Builds schemas from X12 table data and outputs the schemas in YAML form. The arguments are 1) path to the
