@@ -10,6 +10,8 @@ import com.anypoint.df.edi.schema.EdiSchema
 import java.io.FileOutputStream
 import com.anypoint.df.edi.schema.YamlWriter
 import java.io.OutputStreamWriter
+import java.io.InputStreamReader
+import com.anypoint.df.edi.schema.YamlReader
 
 /** Application to generate X12 transaction schemas from table data.
   */
@@ -199,8 +201,8 @@ object X12TablesConverter {
   /** Convert element data type, extending base conversion to allow empty type. */
   def convertType(text: String) = if (text.length > 0) convertDataType(text) else AlphaNumericType
 
-  /** Write schema for a single transaction to file. */
-  def writeTransaction(transact: Transaction, yamldir: File) = {
+  /** Construct schema for a single transaction. */
+  def transactionSchema(transact: Transaction) = {
 
     /** Recursively collect segments used in transaction. */
     def descendSeg(comps: List[TransactionComponent], segs: Set[Segment]) = segmentr(comps, segs)
@@ -223,18 +225,29 @@ object X12TablesConverter {
       case _ => (comps, elems)
     }
 
-    println(s"writing transaction ${transact.name}")
     val segs = segmentr(transact.summary, segmentr(transact.detail, segmentr(transact.heading, Set())))
     val (comps, elems) = segs.foldLeft((Set[Composite](), Set[Element]()))((acc, seg) =>
       compositer(seg.components, acc._1, acc._2))
-    val schema = EdiSchema(X12,
+    EdiSchema(X12,
       elems.foldLeft(Map.empty[String, Element])((acc, elem) => acc + (elem.ident -> elem)),
       comps.foldLeft(Map.empty[String, Composite])((acc, comp) => acc + (comp.ident -> comp)),
       segs.foldLeft(Map.empty[String, Segment])((acc, seg) => acc + (seg.ident -> seg)),
       Map(transact.ident -> transact))
-    val writer = new OutputStreamWriter(new FileOutputStream(new File(yamldir, transact.ident + ".yaml")), "UTF-8")
+  }
+
+  /** Write schema to file. */
+  def writeSchema(schema: EdiSchema, name: String, yamldir: File) = {
+    println(s"writing schema $name")
+    val writer = new OutputStreamWriter(new FileOutputStream(new File(yamldir, name + ".yaml")), "UTF-8")
     YamlWriter.write(schema, writer)
     writer.close
+  }
+
+  /** Verify schema written to file. */
+  def verifySchema(baseSchema: EdiSchema, name: String, yamldir: File) = {
+    val reader = new InputStreamReader(new FileInputStream(new File(yamldir, name + ".yaml")), "UTF-8")
+    val readSchema = YamlReader.loadYaml(reader)
+//    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }
 
   /** Builds schemas from X12 table data and outputs the schemas in YAML form. The arguments are 1) path to the
@@ -267,6 +280,10 @@ object X12TablesConverter {
       })
     val setGroups = gatherGroups(fileInput(x12dir, transDetailsName), 9)
     val transactions = defineTransactions(segDefs, setHeads, setGroups)
-    transactions.values.foreach(transact => writeTransaction(transact, yamldir))
+    transactions.values.foreach(transact => {
+      val schema = transactionSchema(transact)
+      writeSchema(schema, transact.ident, yamldir)
+      verifySchema(schema, transact.ident, yamldir)
+    })
   }
 }

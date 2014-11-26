@@ -18,7 +18,15 @@ object YamlWriter {
   def keyValuePair(key: String, value: String) = key + ": " + value
 
   /** Write key-quoted value pair. */
-  def keyValueQuote(key: String, value: String) = key + ": '" + value + '\''
+  def keyValueQuote(key: String, value: String) = {
+    val builder = new StringBuilder
+    builder ++= key ++= ": '"
+    value.toList.foreach(chr =>
+      if (chr == '\'') builder ++= "''"
+      else builder + chr)
+    builder + '\''
+    builder.toString
+  }
 
   /** Get repetition count text value. */
   def countText(count: Int) =
