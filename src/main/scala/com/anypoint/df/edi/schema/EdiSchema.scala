@@ -47,7 +47,7 @@ object EdiSchema {
   case object BinaryType extends DataType("B") // binary octets
   case object NumberType extends DataType("N") // digits, optional decimal, optional minus (decimal requires leading/training digit(s))
   case object IntegerType extends DataType("N0") // integer digits, optional minus
-  abstract class DecimalType(val places: Int) extends DataType("N" + ('0' + places)) // digits with implied decimal point, optional minus
+  abstract class DecimalType(val places: Int) extends DataType("N" + ('0' + places).toChar) // digits with implied decimal point, optional minus
   case object Decimal1Type extends DecimalType(1)
   case object Decimal2Type extends DecimalType(2)
   case object Decimal3Type extends DecimalType(3)
