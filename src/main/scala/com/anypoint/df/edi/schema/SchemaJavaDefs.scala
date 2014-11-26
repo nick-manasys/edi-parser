@@ -44,11 +44,13 @@ object SchemaJavaValues {
   val selfIdentifier = "self interchange ID"
 
   // value keys for transaction set
-  val interchangeProperties = "interchange"
-  val groupProperties = "group"
-  val setProperties = "set"
-  val setIdentifier = "identifier"
-  val transactionsList = "transactions"
+  val interchangeProperties = "Interchange"
+  val transactionsMap = "Transactions"
+    
+  // value keys only used for output
+  val groupProperties = "Group"
+  val setProperties = "Set"
+  val setIdentifier = "Identifier"
 
   // value keys for top-level transaction parse result map
   val transactionId = "id"

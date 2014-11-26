@@ -22,6 +22,9 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
   
   def term(props: ValueMap) = lexer.term(props)
 
+  /** Check if at functional group open segment. */
+  def isGroupOpen() = checkSegment(GSSegment)
+
   /** Parse start of a functional group. */
   def openGroup() =
     if (checkSegment(GSSegment)) parseSegment(GSSegment)
@@ -39,6 +42,9 @@ class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X
       }
     } else throw new IllegalStateException("not positioned at GE segment")
   }
+
+  /** Check if at transaction set open segment. */
+  def isSetOpen() = checkSegment(STSegment)
 
   /** Parse start of a transaction set. */
   def openSet() =

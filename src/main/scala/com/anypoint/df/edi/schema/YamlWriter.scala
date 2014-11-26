@@ -68,7 +68,7 @@ object YamlWriter {
           {
             writeIndented("- { " + keyValueQuote("idRef", componentId(comp)) + ", " +
               keyValueQuote("name", comp.name) + ", " +
-              (if (comp.position == dfltpos) "" else (keyValueQuote("position", comp.position.toString) + ", ")) +
+              (if (comp.position == dfltpos) "" else (keyValuePair("position", comp.position.toString) + ", ")) +
               keyValuePair("usage", comp.usage.code toString) +
               (if (comp.count != 1) ", " + keyValuePair("count", countText(comp.count)) else "") +
               " }", indent)

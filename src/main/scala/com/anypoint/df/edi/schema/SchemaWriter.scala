@@ -16,7 +16,7 @@ import com.anypoint.df.edi.schema.EdiSchema._
 /** Write EDI document based on schema. */
 
 abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) extends SchemaJavaDefs {
-  
+
   import SchemaJavaValues._
 
   /** Initialize writer and output interchange header segment(s). */
@@ -168,22 +168,25 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   def write(map: ValueMap): Try[Unit] = Try({
     val interProps = getRequiredValueMap(interchangeProperties, map)
     init(getRequiredString(delimiterCharacters, map), getRequiredString(characterEncoding, map), interProps)
-    val groupProps = getRequiredValueMap(groupProperties, map)
-    openGroup(groupProps)
-    writer.countGroup
-    val setType = getRequiredString(setIdentifier, map)
-    val setProps = getRequiredValueMap(setProperties, map)
-    openSet(setType, setProps)
-    val list = getRequiredMapList(transactionsList, map)
-    schema.transactions(setType) match {
-      case t: Transaction => {
-        val iter = JavaConversions.asScalaIterator(list.iterator)
-        iter.foreach(map => writeTransaction(map, t))
+    val transMap = getRequiredValueMap(transactionsMap, map)
+    schema.transactions.foreach {
+      case (id, transaction) => if (transMap.containsKey(id)) {
+        val list = transMap.get(id).asInstanceOf[java.util.List[ValueMap]]
+        if (!list.isEmpty()) {
+          val groupProps = getRequiredValueMap(groupProperties, map)
+          openGroup(groupProps)
+          writer.countGroup
+          val setType = getRequiredString(setIdentifier, map)
+          val setProps = getRequiredValueMap(setProperties, map)
+          JavaConversions.asScalaIterator(list.iterator).foreach(map => {
+            openSet(setType, setProps)
+            writeTransaction(map, transaction)
+            closeSet(setProps)
+          })
+          closeGroup(groupProps)
+        }
       }
-      case _ => throw new IllegalStateException(s"unknown transaction type $setType")
     }
-    closeSet(setProps)
-    closeGroup(groupProps)
     term(interProps)
   })
 }

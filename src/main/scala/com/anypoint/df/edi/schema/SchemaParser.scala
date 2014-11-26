@@ -14,7 +14,7 @@ import com.anypoint.df.edi.schema.EdiSchema._
 /** Parse EDI document based on schema. */
 
 abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends SchemaJavaDefs {
-  
+
   import SchemaJavaValues._
 
   /** Initialize parser and read header segments. */
@@ -164,6 +164,9 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     topMap
   }
 
+  /** Check if at functional group open segment. */
+  def isGroupOpen(): Boolean
+
   /** Parse start of a functional group. */
   def openGroup(): ValueMap
 
@@ -172,6 +175,9 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   /** Parse close of a functional group. */
   def closeGroup(props: ValueMap): Unit
+
+  /** Check if at transaction set start segment. */
+  def isSetOpen(): Boolean
 
   /** Parse start of a transaction set. */
   def openSet(): (String, ValueMap)
@@ -194,24 +200,25 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     builder.append(lexer.getSegmentTerminator)
     builder.append(if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
     map.put(delimiterCharacters, builder.toString)
-    // TODO: check for (and ignore) anything other than a group header?
-    val group = openGroup
-    map.put(groupProperties, group)
-    lexer.countGroup()
-    val list = new MapListImpl
-    map.put(transactionsList, list)
-    while (!isGroupClose) {
-      val set = openSet
-      map.put(setIdentifier, set._1)
-      map.put(setProperties, set._2)
-      schema.transactions(set._1) match {
-        case t: Transaction => list.add(parseTransaction(t))
-        case _ => throw new IllegalStateException(s"unknown transaction type ${set._1}")
+    val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
+    schema.transactions.keys foreach {key => transLists.put(key, new MapListImpl)}
+    map.put(transactionsMap, transLists)
+    while (isGroupOpen) {
+      val group = openGroup
+      lexer.countGroup()
+      while (!isGroupClose) {
+        val set = openSet
+        schema.transactions(set._1) match {
+          case t: Transaction => {
+            val list = transLists.get(set._1)
+            list.add(parseTransaction(t))
+          }
+          case _ => throw new IllegalStateException(s"unknown transaction type ${set._1}")
+        }
+        closeSet(set._2)
       }
-      closeSet(set._2)
+      closeGroup(group)
     }
-    // TODO: general case needs to handle multiple groups
-    closeGroup(group)
     term(interchange)
     map
   })

@@ -119,4 +119,7 @@ object EdiSchema {
 
 case class EdiSchema(val ediForm: EdiSchema.EdiForm, val elements: Map[String, EdiSchema.Element],
   val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
-  val transactions: Map[String, EdiSchema.Transaction])
+  val transactions: Map[String, EdiSchema.Transaction]) {
+  def merge(other: EdiSchema) = EdiSchema(ediForm, elements ++ other.elements, composites ++ other.composites,
+    segments ++ other.segments, transactions ++ other.transactions)
+}
