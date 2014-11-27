@@ -201,13 +201,16 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     builder.append(if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
     map.put(delimiterCharacters, builder.toString)
     val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
-    schema.transactions.keys foreach {key => transLists.put(key, new MapListImpl)}
+    schema.transactions.keys foreach { key => transLists.put(key, new MapListImpl) }
     map.put(transactionsMap, transLists)
     while (isGroupOpen) {
       val group = openGroup
+      map.put(groupProperties, group)
       lexer.countGroup()
       while (!isGroupClose) {
         val set = openSet
+        map.put(setIdentifier, set._1)
+        map.put(setProperties, set._2)
         schema.transactions(set._1) match {
           case t: Transaction => {
             val list = transLists.get(set._1)
