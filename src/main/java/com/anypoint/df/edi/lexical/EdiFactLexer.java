@@ -182,8 +182,8 @@ public class EdiFactLexer extends LexerBase
      * @throws IOException
      * @see com.anypoint.df.edi.lexical.LexerBase#term(java.util.Map)
      */
-    public void term(Map<String, Object> props) throws IOException {
+    public Object term(Map<String, Object> props) throws IOException {
         // TODO Auto-generated method stub
-        
+        return null;
     }
 }

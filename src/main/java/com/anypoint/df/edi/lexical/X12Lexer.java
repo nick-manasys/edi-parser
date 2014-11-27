@@ -17,6 +17,9 @@ import static com.anypoint.df.edi.lexical.X12Constants.*;
  */
 public class X12Lexer extends LexerBase
 {
+    /** Status returned by {@link X12Lexer#term(Map)} method. */
+    public enum InterchangeStatus { VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR }
+    
     /**
      * Constructor.
      *
@@ -88,22 +91,23 @@ public class X12Lexer extends LexerBase
      * @throws IOException
      * @see com.anypoint.df.edi.lexical.LexerBase#term(java.util.Map)
      */
-    public void term(Map<String, Object> props) throws IOException {
+    public InterchangeStatus term(Map<String, Object> props) throws IOException {
         if (!"IEA".equals(token())) {
-            throw new LexicalException("not at trailer");
+            throw new IllegalStateException("not at trailer");
         }
         advance();
         int count = parseInteger(1, 5).intValue();
         if (count != groupCount) {
-            throw new LexicalException("wrong group count in trailer");
+            return InterchangeStatus.GROUP_COUNT_ERROR;
         }
         int number = parseInteger(9, 9).intValue();
         Object expected = props.get(INTER_CONTROL);
         if (!(expected instanceof Integer)) {
-            throw new LexicalException(INTER_CONTROL + " value must be an Integer");
+            throw new IllegalStateException(INTER_CONTROL + " value must be an Integer");
         }
         if (((Integer)expected).intValue() != number) {
-            throw new LexicalException(INTER_CONTROL + " value does not match");
+            return InterchangeStatus.CONTROL_NUMBER_ERROR;
         }
+        return InterchangeStatus.VALID;
     }
 }

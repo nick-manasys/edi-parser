@@ -272,7 +272,7 @@ public abstract class WriterBase
         for (int i = 0; i < length; i++) {
             char chr = text.charAt(i);
             if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
-                throw new LexicalException("id value type characters must be alphas or digits");
+                throw new WriteException("id value type characters must be alphas or digits");
             }
         }
         writeToken(text);
