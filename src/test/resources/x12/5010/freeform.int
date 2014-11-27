@@ -1,0 +1,660 @@
+*SETPUR
+IHCEBI
+This Draft Standard for Trial Use contains the format and establishes the 
+data contents of the Interactive Health Care Eligibility/Benefit Inquiry 
+Message (IHCEBI) for use within the context of an Electronic Data 
+Interchange (EDI) environment. This message can be used to inquire on health 
+care elgibility or benefit information associated with a subscriber or 
+dependent under the subscriber's payor or group.
+*SETPUR
+IHCEBR
+This Draft Standard for Trial Use contains the format and establishes the 
+data contents of the Interactive Health Care Eligibility/Benefit Information 
+Message (IHCEBR) for use within the context of an Electronic Data 
+Interchange (EDI) environment. This message can be used for interactive 
+communications from health care information receivers (i.e., physicians, 
+hospitals, medical facilities, pharmacies). This information includes but is 
+not limited to: benefit status, dependent coverage level, dates of coverage, 
+covered days and/or non-covered days, amounts for co-insurances, co-pays, 
+deductibles, exclusions and limitations.
+*SETNTE
+IHCEBI,1,070,C,1
+If there is no PTT, then the patient is the subscriber.
+*SETNTE
+IHCEBR,1,080,N,1
+D3(080,120)
+*SEGPUR
+COO
+To provide coordination of benefit information.
+*SEGPUR
+ELG
+To provide eligibility or response information.
+*SEGPUR
+ELR
+To inquire about eligibility or benefit information.
+*SEGPUR
+FBI
+To provide further benefit information.
+*SEGPUR
+FRM
+To identify the special processing reasons and follow-up action for a 
+message.
+*SEGPUR
+MSP
+To specify the purpose and type of the message.
+*SEGPUR
+MSR
+To provide electronic message routing information.
+*SEGPUR
+PCP
+To specify primary care provider information.
+*SEGPUR
+PTT
+To provide patient information.
+*SEGPUR
+PVD
+To specify provider information.
+*SEGPUR
+RQR
+To specify information related to the originator of the message.
+*SEGPUR
+SUB
+To specify subscriber or insured information.
+*SEGPUR
+UIH
+To head, identify and specify a message.
+*SEGPUR
+UIT
+To end and check the completeness of a message.
+*SEGNTE
+COO,01,N,1
+D3(01,02)
+*SEGNTE
+COO,01,C,1
+This is the payor identification number.
+*SEGNTE
+COO,02,C,1
+This is the payor name.
+*SEGNTE
+COO,04,C,1
+This is the subscriber identification number.
+*SEGNTE
+COO,05,C,1
+This is the subscriber.
+*SEGNTE
+COO,06,C,1
+This is the group identification number.
+*SEGNTE
+COO,07,C,1
+This is the group name.
+*SEGNTE
+COO,08,C,1
+This is the payor address.
+*SEGNTE
+COO,11,C,1
+This is the subscriber's address.
+*SEGNTE
+COO,13,C,1
+This is the additional coverage indicator. An ``Y'' value indicates that 
+there is more Coordination of Benefits information that is not transmitted. 
+This is only meaningful if used on the last COO segment transmitted. An 
+``N'' value or non-occurrence indicates that there is no additional 
+Coordination of Benefits information.
+*SEGNTE
+ELG,08,C,1
+This is the authorization or certification indicator. A ``Y'' value 
+indicates that an authorization or certification is required per plan 
+provisions. An ``N'' value indicates that an authorization or certification 
+is not required per plan provisions. A ``U'' value indicates it is unknown 
+whether the plan provisions require an authorization or certification.
+*SEGNTE
+ELG,09,C,1
+This is the plan network indicator. A ``Y'' value indicates the benefits 
+identified are considered In-Plan-Network. An ``N'' value indicates that the 
+benefits identified are considered Out-of-Plan-Network. A ``U'' value 
+indicates that it is unknown whether the benefits identified are part of the 
+plan network.
+*SEGNTE
+ELR,01,N,1
+D3(01,03)
+*SEGNTE
+FBI,01,N,1
+D3(01,04)
+*SEGNTE
+MSP,03,C,1
+This is the trace number for the application.
+*SEGNTE
+MSR,01,C,1
+This is used to distribute information to entities other than the requester 
+and responder of the message.
+*SEGNTE
+PCP,01,N,1
+D3(01,02)
+*SEGNTE
+PCP,04,C,1
+This identifies the type of entity in PCP01 or PCP02.
+*SEGNTE
+PCP,06,C,1
+This identifies the primary care provider's phone number in the format (area 
+code/number/extension).
+*SEGNTE
+PTT,03,N,1
+D3(03,05)
+*SEGNTE
+PTT,02,C,1
+This is the patient's date of birth.
+*SEGNTE
+PVD,02,N,1
+D3(02,05)
+*SEGNTE
+RQR,02,N,1
+D3(02,03)
+*SEGNTE
+SUB,01,N,1
+D3(01,02)
+*SEGNTE
+SUB,04,C,1
+This is the subscriber's or insured's date of birth.
+*SEGNTE
+UIH,02,C,1
+0062, unique within dialogue.
+*SEGNTE
+UIH,03,C,1
+S302, identical to responder's UIB.
+*SEGNTE
+UIH,04,C,1
+S301/0320, starts at 1 and is incremented for each message within a multi-
+message transmission.
+*SEGNTE
+UIH,04,C,1
+S301/0322, F = First message, I = Intermediate message, L = Last message, Not 
+used = only one message.
+*SEGNTE
+UIH,04,C,1
+S301/0325, D indicates a duplicate transmission.
+*SEGNTE
+UIH,06,C,1
+0035, 1 = a test. Only used to indicate a test message if dialogue is not a 
+test.
+*SEGNTE
+UIT,01,C,1
+0062, identical to 0062 in the corresponding UIH segment.
+*COMPUR
+I001
+To identify a reference number.
+*COMPUR
+I002
+To identify a name.
+*COMPUR
+I003
+To identify a product/service and its characteristics.
+*COMPUR
+I004
+To identify address information.
+*COMPUR
+I005
+To identify electronic routing information.
+*COMPUR
+I006
+To identify a date or date range.
+*COMPUR
+I007
+To identify provider specialty information.
+*COMPUR
+I008
+To identify an amount.
+*COMPUR
+I009
+To identify quantity information.
+*COMPUR
+I010
+To identify benefit information.
+*COMPUR
+I011
+To identify service type information.
+*COMPUR
+I012
+To provide information that identifies the place of service or the type of 
+bill related to the location at which a health care service was rendered.
+*COMPUR
+S300
+Date and time of initiation of the dialogue or message.
+*COMPUR
+S301
+Identifies the sequence of the message within the sender's interchange and 
+the position in a multi-message transmission.
+*COMPUR
+S302
+Unique reference for the dialogue between co-operating parties within an 
+interactive EDI transaction.
+*COMPUR
+S306
+Identification of the type, version and details of the message being 
+interchanged.
+*COMNTE
+I002,01,N,1
+D3(01,02)
+*COMNTE
+I003,02,C,1
+I003-02 qualifies the value in I003-01.
+*COMNTE
+I003,03,C,1
+I003-03, I003-04, I003-05, and I003-06 modify the value in I003-01.
+*COMNTE
+I004,01,N,1
+D3(01,02,03,04)
+*COMNTE
+I004,05,N,1
+D5(05,06)
+*COMNTE
+I005,01,C,1
+I005-01 is the identification number to identify the entity.
+*COMNTE
+I005,02,C,1
+I005-02 identifies the type of entity in I005-01.
+*COMNTE
+I005,03,C,1
+I005-03 is a trace number for the entity.
+*COMNTE
+I005,04,C,1
+I005-04 is the network address information.
+*COMNTE
+I006,03,C,1
+If I006-03 is not used, YYMMDD is the default format.
+*COMNTE
+I010,05,N,1
+D5(05,02)
+*COMNTE
+I010,06,N,1
+D5(06,05)
+*COMNTE
+I010,05,C,1
+I010-05 is used to provide a secondary code for periods.
+*COMNTE
+I010,06,C,1
+I010-06 is used to provide a secondary dollar amount.
+*ELEDEF
+0017
+Local date when an interchange or a message group was prepared.
+*ELEDEF
+0035
+Indication that the structural level containing the test indicator is a test.
+*ELEDEF
+0051
+Code identifying the agency controlling the specification, maintenance and 
+publication of the message type, message subset, user guide, scenario type 
+or dialogue type.
+*ELEDEF
+0057
+Code, assigned by the association responsible for the development of the 
+referenced message type, message subset or user guide.
+*ELEDEF
+0062
+Unique message reference assigned by the sender.
+*ELEDEF
+0074
+Control count of number of segments in a message.
+*ELEDEF
+0300
+A reference assigned by the dialogue initiator which together with the 
+dialogue's initiator reference identifier (0303), uniquely identifies the 
+dialogue within the transaction.
+*ELEDEF
+0303
+Organisation code or name assigned by the party that initiated the 
+transaction or dialogue.
+*ELEDEF
+0304
+A reference assigned by the dialogue responder to be used as part of the 
+dialogue identifier.
+*ELEDEF
+0314
+Time of initiation of dialogue or message.
+*ELEDEF
+0316
+Version number of a message type.
+*ELEDEF
+0318
+Release number within the current message type version number (0316).
+*ELEDEF
+0320
+Identifies the sequence of the message within the current dialogue.
+*ELEDEF
+0322
+Indication of position of message within a multi-message sequence.
+*ELEDEF
+0325
+Indication that the segment is a re-transmission of a previously sent 
+structure.
+*ELEDEF
+0326
+Qualifies the interactive message type (0329) to allow a recipient to 
+identify a specific function of a message.
+*ELEDEF
+0329
+Code identifying a type of message and assigned by its controlling agency.
+*ELEDEF
+0337
+Code identifying the agency controlling the specification, maintenance and 
+publication of the object preceding.
+*ELEDEF
+1153
+Code giving specific meaning to a reference segment or a reference number.
+*ELEDEF
+1154
+Identification number the nature and function of which can be qualified by 
+an entry in data element 1153 Reference qualifier.
+*ELEDEF
+1225
+Code indicating the function of the message.
+*ELEDEF
+1701
+Code specifying the type of message.
+*ELEDEF
+2005
+Code giving specific meaning to a date, time or period.
+*ELEDEF
+2379
+Specification of the representation of a date, a date and time or of a 
+period.
+*ELEDEF
+2380
+The value of a date, a date and time, a time or of a period in a specified 
+representation.
+*ELEDEF
+2700
+Expression of a date, a time, or range of dates, times or dates and times.
+*ELEDEF
+2703
+Code defining periods.
+*ELEDEF
+3036
+Name of a party involved in a transaction.
+*ELEDEF
+3042
+Street and number in plain language, or Post Office Box No.
+*ELEDEF
+3148
+Complete communication number including country or area code when 
+applicable. Also see: 3153 Communication channel identifier.
+*ELEDEF
+3153
+Code identifying the type of communication channel being used.
+*ELEDEF
+3164
+Name of a city (a town, a village) for addressing purposes.
+*ELEDEF
+3224
+Name of place/location, other than 3164 City name.
+*ELEDEF
+3227
+Code identifying the function of a location.
+*ELEDEF
+3229
+Identification of the name of sub-entities (state, province) defined by 
+appropriate governmental agencies.
+*ELEDEF
+3251
+Code defining postal zones or addresses.
+*ELEDEF
+3701
+Code identifying an organizational entity, a physical location, or an 
+individual.
+*ELEDEF
+3702
+Individual first name.
+*ELEDEF
+3704
+Individual middle name or initial.
+*ELEDEF
+3706
+Suffix to individual name.
+*ELEDEF
+3708
+Prefix to individual name.
+*ELEDEF
+4701
+Code indicating the level of coverage being provided for this insured.
+*ELEDEF
+4703
+Code identifying the type of insurance policy within a specific insurance 
+program.
+*ELEDEF
+4705
+Code identifying the type of provider.
+*ELEDEF
+4707
+Code indicating the primary specialty of the provider, as defined by the 
+receiver.
+*ELEDEF
+4709
+Code identifying the agency assigning the code values.
+*ELEDEF
+4711
+Code indicating a Yes or No condition or response.
+*ELEDEF
+4712
+A description or number that identifies the plan or coverage.
+*ELEDEF
+4713
+Code identifying eligibility or benfit information.
+*ELEDEF
+4715
+Code describing the benefit.
+*ELEDEF
+5004
+Number of monetary units.
+*ELEDEF
+5025
+Indication of type of amount.
+*ELEDEF
+5482
+Value expressed as a percentage of a specified amount.
+*ELEDEF
+5701
+Identifying number for a product or service.
+*ELEDEF
+5703
+Code identifying the type/source of the descriptive number used in 
+Product/Service Identification (5701 [ASC X12 Data Element # 234]).
+*ELEDEF
+6060
+Numeric value of a quantity.
+*ELEDEF
+6063
+Code giving specific meaning to a quantity.
+*ELEDEF
+7701
+Code identifying the classification of service.
+*ELEDEF
+7703
+This identifies special circumstances related to the performance of the 
+service, as defined by the trading partners.
+*ELEDEF
+7704
+Code identifying the type of facility where services were performed; the 
+first and second position of the uniform bill type or place of service from 
+health care financing administration claim form, or place of treatment from 
+the dental claim form.
+*ELEDEF
+7707
+Code identifying the type of faciltiy referenced.
+*ELEDEF
+7709
+Code specifying the frequency of the claim; this is the third position of 
+the Uniform Billing Claim Form Bill Type.
+*ELEDEF
+9701
+Code identifying the relationship between individuals or entities.
+*ELEDEF
+9703
+Code indicating the sex of the individual.
+*ELEDEF
+9705
+Code identifying the follow-up actions allowed.
+*ELEDEF
+9707
+Code assigned by issuer to identify reason for rejection.
+*ELEEXP
+0017
+Format is YYMMDD.
+*ELEEXP
+0035
+Set to 1 if it is a test. For batch EDI this data element may be used at 
+the interchange level (UNB). For interactive EDI this data element may be 
+used at the interchange level (UIB) or at the message level (UIH).
+*ELEEXP
+0051
+Codes in Section 5.10 (TDED).
+*ELEEXP
+0057
+Use codes defined by association given in 0051.
+*ELEEXP
+0062
+The reference number assigned should be unique not only within a single 
+interchange, but across many interchanges from the same sender for a 
+sufficient time to avoid any confusion.
+*ELEEXP
+0314
+Format is HHMMSS... with up to 9 more digits of precision.
+*ELEEXP
+0329
+In interactive UNSMs (United Nations Standard Messages), the representation 
+is a6.
+*ELEEXP
+1153
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 128.
+*ELEEXP
+1225
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 353.
+*ELEEXP
+1701
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 640.
+*ELEEXP
+2005
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 374.
+*ELEEXP
+2379
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1250.
+*ELEEXP
+2703
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 615.
+*ELEEXP
+3042
+Limitations to 30 characters in some postal instances, e.g. window 
+envelopes.
+*ELEEXP
+3153
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 365.
+*ELEEXP
+3227
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 309.
+*ELEEXP
+3229
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 156.
+*ELEEXP
+3251
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 116.
+*ELEEXP
+3701
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 98.
+*ELEEXP
+4701
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1207.
+*ELEEXP
+4703
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1336.
+*ELEEXP
+4705
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1221.
+*ELEEXP
+4707
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1222.
+*ELEEXP
+4709
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 559.
+*ELEEXP
+4711
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1073.
+*ELEEXP
+4713
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1390.
+*ELEEXP
+4715
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1524.
+*ELEEXP
+5004
+To be associated with 6345 Currency code. No blanks or separators other than 
+decimal comma (point) allowed. Repr: n..18 required in Re-insurance.
+*ELEEXP
+5025
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 522.
+*ELEEXP
+5703
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 235.
+*ELEEXP
+6063
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 673.
+*ELEEXP
+7701
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1365.
+*ELEEXP
+7707
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1332.
+*ELEEXP
+7709
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1325.
+*ELEEXP
+9701
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1069.
+*ELEEXP
+9703
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 1068.
+*ELEEXP
+9705
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 889.
+*ELEEXP
+9707
+May be used with external code list. For U.S. domestic use, preferred code 
+list is ASC X12 Data Element # 901.
+*ELECOD
+0322, ,F,1
+First message
+*ELECOD
+0322, ,I,1
+Intermediate
+*ELECOD
+0322, ,L,1
+Last message
+*ELECOD
+0325, ,D,1
+Duplicate
+
