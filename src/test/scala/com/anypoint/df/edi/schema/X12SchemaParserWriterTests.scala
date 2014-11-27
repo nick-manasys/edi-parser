@@ -165,27 +165,4 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     lines.foreach(line => builder.append(line))
     text should be (builder.toString)
   }
-  
-  it should "roundtrip another parsed document" in {
-    val yamlIn = new FileInputStream(new File("/home/dennis/projects/mule/edi/x12schemas/850.yaml"))
-    val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"))
-    val messageIn = new FileInputStream(new File("/home/dennis/projects/mule/edi/random-edi/850InputSDQ.edi"))
-    val createParser = SchemaParser.create(messageIn, schema)
-    createParser.isSuccess should be (true)
-    val parser = createParser.get
-    val parseResult = parser.parse
-    parseResult.isInstanceOf[Success[ValueMap]] should be (true)
-    val out = new ByteArrayOutputStream
-    val createWriter = SchemaWriter.create(out, schema)
-    assert(createWriter.isSuccess)
-    val writer = createWriter.get
-    val props = parseResult.get
-    props.put(characterEncoding, "UTF-8")
-    val writeResult = writer.write(props)
-    val text = new String(out.toByteArray)
-    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("/home/dennis/projects/mule/edi/random-edi/Walmart850PurchaseOrder5010.edi")).getLines
-    val builder = new StringBuilder
-    lines.foreach(line => builder.append(line))
-    text should be (builder.toString)
-  }
 }
