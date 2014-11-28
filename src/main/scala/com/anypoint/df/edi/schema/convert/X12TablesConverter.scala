@@ -12,6 +12,8 @@ import com.anypoint.df.edi.schema.YamlWriter
 import java.io.OutputStreamWriter
 import java.io.InputStreamReader
 import com.anypoint.df.edi.schema.YamlReader
+import com.anypoint.df.edi.lexical.EdiConstants
+import com.anypoint.df.edi.lexical.EdiConstants._
 
 /** Application to generate X12 transaction schemas from table data.
   */
@@ -208,7 +210,7 @@ object X12TablesConverter {
   }
 
   /** Convert element data type, extending base conversion to allow empty type. */
-  def convertType(text: String) = if (text.length > 0) convertDataType(text) else AlphaNumericType
+  def convertType(text: String) = if (text.length > 0) EdiConstants.NAMETYPES.get(text) else DataType.ALPHANUMERIC
 
   /** Construct schema for a single transaction. */
   def transactionSchema(transact: Transaction) = {

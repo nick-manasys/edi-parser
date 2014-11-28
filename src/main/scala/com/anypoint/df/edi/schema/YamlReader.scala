@@ -16,6 +16,7 @@ import scala.collection.mutable.Buffer
 import java.io.StringWriter
 import java.io.StringReader
 import scala.collection.immutable.AbstractMap
+import com.anypoint.df.edi.lexical.EdiConstants
 
 /**
  * Read YAML representation of EDI schema.
@@ -191,7 +192,7 @@ object YamlReader {
       (map, elmmap) =>
       {
         val ident = getRequiredString("id", elmmap)
-        val typ = convertDataType(getRequiredString("type", elmmap))
+        val typ = EdiConstants.NAMETYPES.get(getRequiredString("type", elmmap))
         val min = getRequiredInt("minLength", elmmap)
         val max = getRequiredInt("maxLength", elmmap)
         map + (ident -> Element(ident, typ, min, max))

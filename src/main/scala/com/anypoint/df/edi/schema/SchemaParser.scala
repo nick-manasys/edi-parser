@@ -6,7 +6,8 @@ import java.io.InputStream
 import scala.annotation.tailrec
 import scala.util.Try
 
-import com.anypoint.df.edi.lexical.EdiConstants.ItemType
+import com.anypoint.df.edi.lexical.EdiConstants._
+import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.LexerBase
 import com.anypoint.df.edi.schema.EdiSchema._
@@ -31,14 +32,15 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       comp match {
         case ElementComponent(elem, name, pos, use, count) => {
           elem.dataType match {
-            case AlphaType => map put (comp.key, lexer.parseAlpha(elem.minLength, elem.maxLength))
-            case AlphaNumericType | IdType => map put (comp.key, lexer.parseAlphaNumeric(elem.minLength, elem.maxLength))
-            case BinaryType => throw new IOException("Handling not implemented for binary values")
-            case DateType => map put (comp.key, lexer.parseDate(elem.minLength, elem.maxLength))
-            case IntegerType => map put (comp.key, lexer.parseInteger(elem.minLength, elem.maxLength))
-            case decimal: DecimalType => map put (comp.key, lexer.parseImpliedDecimalNumber(decimal.places, elem.minLength, elem.maxLength))
-            case NumberType | RealType => map put (comp.key, lexer.parseNumber(elem.minLength, elem.maxLength))
-            case TimeType => map put (comp.key, Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength)))
+            case ALPHA => map put (comp.key, lexer.parseAlpha(elem.minLength, elem.maxLength))
+            case ALPHANUMERIC | ID => map put (comp.key, lexer.parseAlphaNumeric(elem.minLength, elem.maxLength))
+            case BINARY => throw new IOException("Handling not implemented for binary values")
+            case DATE => map put (comp.key, lexer.parseDate(elem.minLength, elem.maxLength))
+            case INTEGER => map put (comp.key, lexer.parseInteger(elem.minLength, elem.maxLength))
+            case NUMBER | REAL => map put (comp.key, lexer.parseNumber(elem.minLength, elem.maxLength))
+            case TIME => map put (comp.key, Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength)))
+            case typ: DataType if (typ.isDecimal()) =>
+              map put (comp.key, lexer.parseImpliedDecimalNumber(typ.decimalPlaces, elem.minLength, elem.maxLength))
           }
         }
         case CompositeComponent(composite, name, pos, use, count) => {

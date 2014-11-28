@@ -7,7 +7,8 @@ import java.util.Date
 import scala.collection.JavaConversions
 import scala.util.Try
 
-import com.anypoint.df.edi.lexical.EdiConstants.ItemType
+import com.anypoint.df.edi.lexical.EdiConstants._
+import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.WriteException
 import com.anypoint.df.edi.lexical.WriterBase
@@ -32,16 +33,16 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     def writeValue(map: ValueMap, typ: ItemType, comp: SegmentComponent): Unit = {
 
       def writeSimple(value: Any, dtype: DataType, min: Int, max: Int) = dtype match {
-        case AlphaType => writer.writeAlpha(value.asInstanceOf[String], min, max)
-        case AlphaNumericType => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
-        case IdType => writer.writeId(value.asInstanceOf[String], min, max)
-        case DateType => writer.writeDate(value.asInstanceOf[Date], min, max)
-        case IntegerType => writer.writeInt(value.asInstanceOf[Integer].intValue(), min, max)
-        case decimal: DecimalType =>
-          writer.writeImplicitDecimal(value.asInstanceOf[BigDecimal], decimal.places, min, max)
-        case NumberType | RealType => writer.writeDecimal(value.asInstanceOf[BigDecimal], min, max)
-        case TimeType => writer.writeTime(value.asInstanceOf[Integer], min, max)
-        case BinaryType => throw new WriteException("Handling not implemented for binary values")
+        case ALPHA => writer.writeAlpha(value.asInstanceOf[String], min, max)
+        case ALPHANUMERIC => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
+        case ID => writer.writeId(value.asInstanceOf[String], min, max)
+        case DATE => writer.writeDate(value.asInstanceOf[Date], min, max)
+        case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue(), min, max)
+        case NUMBER | REAL => writer.writeDecimal(value.asInstanceOf[BigDecimal], min, max)
+        case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)
+        case BINARY => throw new WriteException("Handling not implemented for binary values")
+        case typ: DataType if (typ.isDecimal()) =>
+          writer.writeImplicitDecimal(value.asInstanceOf[BigDecimal], typ.decimalPlaces, min, max)
       }
 
       def writeComponent(value: Object) = {
