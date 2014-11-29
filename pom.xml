@@ -33,6 +33,11 @@
       <version>1.15-SNAPSHOT</version>
     </dependency>
     <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+    <dependency>
       <groupId>org.scalatest</groupId>
       <artifactId>scalatest_${base.scala.version}</artifactId>
       <version>2.2.2</version>

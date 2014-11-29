@@ -197,7 +197,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     map.put(interchangeProperties, interchange)
     val builder = new StringBuilder
     builder.append(lexer.getDataSeparator)
-    builder.append(lexer.getSubElement)
+    builder.append(lexer.getComponentSeparator)
     builder.append(if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
     builder.append(lexer.getSegmentTerminator)
     builder.append(if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])

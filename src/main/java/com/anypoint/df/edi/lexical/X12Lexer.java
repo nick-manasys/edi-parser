@@ -77,12 +77,11 @@ public class X12Lexer extends LexerBase
         props.put(INTER_CONTROL, parseInteger(9, 9));
         props.put(ACK_REQUESTED, token());
         props.put(TEST_INDICATOR, advance());
-        subElement = (char)reader.read();
+        componentSeparator = (char)reader.read();
         segmentTerminator = (char)reader.read();
         
         // advance to start of next segment
-        nextType = ItemType.SEGMENT;
-        advance();
+        advance(ItemType.SEGMENT);
         return props;
     }
 

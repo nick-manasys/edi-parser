@@ -1,6 +1,8 @@
 
 package com.anypoint.df.edi.lexical;
 
+import static com.anypoint.df.edi.lexical.EdiConstants.maximumYear;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
@@ -10,9 +12,11 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;
 
-import com.anypoint.df.edi.lexical.LexicalException.ErrorCondition;
+import org.apache.log4j.Logger;
 
-import static com.anypoint.df.edi.lexical.EdiConstants.*;
+import com.anypoint.df.edi.lexical.EdiConstants.DataType;
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 
 /**
  * Base EDI token scanner. The scanner supplies input tokens to consumers along with token delimiter types, with three
@@ -22,56 +26,55 @@ import static com.anypoint.df.edi.lexical.EdiConstants.*;
  */
 public abstract class LexerBase
 {
+    protected final Logger logger = Logger.getLogger(getClass());
+    
     /** Stream supplying document data. */
-    protected final InputStream stream;
+    final InputStream stream;
     
     /** Reader wrapping document data stream (created by {@link #init()}). */
-    protected Reader reader;
-    
-    /** Sub-element delimiter. */
-    protected char subElement;
+    Reader reader;
     
     /** Data element delimiter. */
-    protected char dataSeparator;
+    char dataSeparator;
     
-    /** Repeated component delimiter (-1 if unused). */
-    protected int repetitionSeparator;
+    /** Repeated element delimiter (-1 if unused). */
+    int repetitionSeparator;
+    
+    /** Component delimiter. */
+    char componentSeparator;
     
     /** Release character (-1 if unused). */
-    protected int releaseIndicator;
+    int releaseIndicator;
 
     /** Segment terminator. */
-    protected char segmentTerminator;
+    char segmentTerminator;
     
-    /** Number of groups in interchange. */
-    protected int groupCount;
+    /** Total number of groups in interchange. */
+    int groupCount;
+    
+    /** Current segment number (from last reset). */
+    private int segmentNumber;
+    
+    /** Data element number (from start of segment). */
+    private int elementNumber;
+    
+    /** Repetition number (from start of data element). */
+    private int repetitionNumber;
+    
+    /** Component number (from start of composite). */
+    private int componentNumber;
     
     /** Type of current token (starting delimiter). */
-    protected ItemType currentType;
+    private ItemType currentType;
     
     /** Current token. */
-    protected String token;
+    private String token;
     
     /** Type of next token (ending delimiter of current token). */
-    protected ItemType nextType;
+    private ItemType nextType;
     
-    /**
-     * Read bytes from stream into array. Throws an IOException if not enough bytes are present to fill the array.
-     *
-     * @param byts array
-     * @param from starting offset in array
-     * @throws IOException
-     */
-    protected void readArray(byte[] byts, int from) throws IOException {
-        int offset = from;
-        while (byts.length > offset) {
-            int count = stream.read(byts, offset, byts.length - offset);
-            if (count <= 0) {
-                throw new IOException("Required data missing from message");
-            }
-            offset += count;
-        }
-    }
+    /** Handler for lexical errors. */
+    private ErrorHandler errorHandler;
     
     /**
      * Constructor.
@@ -86,19 +89,41 @@ public abstract class LexerBase
     public LexerBase(InputStream is, char datasep, char subsep, char repsep, char segterm, int release) {
         stream = is;
         dataSeparator = datasep;
-        subElement = subsep;
+        componentSeparator = subsep;
         repetitionSeparator = repsep;
         segmentTerminator = segterm;
         releaseIndicator = release;
     }
     
     /**
-     * Get sub-element delimiter character.
+     * Read bytes from stream into array. Throws an IOException if not enough bytes are present to fill the array.
      *
-     * @return delimiter
+     * @param byts array
+     * @param from starting offset in array
+     * @throws IOException
      */
-    public char getSubElement() {
-        return subElement;
+    void readArray(byte[] byts, int from) throws IOException {
+        int offset = from;
+        while (byts.length > offset) {
+            int count = stream.read(byts, offset, byts.length - offset);
+            if (count <= 0) {
+                throw new IOException("Required data missing from message");
+            }
+            offset += count;
+        }
+    }
+
+    /**
+     * Read bytes from stream. Throws an IOException if the required number of bytes is not present.
+     *
+     * @param num required number of bytes
+     * @return bytes
+     * @throws IOException
+     */
+    byte[] readBytes(int num) throws IOException {
+        byte[] byts = new byte[num];
+        readArray(byts, 0);
+        return byts;
     }
 
     /**
@@ -117,6 +142,15 @@ public abstract class LexerBase
      */
     public int getRepetitionSeparator() {
         return repetitionSeparator;
+    }
+    
+    /**
+     * Get component separator character.
+     *
+     * @return separator
+     */
+    public char getComponentSeparator() {
+        return componentSeparator;
     }
 
     /**
@@ -145,16 +179,46 @@ public abstract class LexerBase
     }
     
     /**
-     * Read bytes from stream. Throws an IOException if the required number of bytes is not present.
-     *
-     * @param num required number of bytes
-     * @return bytes
-     * @throws IOException
+     * Reset the segment number counter.
      */
-    protected byte[] readBytes(int num) throws IOException {
-        byte[] byts = new byte[num];
-        readArray(byts, 0);
-        return byts;
+    public void resetSegmentNumber() {
+        segmentNumber = 0;
+    }
+    
+    /**
+     * Get current segment number (since last reset).
+     *
+     * @return number
+     */
+    public int getSegmentNumber() {
+        return segmentNumber;
+    }
+
+    /**
+     * Get data element number within segment.
+     *
+     * @return number
+     */
+    public int getElementNumber() {
+        return elementNumber;
+    }
+
+    /**
+     * Get data element repetition number.
+     *
+     * @return number
+     */
+    public int getRepetitionNumber() {
+        return repetitionNumber;
+    }
+
+    /**
+     * Get component number within composite.
+     *
+     * @return number
+     */
+    public int getComponentNumber() {
+        return componentNumber;
     }
     
     /**
@@ -205,14 +269,35 @@ public abstract class LexerBase
     }
     
     /**
-     * Require particular item type.
+     * Handle lexical error. This passes off to the configured handler, but logs the error appropriately based on the
+     * result.
      *
-     * @param type
-     * @throws IOException
+     * @param typ data type
+     * @param err error condition
+     * @param explain optional supplemental explanation text (<code>null</code> if none)
+     * @throws LexicalException
      */
-    public void require(ItemType type) throws IOException {
-        if (currentType != type) {
-            throw new IOException("expected type " + type);
+    void handleError(DataType typ, ErrorCondition err, String explain) throws LexicalException {
+        boolean abort = false;
+        String text = err.text() + " for data type " + typ.code() + ": '" + token + "'";
+        if (explain != null) {
+            text += " (" + explain + ")";
+        }
+        try {
+            if (errorHandler == null) {
+                throw new LexicalException(err, text);
+            } else {
+                errorHandler.error(this, typ, err, explain, token);
+            }
+        } catch (LexicalException e) {
+            abort = true;
+            throw e;
+        } finally {
+            if (abort) {
+                logger.error("Unrecoverable error " + text);
+            } else {
+                logger.info("Recoverable error " + text);
+            }
         }
     }
     
@@ -249,7 +334,7 @@ public abstract class LexerBase
             if (escape) {
                 builder.append(chr);
                 escape = false;
-            } else if (chr == subElement) {
+            } else if (chr == componentSeparator) {
                 nextType = ItemType.QUALIFIER;
                 break;
             } else if (chr == dataSeparator) {
@@ -276,20 +361,32 @@ public abstract class LexerBase
     }
     
     /**
+     * Advance with next token type specified. This is used by lexer implementations during initialization.
+     *
+     * @param type
+     * @return token
+     * @throws IOException 
+     */
+    String advance(ItemType type) throws IOException {
+        nextType = type;
+        return advance();
+    }
+    
+    /**
      * Verify the current token effective length.
      *
+     * @param type data type
      * @param length effective length
      * @param minl minimum length
      * @param maxl maximum length
      * @return value, <code>null</code> if empty
-     * @throws IOException 
+     * @throws LexicalException 
      */
-    public void checkLength(int length, int minl, int maxl) throws IOException {
+    public void checkLength(DataType type, int length, int minl, int maxl) throws LexicalException {
         if (length < minl) {
-            throw new LexicalException(ErrorCondition.TOO_SHORT, "length " + length + " is less than minimum " + minl);
-        } else if (token.length() > maxl) {
-            throw new LexicalException(ErrorCondition.TOO_LONG, "length " + length + " is greater than maximum " +
-                maxl);
+            handleError(type, ErrorCondition.TOO_SHORT, "effective length " + length + " is less than " + minl);
+        } else if (length > maxl) {
+            handleError(type, ErrorCondition.TOO_LONG, "effective length " + length + " is greater than " + maxl);
         }
     }
     
@@ -299,10 +396,10 @@ public abstract class LexerBase
      * @param minl minimum length
      * @param maxl maximum length
      * @return value, <code>null</code> if empty
-     * @throws IOException 
+     * @throws LexicalException 
      */
-    public void checkLength(int minl, int maxl) throws IOException {
-        checkLength(token.length(), minl, maxl);
+    public void checkLength(DataType type, int minl, int maxl) throws LexicalException {
+        checkLength(type, token.length(), minl, maxl);
     }
     
     /**
@@ -311,15 +408,15 @@ public abstract class LexerBase
      * @param minl minimum length
      * @param maxl maximum length
      * @return
-     * @throws IOException
+     * @throws LexicalException
      */
     public String parseAlpha(int minl, int maxl) throws IOException {
-        checkLength(minl, maxl);
+        checkLength(DataType.ALPHA, minl, maxl);
         String text = token;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
-                throw new LexicalException(ErrorCondition.INVALID_CHARACTER, "alpha value type cannot contain digit");
+                handleError(DataType.ALPHA, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
         advance();
@@ -335,7 +432,7 @@ public abstract class LexerBase
      * @throws IOException
      */
     public String parseAlphaNumeric(int minl, int maxl) throws IOException {
-        checkLength(minl, maxl);
+        checkLength(DataType.ALPHANUMERIC, minl, maxl);
         String text = token;
         advance();
         return text;
@@ -350,13 +447,12 @@ public abstract class LexerBase
      * @throws IOException
      */
     public String parseId(int minl, int maxl) throws IOException {
-        checkLength(minl, maxl);
+        checkLength(DataType.ID, minl, maxl);
         String text = token;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
-                throw new LexicalException(ErrorCondition.INVALID_CHARACTER,
-                    "id value type characters must be alphas or digits");
+                handleError(DataType.ID, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
         advance();
@@ -371,7 +467,7 @@ public abstract class LexerBase
      * @param maxl
      * @throws IOException
      */
-    private void checkInteger(int minl, int maxl) throws IOException {
+    private void checkInteger(int minl, int maxl) throws LexicalException {
         String text = token;
         int length = 0;
         for (int i = 0; i < text.length(); i++) {
@@ -379,10 +475,10 @@ public abstract class LexerBase
             if (chr >= '0' && chr <= '9') {
                 length++;
             } else if (i != 0 || chr != '-') {
-                throw new LexicalException(ErrorCondition.INVALID_CHARACTER, "number value contains invalid character");
+                handleError(DataType.INTEGER, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
-        checkLength(length, minl, maxl);
+        checkLength(DataType.INTEGER, length, minl, maxl);
     }
     
     /**
@@ -435,10 +531,11 @@ public abstract class LexerBase
             } else if (!decimal && chr == '.') {
                 decimal = true;
             } else if (i != 0 || chr != '-') {
-                throw new LexicalException(ErrorCondition.INVALID_CHARACTER, "number value contains invalid character");
+                handleError(DataType.REAL, ErrorCondition.INVALID_CHARACTER, "character '" + chr +
+                    "' not allowed or wrong placement");
             }
         }
-        checkLength(length, minl, maxl);
+        checkLength(DataType.REAL, length, minl, maxl);
         advance();
         return new BigDecimal(text);
     }
@@ -453,16 +550,16 @@ public abstract class LexerBase
      * @throws IOException
      */
     public Date parseDate(int minl, int maxl) throws IOException {
-        checkLength(minl, maxl);
         String text = token;
         int length = text.length();
         if (length != 6 && length != 8) {
-            throw new LexicalException(ErrorCondition.INVALID_DATE, "date value must be either 6 or 8 characters");
+            handleError(DataType.DATE, ErrorCondition.INVALID_DATE, "date value must be either 6 or 8 characters");
         }
+        checkLength(DataType.DATE, minl, maxl);
         for (int i = 0; i < length; i++) {
             char chr = text.charAt(i);
             if (chr < '0' || chr > '9') {
-                throw new LexicalException(ErrorCondition.INVALID_DATE, "date value must consist only of digits");
+                handleError(DataType.DATE, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
         
@@ -470,7 +567,7 @@ public abstract class LexerBase
         int day = (text.charAt(length-1) - '0') + (text.charAt(length-2) - '0') * 10;
         int month = (text.charAt(length-3) - '0') + (text.charAt(length-4) - '0') * 10;
         if (month == 0 || month > 12 || day == 0 || day > 31) {
-            throw new LexicalException(ErrorCondition.INVALID_DATE, "date value out of allowed ranges");
+            handleError(DataType.DATE, ErrorCondition.INVALID_DATE, "month or day out of allowed range");
         }
         int year;
         if (length == 8) {
@@ -507,16 +604,16 @@ public abstract class LexerBase
      * @throws IOException
      */
     public int parseTime(int minl, int maxl) throws IOException {
-        checkLength(minl, maxl);
         String text = token;
         int length = text.length();
         if (length != 4 && (length < 6 || length > 8)) {
-            throw new LexicalException(ErrorCondition.INVALID_TIME, "time value must be either 4 or 6-8 characters");
+            handleError(DataType.TIME, ErrorCondition.INVALID_DATE, "time value must be either 4 or 6-8 characters");
         }
+        checkLength(DataType.TIME, minl, maxl);
         for (int i = 0; i < length; i++) {
             char chr = text.charAt(i);
             if (chr < '0' || chr > '9') {
-                throw new LexicalException(ErrorCondition.INVALID_TIME, "time value must consist only of digits");
+                handleError(DataType.TIME, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
         
@@ -525,7 +622,7 @@ public abstract class LexerBase
         int minute = (text.charAt(2) - '0') * 10 + (text.charAt(3) - '0');
         int second = text.length() < 6 ? 0 : (text.charAt(4) - '0') * 10 + (text.charAt(5) - '0');
         if (hour > 23 || minute > 59 || second > 59) {
-            throw new LexicalException(ErrorCondition.INVALID_TIME, "time value out of allowed ranges");
+            handleError(DataType.TIME, ErrorCondition.INVALID_TIME, "time value out of allowed ranges");
         }
         int milli = 0;
         if (length > 6) {

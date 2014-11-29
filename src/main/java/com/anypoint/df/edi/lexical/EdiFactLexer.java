@@ -91,7 +91,7 @@ public class EdiFactLexer extends LexerBase
             
             // get delimiter and other characters directly from segment
             byts = readBytes(6);
-            subElement = (char)byts[0];
+            componentSeparator = (char)byts[0];
             dataSeparator = (char)byts[1];
             releaseIndicator = (char)byts[3];
             segmentTerminator = (char)byts[5];
@@ -124,8 +124,7 @@ public class EdiFactLexer extends LexerBase
         
         // turn stream into reader with appropriate character set
         reader = new BufferedReader(new InputStreamReader(stream, charset));
-        nextType = ItemType.DATA_ELEMENT;
-        advance();
+        advance(ItemType.DATA_ELEMENT);
         
         // build interchange properties from segment data
         Map<String,Object> props = new HashMap<>();
