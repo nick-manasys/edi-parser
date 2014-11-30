@@ -192,7 +192,7 @@ object YamlReader {
       (map, elmmap) =>
       {
         val ident = getRequiredString("id", elmmap)
-        val typ = EdiConstants.NAMETYPES.get(getRequiredString("type", elmmap))
+        val typ = EdiConstants.toType(getRequiredString("type", elmmap))
         val min = getRequiredInt("minLength", elmmap)
         val max = getRequiredInt("maxLength", elmmap)
         map + (ident -> Element(ident, typ, min, max))

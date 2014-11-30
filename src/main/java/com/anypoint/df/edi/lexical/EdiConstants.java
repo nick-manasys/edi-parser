@@ -20,7 +20,7 @@ public final class EdiConstants
     public static final int maximumYear = 2070;
     
     /** Map from type name to type. */
-    public static final Map<String,DataType> NAMETYPES = new HashMap<>();
+    private static final Map<String,DataType> NAMETYPES = new HashMap<>();
     
     /** Token delimiter types. */
     public enum ItemType {  SEGMENT, DATA_ELEMENT, QUALIFIER, REPETITION, END }
@@ -37,15 +37,15 @@ public final class EdiConstants
         BINARY("B"),
         NUMBER("N"),
         INTEGER("N0"),
-        DECIMAL1("D1", 1),
-        DECIMAL2("D2", 2),
-        DECIMAL3("D3", 3),
-        DECIMAL4("D4", 4),
-        DECIMAL5("D5", 5),
-        DECIMAL6("D6", 6),
-        DECIMAL7("D7", 7),
-        DECIMAL8("D8", 8),
-        DECIMAL9("D9", 9);
+        DECIMAL1("N1", 1),
+        DECIMAL2("N2", 2),
+        DECIMAL3("N3", 3),
+        DECIMAL4("N4", 4),
+        DECIMAL5("N5", 5),
+        DECIMAL6("N6", 6),
+        DECIMAL7("N7", 7),
+        DECIMAL8("N8", 8),
+        DECIMAL9("N9", 9);
         
         private final String typeCode;
         private final int decimalPlaces;
@@ -85,6 +85,20 @@ public final class EdiConstants
          */
         public int decimalPlaces() {
             return decimalPlaces;
+        }
+    }
+    
+    /**
+     * Get data type from type code. This throws an exception if the type code is unknown.
+     *
+     * @param type
+     * @return
+     */
+    public static DataType toType(String type) {
+        if (NAMETYPES.containsKey(type)) {
+            return NAMETYPES.get(type);
+        } else {
+            throw new IllegalArgumentException("Unknown type code " + type);
         }
     }
     

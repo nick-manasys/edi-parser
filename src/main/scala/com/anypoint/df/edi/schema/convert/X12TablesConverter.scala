@@ -136,7 +136,7 @@ object X12TablesConverter {
 
     /** Convert transaction components from lists of strings to trees of data tuples, grouping them by area. */
     def convertComponents(rows: List[List[String]]): AreaMap = {
-      
+
       /** Convert string values to component information structure. */
       def info(segid: String, req: String, max: String, nested: List[ComponentInfo]) = {
         val segment = segments(segid)
@@ -144,11 +144,11 @@ object X12TablesConverter {
         val repeat = if (max == ">1") 0 else max.toInt
         ComponentInfo(segment, usage, repeat, nested)
       }
-      
+
       /** Start a new loop (need separate function to keep convertr tail recursive). */
       def descend(remain: List[List[String]], depth: Int): (List[List[String]], List[ComponentInfo]) =
         convertr(remain, depth, true, Nil)
-        
+
       /** Recursively convert lists of strings to data tuples, checking and handling loops. */
       @tailrec
       def convertr(remain: List[List[String]], depth: Int, loop: Boolean,
@@ -210,7 +210,7 @@ object X12TablesConverter {
   }
 
   /** Convert element data type, extending base conversion to allow empty type. */
-  def convertType(text: String) = if (text.length > 0) EdiConstants.NAMETYPES.get(text) else DataType.ALPHANUMERIC
+  def convertType(text: String) = if (text.length > 0) EdiConstants.toType(text) else DataType.ALPHANUMERIC
 
   /** Construct schema for a single transaction. */
   def transactionSchema(transact: Transaction) = {
