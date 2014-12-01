@@ -2,21 +2,96 @@ package com.anypoint.df.edi.schema
 
 import java.io.IOException
 import java.io.InputStream
-
+import org.apache.log4j.Logger
 import scala.annotation.tailrec
 import scala.util.Try
-
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.LexerBase
+import com.anypoint.df.edi.lexical.LexicalException
 import com.anypoint.df.edi.schema.EdiSchema._
+import com.anypoint.df.edi.lexical.ErrorHandler
+import com.anypoint.df.edi.lexical.ErrorHandler._
+import scala.collection.mutable.Buffer
 
 /** Parse EDI document based on schema. */
 
-abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends SchemaJavaDefs {
+/** Transaction syntax error codes (X12 718 element codes). */
+sealed abstract class TransactionSyntaxError(val code: Int)
+case object NotSupportedTransaction extends TransactionSyntaxError(1)
+case object MissingTrailerTransaction extends TransactionSyntaxError(2)
+case object ControlNumberMismatch extends TransactionSyntaxError(3)
+case object WrongSegmentCount extends TransactionSyntaxError(4)
+case object SegmentsInError extends TransactionSyntaxError(5)
+case object BadTransactionSetId extends TransactionSyntaxError(6)
+case object BadTransactionSetControl extends TransactionSyntaxError(7)
+case object AuthenticationKeyUnknown extends TransactionSyntaxError(8)
+case object EncryptionKeyUnknown extends TransactionSyntaxError(9)
+case object ServiceNotAvailable extends TransactionSyntaxError(10)
+case object UnknownSecurityRecipient extends TransactionSyntaxError(11)
+case object IncorrectMessageLength extends TransactionSyntaxError(12)
+case object MessageAuthenticationFailed extends TransactionSyntaxError(13)
+case object UnknownSecurityOriginator extends TransactionSyntaxError(15)
+case object DecryptionSyntaxError extends TransactionSyntaxError(16)
+case object SecurityNotSupported extends TransactionSyntaxError(17)
+case object SetNotInGroup extends TransactionSyntaxError(18)
+case object InvalidImplementationConvention extends TransactionSyntaxError(23)
+case object MissingS3ESecurityEndSegment extends TransactionSyntaxError(24)
+case object MissingS3ESecurityStartSegment extends TransactionSyntaxError(25)
+case object MissingS4ESecurityEndSegment extends TransactionSyntaxError(26)
+case object MissingS4ESecurityStartSegment extends TransactionSyntaxError(27)
+
+/** Transaction set acknowledgment codes (X12 717 element codes). */
+sealed abstract class TransactionAcknowledgmentCode(val code: String)
+case object AcceptedTransaction extends TransactionAcknowledgmentCode("A")
+case object AcceptedWithErrorsTransaction extends TransactionAcknowledgmentCode("E")
+case object AuthenticationFailedTransaction extends TransactionAcknowledgmentCode("M")
+case object RejectedTransaction extends TransactionAcknowledgmentCode("R")
+case object ValidityFailedTransaction extends TransactionAcknowledgmentCode("W")
+case object DecryptionBadTransaction extends TransactionAcknowledgmentCode("X")
+
+case class TransactionAcknowledgment()
+
+/** Segment syntax error codes (X12 720 element codes). */
+sealed abstract class SegmentSyntaxError(val code: Int)
+case object UnrecognizedSegment extends SegmentSyntaxError(1)
+case object UnexpectedSegment extends SegmentSyntaxError(2)
+case object MissingMandatorySegment extends SegmentSyntaxError(3)
+case object TooManyLoops extends SegmentSyntaxError(4)
+case object TooManyOccurs extends SegmentSyntaxError(5)
+case object NotInTransactionSegment extends SegmentSyntaxError(6)
+case object OutOfOrderSegment extends SegmentSyntaxError(7)
+case object DataErrorsSegment extends SegmentSyntaxError(8)
+
+/** Information for a segment error (used to generate X12 AK3 segment). */
+case class SegmentError(val id: String, val position: Int, val loopId: Option[String],
+  val error: Option[SegmentSyntaxError])
+
+/** Data element syntax error codes (X12 723 element codes). */
+sealed abstract class ElementSyntaxError(val code: Int, val text: String)
+case object MissingRequiredElement extends ElementSyntaxError(1, "missing required element")
+case object MissingConditionalElement extends ElementSyntaxError(2, "missing conditional element")
+case object TooManyElements extends ElementSyntaxError(3, "too many elements")
+case object DataTooShort extends ElementSyntaxError(4, "data value too short")
+case object DataTooLong extends ElementSyntaxError(5, "data value too long")
+case object InvalidCharacter extends ElementSyntaxError(6, "invalid character in data value")
+case object InvalidCodeValue extends ElementSyntaxError(7, "invalid code value")
+case object InvalidDate extends ElementSyntaxError(8, "invalid date")
+case object InvalidTime extends ElementSyntaxError(9, "invalid time")
+case object ExclusionConditionViolated extends ElementSyntaxError(10, "exclusion condition violated")
+case object TooManyRepititions extends ElementSyntaxError(11, "too many repetitions")
+case object TooManyComponents extends ElementSyntaxError(12, "too many components")
+
+/** Information for an element error (used to generate X12 AK4 segment). */
+case class ElementError(val elemPosition: Int, val compPosition: Option[Int], val repeatPosition: Option[Int],
+  val elemReference: Option[Int], val error: ElementSyntaxError, val text: Option[String])
+
+abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends ErrorHandler with SchemaJavaDefs {
 
   import SchemaJavaValues._
+  
+  val logger = Logger.getLogger(getClass.getName)
 
   /** Initialize parser and read header segments. */
   protected def init(): ValueMap
@@ -24,63 +99,122 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   /** Read interchange trailer segment(s) and finish with stream. */
   protected def term(props: ValueMap): Unit
 
+  val dataErrors = Buffer[ElementError]()
+  val segmentErrors = Buffer[SegmentError]()
+
+  var inComposite: Option[CompositeComponent] = None
+  var inElement: Option[ElementComponent] = None
+  var inReference: Option[ReferenceComponent] = None
+  var inGroup: Option[GroupComponent] = None
+  var segmentErrorCount = 0
+  var rejectTransaction = false
+  
+  /** Accumulate element error, failing transaction if severe. */
+  def addElementError(error: ElementSyntaxError) = 
+    if (segmentErrorCount > 4) throw new LexicalException("too many errors")
+    else {
+    val compPosition = if (inComposite.isDefined) Some(lexer.getComponentNumber) else None
+    val repNumber = if (lexer.currentType == REPETITION) Some(lexer.getRepetitionNumber()) else None
+    val elemRef = inElement.map(_.position)
+    val text = error match {
+      case DataTooShort | DataTooLong | InvalidCodeValue | InvalidDate | InvalidTime | ExclusionConditionViolated =>
+        Some(lexer.token)
+      case _ => None
+    }
+    dataErrors += ElementError(lexer.getElementNumber, compPosition, repNumber, elemRef, error, text)
+    segmentErrorCount += 1
+    val message = "element error in" +
+     inGroup.map(group => " loop " + group.ident).getOrElse("") +
+     inReference.map(refc => " segment " + refc.segment.name).getOrElse("") +
+     inComposite.map(comp => s" composite ${comp.name} at position ${comp.position}").getOrElse("") +
+     inElement.map(elem => s" element ${elem.element.ident} at position ${elem.position}").getOrElse("") +
+     ": " + error.text 
+    val fail = error match {
+      case DataTooShort | DataTooLong => false
+      case _ => true
+    }
+    if (fail) {
+      rejectTransaction = true
+      logger.error(message)
+    } else logger.warn(message)
+  }
+
+  /** Error handler called by lexer for data error. */
+  def error(lexer: LexerBase, typ: DataType, error: ErrorCondition, explain: java.lang.String): Unit = {
+    addElementError(error match {
+      case ErrorCondition.TOO_SHORT => DataTooShort
+      case ErrorCondition.TOO_LONG => DataTooLong
+      case ErrorCondition.INVALID_CHARACTER => InvalidCharacter
+      case ErrorCondition.INVALID_CODE => InvalidCodeValue
+      case ErrorCondition.INVALID_DATE => InvalidDate
+      case ErrorCondition.INVALID_TIME => InvalidTime
+    })
+  }
+
+  /** Parse a segment component, which is either an element or a composite. */
+  def parseComponent(comp: SegmentComponent, map: ValueMap): Unit = {
+    comp match {
+      case elemComp: ElementComponent => {
+        inElement = Some(elemComp)
+        val elem = elemComp.element
+        val value = elem.dataType match {
+          case ALPHA => lexer.parseAlpha(elem.minLength, elem.maxLength)
+          case ALPHANUMERIC | ID => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
+          case BINARY => throw new IOException("Handling not implemented for binary values")
+          case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
+          case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
+          case NUMBER | REAL => lexer.parseNumber(elem.minLength, elem.maxLength)
+          case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
+          case typ: DataType if (typ.isDecimal()) =>
+            lexer.parseImpliedDecimalNumber(typ.decimalPlaces, elem.minLength, elem.maxLength)
+        }
+        map put (comp.key, value)
+        inElement = None
+      }
+      case compComp: CompositeComponent => {
+        val prior = inComposite
+        inComposite = Some(compComp)
+        val composite = compComp.composite
+        def parseCompInst(): ValueMap = {
+          val compmap = new ValueMapImpl()
+          parseCompList(composite.components, QUALIFIER, compmap)
+          compmap
+        }
+        if (comp.count > 1) {
+          val complist = new MapListImpl()
+          map put (comp.key, complist)
+          (1 until comp.count) foreach { index =>
+            complist add (parseCompInst())
+          }
+        } else map put (comp.key, parseCompInst())
+        inComposite = prior
+      }
+    }
+  }
+
+  /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
+  def parseCompList(comps: List[SegmentComponent], expect: ItemType, map: ValueMap) = {
+    comps foreach { comp =>
+      if (expect == lexer.currentType) {
+        if (lexer.token.length > 0) parseComponent(comp, map)
+        else if (comp.usage == MandatoryUsage) addElementError(MissingRequiredElement)
+        else lexer.advance
+      } else lexer.currentType match {
+        case SEGMENT | END | DATA_ELEMENT => if (comp.usage == MandatoryUsage) addElementError(MissingRequiredElement)
+        case QUALIFIER => addElementError(TooManyComponents)
+        case REPETITION => addElementError(TooManyRepititions)
+      }
+    }
+  }
+
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   protected def parseSegment(segment: Segment): ValueMap = {
-
-    /** Parse a value, adding it to map. */
-    def parseValue(comp: SegmentComponent, map: ValueMap): Unit = {
-      comp match {
-        case ElementComponent(elem, name, pos, use, count) => {
-          elem.dataType match {
-            case ALPHA => map put (comp.key, lexer.parseAlpha(elem.minLength, elem.maxLength))
-            case ALPHANUMERIC | ID => map put (comp.key, lexer.parseAlphaNumeric(elem.minLength, elem.maxLength))
-            case BINARY => throw new IOException("Handling not implemented for binary values")
-            case DATE => map put (comp.key, lexer.parseDate(elem.minLength, elem.maxLength))
-            case INTEGER => map put (comp.key, lexer.parseInteger(elem.minLength, elem.maxLength))
-            case NUMBER | REAL => map put (comp.key, lexer.parseNumber(elem.minLength, elem.maxLength))
-            case TIME => map put (comp.key, Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength)))
-            case typ: DataType if (typ.isDecimal()) =>
-              map put (comp.key, lexer.parseImpliedDecimalNumber(typ.decimalPlaces, elem.minLength, elem.maxLength))
-          }
-        }
-        case CompositeComponent(composite, name, pos, use, count) => {
-          def parseCompInst(): ValueMap = {
-            val compmap = new ValueMapImpl()
-            parseCompList(composite.components, QUALIFIER, compmap)
-            compmap
-          }
-          if (count > 1) {
-            val complist = new MapListImpl()
-            map put (comp.key, complist)
-            (1 until count) foreach { index =>
-              complist add (parseCompInst())
-            }
-          } else map put (comp.key, parseCompInst())
-        }
-      }
-    }
-
-    /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
-    def parseCompList(comps: List[SegmentComponent], expect: ItemType, map: ValueMap) = {
-      comps foreach { comp =>
-        if (expect == lexer.currentType) {
-          if (lexer.token.length > 0) parseValue(comp, map)
-          else if (comp.usage == MandatoryUsage) throw new IOException(s"missing required value '${comp.name}'")
-          else lexer.advance
-        } else lexer.currentType match {
-          case SEGMENT | END =>
-            if (comp.usage == MandatoryUsage) throw new IOException(s"missing required value '${comp.name}'")
-          case _ => throw new IOException("wrong separator type")
-        }
-      }
-    }
-
     val map = new ValueMapImpl()
     lexer.advance
     parseCompList(segment.components, DATA_ELEMENT, map)
     lexer.currentType match {
       case SEGMENT | END =>
-      case _ => throw new IOException("too many values in segment")
+      case _ => addElementError(TooManyElements)
     }
     map
   }
@@ -191,42 +325,77 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   def isEnvelopeSegment(segment: Segment): Boolean
 
   /** Parse the input message. */
-  def parse(): Try[ValueMap] = Try({
+  def parse(): Try[ValueMap] = Try {
+    
+    import X12Acknowledgment._
+    import X12SchemaValues._
+    
     val map = new ValueMapImpl
     val interchange = init
-    map.put(interchangeProperties, interchange)
+    map put (interchangeProperties, interchange)
     val builder = new StringBuilder
-    builder.append(lexer.getDataSeparator)
-    builder.append(lexer.getComponentSeparator)
-    builder.append(if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
-    builder.append(lexer.getSegmentTerminator)
-    builder.append(if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
-    map.put(delimiterCharacters, builder.toString)
+    builder append(lexer.getDataSeparator)
+    builder append(lexer.getComponentSeparator)
+    builder append(if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
+    builder append(lexer.getSegmentTerminator)
+    builder append(if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
+    map put (delimiterCharacters, builder.toString)
     val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
-    schema.transactions.keys foreach { key => transLists.put(key, new MapListImpl) }
-    map.put(transactionsMap, transLists)
+    schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
+    map put (transactionsMap, transLists)
+    var ackId = 1
     while (isGroupOpen) {
       val group = openGroup
-      map.put(groupProperties, group)
+      map put (groupProperties, group)
       lexer.countGroup()
+      val ackroot = new ValueMapImpl
+      ackroot put (transactionId, trans997 ident)
+      ackroot put (transactionName, trans997 name)
+      val ackhead = new ValueMapImpl
+      ackroot put (transactionHeading, ackhead)
+      ackroot put (transactionDetail, new ValueMapImpl)
+      ackroot put (transactionSummary, new ValueMapImpl)
+      val stdata = new ValueMapImpl
+      ackhead put (segST ident, stdata)
+      stdata put (segST.components(0) key, trans997 ident)
+      stdata put (segST.components(1) key, ackId toString)
+      val ak1data = new ValueMapImpl
+      ackhead put (segAK1 ident, ak1data)
+      ak1data put (segAK1.components(0) key, group get(functionalIdentifierName))
+      ak1data put (segAK1.components(1) key, group get(groupControlKey))
+      ak1data put (segAK1.components(2) key, group get(versionIdentifierKey))
+      var setCount = 0
       while (!isGroupClose) {
         val set = openSet
-        map.put(setIdentifier, set._1)
-        map.put(setProperties, set._2)
-        schema.transactions(set._1) match {
+        setCount += 1
+        map put (setIdentifier, set _1)
+        map put (setProperties, set _2)
+        schema.transactions(set _1) match {
           case t: Transaction => {
-            val list = transLists.get(set._1)
-            list.add(parseTransaction(t))
+            val list = transLists get set._1
+            list add parseTransaction(t)
           }
           case _ => throw new IllegalStateException(s"unknown transaction type ${set._1}")
         }
         closeSet(set._2)
       }
       closeGroup(group)
+      val ak9data = new ValueMapImpl
+      ackhead put (segAK9 ident, ak9data)
+      ak9data put (segAK9.components(0) key, AcceptedTransaction code)
+      ak9data put (segAK9.components(1) key, Integer valueOf(setCount))
+      ak9data put (segAK9.components(2) key, Integer valueOf(setCount))
+      ak9data put (segAK9.components(3) key, Integer valueOf(setCount))
+      val sedata = new ValueMapImpl
+      ackhead put (segSE ident, sedata)
+      sedata put (segSE.components(0) key, Integer valueOf(setCount + 3))
+      sedata put (segSE.components(1) key, Integer valueOf(ackId toString))
+      transLists get(trans997 ident) add(ackroot)
+      ackId += 1
     }
     term(interchange)
     map
-  })
+  }
 }
 
 object SchemaParser {

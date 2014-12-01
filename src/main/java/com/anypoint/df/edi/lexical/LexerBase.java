@@ -285,9 +285,9 @@ public abstract class LexerBase
         }
         try {
             if (errorHandler == null) {
-                throw new LexicalException(err, text);
+                throw new LexicalException(text);
             } else {
-                errorHandler.error(this, typ, err, explain, token);
+                errorHandler.error(this, typ, err, explain);
             }
         } catch (LexicalException e) {
             abort = true;

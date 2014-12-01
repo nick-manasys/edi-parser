@@ -3,12 +3,12 @@ package com.anypoint.df.edi.schema
 import org.yaml.snakeyaml.Yaml
 import scala.beans.BeanProperty
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
+import scala.annotation.tailrec
 
-/**
- * EDI schema representation.
- *
- * @author MuleSoft, Inc.
- */
+/** EDI schema representation.
+  *
+  * @author MuleSoft, Inc.
+  */
 object EdiSchema {
 
   // usage codes
@@ -54,7 +54,34 @@ object EdiSchema {
   case class ReferenceComponent(val segment: Segment, use: Usage, cnt: Int) extends TransactionComponent(use, cnt)
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, val items: List[TransactionComponent]) extends TransactionComponent(use, cnt)
 
-  case class Transaction(val ident: String, val name: String, val group: String, val heading: List[TransactionComponent], val detail: List[TransactionComponent], val summary: List[TransactionComponent])
+  case class Transaction(val ident: String, val name: String, val group: String,
+    val heading: List[TransactionComponent], val detail: List[TransactionComponent],
+    val summary: List[TransactionComponent]) {
+    lazy val segmentsUsed = {
+      def referencer(comps: List[TransactionComponent], segments: Set[Segment]): Set[Segment] =
+        comps.foldLeft(segments)((segs, comp) => comp match {
+          case ref: ReferenceComponent => segs + ref.segment
+          case group: GroupComponent => referencer(group.items, segs)
+        })
+      referencer(summary, referencer(detail, referencer(heading, Set[Segment]())))
+    }
+    lazy val compositesUsed = {
+      def referencer(comps: List[SegmentComponent], composites: Set[Composite]): Set[Composite] =
+        comps.foldLeft(composites)((acc, comp) => comp match {
+          case CompositeComponent(composite, _, _, _, _) => referencer(composite.components, acc + composite)
+          case _ => acc
+        })
+      segmentsUsed.foldLeft(Set[Composite]())((acc, seg) => referencer(seg.components, acc))
+    }
+    lazy val elementsUsed = {
+      def referencer(comps: List[SegmentComponent], elements: Set[Element]): Set[Element] =
+        comps.foldLeft(elements)((acc, comp) => comp match {
+          case CompositeComponent(composite, _, _, _, _) => referencer(composite.components, acc)
+          case ElementComponent(element, _, _, _, _) => acc + element
+        })
+      segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
+    }
+  }
 
   type TransactionMap = Map[String, Transaction]
 
@@ -72,4 +99,11 @@ case class EdiSchema(val ediForm: EdiSchema.EdiForm, val elements: Map[String, E
   val transactions: Map[String, EdiSchema.Transaction]) {
   def merge(other: EdiSchema) = EdiSchema(ediForm, elements ++ other.elements, composites ++ other.composites,
     segments ++ other.segments, transactions ++ other.transactions)
+  def merge(transact: EdiSchema.Transaction) = {
+    val elemMap = elements ++ (transact.elementsUsed.foldLeft(Map[String, EdiSchema.Element]())((map, elem) => map + (elem.ident -> elem)))
+    val compMap = composites ++ (transact.compositesUsed.foldLeft(Map[String, EdiSchema.Composite]())((map, comp) => map + (comp.ident -> comp)))
+    val segMap = segments ++ (transact.segmentsUsed.foldLeft(Map[String, EdiSchema.Segment]())((map, seg) => map + (seg.ident -> seg)))
+    val transMap = transactions + (transact.ident -> transact)
+    EdiSchema(ediForm, elemMap, compMap, segMap, transMap)
+  }
 }

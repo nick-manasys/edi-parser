@@ -12,7 +12,8 @@ import com.anypoint.df.edi.lexical.X12Lexer
 
 /** Parser for X12 EDI documents.
   */
-class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X12Lexer(in), sc) with X12SchemaDefs {
+class X12SchemaParser(in: InputStream, sc: EdiSchema) extends SchemaParser(new X12Lexer(in),
+  sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
   
   import EdiSchema._
   import com.anypoint.df.edi.lexical.X12Constants._

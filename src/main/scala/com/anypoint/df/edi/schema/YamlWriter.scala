@@ -124,7 +124,7 @@ object YamlWriter {
     writeIndented("elements:", 0)
     schema.elements.values foreach (element =>
       writeIndented("- { " + keyValueQuote("id", element.ident) + ", " +
-        keyValuePair("type", element.dataType code) + ", " +
+        keyValuePair("type", element.dataType.code) + ", " +
         keyValuePair("minLength", element.minLength toString) + ", " +
         keyValuePair("maxLength", element.maxLength toString) + " }", 0))
   }

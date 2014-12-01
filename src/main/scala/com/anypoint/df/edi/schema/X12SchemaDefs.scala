@@ -32,6 +32,15 @@ trait X12SchemaDefs {
     ElementComponent(Element("96", INTEGER, 1, 10), numberOfSegmentsName, 1, MandatoryUsage, 1),
     ElementComponent(Element("329", ALPHANUMERIC, 4, 9), transactionSetControlName, 2, MandatoryUsage, 1)))
 
+}
+
+object X12Acknowledgment {
+
+  import EdiSchema._
+  import com.anypoint.df.edi.lexical.X12Constants._
+  import com.anypoint.df.edi.lexical.EdiConstants.DataType
+  import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+  
   // 997 acknowledgment schema (generated code)
   val elem143 = Element("143", ID, 3, 3)
   val elem329 = Element("329", ALPHANUMERIC, 4, 9)

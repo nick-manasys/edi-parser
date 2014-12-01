@@ -12,7 +12,6 @@ public interface ErrorHandler
     {
         TOO_SHORT("less than minimum length"),
         TOO_LONG("more than maximum length"),
-        INVALID_LENGTH("invalid length for data type"),
         INVALID_CHARACTER("invalid character for data type"),
         INVALID_CODE("invalid code value"),
         INVALID_DATE("invalid date"),
@@ -37,8 +36,7 @@ public interface ErrorHandler
      * @param typ data type
      * @param err error condition
      * @param explain optional supplemental explanation text (<code>null</code> if none)
-     * @param token error text
      * @throws LexicalException
      */
-    void error(LexerBase lexer, DataType typ, ErrorCondition err, String explain, String token) throws LexicalException;
+    void error(LexerBase lexer, DataType typ, ErrorCondition err, String explain) throws LexicalException;
 }
