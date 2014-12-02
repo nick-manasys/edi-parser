@@ -343,6 +343,8 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
     schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
     map put (transactionsMap, transLists)
+    val acksList = new MapListImpl
+    map put (acknowledgments, acksList)
     var ackId = 1
     while (isGroupOpen) {
       val group = openGroup
@@ -361,23 +363,45 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       stdata put (segST.components(1) key, ackId toString)
       val ak1data = new ValueMapImpl
       ackhead put (segAK1 name, ak1data)
-      ak1data put (segAK1.components(0) key, group get(functionalIdentifierName))
+      ak1data put (segAK1.components(0) key, group get(functionalIdentifierKey))
       ak1data put (segAK1.components(1) key, group get(groupControlKey))
       ak1data put (segAK1.components(2) key, group get(versionIdentifierKey))
+      val setacks = new MapListImpl
+      ackhead put ("AK2", setacks)
       var setCount = 0
+      var acceptCount = 0;
       while (!isGroupClose) {
-        val set = openSet
+        val (setid, setprops) = openSet
         setCount += 1
-        map put (setIdentifier, set _1)
-        map put (setProperties, set _2)
-        schema.transactions(set _1) match {
+        map put (setIdentifier, setid)
+        map put (setProperties, setprops)
+        schema.transactions(setid) match {
           case t: Transaction => {
-            val list = transLists get set._1
-            list add parseTransaction(t)
+            val setack = new ValueMapImpl
+            setacks add setack
+            val ak2data = new ValueMapImpl
+            setack put (segAK2 name, ak2data)
+            ak2data put (segAK2.components(0) key, setprops get(transactionSetIdentifierKey))
+            ak2data put (segAK2.components(1) key, setprops get(transactionSetControlKey))
+            if (setprops containsKey implementationConventionKey) {
+              ak2data put (segAK2.components(2) key, setprops get(implementationConventionKey))
+            }
+            rejectTransaction = false;
+            val data = parseTransaction(t)
+            val ak5data = new ValueMapImpl
+            setack put (segAK5 name, ak5data)
+            if (rejectTransaction) {
+              // TODO
+            } else {
+              val list = transLists get setid
+              list add(data)
+              acceptCount += 1
+              ak5data put (segAK5.components(0) key, AcceptedTransaction code)
+            }
           }
-          case _ => throw new IllegalStateException(s"unknown transaction type ${set._1}")
+          case _ => throw new IllegalStateException(s"unknown transaction type $setid")
         }
-        closeSet(set._2)
+        closeSet(setprops)
       }
       closeGroup(group)
       val ak9data = new ValueMapImpl
@@ -385,12 +409,12 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       ak9data put (segAK9.components(0) key, AcceptedTransaction code)
       ak9data put (segAK9.components(1) key, Integer valueOf(setCount))
       ak9data put (segAK9.components(2) key, Integer valueOf(setCount))
-      ak9data put (segAK9.components(3) key, Integer valueOf(setCount))
+      ak9data put (segAK9.components(3) key, Integer valueOf(acceptCount))
       val sedata = new ValueMapImpl
       ackhead put (segSE name, sedata)
       sedata put (segSE.components(0) key, Integer valueOf(setCount + 3))
-      sedata put (segSE.components(1) key, Integer valueOf(ackId toString))
-      transLists get(trans997 ident) add(ackroot)
+      sedata put (segSE.components(1) key, ackId toString)
+      acksList add(ackroot)
       ackId += 1
     }
     term(interchange)

@@ -44,6 +44,7 @@ object SchemaJavaValues {
   val selfIdentifier = "self interchange ID"
 
   // value keys for transaction set
+  val acknowledgments = "Acknowledgments"
   val interchangeProperties = "Interchange"
   val transactionsMap = "Transactions"
     
