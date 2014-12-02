@@ -356,11 +356,11 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       ackroot put (transactionDetail, new ValueMapImpl)
       ackroot put (transactionSummary, new ValueMapImpl)
       val stdata = new ValueMapImpl
-      ackhead put (segST ident, stdata)
+      ackhead put (segST name, stdata)
       stdata put (segST.components(0) key, trans997 ident)
       stdata put (segST.components(1) key, ackId toString)
       val ak1data = new ValueMapImpl
-      ackhead put (segAK1 ident, ak1data)
+      ackhead put (segAK1 name, ak1data)
       ak1data put (segAK1.components(0) key, group get(functionalIdentifierName))
       ak1data put (segAK1.components(1) key, group get(groupControlKey))
       ak1data put (segAK1.components(2) key, group get(versionIdentifierKey))
@@ -381,13 +381,13 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       }
       closeGroup(group)
       val ak9data = new ValueMapImpl
-      ackhead put (segAK9 ident, ak9data)
+      ackhead put (segAK9 name, ak9data)
       ak9data put (segAK9.components(0) key, AcceptedTransaction code)
       ak9data put (segAK9.components(1) key, Integer valueOf(setCount))
       ak9data put (segAK9.components(2) key, Integer valueOf(setCount))
       ak9data put (segAK9.components(3) key, Integer valueOf(setCount))
       val sedata = new ValueMapImpl
-      ackhead put (segSE ident, sedata)
+      ackhead put (segSE name, sedata)
       sedata put (segSE.components(0) key, Integer valueOf(setCount + 3))
       sedata put (segSE.components(1) key, Integer valueOf(ackId toString))
       transLists get(trans997 ident) add(ackroot)
