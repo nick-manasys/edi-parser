@@ -1,13 +1,25 @@
 
 package com.anypoint.df.edi.lexical;
 
-import static com.anypoint.df.edi.lexical.X12Constants.*;
+import static com.anypoint.df.edi.lexical.X12Constants.ACK_REQUESTED;
+import static com.anypoint.df.edi.lexical.X12Constants.AUTHORIZATION_INFO;
+import static com.anypoint.df.edi.lexical.X12Constants.AUTHORIZATION_QUALIFIER;
+import static com.anypoint.df.edi.lexical.X12Constants.INTERCHANGE_DATE;
+import static com.anypoint.df.edi.lexical.X12Constants.INTERCHANGE_TIME;
+import static com.anypoint.df.edi.lexical.X12Constants.INTER_CONTROL;
+import static com.anypoint.df.edi.lexical.X12Constants.RECEIVER_ID;
+import static com.anypoint.df.edi.lexical.X12Constants.RECEIVER_ID_QUALIFIER;
+import static com.anypoint.df.edi.lexical.X12Constants.SECURITY_INFO;
+import static com.anypoint.df.edi.lexical.X12Constants.SECURITY_QUALIFIER;
+import static com.anypoint.df.edi.lexical.X12Constants.SENDER_ID;
+import static com.anypoint.df.edi.lexical.X12Constants.SENDER_ID_QUALIFIER;
+import static com.anypoint.df.edi.lexical.X12Constants.TEST_INDICATOR;
+import static com.anypoint.df.edi.lexical.X12Constants.VERSION_ID;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;
 
@@ -105,16 +117,16 @@ public class X12Writer extends WriterBase
         writeProperty(SENDER_ID, props, null, 15, 15);
         writeProperty(RECEIVER_ID_QUALIFIER, props, "00", 2, 2);
         writeProperty(RECEIVER_ID, props, null, 15, 15);
-        Date date = (Date)props.get(INTERCHANGE_DATE);
-        if (date == null) {
-            date = new Date();
+        Calendar calendar = (Calendar)props.get(INTERCHANGE_DATE);
+        if (calendar == null) {
+            calendar = new GregorianCalendar();
         }
-        writeDate(date, 6, 6);
+        writeDate(calendar, 6, 6);
         writeDataSeparator();
         Integer value = (Integer)props.get(INTERCHANGE_TIME);
         int time;
         if (value == null) {
-            GregorianCalendar calendar =  new GregorianCalendar();
+            calendar =  new GregorianCalendar();
             time = (calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000;
         } else {
             time = ((Integer)value).intValue();

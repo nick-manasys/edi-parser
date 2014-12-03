@@ -2,7 +2,7 @@ package com.anypoint.df.edi.schema
 
 import java.io.OutputStream
 import java.math.BigDecimal
-import java.util.Date
+import java.util.Calendar
 
 import scala.collection.JavaConversions
 import scala.util.Try
@@ -36,7 +36,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         case ALPHA => writer.writeAlpha(value.asInstanceOf[String], min, max)
         case ALPHANUMERIC => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
         case ID => writer.writeId(value.asInstanceOf[String], min, max)
-        case DATE => writer.writeDate(value.asInstanceOf[Date], min, max)
+        case DATE => writer.writeDate(value.asInstanceOf[Calendar], min, max)
         case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue(), min, max)
         case NUMBER | REAL => writer.writeDecimal(value.asInstanceOf[BigDecimal], min, max)
         case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)

@@ -45,8 +45,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     props.get(SENDER_ID) should be("013227180      ")
     props.get(RECEIVER_ID_QUALIFIER) should be("ZZ")
     props.get(RECEIVER_ID) should be("IJDIECAFOX     ")
-    val calendar = new GregorianCalendar
-    calendar.setTime(props.get(INTERCHANGE_DATE).asInstanceOf[java.util.Date])
+    val calendar = props.get(INTERCHANGE_DATE).asInstanceOf[java.util.Calendar]
     calendar.get(Calendar.YEAR) should be (2009)
     calendar.get(Calendar.MONTH) should be (6)
     calendar.get(Calendar.DAY_OF_MONTH) should be (4)
@@ -67,7 +66,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     gprops.get(functionalIdentifierKey) should be("PO")
     gprops.get(applicationSendersKey) should be("006927180")
     gprops.get(applicationReceiversKey) should be("IAIYUCAFOO")
-    gprops.get(groupDateKey) should be(new GregorianCalendar(2008, 6, 4).getTime())
+    gprops.get(groupDateKey) should be(new GregorianCalendar(2008, 6, 4))
     gprops.get(groupTimeKey) should be((12 * 60 + 5) * 60000)
     gprops.get(groupControlKey) should be(Integer.valueOf(168))
     gprops.get(responsibleAgencyKey) should be("X")
@@ -130,7 +129,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     calendar.set(Calendar.YEAR, 2009)
     calendar.set(Calendar.MONTH, 6)
     calendar.set(Calendar.DAY_OF_MONTH, 4)
-    props.put(INTERCHANGE_DATE, calendar.getTime())
+    props.put(INTERCHANGE_DATE, calendar)
     props.put(INTERCHANGE_TIME, Integer.valueOf((12 * 60 + 5) * 60 * 1000))
     props.put(VERSION_ID, "00401")
     props.put(INTER_CONTROL, Integer.valueOf(1244))

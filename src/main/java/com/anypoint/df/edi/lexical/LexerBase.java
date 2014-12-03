@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.Date;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Map;
 
@@ -413,14 +413,17 @@ public abstract class LexerBase
     public String parseAlpha(int minl, int maxl) throws IOException {
         checkLength(DataType.ALPHA, minl, maxl);
         String text = token;
+        int lastns = -1;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
                 handleError(DataType.ALPHA, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
+            } else if (chr != ' ') {
+                lastns = i;
             }
         }
         advance();
-        return text;
+        return text.substring(0, lastns + 1);
     }
     
     /**
@@ -434,8 +437,15 @@ public abstract class LexerBase
     public String parseAlphaNumeric(int minl, int maxl) throws IOException {
         checkLength(DataType.ALPHANUMERIC, minl, maxl);
         String text = token;
+        int lastns = -1;
+        for (int i = text.length() - 1; i >= 0; i--) {
+            if (text.charAt(i) != ' ') {
+                lastns = i;
+                break;
+            }
+        }
         advance();
-        return text;
+        return text.substring(0, lastns + 1);
     }
     
     /**
@@ -449,14 +459,17 @@ public abstract class LexerBase
     public String parseId(int minl, int maxl) throws IOException {
         checkLength(DataType.ID, minl, maxl);
         String text = token;
+        int lastns = -1;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
                 handleError(DataType.ID, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
+            } else if (chr != ' ') {
+                lastns = i;
             }
         }
         advance();
-        return text;
+        return text.substring(0, lastns + 1);
     }
     
     /**
@@ -549,7 +562,7 @@ public abstract class LexerBase
      * @return
      * @throws IOException
      */
-    public Date parseDate(int minl, int maxl) throws IOException {
+    public Calendar parseDate(int minl, int maxl) throws IOException {
         String text = token;
         int length = text.length();
         if (length != 6 && length != 8) {
@@ -579,7 +592,7 @@ public abstract class LexerBase
             }
         }
         advance();
-        return new GregorianCalendar(year, month, day).getTime();
+        return new GregorianCalendar(year, month, day);
     }
     
     /**
