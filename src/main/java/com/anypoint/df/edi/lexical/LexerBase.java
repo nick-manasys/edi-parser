@@ -52,6 +52,9 @@ public abstract class LexerBase
     /** Total number of groups in interchange. */
     int groupCount;
     
+    /** Segment number at last reset (from start of document). */
+    private int segmentBias;
+    
     /** Current segment number (from last reset). */
     private int segmentNumber;
     

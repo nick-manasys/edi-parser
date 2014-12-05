@@ -151,7 +151,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   }
 
   /** Write start of a functional group. */
-  def openGroup(props: ValueMap): Unit
+  def openGroup(functId: String, props: ValueMap): Unit
 
   /** Write close of a functional group. */
   def closeGroup(props: ValueMap): Unit
@@ -175,12 +175,11 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         val list = transMap.get(id).asInstanceOf[java.util.List[ValueMap]]
         if (!list.isEmpty()) {
           val groupProps = getRequiredValueMap(groupProperties, map)
-          openGroup(groupProps)
+          openGroup(transaction group, groupProps)
           writer.countGroup
-          val setType = getRequiredString(setIdentifier, map)
           val setProps = getRequiredValueMap(setProperties, map)
           JavaConversions.asScalaIterator(list.iterator).foreach(map => {
-            openSet(setType, setProps)
+            openSet(id, setProps)
             writeTransaction(map, transaction)
             closeSet(setProps)
           })

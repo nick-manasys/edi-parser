@@ -3,6 +3,8 @@ package com.anypoint.df.edi.schema
 import com.anypoint.df.edi.lexical.X12Writer
 import java.io.OutputStream
 import java.nio.charset.Charset
+import java.util.Calendar
+import java.util.GregorianCalendar
 
 /** Writer for X12 EDI documents.
   */
@@ -30,30 +32,38 @@ class X12SchemaWriter(out: OutputStream, sc: EdiSchema) extends SchemaWriter(new
   }
 
   /** Write start of a functional group. */
-  def openGroup(props: ValueMap) = {
-    writeSegment(props, GSSegment)
+  def openGroup(functId: String, props: ValueMap) = {
+    val modprops = new ValueMapImpl(props)
+    modprops put(functionalIdentifierKey, functId)
+    val calendar = new GregorianCalendar
+    modprops put(groupDateKey, calendar)
+    val time = Integer.valueOf((calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000)
+    modprops put(groupTimeKey, time)
+    writeSegment(modprops, GSSegment)
     setCount = 0
   }
 
   /** Write close of a functional group. */
   def closeGroup(props: ValueMap) = {
     val modprops = new ValueMapImpl(props)
-    modprops.put(numberOfSetsKey, Integer.valueOf(setCount))
-    modprops.put(groupControlEndKey, props.get(groupControlKey))
+    modprops put(numberOfSetsKey, Integer.valueOf(setCount))
+    modprops put(groupControlEndKey, props.get(groupControlKey))
     writeSegment(modprops, GESegment)
   }
 
   /** Write start of a transaction set. */
   def openSet(ident: String, props: ValueMap) = {
-    writeSegment(props, STSegment)
+    val modprops = new ValueMapImpl(props)
+    modprops put(transactionSetIdentifierKey, ident)
     setSegmentBase = writer.getSegmentCount
+    writeSegment(props, STSegment)
   }
 
   /** Write close of a transaction set. */
   def closeSet(props: ValueMap) = {
     val modprops = new ValueMapImpl(props)
-    modprops.put(numberOfSegmentsKey, Integer.valueOf(writer.getSegmentCount - setCount))
-    modprops.put(transactionSetControlEndKey, props.get(transactionSetControlKey))
+    modprops put(numberOfSegmentsKey, Integer.valueOf(writer.getSegmentCount - setSegmentBase + 1))
+    modprops put(transactionSetControlEndKey, props.get(transactionSetControlKey))
     writeSegment(modprops, SESegment)
     setCount += 1
   }

@@ -90,7 +90,7 @@ case class ElementError(val elemPosition: Int, val compPosition: Option[Int], va
 abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends ErrorHandler with SchemaJavaDefs {
 
   import SchemaJavaValues._
-  
+
   val logger = Logger.getLogger(getClass.getName)
 
   /** Initialize parser and read header segments. */
@@ -108,36 +108,36 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   var inGroup: Option[GroupComponent] = None
   var segmentErrorCount = 0
   var rejectTransaction = false
-  
+
   /** Accumulate element error, failing transaction if severe. */
-  def addElementError(error: ElementSyntaxError) = 
+  def addElementError(error: ElementSyntaxError) =
     if (segmentErrorCount > 4) throw new LexicalException("too many errors")
     else {
-    val compPosition = if (inComposite.isDefined) Some(lexer.getComponentNumber) else None
-    val repNumber = if (lexer.currentType == REPETITION) Some(lexer.getRepetitionNumber()) else None
-    val elemRef = inElement.map(_.position)
-    val text = error match {
-      case DataTooShort | DataTooLong | InvalidCodeValue | InvalidDate | InvalidTime | ExclusionConditionViolated =>
-        Some(lexer.token)
-      case _ => None
+      val compPosition = if (inComposite.isDefined) Some(lexer.getComponentNumber) else None
+      val repNumber = if (lexer.currentType == REPETITION) Some(lexer.getRepetitionNumber()) else None
+      val elemRef = inElement.map(_.position)
+      val text = error match {
+        case DataTooShort | DataTooLong | InvalidCodeValue | InvalidDate | InvalidTime | ExclusionConditionViolated =>
+          Some(lexer.token)
+        case _ => None
+      }
+      dataErrors += ElementError(lexer.getElementNumber, compPosition, repNumber, elemRef, error, text)
+      segmentErrorCount += 1
+      val message = "element error in" +
+        inGroup.map(group => " loop " + group.ident).getOrElse("") +
+        inReference.map(refc => " segment " + refc.segment.name).getOrElse("") +
+        inComposite.map(comp => s" composite ${comp.name} at position ${comp.position}").getOrElse("") +
+        inElement.map(elem => s" element ${elem.element.ident} at position ${elem.position}").getOrElse("") +
+        ": " + error.text
+      val fail = error match {
+        case DataTooShort | DataTooLong => false
+        case _ => true
+      }
+      if (fail) {
+        rejectTransaction = true
+        logger.error(message)
+      } else logger.warn(message)
     }
-    dataErrors += ElementError(lexer.getElementNumber, compPosition, repNumber, elemRef, error, text)
-    segmentErrorCount += 1
-    val message = "element error in" +
-     inGroup.map(group => " loop " + group.ident).getOrElse("") +
-     inReference.map(refc => " segment " + refc.segment.name).getOrElse("") +
-     inComposite.map(comp => s" composite ${comp.name} at position ${comp.position}").getOrElse("") +
-     inElement.map(elem => s" element ${elem.element.ident} at position ${elem.position}").getOrElse("") +
-     ": " + error.text 
-    val fail = error match {
-      case DataTooShort | DataTooLong => false
-      case _ => true
-    }
-    if (fail) {
-      rejectTransaction = true
-      logger.error(message)
-    } else logger.warn(message)
-  }
 
   /** Error handler called by lexer for data error. */
   def error(lexer: LexerBase, typ: DataType, error: ErrorCondition, explain: java.lang.String): Unit = {
@@ -326,19 +326,19 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   /** Parse the input message. */
   def parse(): Try[ValueMap] = Try {
-    
+
     import X12Acknowledgment._
     import X12SchemaValues._
-    
+
     val map = new ValueMapImpl
     val interchange = init
     map put (interchangeProperties, interchange)
     val builder = new StringBuilder
-    builder append(lexer.getDataSeparator)
-    builder append(lexer.getComponentSeparator)
-    builder append(if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
-    builder append(lexer.getSegmentTerminator)
-    builder append(if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
+    builder append (lexer.getDataSeparator)
+    builder append (lexer.getComponentSeparator)
+    builder append (if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
+    builder append (lexer.getSegmentTerminator)
+    builder append (if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
     map put (delimiterCharacters, builder.toString)
     val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
     schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
@@ -363,9 +363,9 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       stdata put (segST.components(1) key, ackId toString)
       val ak1data = new ValueMapImpl
       ackhead put (segAK1 name, ak1data)
-      ak1data put (segAK1.components(0) key, group get(functionalIdentifierKey))
-      ak1data put (segAK1.components(1) key, group get(groupControlKey))
-      ak1data put (segAK1.components(2) key, group get(versionIdentifierKey))
+      ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
+      ak1data put (segAK1.components(1) key, group get (groupControlKey))
+      ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
       val setacks = new MapListImpl
       ackhead put ("AK2", setacks)
       var setCount = 0
@@ -381,10 +381,10 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
             setacks add setack
             val ak2data = new ValueMapImpl
             setack put (segAK2 name, ak2data)
-            ak2data put (segAK2.components(0) key, setprops get(transactionSetIdentifierKey))
-            ak2data put (segAK2.components(1) key, setprops get(transactionSetControlKey))
+            ak2data put (segAK2.components(0) key, setprops get (transactionSetIdentifierKey))
+            ak2data put (segAK2.components(1) key, setprops get (transactionSetControlKey))
             if (setprops containsKey implementationConventionKey) {
-              ak2data put (segAK2.components(2) key, setprops get(implementationConventionKey))
+              ak2data put (segAK2.components(2) key, setprops get (implementationConventionKey))
             }
             rejectTransaction = false;
             val data = parseTransaction(t)
@@ -394,7 +394,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
               // TODO
             } else {
               val list = transLists get setid
-              list add(data)
+              list add (data)
               acceptCount += 1
               ak5data put (segAK5.components(0) key, AcceptedTransaction code)
             }
@@ -407,14 +407,14 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       val ak9data = new ValueMapImpl
       ackhead put (segAK9 name, ak9data)
       ak9data put (segAK9.components(0) key, AcceptedTransaction code)
-      ak9data put (segAK9.components(1) key, Integer valueOf(setCount))
-      ak9data put (segAK9.components(2) key, Integer valueOf(setCount))
-      ak9data put (segAK9.components(3) key, Integer valueOf(acceptCount))
+      ak9data put (segAK9.components(1) key, Integer valueOf (setCount))
+      ak9data put (segAK9.components(2) key, Integer valueOf (setCount))
+      ak9data put (segAK9.components(3) key, Integer valueOf (acceptCount))
       val sedata = new ValueMapImpl
       ackhead put (segSE name, sedata)
-      sedata put (segSE.components(0) key, Integer valueOf(setCount + 3))
+      sedata put (segSE.components(0) key, Integer valueOf (setCount + 3))
       sedata put (segSE.components(1) key, ackId toString)
-      acksList add(ackroot)
+      acksList add (ackroot)
       ackId += 1
     }
     term(interchange)
