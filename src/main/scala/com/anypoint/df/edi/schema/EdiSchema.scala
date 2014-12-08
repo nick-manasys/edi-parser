@@ -57,7 +57,7 @@ object EdiSchema {
   case class Transaction(val ident: String, val name: String, val group: String,
     val heading: List[TransactionComponent], val detail: List[TransactionComponent],
     val summary: List[TransactionComponent]) {
-    lazy val segmentsUsed = {
+    val segmentsUsed = {
       def referencer(comps: List[TransactionComponent], segments: Set[Segment]): Set[Segment] =
         comps.foldLeft(segments)((segs, comp) => comp match {
           case ref: ReferenceComponent => segs + ref.segment
@@ -65,7 +65,7 @@ object EdiSchema {
         })
       referencer(summary, referencer(detail, referencer(heading, Set[Segment]())))
     }
-    lazy val compositesUsed = {
+    val compositesUsed = {
       def referencer(comps: List[SegmentComponent], composites: Set[Composite]): Set[Composite] =
         comps.foldLeft(composites)((acc, comp) => comp match {
           case CompositeComponent(composite, _, _, _, _) => referencer(composite.components, acc + composite)
@@ -73,7 +73,7 @@ object EdiSchema {
         })
       segmentsUsed.foldLeft(Set[Composite]())((acc, seg) => referencer(seg.components, acc))
     }
-    lazy val elementsUsed = {
+    val elementsUsed = {
       def referencer(comps: List[SegmentComponent], elements: Set[Element]): Set[Element] =
         comps.foldLeft(elements)((acc, comp) => comp match {
           case CompositeComponent(composite, _, _, _, _) => referencer(composite.components, acc)
@@ -81,6 +81,7 @@ object EdiSchema {
         })
       segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
     }
+    val segmentIds = segmentsUsed.map(segment => segment.ident)
   }
 
   type TransactionMap = Map[String, Transaction]

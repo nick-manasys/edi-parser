@@ -49,6 +49,9 @@ public abstract class LexerBase
     /** Segment terminator. */
     char segmentTerminator;
     
+    /** Handler for lexical errors. */
+    private ErrorHandler errorHandler;
+    
     /** Total number of groups in interchange. */
     int groupCount;
     
@@ -76,20 +79,18 @@ public abstract class LexerBase
     /** Type of next token (ending delimiter of current token). */
     private ItemType nextType;
     
-    /** Handler for lexical errors. */
-    private ErrorHandler errorHandler;
-    
     /**
      * Constructor.
      *
      * @param is input
      * @param datasep default data separator character
      * @param subsep default sub-element separator character
-     * @param repsep default repetition separator character
+     * @param repsep default repetition separator character (-1 if none)
      * @param segterm default segment terminator character
-     * @param release default release character
+     * @param release default release character (-1 if none)
      */
-    public LexerBase(InputStream is, char datasep, char subsep, char repsep, char segterm, int release) {
+    public LexerBase(InputStream is, char datasep, char subsep, int repsep, char segterm,
+        int release) {
         stream = is;
         dataSeparator = datasep;
         componentSeparator = subsep;
@@ -127,6 +128,15 @@ public abstract class LexerBase
         byte[] byts = new byte[num];
         readArray(byts, 0);
         return byts;
+    }
+    
+    /**
+     * Set error handler in use.
+     *
+     * @param handler
+     */
+    public void setHandler(ErrorHandler handler) {
+        errorHandler = handler;
     }
 
     /**

@@ -53,10 +53,14 @@ public class EdiFactLexer extends LexerBase
      * Constructor.
      *
      * @param is input
+     * @param datasep default data separator character
+     * @param subsep default sub-element separator character
+     * @param repsep default repetition separator character
+     * @param segterm default segment terminator character
+     * @param release default release character
      */
-    public EdiFactLexer(InputStream is) {
-        super(is, '+', ':', '*', '\'', '?');
-//        super(is, 0x1D, 0x1F, 0x1C, -1);
+    public EdiFactLexer(InputStream is, char datasep, char subsep, char repsep, char segterm, int release) {
+        super(is, datasep, subsep, repsep, segterm, release);
     }
     
     /**

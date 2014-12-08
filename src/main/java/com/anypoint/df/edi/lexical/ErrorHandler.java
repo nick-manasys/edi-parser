@@ -35,8 +35,8 @@ public interface ErrorHandler
      * @param lexer
      * @param typ data type
      * @param err error condition
-     * @param explain optional supplemental explanation text (<code>null</code> if none)
+     * @param text error explanation
      * @throws LexicalException
      */
-    void error(LexerBase lexer, DataType typ, ErrorCondition err, String explain) throws LexicalException;
+    void error(LexerBase lexer, DataType typ, ErrorCondition err, String text) throws LexicalException;
 }

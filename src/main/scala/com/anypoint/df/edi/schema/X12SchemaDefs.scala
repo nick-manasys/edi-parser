@@ -41,6 +41,70 @@ object X12Acknowledgment {
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
   
+  /** Transaction syntax error codes (X12 718 element codes). */
+  sealed abstract class TransactionSyntaxError(val code: Int)
+  case object NotSupportedTransaction extends TransactionSyntaxError(1)
+  case object MissingTrailerTransaction extends TransactionSyntaxError(2)
+  case object ControlNumberMismatch extends TransactionSyntaxError(3)
+  case object WrongSegmentCount extends TransactionSyntaxError(4)
+  case object SegmentsInError extends TransactionSyntaxError(5)
+  case object BadTransactionSetId extends TransactionSyntaxError(6)
+  case object BadTransactionSetControl extends TransactionSyntaxError(7)
+  case object AuthenticationKeyUnknown extends TransactionSyntaxError(8)
+  case object EncryptionKeyUnknown extends TransactionSyntaxError(9)
+  case object ServiceNotAvailable extends TransactionSyntaxError(10)
+  case object UnknownSecurityRecipient extends TransactionSyntaxError(11)
+  case object IncorrectMessageLength extends TransactionSyntaxError(12)
+  case object MessageAuthenticationFailed extends TransactionSyntaxError(13)
+  case object UnknownSecurityOriginator extends TransactionSyntaxError(15)
+  case object DecryptionSyntaxError extends TransactionSyntaxError(16)
+  case object SecurityNotSupported extends TransactionSyntaxError(17)
+  case object SetNotInGroup extends TransactionSyntaxError(18)
+  case object InvalidImplementationConvention extends TransactionSyntaxError(23)
+  case object MissingS3ESecurityEndSegment extends TransactionSyntaxError(24)
+  case object MissingS3ESecurityStartSegment extends TransactionSyntaxError(25)
+  case object MissingS4ESecurityEndSegment extends TransactionSyntaxError(26)
+  case object MissingS4ESecurityStartSegment extends TransactionSyntaxError(27)
+
+  /** Transaction set acknowledgment codes (X12 717 element codes). */
+  sealed abstract class TransactionAcknowledgmentCode(val code: String)
+  case object AcceptedTransaction extends TransactionAcknowledgmentCode("A")
+  case object AcceptedWithErrorsTransaction extends TransactionAcknowledgmentCode("E")
+  case object AuthenticationFailedTransaction extends TransactionAcknowledgmentCode("M")
+  case object RejectedTransaction extends TransactionAcknowledgmentCode("R")
+  case object ValidityFailedTransaction extends TransactionAcknowledgmentCode("W")
+  case object DecryptionBadTransaction extends TransactionAcknowledgmentCode("X")
+
+  /** Segment syntax error codes (X12 720 element codes). */
+  sealed abstract class SegmentSyntaxError(val code: Int)
+  case object UnrecognizedSegment extends SegmentSyntaxError(1)
+  case object UnexpectedSegment extends SegmentSyntaxError(2)
+  case object MissingMandatorySegment extends SegmentSyntaxError(3)
+  case object TooManyLoops extends SegmentSyntaxError(4)
+  case object TooManyOccurs extends SegmentSyntaxError(5)
+  case object NotInTransactionSegment extends SegmentSyntaxError(6)
+  case object OutOfOrderSegment extends SegmentSyntaxError(7)
+  case object DataErrorsSegment extends SegmentSyntaxError(8)
+
+  /** Information for a segment error (used to generate X12 AK3 segment). */
+  case class SegmentError(val id: String, val position: Int, val loopId: Option[String],
+    val error: Option[SegmentSyntaxError])
+
+  /** Data element syntax error codes (X12 723 element codes). */
+  sealed abstract class ElementSyntaxError(val code: Int, val text: String)
+  case object MissingRequiredElement extends ElementSyntaxError(1, "missing required element")
+  case object MissingConditionalElement extends ElementSyntaxError(2, "missing conditional element")
+  case object TooManyElements extends ElementSyntaxError(3, "too many elements")
+  case object DataTooShort extends ElementSyntaxError(4, "data value too short")
+  case object DataTooLong extends ElementSyntaxError(5, "data value too long")
+  case object InvalidCharacter extends ElementSyntaxError(6, "invalid character in data value")
+  case object InvalidCodeValue extends ElementSyntaxError(7, "invalid code value")
+  case object InvalidDate extends ElementSyntaxError(8, "invalid date")
+  case object InvalidTime extends ElementSyntaxError(9, "invalid time")
+  case object ExclusionConditionViolated extends ElementSyntaxError(10, "exclusion condition violated")
+  case object TooManyRepititions extends ElementSyntaxError(11, "too many repetitions")
+  case object TooManyComponents extends ElementSyntaxError(12, "too many components")
+  
   // 997 acknowledgment schema (generated code)
   val elem143 = Element("143", ID, 3, 3)
   val elem329 = Element("329", ALPHANUMERIC, 4, 9)

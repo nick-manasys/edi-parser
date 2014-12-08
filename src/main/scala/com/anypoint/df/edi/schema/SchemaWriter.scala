@@ -150,45 +150,11 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       getRequiredValueMap(transactionSummary, map), transaction.summary)
   }
 
-  /** Write start of a functional group. */
-  def openGroup(functId: String, props: ValueMap): Unit
-
-  /** Write close of a functional group. */
-  def closeGroup(props: ValueMap): Unit
-
-  /** Write start of a transaction set. */
-  def openSet(ident: String, props: ValueMap): Unit
-
-  /** Write close of a transaction set. */
-  def closeSet(props: ValueMap): Unit
-
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment): Boolean
 
   /** Write the output message. */
-  def write(map: ValueMap): Try[Unit] = Try({
-    val interProps = getRequiredValueMap(interchangeProperties, map)
-    init(getRequiredString(delimiterCharacters, map), getRequiredString(characterEncoding, map), interProps)
-    val transMap = getRequiredValueMap(transactionsMap, map)
-    schema.transactions.foreach {
-      case (id, transaction) => if (transMap.containsKey(id)) {
-        val list = transMap.get(id).asInstanceOf[java.util.List[ValueMap]]
-        if (!list.isEmpty()) {
-          val groupProps = getRequiredValueMap(groupProperties, map)
-          openGroup(transaction group, groupProps)
-          writer.countGroup
-          val setProps = getRequiredValueMap(setProperties, map)
-          JavaConversions.asScalaIterator(list.iterator).foreach(map => {
-            openSet(id, setProps)
-            writeTransaction(map, transaction)
-            closeSet(setProps)
-          })
-          closeGroup(groupProps)
-        }
-      }
-    }
-    term(interProps)
-  })
+  def write(map: ValueMap): Try[Unit]
 }
 
 object SchemaWriter {

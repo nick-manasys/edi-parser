@@ -17,9 +17,10 @@ import org.junit.Test;
  */
 public class X12LexerWriterTest
 {
+    private static final String DATETIME = "090604*1205";
     private static final String ENVELOPE =
-        "ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *090604*1205*U*00401*000001244*0*P*>~" +
-        "IEA*0*000001244~";
+        "ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *" + DATETIME +
+        "*U*00401*000001244*0*P*>~IEA*0*000001244~";
     
     @Test
     public void roundTripEnvelope() throws Exception {
@@ -34,6 +35,9 @@ public class X12LexerWriterTest
         writer.init(props);
         writer.term(props);
         String result = new String(os.toByteArray(), UTF8_CHARSET);
-        assertEquals(ENVELOPE, result);
+        int datestart = ENVELOPE.indexOf(DATETIME);
+        int dateend = datestart + DATETIME.length();
+        assertEquals(ENVELOPE.substring(0, datestart), result.substring(0, datestart));
+        assertEquals(ENVELOPE.substring(dateend), result.substring(dateend));
     }
 }

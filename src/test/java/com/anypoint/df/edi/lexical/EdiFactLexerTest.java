@@ -68,7 +68,7 @@ public class EdiFactLexerTest
     
     @Test
     public void simpleEnvelope() throws Exception {
-        EdiFactLexer parser = new EdiFactLexer(new ByteArrayInputStream(EDI1.getBytes("US-ASCII")));
+        EdiFactLexer parser = new EdiFactLexer(new ByteArrayInputStream(EDI1.getBytes("US-ASCII")), '+', ':', '?', '\'', -1);
         Map<String, Object> props = parser.init(Collections.EMPTY_MAP);
         Assert.assertEquals(EXPECT1, props);
         Assert.assertEquals(ItemType.SEGMENT, parser.nextType());
@@ -84,7 +84,7 @@ public class EdiFactLexerTest
     
     public static void main(String[] args) throws Exception {
         InputStream is = new ByteArrayInputStream(EDI1_FULL.getBytes("US-ASCII"));
-        EdiFactLexer parser = new EdiFactLexer(is);
+        EdiFactLexer parser = new EdiFactLexer(is, '+', ':', '?', '\'', -1);
         parser.init(Collections.EMPTY_MAP);
         while (ItemType.END != parser.nextType()) {
             switch (parser.nextType()) {

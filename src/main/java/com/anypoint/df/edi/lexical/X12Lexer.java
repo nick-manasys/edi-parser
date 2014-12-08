@@ -22,11 +22,11 @@ public class X12Lexer extends LexerBase
     
     /**
      * Constructor.
-     *
+     * 
      * @param is input
      */
     public X12Lexer(InputStream is) {
-        super(is, '*', '\\', '^', '~', -1);
+        super(is, (char)0, (char)0, -1, (char)0, -1);
     }
     
     /**
