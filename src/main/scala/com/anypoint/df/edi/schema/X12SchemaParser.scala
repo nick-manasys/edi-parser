@@ -168,10 +168,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         addError(OutOfOrderSegment)
         if (config.orderFail) rejectTransaction = true
       }
-      case ComponentErrors.UnusedSegment => {
-        addError(UnexpectedSegment)
-        if (config.unusedFail) rejectTransaction = true
-      }
+      case ComponentErrors.UnusedSegment =>
+        if (config.unusedFail) {
+          addError(UnexpectedSegment)
+          rejectTransaction = true
+        }
     }
   }
 

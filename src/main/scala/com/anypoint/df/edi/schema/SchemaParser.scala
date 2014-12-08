@@ -27,7 +27,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   /** Read interchange trailer segment(s) and finish with stream. */
   protected def term(props: ValueMap): Unit
-  
+
   /** Discard remainder of current data element. */
   def discardElement() = while (lexer.currentType == QUALIFIER || lexer.currentType == REPETITION) lexer.advance
 
@@ -77,13 +77,13 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   def checkSegment(segment: Segment) = lexer.currentType == SEGMENT && lexer.token == segment.ident
 
   object ComponentErrors {
-      sealed trait ComponentError
-      case object TooManyLoops extends ComponentError
-      case object TooManyRepetitions extends ComponentError
-      case object MissingRequired extends ComponentError
-      case object UnknownSegment extends ComponentError
-      case object OutOfOrderSegment extends ComponentError
-      case object UnusedSegment extends ComponentError
+    sealed trait ComponentError
+    case object TooManyLoops extends ComponentError
+    case object TooManyRepetitions extends ComponentError
+    case object MissingRequired extends ComponentError
+    case object UnknownSegment extends ComponentError
+    case object OutOfOrderSegment extends ComponentError
+    case object UnusedSegment extends ComponentError
   }
 
   /** Report segment error. */
@@ -131,7 +131,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       parseRepeat()
       list
     }
-    
+
     def checkSegmentKnown(): Unit = lexer.currentType match {
       case SEGMENT =>
         if (!transaction.segmentIds.contains(lexer.token)) {
@@ -154,14 +154,10 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
           val segment = ref.segment
           if (!isEnvelopeSegment(segment)) {
             if (checkSegment(segment)) {
-              if (ref.usage == UnusedUsage) {
-                segmentError(segment.ident, group, ComponentErrors.UnusedSegment)
-                while (checkSegment(segment)) discardSegment
-              } else {
-                val data =
-                  if (ref.count == 1) parseSegment(segment, group) else parseRepeatingSegment(segment, ref.count, group)
-                values put (segment.name, data)
-              }
+              if (ref.usage == UnusedUsage) segmentError(segment.ident, group, ComponentErrors.UnusedSegment)
+              val data =
+                if (ref.count == 1) parseSegment(segment, group) else parseRepeatingSegment(segment, ref.count, group)
+              values put (segment.name, data)
               checkSegmentKnown()
             } else if (ref.usage == MandatoryUsage) segmentError(segment.ident, group, ComponentErrors.MissingRequired)
           }
