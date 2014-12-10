@@ -101,7 +101,7 @@ object X12TablesConverter {
               ElementComponent(elements(elem), elemNames(elem), pos.toInt, convertUsage(req), 1) :: acc
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
-          map + (key -> Composite(key, compNames(key), comps))
+          map + (key -> Composite(key, compNames(key), comps, Nil))
         }
       })
 
@@ -120,7 +120,7 @@ object X12TablesConverter {
             }
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
-          map + (key -> Segment(key, segNames(key), comps))
+          map + (key -> Segment(key, segNames(key), comps, Nil))
         }
       })
 

@@ -174,7 +174,7 @@ object YamlReader {
         val ident = getRequiredString("id", compmap)
         val name = getRequiredString("name", compmap)
         val list = getChildList("values", compmap).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-        map + (ident -> Composite(ident, name, parseSegmentComponents(list, elements, map)))
+        map + (ident -> Composite(ident, name, parseSegmentComponents(list, elements, map), Nil))
       })
   }
 
@@ -207,7 +207,7 @@ object YamlReader {
         val ident = getRequiredString("id", segmap)
         val name = getRequiredString("name", segmap)
         val list = getChildList("values", segmap).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-        map + (ident -> Segment(ident, name, parseSegmentComponents(list, elements, composites)))
+        map + (ident -> Segment(ident, name, parseSegmentComponents(list, elements, composites), Nil))
       })
 
     val transin = getChildList("transactions", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]

@@ -41,18 +41,68 @@ object EdiSchema {
 
   abstract class SegmentComponent(val name: String, val position: Int, val usage: Usage, val count: Int) {
     val key = name + " (" + (if (position >= 10) position.toString else "0" + position.toString) + ")"
-
   }
   case class ElementComponent(val element: Element, nm: String, pos: Int, use: Usage, cnt: Int) extends SegmentComponent(nm, pos, use, cnt)
   case class CompositeComponent(val composite: Composite, nm: String, pos: Int, use: Usage, cnt: Int) extends SegmentComponent(nm, pos, use, cnt)
 
-  case class Composite(val ident: String, val name: String, val components: List[SegmentComponent])
+  sealed abstract class OccurrenceRule(val components: List[SegmentComponent]) {
+    if (components isEmpty) throw new IllegalArgumentException("components list must not be empty")
+    def hasHead(map: java.util.Map[String, Object]) = map containsKey (components.head key)
+    def verify(map: java.util.Map[String, Object]): Boolean
+  }
+  // X12 Required, EDIFACT One or more
+  case class OneOrMore(comps: List[SegmentComponent]) extends OccurrenceRule(comps) {
+    def verify(map: java.util.Map[String, Object]) = !comps.find(comp => map containsKey (comp key)).isEmpty
+  }
+  // X12 Conditional, EDIFACT If first, then all
+  case class IfFirstThenAll(comps: List[SegmentComponent]) extends OccurrenceRule(comps) {
+    def verify(map: java.util.Map[String, Object]) =
+      if (hasHead(map)) {
+        comps.find(comp => !(map containsKey (comp key))).isEmpty
+      } else true
+  }
+  // X12 Exclusion, EDIFACT One or none
+  case class OneOrNone(comps: List[SegmentComponent]) extends OccurrenceRule(comps) {
+    def verify(map: java.util.Map[String, Object]) =
+      comps.count(comp => map containsKey (comp key)) <= 1
+  }
+  // X12 List Conditional, EDIFACT If first, then at least one
+  case class IfFirstThenAtLeastOne(comps: List[SegmentComponent]) extends OccurrenceRule(comps) {
+    def verify(map: java.util.Map[String, Object]) =
+      if (hasHead(map)) {
+        !comps.tail.find(comp => map containsKey (comp key)).isEmpty
+      } else true
+  }
+  // X12 Paired, EDIFACT All or none
+  case class AllOrNone(comps: List[SegmentComponent]) extends OccurrenceRule(comps) {
+    def verify(map: java.util.Map[String, Object]) = {
+      val first = hasHead(map)
+      comps.tail.find(comp => (map containsKey (comp key)) != first).isEmpty
+    }
+  }
+  // EDIFACT One and only one
+  case class OneAndOnlyOne(comps: List[SegmentComponent]) extends OccurrenceRule(comps) {
+    def verify(map: java.util.Map[String, Object]) =
+      comps.count(comp => map containsKey (comp key)) == 1
+  }
+  // EDIFACT If first, then none
+  case class IfFirstThenNone(comps: List[SegmentComponent]) extends OccurrenceRule(comps) {
+    def verify(map: java.util.Map[String, Object]) =
+      if (hasHead(map)) {
+        comps.find(comp => map containsKey (comp key)).isEmpty
+      } else true
+  }
 
-  case class Segment(val ident: String, val name: String, val components: List[SegmentComponent])
+  case class Composite(val ident: String, val name: String, val components: List[SegmentComponent],
+    val rules: List[OccurrenceRule])
+
+  case class Segment(val ident: String, val name: String, val components: List[SegmentComponent],
+    val rules: List[OccurrenceRule])
 
   sealed abstract class TransactionComponent(val usage: Usage, val count: Int)
   case class ReferenceComponent(val segment: Segment, use: Usage, cnt: Int) extends TransactionComponent(use, cnt)
-  case class GroupComponent(val ident: String, use: Usage, cnt: Int, val items: List[TransactionComponent]) extends TransactionComponent(use, cnt)
+  case class GroupComponent(val ident: String, use: Usage, cnt: Int, val items: List[TransactionComponent])
+    extends TransactionComponent(use, cnt)
 
   case class Transaction(val ident: String, val name: String, val group: String,
     val heading: List[TransactionComponent], val detail: List[TransactionComponent],
