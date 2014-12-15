@@ -283,6 +283,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       var acceptCount = 0;
       while (!isGroupClose) {
         val (setid, setprops) = openSet
+        ackroot put (transactionSet, setprops)
         setCount += 1
         schema.transactions(setid) match {
           case t: Transaction => {
