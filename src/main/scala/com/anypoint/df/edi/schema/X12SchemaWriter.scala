@@ -117,7 +117,7 @@ class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
             grouplist foreach (transaction => {
               val ident = getRequiredString(transactionId, transaction)
               val setProps = new ValueMapImpl
-              setProps put (transactionSetControlKey, Integer valueOf (setnum))
+              setProps put (transactionSetControlKey, setnum toString)
               if (transaction containsKey (transactionImplConventionRef)) setProps put (implementationConventionKey,
                 transaction get (transactionImplConventionRef))
               openSet(ident, setProps)
