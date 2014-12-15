@@ -56,4 +56,13 @@ object SchemaJavaValues {
   val transactionSummary = "Summary"
   val transactionSet = "Set"
   val transactionGroup = "Group"
+  
+  // value key for top-level transaction output map
+  val transactionInterSelfQualId = "InterIdQualSelf"
+  val transactionInterSelfId = "InterIdSelf"
+  val transactionGroupSelfId = "GroupIdSelf"
+  val transactionInterPartnerQualId = "InterIdQualPartner"
+  val transactionInterPartnerId = "InterIdPartner"
+  val transactionGroupPartnerId = "GroupIdPartner"
+  val transactionImplConventionRef = "ImplConventionRef"
 }

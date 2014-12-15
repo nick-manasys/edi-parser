@@ -35,7 +35,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "parse the ISA segment when initialized" in {
     val in = new ByteArrayInputStream(ISA.getBytes())
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true)
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
     val parser = X12SchemaParser(in, EdiSchema(X12, Map.empty, Map.empty, Map.empty, Map.empty), config)
     val props = parser.init
     props.get(AUTHORIZATION_QUALIFIER) should be("00")
@@ -59,7 +59,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "parse the envelope segments as requested" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true)
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
     val parser = X12SchemaParser(in, EdiSchema(X12, Map.empty, Map.empty, Map.empty, Map.empty), config)
     val props = parser.init
     val gprops = parser.openGroup
@@ -84,7 +84,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "throw an exception when positioned at wrong segment" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true)
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
     val parser = X12SchemaParser(in, EdiSchema(X12, Map.empty, Map.empty, Map.empty, Map.empty), config)
     val props = parser.init
     intercept[IllegalStateException] { parser.openSet }
@@ -100,7 +100,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val yamlIn = getClass.getClassLoader.getResourceAsStream("yaml/cdw850schema.yaml")
     val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"))
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true)
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
     val parser = X12SchemaParser(messageIn, schema, config)
     val result = parser.parse
     result.isInstanceOf[Success[ValueMap]] should be (true)
@@ -142,7 +142,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val yamlIn = getClass.getClassLoader.getResourceAsStream("yaml/cdw850schema.yaml")
     val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"))
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true)
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
     val parser = X12SchemaParser(messageIn, schema, config)
     val parseResult = parser.parse
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
@@ -152,7 +152,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val writer = createWriter.get
     val props = parseResult.get
     props.put(characterEncoding, "UTF-8")
-    val writeResult = writer.write(props)
+    val writeResult = writer.write(props, 1)
     val text = new String(out.toByteArray)
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")).getLines
     val builder = new StringBuilder

@@ -22,9 +22,9 @@ import X12SchemaValues._
 import X12Acknowledgment._
 
 /** Configuration parameters for X12 schema parser. */
-case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
-  val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
-  val reportDataErrors: Boolean)
+case class X12ParserConfig(val lengthFail: Boolean, val asciiOnly: Boolean, val charFail: Boolean,
+  val countFail: Boolean, val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean,
+  val occursFail: Boolean, val reportDataErrors: Boolean)
 
 /** Parser for X12 EDI documents. */
 case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConfig)

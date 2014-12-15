@@ -154,7 +154,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   def isEnvelopeSegment(segment: Segment): Boolean
 
   /** Write the output message. */
-  def write(map: ValueMap): Try[Unit]
+  def write(map: ValueMap, base: Int): Try[Int]
 }
 
 object SchemaWriter {
