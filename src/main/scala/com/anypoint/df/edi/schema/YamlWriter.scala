@@ -108,6 +108,17 @@ object YamlWriter {
       writeIndented("- " + keyValueQuote("id", segment.ident), 0)
       writeIndented(keyValuePair("name", segment name), 1)
       writeSegmentComponents("values", segment.components, 1)
+      if (!segment.rules.isEmpty) {
+        writeIndented("rules:", 1)
+        segment.rules foreach (rule => {
+          val builder = new StringBuilder
+          builder ++= "- {" ++= keyValueQuote("type", rule.code) ++= " values: ["
+          builder ++= rule.components.head.position.toString
+          rule.components.tail foreach (comp => builder ++= comp.position.toString ++= ", " )
+          builder ++= "]"
+          writeIndented(builder.toString, 1)
+        })
+      }
     })
 
     // next write composites details

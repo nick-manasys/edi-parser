@@ -64,6 +64,7 @@ object YamlReader {
   /**
    * Build segment components from input data.
    * @param list list of maps of component data
+   * @param rules list of maps of rules
    * @param elements known elements map
    * @param composites known composites map
    * @returns components
@@ -91,6 +92,34 @@ object YamlReader {
       case _ => prior.reverse
     }
     parseComponent(list.asScala.toList, 1, Nil)
+  }
+  
+  /**
+   * Build rules from input data.
+   * @param rules list of maps of rule data
+   * @param comps components rule applies to
+   * @returns rules
+   */
+  def parseRules(rules: JavaList[JavaMap[Any, Any]], comps: List[SegmentComponent]): List[OccurrenceRule] = {
+    val posidx = comps.foldLeft(Map[Int, SegmentComponent]())((acc, comp) => acc + (comp.position -> comp))
+    def convertRule(map: JavaMap[Any, Any]) = {
+      val comps = getChildList("values", map).asScala.toList.map(value => value match {
+        case pos: Int => posidx(pos)
+        case _ => throw new IllegalArgumentException("Not a valid component position for rule")
+      })
+      val typ = getRequiredString("type", map)
+      typ match {
+        case OneOrMoreCode => OneOrMore(comps)
+        case IfFirstThenAllCode => IfFirstThenAll(comps)
+        case OneOrNoneCode => OneOrNone(comps)
+        case IfFirstThenMoreCode => IfFirstThenMore(comps)
+        case AllOrNoneCode => AllOrNone(comps)
+        case OneAndOnlyOneCode => OneAndOnlyOne(comps)
+        case IfFirstThenNoneCode => IfFirstThenNone(comps)
+        case _ => throw new IllegalArgumentException("Not a valid rule type code")
+      }
+    }
+    rules.asScala.toList.map(map => convertRule(map))
   }
 
   /**
@@ -174,7 +203,12 @@ object YamlReader {
         val ident = getRequiredString("id", compmap)
         val name = getRequiredString("name", compmap)
         val list = getChildList("values", compmap).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-        map + (ident -> Composite(ident, name, parseSegmentComponents(list, elements, map), Nil))
+        val comps = parseSegmentComponents(list, elements, map)
+        val rules = if (compmap.containsKey("rules")) {
+          val data = getChildList("rules", compmap).asInstanceOf[JavaList[JavaMap[Any, Any]]]
+          parseRules(data, comps)
+        } else Nil
+        map + (ident -> Composite(ident, name, comps, rules))
       })
   }
 
@@ -207,7 +241,12 @@ object YamlReader {
         val ident = getRequiredString("id", segmap)
         val name = getRequiredString("name", segmap)
         val list = getChildList("values", segmap).asInstanceOf[JavaList[JavaMap[Any, Any]]]
-        map + (ident -> Segment(ident, name, parseSegmentComponents(list, elements, composites), Nil))
+        val comps = parseSegmentComponents(list, elements, composites)
+        val rules = if (segmap.containsKey("rules")) {
+          val data = getChildList("rules", segmap).asInstanceOf[JavaList[JavaMap[Any, Any]]]
+          parseRules(data, comps)
+        } else Nil
+        map + (ident -> Segment(ident, name, comps, rules))
       })
 
     val transin = getChildList("transactions", input).asInstanceOf[JavaList[JavaMap[Any, Any]]]
