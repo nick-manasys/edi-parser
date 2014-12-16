@@ -2,31 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.mule.edi</groupId>
   <artifactId>edi-parser</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
   <packaging>jar</packaging>
   <name>Mule EDI Parser</name>
 
-  <properties>
-    <junit.version>4.9</junit.version>
-    <jdk.version>1.7</jdk.version>
-    <base.scala.version>2.11</base.scala.version>
-    <scala.version>${base.scala.version}.1</scala.version>
-  </properties>
+  <parent>
+    <groupId>org.mule.edi</groupId>
+    <artifactId>edi</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <relativePath>..</relativePath>
+  </parent>
 
   <dependencies>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-compiler</artifactId>
-      <version>${scala.version}</version>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.scala-lang</groupId>
-      <artifactId>scala-library</artifactId>
-      <version>${scala.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
@@ -52,65 +39,7 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>net.alchim31.maven</groupId>
-          <artifactId>scala-maven-plugin</artifactId>
-          <version>3.2.0</version>
-          <configuration>
-            <recompileMode>incremental</recompileMode>
-            <source>${jdk.version}</source>
-            <target>${jdk.version}</target>
-            <launchers>
-              <launcher>
-                <id>genx12</id>
-                <mainClass>com.anypoint.df.edi.schema.convert.X12TablesConverter</mainClass>
-                <args>
-                  <arg>src/test/resources/x12/5010</arg>
-                  <arg>target/schemas/x12/5010</arg>
-                </args>
-                <jvmArgs>
-                  <jvmArg>-Xms256m</jvmArg>
-                  <jvmArg>-Xmx256m</jvmArg>
-                </jvmArgs>
-              </launcher>
-            </launchers>
-          </configuration>
-        </plugin>
-        <!-- maven compiler not used in build, but lets Eclipse know code version -->
-        <plugin>
-           <artifactId>maven-compiler-plugin</artifactId>
-           <version>2.0.2</version>
-           <configuration>
-             <source>${jdk.version}</source>
-             <target>${jdk.version}</target>
-           </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
-      <plugin>
-        <groupId>net.alchim31.maven</groupId>
-        <artifactId>scala-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>scala-compile-first</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>add-source</goal>
-              <goal>compile</goal>
-            </goals>
-          </execution>
-          <execution>
-            <id>scala-test-compile</id>
-            <phase>process-test-resources</phase>
-            <goals>
-              <goal>testCompile</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
@@ -127,9 +56,10 @@
       </plugin>
     </plugins>
   </build>
-
+  
   <repositories>
     <repository>
+      <!-- Needed for snakeyaml -->
       <id>oss-sonatype-snapshots</id>
       <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
     </repository>
