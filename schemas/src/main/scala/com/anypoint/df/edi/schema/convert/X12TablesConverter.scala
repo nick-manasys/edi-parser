@@ -18,6 +18,9 @@ import com.anypoint.df.edi.lexical.EdiConstants._
 /** Application to generate X12 transaction schemas from table data.
   */
 object X12TablesConverter {
+  
+  // YAML file extension
+  val yamlExtension = ".esl"
 
   // file names
   val transHeadersName = "sethead.txt"
@@ -249,14 +252,14 @@ object X12TablesConverter {
   /** Write schema to file. */
   def writeSchema(schema: EdiSchema, name: String, yamldir: File) = {
     println(s"writing schema $name")
-    val writer = new OutputStreamWriter(new FileOutputStream(new File(yamldir, name + ".yaml")), "UTF-8")
+    val writer = new OutputStreamWriter(new FileOutputStream(new File(yamldir, name + yamlExtension)), "UTF-8")
     YamlWriter.write(schema, writer)
     writer.close
   }
 
   /** Verify schema written to file. */
   def verifySchema(baseSchema: EdiSchema, name: String, yamldir: File) = {
-    val reader = new InputStreamReader(new FileInputStream(new File(yamldir, name + ".yaml")), "UTF-8")
+    val reader = new InputStreamReader(new FileInputStream(new File(yamldir, name + yamlExtension)), "UTF-8")
     val readSchema = YamlReader.loadYaml(reader)
     //    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }

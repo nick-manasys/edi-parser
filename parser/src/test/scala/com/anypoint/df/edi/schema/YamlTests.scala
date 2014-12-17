@@ -12,7 +12,7 @@ class RoundtripTest extends FlatSpec with Matchers {
   import EdiSchema._
 
   "YamlReader and YamlWriter" should "roundtrip a YAML schema file correctly" in {
-    val stream = getClass.getClassLoader.getResourceAsStream("yaml/cdw850schema.yaml")
+    val stream = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val input = Source.fromInputStream(stream).mkString
     val schema = YamlReader.loadYaml(new StringReader(input))
     val writer = new StringWriter
