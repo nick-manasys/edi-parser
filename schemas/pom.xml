@@ -28,34 +28,6 @@
   </dependencies>
 
   <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>net.alchim31.maven</groupId>
-          <artifactId>scala-maven-plugin</artifactId>
-          <version>3.2.0</version>
-          <configuration>
-            <recompileMode>incremental</recompileMode>
-            <source>${jdk.version}</source>
-            <target>${jdk.version}</target>
-            <launchers>
-              <launcher>
-                <id>genx12</id>
-                <mainClass>com.anypoint.df.edi.schema.convert.X12TablesConverter</mainClass>
-                <args>
-                  <arg>src/test/resources/x12/5010</arg>
-                  <arg>target/schemas/x12/5010</arg>
-                </args>
-                <jvmArgs>
-                  <jvmArg>-Xms256m</jvmArg>
-                  <jvmArg>-Xmx256m</jvmArg>
-                </jvmArgs>
-              </launcher>
-            </launchers>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
     <plugins>
       <plugin>
         <groupId>net.alchim31.maven</groupId>
@@ -70,11 +42,10 @@
               <target>${jdk.version}</target>
               <launchers>
                 <launcher>
-                  <id>genx12</id>
                   <mainClass>com.anypoint.df.edi.schema.convert.X12TablesConverter</mainClass>
                   <args>
-                    <arg>src/test/resources/x12/5010</arg>
-                    <arg>target/schemas/x12/5010</arg>
+                    <arg>${basedir}/src/main/build-resources/x12/5010</arg>
+                    <arg>${project.build.directory}/schemas/x12/5010</arg>
                   </args>
                   <jvmArgs>
                     <jvmArg>-Xms256m</jvmArg>
@@ -88,6 +59,14 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <classesDirectory>${project.build.directory}/schemas</classesDirectory>
+        </configuration>
       </plugin>
     </plugins>
   </build>
