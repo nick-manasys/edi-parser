@@ -1,90 +1,92 @@
 form: X12
+version: '05010'
 transactions:
 - id: '850'
   name: Purchase order
   group: PO
   heading:
-  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', position: '0100', usage: M }
   - loopId: 'N1'
     usage: O
     items:
-    - { idRef: 'N1', usage: O }
-    - { idRef: 'N2', usage: O }
-    - { idRef: 'N3', usage: O }
+    - { idRef: 'N1', position: '3100', usage: O }
+    - { idRef: 'N2', position: '3200', usage: O }
+    - { idRef: 'N3', position: '3300', usage: O }
   detail:
   - loopId: 'PO1'
     usage: M
     items:
-    - { idRef: 'PO1', usage: O }
+    - { idRef: 'PO1', position: '0100', usage: O }
   summary:
-  - { idRef: 'SE', usage: M }
+  - { idRef: 'SE', position: '0300', usage: M }
 segments:
 - id: 'N1'
   name: Name
   values:
   - { idRef: '98', name: 'Type of Organization', usage: M }
-  - { idRef: '93', name: 'Name', usage: U }
+  - { idRef: '93', usage: U }
   - { idRef: '66', name: 'ID Code Qualifier', usage: U }
   - { idRef: '67', name: 'Identifying Number', usage: U }
-  - { idRef: '706', name: 'Entity Relationship Code', usage: U }
-  - { idRef: '98', name: 'Entity Identifier Code', usage: U }
+  - { idRef: '706', usage: U }
+  - { idRef: '98', usage: U }
 - id: 'N2'
   name: Additional Name Information
   values:
-  - { idRef: '93', name: 'Name', usage: M }
-  - { idRef: '93', name: 'Name', usage: O }
+  - { idRef: '93', usage: M }
+  - { idRef: '93', usage: O }
 - id: 'N3'
   name: Address Information
   values:
-  - { idRef: '166', name: 'Address Information', usage: M }
-  - { idRef: '166', name: 'Address Information', usage: O }
+  - { idRef: '166', usage: M }
+  - { idRef: '166', usage: O }
 - id: 'PO1'
   name: Baseline Item Data
   values:
-  - { idRef: '350', name: 'Assigned Identification', usage: O }
-  - { idRef: '330', name: 'Quantity Ordered', usage: U }
-  - { idRef: '335', name: 'Unit of Measurement Code', usage: O }
-  - { idRef: '212', name: 'Unit Price', usage: U }
-  - { idRef: '639', name: 'Basis of Unit Price Code', usage: O }
-  - { idRef: '235', name: 'Product/Service ID Qualifier', usage: U }
-  - { idRef: '234', name: 'Product/Service ID', usage: U }
-  - { idRef: '235', name: 'Product/Service ID Qualifier', usage: U }
-  - { idRef: '234', name: 'Product/Service ID', usage: U }
-  - { idRef: '235', name: 'Product/Service ID Qualifier', usage: U }
-  - { idRef: '234', name: 'Product/Service ID', usage: U }
-  - { idRef: '235', name: 'Product/Service ID Qualifier', usage: U }
-  - { idRef: '234', name: 'Product/Service ID', usage: U }
-  - { idRef: '235', name: 'Product/Service ID Qualifier', usage: U }
-  - { idRef: '234', name: 'Product/Service ID', usage: U }
-  - { idRef: '235', name: 'Product/Service ID Qualifier', usage: U }
-  - { idRef: '234', name: 'Product/Service ID', usage: U }
-  - { idRef: '235', name: 'Product/Service ID Qualifier', usage: U }
-  - { idRef: '234', name: 'Product/Service ID', usage: U }
+  - { idRef: '350', usage: O }
+  - { idRef: '380', name: 'Quantity Ordered', usage: U }
+  - { idRef: '355', name: 'Unit of Measurement Code', usage: O }
+  - { idRef: '212', usage: U }
+  - { idRef: '639', usage: O }
+  - { idRef: '235', usage: U }
+  - { idRef: '234', usage: U }
+  - { idRef: '235', usage: U }
+  - { idRef: '234', usage: U }
+  - { idRef: '235', usage: U }
+  - { idRef: '234', usage: U }
+  - { idRef: '235', usage: U }
+  - { idRef: '234', usage: U }
+  - { idRef: '235', usage: U }
+  - { idRef: '234', usage: U }
+  - { idRef: '235', usage: U }
+  - { idRef: '234', usage: U }
+  - { idRef: '235', usage: U }
+  - { idRef: '234', usage: U }
   - { idRef: '350', name: 'Not a real value - testing YAML support', position: 99, usage: O }
 - id: 'ST'
   name: Transaction Set Header
   values:
   - { idRef: '143', name: 'Transaction Set Identifier', usage: M }
-  - { idRef: '329', name: 'Transaction Set Control Number', usage: M }
+  - { idRef: '329', usage: M }
 - id: 'SE'
   name: Transaction Set Trailer
   values:
-  - { idRef: '96', name: 'Number of Included Segments', usage: M }
-  - { idRef: '329', name: 'Transaction Set Control Number', usage: M }
+  - { idRef: '96', usage: M }
+  - { idRef: '329', usage: M }
 elements:
-- { id: '66', type: ID, minLength: 1, maxLength: 2 }
-- { id: '67', type: AN, minLength: 2, maxLength: 80 }
-- { id: '93', type: AN, minLength: 1, maxLength: 60 }
-- { id: '96', type: N0, minLength: 1, maxLength: 10 }
-- { id: '98', type: ID, minLength: 2, maxLength: 3 }
-- { id: '143', type: ID, minLength: 3, maxLength: 3 }
-- { id: '166', type: AN, minLength: 1, maxLength: 55 }
-- { id: '212', type: R, minLength: 1, maxLength: 17 }
-- { id: '234', type: AN, minLength: 1, maxLength: 48 }
-- { id: '235', type: ID, minLength: 2, maxLength: 2 }
-- { id: '329', type: AN, minLength: 4, maxLength: 9 }
-- { id: '330', type: R, minLength: 1, maxLength: 15 }
-- { id: '335', type: ID, minLength: 2, maxLength: 2 }
-- { id: '350', type: AN, minLength: 1, maxLength: 20 }
-- { id: '639', type: ID, minLength: 2, maxLength: 2 }
-- { id: '706', type: AN, minLength: 2, maxLength: 2 }
+- { id: '66', name: 'Identification Code Qualifier', type: ID, minLength: 1, maxLength: 2 }
+- { id: '67', name: 'Identification Code', type: AN, minLength: 2, maxLength: 80 }
+- { id: '93', name: 'Name', type: AN, minLength: 1, maxLength: 60 }
+- { id: '96', name: 'Number of Included Segments', type: N0, minLength: 1, maxLength: 10 }
+- { id: '98', name: 'Entity Identifier Code', type: ID, minLength: 2, maxLength: 3 }
+- { id: '143', name: 'Transaction Set Identifier Code', type: ID, minLength: 3, maxLength: 3 }
+- { id: '166', name: 'Address Information', type: AN, minLength: 1, maxLength: 55 }
+- { id: '212', name: 'Unit Price', type: R, minLength: 1, maxLength: 17 }
+- { id: '234', name: 'Product/Service ID', type: AN, minLength: 1, maxLength: 48 }
+- { id: '235', name: 'Product/Service ID Qualifier', type: ID, minLength: 2, maxLength: 2 }
+- { id: '329', name: 'Transaction Set Control Number', type: AN, minLength: 4, maxLength: 9 }
+- { id: '330', name: 'Quantity Ordered', type: R, minLength: 1, maxLength: 15 }
+- { id: '355', name: 'Unit or Basis for Measurement Code', type: ID, minLength: 2, maxLength: 2 }
+- { id: '350', name: 'Assigned Identification', type: AN, minLength: 1, maxLength: 20 }
+- { id: '380', name: 'Quantity', type: R, minLength: 1, maxLength: 15 }
+- { id: '639', name: 'Basis of Unit Price Code', type: ID, minLength: 2, maxLength: 2 }
+- { id: '706', name: 'Entity Relationship Code', type: AN, minLength: 2, maxLength: 2 }

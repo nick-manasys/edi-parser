@@ -7,7 +7,7 @@ import scala.annotation.tailrec
 import EdiSchema._
 import java.io.File
 
-/** Print the code to create a segment or transaction. */
+/** Print the code to create a segment or transaction. Note that this does not handle variant groups. */
 class SchemaDump(writer: PrintWriter) {
 
   val BREAK_LINE_LENGTH = 100
@@ -108,6 +108,9 @@ class SchemaDump(writer: PrintWriter) {
           builder.indent
           builder.break
           componentList(group.items)
+          builder.break
+          builder.append(group.varkey.toString)
+          builder.append(", Nil")
           builder.append("))")
           builder.outdent
         }
@@ -179,7 +182,7 @@ object SchemaToCode {
     */
   def main(args: Array[String]): Unit = {
     val yamlin = new InputStreamReader(new FileInputStream(new File(args(0))), "UTF-8")
-    val schema = YamlReader.loadYaml(yamlin)
+    val schema = YamlReader.loadYaml(yamlin, Array())
     val writer = new PrintWriter(System.out)
     val dumper = new SchemaDump(writer)
     schema.transactions.values.foreach(transact => dumper.toCode(transact))

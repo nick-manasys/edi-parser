@@ -62,7 +62,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
           (1 until comp.count) foreach { index =>
             complist add (parseCompInst())
           }
-        } else map put (comp.key, parseCompInst())
+        } else parseCompList(composite.components, QUALIFIER, map)
       }
     }
   }
@@ -71,7 +71,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   def parseCompList(comps: List[SegmentComponent], expect: ItemType, map: ValueMap): Unit
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
-  def parseSegment(segment: Segment, group: Option[String]): ValueMap
+  def parseSegment(segment: Segment, group: Option[String], position: String): ValueMap
 
   /** Check if at segment start. */
   def checkSegment(segment: Segment) = lexer.currentType == SEGMENT && lexer.token == segment.ident
@@ -98,40 +98,67 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     * keys are segment or nested group names, values are maps or lists).
     */
   def parseTransaction(transaction: Transaction) = {
+    
+    /** Get list of maps for key. If the list is not already set, this creates and returns a new one. */
+    def getList(key: String, values: ValueMap) =
+      if (values.containsKey(key)) values.get(key).asInstanceOf[MapList]
+      else {
+        val list = new MapListImpl
+        values put (key, list)
+        list
+      }
 
     /** Parse a (potentially) repeating segment into a list of maps. */
-    def parseRepeatingSegment(segment: Segment, limit: Int, group: Option[String]): MapList = {
+    def parseRepeatingSegment(segment: Segment, limit: Int, group: Option[String], position: String): MapList = {
       val list: MapList = new MapListImpl()
       @tailrec
       def parseRepeat(): Unit =
         if (checkSegment(segment)) {
           if (limit > 0 && limit <= list.size) segmentError(segment.ident, group, ComponentErrors.TooManyRepetitions)
-          list add (parseSegment(segment, group))
+          list add (parseSegment(segment, group, position))
           parseRepeat()
         }
       parseRepeat()
       list
     }
 
-    /** Parse a (potentially) repeating group into a list of maps. */
-    def parseRepeatingGroup(group: GroupComponent): MapList = {
-      val list: MapList = new MapListImpl()
-      val lead = group.items match {
-        case (ref: ReferenceComponent) :: t => ref.segment
-        case _ => throw new IllegalStateException(s"first item in group ${group.ident} is not a segment")
-      }
+    /** Parse a (potentially) repeating group, with variants treated separately. The repeating group is represented as a
+      * list of maps, one for each occurrence of the group not recognized as a variant. Variants which can occur
+      * multiple times are represented as separate lists of maps, those which can only occur once are represented as
+      * simple maps. Key values for variants are derived by concatenating the variant field value to the base group key
+      * separated by an underscore.
+      */
+    def parseRepeatingGroup(group: GroupComponent, values: ValueMap): Unit = {
+      def verifyRepeats(key: String, max: Int) =
+        if (getList(key, values).size >= max) segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops)
+      def addInstance(key: String, data: ValueMap) =
+        if (values.containsKey(key)) values get (key) match {
+          case list: MapList => list add (data)
+          case _ => segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops)
+        }
+        else values put (key, data)
       @tailrec
-      def parseRepeat(): Unit =
-        if (checkSegment(lead)) {
-          if (group.count > 0 && group.count <= list.size)
-            segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops)
-          list add (parseSection(group.items, Some(group.ident)))
+      def parseRepeat(): Unit = {
+        logger.info(s"checking for loop start segment '${group.leadseg.ident}'': ${checkSegment(group.leadseg)}")
+        if (checkSegment(group.leadseg)) {
+          val leadmap = parseSegment(group.leadseg, Some(group.ident), group.items.head.asInstanceOf[ReferenceComponent].position)
+          val varval = leadmap.get(group.varkey).asInstanceOf[String]
+          if (group.varbyval.contains(varval)) {
+            val variant = group.varbyval(varval)
+            verifyRepeats(variant.key, variant.count)
+            addInstance(variant.key, parseSection(variant.items.tail, Some(group.ident)))
+          } else {
+            verifyRepeats(group.key, group.count)
+            addInstance(group.key, parseSection(group.items.tail, Some(group.ident)))
+          }
           parseRepeat()
         }
+      }
+
       parseRepeat()
-      list
     }
 
+    /** Check if current segment is known. */
     def checkSegmentKnown(): Unit = lexer.currentType match {
       case SEGMENT =>
         if (!transaction.segmentIds.contains(lexer.token)) {
@@ -140,7 +167,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
           while (ident == lexer.token) discardSegment
         }
       case END =>
-      case _ => throw new IllegalStateException("lexer in segment data")
+      case _ => throw new IllegalStateException("lexer in data when should be start of segment")
     }
 
     /** Parse a portion of transaction data represented by a list of components (which may be segment references or
@@ -153,10 +180,12 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         case (ref: ReferenceComponent) :: tail => {
           val segment = ref.segment
           if (!isEnvelopeSegment(segment)) {
+            logger.info(s"checking for segment '${segment.ident}'': ${checkSegment(segment)}")
             if (checkSegment(segment)) {
               if (ref.usage == UnusedUsage) segmentError(segment.ident, group, ComponentErrors.UnusedSegment)
               val data =
-                if (ref.count == 1) parseSegment(segment, group) else parseRepeatingSegment(segment, ref.count, group)
+                if (ref.count == 1) parseSegment(segment, group, ref.position)
+                else parseRepeatingSegment(segment, ref.count, group, ref.position)
               values put (segment.name, data)
               checkSegmentKnown()
             } else if (ref.usage == MandatoryUsage) segmentError(segment.ident, group, ComponentErrors.MissingRequired)
@@ -164,10 +193,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
           parseComponents(tail)
         }
         case (group: GroupComponent) :: tail => {
-          val repeats = parseRepeatingGroup(group)
-          if (repeats.size() > 0) values put (group.ident, repeats)
-          else if (group.usage == MandatoryUsage)
-            segmentError(group.ident, Some(group.ident), ComponentErrors.MissingRequired)
+          parseRepeatingGroup(group, values)
           parseComponents(tail)
         }
         case Nil =>

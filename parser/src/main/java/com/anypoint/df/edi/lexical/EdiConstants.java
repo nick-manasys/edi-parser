@@ -28,36 +28,38 @@ public final class EdiConstants
     /** Data types. */
     public enum DataType
     {
-        REAL("R"),
-        ID("ID"),
-        ALPHANUMERIC("AN"),
-        ALPHA("A"),
-        DATE("DT"),
-        TIME("TM"),
-        BINARY("B"),
-        NUMBER("N"),
-        INTEGER("N0"),
-        DECIMAL1("N1", 1),
-        DECIMAL2("N2", 2),
-        DECIMAL3("N3", 3),
-        DECIMAL4("N4", 4),
-        DECIMAL5("N5", 5),
-        DECIMAL6("N6", 6),
-        DECIMAL7("N7", 7),
-        DECIMAL8("N8", 8),
-        DECIMAL9("N9", 9);
+        REAL("R", false),
+        ID("ID", true),
+        ALPHANUMERIC("AN", true),
+        ALPHA("A", true),
+        DATE("DT", false),
+        TIME("TM", false),
+        BINARY("B", false),
+        NUMBER("N", true),
+        INTEGER("N0", false),
+        DECIMAL1("N1", false, 1),
+        DECIMAL2("N2", false, 2),
+        DECIMAL3("N3", false, 3),
+        DECIMAL4("N4", false, 4),
+        DECIMAL5("N5", false, 5),
+        DECIMAL6("N6", false, 6),
+        DECIMAL7("N7", false, 7),
+        DECIMAL8("N8", false, 8),
+        DECIMAL9("N9", false, 9);
         
         private final String typeCode;
         private final int decimalPlaces;
+        private final boolean edifactType;
         
-        private DataType(String code, int places) {
+        private DataType(String code, boolean edifact, int places) {
             typeCode = code;
+            edifactType = edifact;
             decimalPlaces = places;
             NAMETYPES.put(code, this);
         }
         
-        private DataType(String code) {
-            this(code, -1);
+        private DataType(String code, boolean edifact) {
+            this(code, edifact, -1);
         }
         
         /**
@@ -89,16 +91,34 @@ public final class EdiConstants
     }
     
     /**
-     * Get data type from type code. This throws an exception if the type code is unknown.
+     * Get data type from X12 type code. This throws an exception if the type code is unknown.
      *
-     * @param type
+     * @param code
      * @return
      */
-    public static DataType toType(String type) {
-        if (NAMETYPES.containsKey(type)) {
-            return NAMETYPES.get(type);
+    public static DataType toX12Type(String code) {
+        if (NAMETYPES.containsKey(code)) {
+            return NAMETYPES.get(code);
         } else {
-            throw new IllegalArgumentException("Unknown type code " + type);
+            throw new IllegalArgumentException("Unknown type code " + code);
+        }
+    }
+    
+    /**
+     * Get data type from EDIFACT type code. This throws an exception if the type code is unknown.
+     *
+     * @param code
+     * @return
+     */
+    public static DataType toEdifactType(String code) {
+        if (NAMETYPES.containsKey(code)) {
+            DataType type = NAMETYPES.get(code);
+            if (!type.edifactType) {
+                throw new IllegalArgumentException("Not an EDIFACT type code " + code);
+            }
+            return type;
+        } else {
+            throw new IllegalArgumentException("Unknown type code " + code);
         }
     }
     

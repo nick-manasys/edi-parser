@@ -75,12 +75,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       val comp = currentSegment.components(lexer.getElementNumber())
       val ak4 = new ValueMapImpl
       val compPos = new ValueMapImpl
-      compPos put (compC030.components(0).key, lexer.getElementNumber() toString)
+      compPos put (segAK4compC030.components(0).key, lexer.getElementNumber() toString)
       comp match {
-        case ElementComponent(elem, _, _, _, _) => ak4 put (segAK4.components(1).key, elem.ident)
-        case _: CompositeComponent => compPos put (compC030.components(1).key, lexer.getComponentNumber() toString)
+        case ElementComponent(elem, _, _, _, _, _) => ak4 put (segAK4compC030.components(1).key, elem.ident)
+        case _: CompositeComponent => compPos put (segAK4compC030.components(1).key, lexer.getComponentNumber() toString)
       }
-      if (comp.count != 1) compPos put (compC030.components(2).key, lexer.getRepetitionNumber() toString)
+      if (comp.count != 1) compPos put (segAK4compC030.components(2).key, lexer.getRepetitionNumber() toString)
       ak4 put (segAK4.components(1).key, compPos)
       ak4 put (segAK4.components(2).key, error.code toString)
       if (error != InvalidCharacter) ak4 put (segAK4.components(3).key, lexer.token)
@@ -111,7 +111,8 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     }
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
-  def parseSegment(segment: Segment, group: Option[String]): ValueMap = {
+  def parseSegment(segment: Segment, group: Option[String], position: String): ValueMap = {
+    logger.info(s"parsing segment ${segment.ident} at position $position")
     val map = new ValueMapImpl()
     dataErrors.clear
     currentSegment = segment
@@ -125,6 +126,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       }
     }
     if (!dataErrors.isEmpty && config.reportDataErrors) {
+      logger.info(s"error(s) found in parsing segment")
       val ak3 = new ValueMapImpl
       ak3 put (segAK3.components(0).key, segment.ident)
       ak3 put (segAK3.components(1).key, lexer.getSegmentNumber.toString)
@@ -133,6 +135,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ak3 put (segAK2.ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
       segmentErrors += ak3
     }
+    logger.info(s"now positioned at segment '${lexer.token}'")
     map
   }
 
@@ -188,7 +191,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
 
   /** Parse start of a functional group. */
   def openGroup() =
-    if (checkSegment(GSSegment)) parseSegment(GSSegment, None)
+    if (checkSegment(GSSegment)) parseSegment(GSSegment, None, "00000")
     else throw new IllegalStateException("missing required GS segment")
 
   /** Check if at functional group close segment. */
@@ -197,7 +200,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse close of a functional group. */
   def closeGroup(props: ValueMap) = {
     if (checkSegment(GESegment)) {
-      val endprops = parseSegment(GESegment, None)
+      val endprops = parseSegment(GESegment, None, "00000")
       if (props.get(groupControlKey) != endprops.get(groupControlEndKey)) {
         throw new IllegalStateException("group control number in trailer does not match header")
       }
@@ -210,7 +213,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse start of a transaction set. */
   def openSet() =
     if (checkSegment(STSegment)) {
-      val values = parseSegment(STSegment, None)
+      val values = parseSegment(STSegment, None, "00000")
       (values.get(transactionSetIdentifierKey).asInstanceOf[String], values)
     } else throw new IllegalStateException("missing required ST segment")
 
@@ -220,7 +223,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse close of a transaction set. */
   def closeSet(props: ValueMap) = {
     if (checkSegment(SESegment)) {
-      val endprops = parseSegment(SESegment, None)
+      val endprops = parseSegment(SESegment, None, "00000")
       if (props.get(transactionSetControlKey) != endprops.get(transactionSetControlEndKey)) {
         throw new IllegalStateException("transaction set control number in trailer does not match header")
       }

@@ -18,7 +18,7 @@ import com.anypoint.df.edi.lexical.EdiConstants._
 /** Application to generate X12 transaction schemas from table data.
   */
 object X12TablesConverter {
-  
+
   // YAML file extension
   val yamlExtension = ".esl"
 
@@ -101,7 +101,8 @@ object X12TablesConverter {
         case (key, list) => {
           val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
             case pos :: elem :: req :: Nil =>
-              ElementComponent(elements(elem), elemNames(elem), pos.toInt, convertUsage(req), 1) :: acc
+              val position = pos.toInt
+              ElementComponent(elements(elem), None, keyName(key, position), position, convertUsage(req), 1) :: acc
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
           map + (key -> Composite(key, compNames(key), comps, Nil))
@@ -118,8 +119,10 @@ object X12TablesConverter {
             case pos :: ident :: req :: reps :: Nil => {
               val count = reps.toInt
               val usage = convertUsage(req)
-              if (elements.contains(ident)) ElementComponent(elements(ident), elemNames(ident), pos.toInt, usage, count) :: acc
-              else CompositeComponent(composites(ident), compNames(ident), pos.toInt, usage, count) :: acc
+              val position = pos.toInt
+              val ckey = keyName(key, position)
+              if (elements.contains(ident)) ElementComponent(elements(ident), None, ckey, position, usage, count) :: acc
+              else CompositeComponent(composites(ident), None, ckey, position, usage, count) :: acc
             }
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
@@ -132,7 +135,7 @@ object X12TablesConverter {
     groups: ListOfKeyedLists) = {
 
     /** Converted form of component information from transaction details row. */
-    case class ComponentInfo(segment: Segment, usage: Usage, repeat: Int, loop: List[ComponentInfo])
+    case class ComponentInfo(segment: Segment, seq: String, usage: Usage, repeat: Int, loop: List[ComponentInfo])
 
     /** Map from area name to component information list. */
     type AreaMap = Map[String, List[ComponentInfo]]
@@ -141,11 +144,11 @@ object X12TablesConverter {
     def convertComponents(rows: List[List[String]]): AreaMap = {
 
       /** Convert string values to component information structure. */
-      def info(segid: String, req: String, max: String, nested: List[ComponentInfo]) = {
+      def info(segid: String, seq: String, req: String, max: String, nested: List[ComponentInfo]) = {
         val segment = segments(segid)
         val usage = convertUsage(req)
         val repeat = if (max == ">1") 0 else max.toInt
-        ComponentInfo(segment, usage, repeat, nested)
+        ComponentInfo(segment, seq, usage, repeat, nested)
       }
 
       /** Start a new loop (need separate function to keep convertr tail recursive). */
@@ -154,20 +157,19 @@ object X12TablesConverter {
 
       /** Recursively convert lists of strings to data tuples, checking and handling loops. */
       @tailrec
-      def convertr(remain: List[List[String]], depth: Int, loop: Boolean,
-        acc: List[ComponentInfo]): (List[List[String]], List[ComponentInfo]) = remain match {
-        case (areaid :: _ :: segid :: req :: max :: level :: repeat :: loopid :: Nil) :: tail => {
+      def convertr(remain: List[List[String]], depth: Int, loop: Boolean, acc: List[ComponentInfo]): (List[List[String]], List[ComponentInfo]) = remain match {
+        case (areaid :: seq :: segid :: req :: max :: level :: repeat :: loopid :: Nil) :: tail => {
           val at = level.toInt
           if (depth > at || (!loop && depth == at && loopid != "")) {
             // loop closed (either back to containing level, or starting another loop at same level)
             (remain, acc)
           } else if (depth == at) {
             // continuing at current loop level
-            convertr(tail, at, false, info(segid, req, max, Nil) :: acc)
+            convertr(tail, at, false, info(segid, seq, req, max, Nil) :: acc)
           } else {
             // starting a nested loop
             val (rest, nested) = descend(remain, depth + 1)
-            convertr(rest, depth, false, info(segid, req, repeat, nested) :: acc)
+            convertr(rest, depth, false, info(segid, seq, req, repeat, nested) :: acc)
           }
         }
         case Nil => (Nil, acc)
@@ -181,10 +183,10 @@ object X12TablesConverter {
     @tailrec
     def buildr(remain: List[ComponentInfo], acc: List[TransactionComponent]): List[TransactionComponent] =
       remain match {
-        case ComponentInfo(segment, usage, repeat, loop) :: tail => {
+        case ComponentInfo(segment, seq, usage, repeat, loop) :: tail => {
           val list =
-            if (loop.isEmpty) ReferenceComponent(segment, usage, repeat) :: acc
-            else GroupComponent(segment.ident, usage, repeat, descend(loop)) :: acc
+            if (loop.isEmpty) ReferenceComponent(segment, seq, usage, repeat) :: acc
+            else GroupComponent(segment.ident, usage, repeat, descend(loop), None, Nil) :: acc
           buildr(tail, list)
         }
         case _ => acc
@@ -213,54 +215,20 @@ object X12TablesConverter {
   }
 
   /** Convert element data type, extending base conversion to allow empty type. */
-  def convertType(text: String) = if (text.length > 0) EdiConstants.toType(text) else DataType.ALPHANUMERIC
-
-  /** Construct schema for a single transaction. */
-  def transactionSchema(transact: Transaction) = {
-
-    /** Recursively collect segments used in transaction. */
-    def descendSeg(comps: List[TransactionComponent], segs: Set[Segment]) = segmentr(comps, segs)
-    def segmentr(remain: List[TransactionComponent], segs: Set[Segment]): Set[Segment] = remain match {
-      case ReferenceComponent(seg, _, _) :: tail => segmentr(tail, segs + seg)
-      case GroupComponent(_, _, _, comps) :: tail => segmentr(tail, descendSeg(comps, segs))
-      case _ => segs
-    }
-
-    /** Recursively collect composites and elements used in segment. */
-    def descendComp(list: List[SegmentComponent], comps: Set[Composite], elems: Set[Element]) =
-      compositer(list, comps, elems)
-    def compositer(remain: List[SegmentComponent], comps: Set[Composite],
-      elems: Set[Element]): (Set[Composite], Set[Element]) = remain match {
-      case ElementComponent(elem, _, _, _, _) :: tail => compositer(tail, comps, elems + elem)
-      case CompositeComponent(comp, _, _, _, _) :: tail => {
-        val (ncomps, nelems) = descendComp(comp.components, comps + comp, elems)
-        compositer(tail, ncomps, nelems)
-      }
-      case _ => (comps, elems)
-    }
-
-    val segs = segmentr(transact.summary, segmentr(transact.detail, segmentr(transact.heading, Set())))
-    val (comps, elems) = segs.foldLeft((Set[Composite](), Set[Element]()))((acc, seg) =>
-      compositer(seg.components, acc._1, acc._2))
-    EdiSchema(X12,
-      elems.foldLeft(Map.empty[String, Element])((acc, elem) => acc + (elem.ident -> elem)),
-      comps.foldLeft(Map.empty[String, Composite])((acc, comp) => acc + (comp.ident -> comp)),
-      segs.foldLeft(Map.empty[String, Segment])((acc, seg) => acc + (seg.ident -> seg)),
-      Map(transact.ident -> transact))
-  }
+  def convertType(text: String) = if (text.length > 0) EdiConstants.toX12Type(text) else DataType.ALPHANUMERIC
 
   /** Write schema to file. */
-  def writeSchema(schema: EdiSchema, name: String, yamldir: File) = {
+  def writeSchema(schema: EdiSchema, name: String, imports: List[String], yamldir: File) = {
     println(s"writing schema $name")
     val writer = new OutputStreamWriter(new FileOutputStream(new File(yamldir, name + yamlExtension)), "UTF-8")
-    YamlWriter.write(schema, writer)
+    YamlWriter.write(schema, imports, writer)
     writer.close
   }
 
   /** Verify schema written to file. */
   def verifySchema(baseSchema: EdiSchema, name: String, yamldir: File) = {
     val reader = new InputStreamReader(new FileInputStream(new File(yamldir, name + yamlExtension)), "UTF-8")
-    val readSchema = YamlReader.loadYaml(reader)
+    val readSchema = YamlReader.loadYaml(reader, Array(yamldir.getParentFile.getParentFile.getParentFile.getAbsolutePath))
     //    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }
 
@@ -274,29 +242,34 @@ object X12TablesConverter {
     val yamldir = new File(args(1))
     if (yamldir.exists()) yamldir.listFiles().foreach { f => f.delete() }
     else yamldir.mkdirs
-    val elementNames = nameMap(fileInput(x12dir, elementHeadersName))
-    val elementDefs = foldInput(fileInput(x12dir, elementDetailsName), Map.empty[String, Element])((map, list) =>
+    val elemNames = nameMap(fileInput(x12dir, elementHeadersName))
+    val elemDefs = foldInput(fileInput(x12dir, elementDetailsName), Map.empty[String, Element])((map, list) =>
       list match {
         case number :: typ :: min :: max :: Nil =>
-          map + (number -> Element(number, convertType(typ), convertLength(min), convertLength(max)))
+          map + (number -> Element(number, elemNames(number), convertType(typ), convertLength(min), convertLength(max)))
         case _ => throw new IllegalArgumentException("wrong number of values in file")
       })
     val compNames = nameMap(fileInput(x12dir, compositeHeadersName))
     val compGroups = gatherGroups(fileInput(x12dir, compositeDetailsName), 4)
-    val compDefs = defineComposites(elementNames, elementDefs, compNames, compGroups)
+    val compDefs = defineComposites(elemNames, elemDefs, compNames, compGroups)
     val segNames = nameMap(fileInput(x12dir, segmentHeadersName))
     val segGroups = gatherGroups(fileInput(x12dir, segmentDetailsName), 5)
-    val segDefs = defineSegments(elementNames, elementDefs, compNames, compDefs, segNames, segGroups)
+    val segDefs = defineSegments(elemNames, elemDefs, compNames, compDefs, segNames, segGroups)
     val setHeads = foldInput(fileInput(x12dir, transHeadersName), Map.empty[String, (String, String)])((map, list) =>
       list match {
         case number :: name :: group :: Nil => map + (number -> (name, group))
         case _ => throw new IllegalArgumentException("wrong number of values in file")
       })
     val setGroups = gatherGroups(fileInput(x12dir, transDetailsName), 9)
+    val version = x12dir.getName
+    val baseSchema = EdiSchema(X12, version, elemDefs, compDefs, segDefs, Map[String, Transaction]())
+    writeSchema(baseSchema, "basedefs", Nil, yamldir)
+    verifySchema(baseSchema, "basedefs", yamldir)
     val transactions = defineTransactions(segDefs, setHeads, setGroups)
     transactions.values.foreach(transact => {
-      val schema = transactionSchema(transact)
-      writeSchema(schema, transact.ident, yamldir)
+      val schema = EdiSchema(X12, version, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
+          Map(transact.ident -> transact))
+      writeSchema(schema, transact.ident, List(s"schemas/x12/$version/basedefs$yamlExtension"), yamldir)
       verifySchema(schema, transact.ident, yamldir)
     })
   }

@@ -53,9 +53,9 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
           case REPETITION => writer.writeRepetitionSeparator
         }
         comp match {
-          case ElementComponent(elem, name, pos, use, count) =>
+          case ElementComponent(elem, _, _, _, _, _) =>
             writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
-          case CompositeComponent(composite, name, pos, use, count) =>
+          case CompositeComponent(composite, _, _, _, _, _) =>
             writeCompList(value.asInstanceOf[ValueMap], QUALIFIER, composite.components)
         }
       }
@@ -63,9 +63,8 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       if (map.containsKey(comp.key)) {
         val value = map.get(comp.key)
         if (comp.count > 1) {
-          if (!value.isInstanceOf[SimpleList]) {
-            throw new WriteException(s"expected list of values for property ${comp.name}")
-          } else {
+          if (!value.isInstanceOf[SimpleList]) throw new WriteException(s"expected list of values for property ${comp.name}")
+          else {
             val iter = JavaConversions.asScalaIterator(value.asInstanceOf[SimpleList].iterator)
             iter.foreach(value => writeComponent(value))
           }
@@ -107,26 +106,20 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     }
 
     /** Write a (potentially) repeating group from a list of maps. */
-    def writeRepeatingGroup(list: MapList, group: GroupComponent): Unit = {
+    def writeRepeatingGroup(list: MapList, group: GroupBase): Unit = {
       val iter = JavaConversions.asScalaIterator(list.iterator)
       iter.foreach(map => writeSection(map, group.items))
-    }
-
-    /** Get the map key for a component segment reference or group. */
-    def getKey(comp: TransactionComponent) = comp match {
-      case ref: ReferenceComponent => ref.segment.name
-      case group: GroupComponent => group.ident
     }
 
     /** Write a portion of transaction data represented by a list of components (which may be segment references or
       * loops) into a map.
       */
     def writeSection(map: ValueMap, comps: List[TransactionComponent]): Unit = comps.foreach(comp => {
-      val key = getKey(comp)
       def checkMissing() = comp.usage match {
-        case MandatoryUsage => throw new WriteException(s"missing required value '$key'")
+        case MandatoryUsage => throw new WriteException(s"missing required value '${comp.key}'")
         case _ =>
       }
+      val key = comp.key
       comp match {
         case ref: ReferenceComponent =>
           if (!isEnvelopeSegment(ref.segment)) {
@@ -137,8 +130,14 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
             } else checkMissing()
           }
         case group: GroupComponent =>
+          var variant = false
+          group.variants.foreach { gv => if (map.containsKey(gv.key)) {
+            variant = true
+            if (gv.count > 1) writeRepeatingGroup(getRequiredMapList(key, map), group)
+            else writeSection(getRequiredValueMap(gv.key, map), gv.items)
+          }}
           if (map.containsKey(key)) writeRepeatingGroup(getRequiredMapList(key, map), group)
-          else checkMissing()
+          else if (!variant) checkMissing()
       }
     })
 

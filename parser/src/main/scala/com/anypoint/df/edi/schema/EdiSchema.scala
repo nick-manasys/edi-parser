@@ -37,13 +37,50 @@ object EdiSchema {
   case class DependencyNote(val kind: DependencyType, val items: Seq[Int])
   // TODO: add dependency rules to schema representation
 
-  case class Element(val ident: String, val dataType: DataType, val minLength: Int, val maxLength: Int)
+  /** Construct data value key name from parent identifier and position value. */
+  def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
 
-  abstract class SegmentComponent(val name: String, val position: Int, val usage: Usage, val count: Int) {
-    val key = name + " (" + (if (position >= 10) position.toString else "0" + position.toString) + ")"
-  }
-  case class ElementComponent(val element: Element, nm: String, pos: Int, use: Usage, cnt: Int) extends SegmentComponent(nm, pos, use, cnt)
-  case class CompositeComponent(val composite: Composite, nm: String, pos: Int, use: Usage, cnt: Int) extends SegmentComponent(nm, pos, use, cnt)
+  /** Element definition.
+    * @param ident unique identifier (actually a number)
+    * @param name readable name
+    * @param dataType type
+    * @param minLength minimum value length
+    * @param maxLength maximum value length
+    */
+  case class Element(val ident: String, val name: String, val dataType: DataType, val minLength: Int,
+    val maxLength: Int)
+
+  /** Segment (or composite) component, either an element or a composite reference.
+    * @param name readable name
+    * @param data value key
+    * @param position numeric position
+    * @param usage
+    * @param count maximum repetition count
+    */
+  abstract class SegmentComponent(val name: String, val key: String, val position: Int, val usage: Usage,
+    val count: Int)
+
+  /** Element segment (or composite) component.
+    * @param element
+    * @param nm optional readable name (default is from element)
+    * @param ky data value key
+    * @param pos numeric position
+    * @param use
+    * @param cnt maximum repetition count
+    */
+  case class ElementComponent(val element: Element, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int)
+    extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt)
+
+  /** Composite segment component.
+    * @param composite
+    * @param nm optional readable name (default is from composite)
+    * @param ky data value key
+    * @param pos numeric position
+    * @param use
+    * @param cnt maximum repetition count
+    */
+  case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int)
+    extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt)
 
   sealed abstract class OccurrenceRule(val code: String, val components: List[SegmentComponent]) {
     if (components isEmpty) throw new IllegalArgumentException("components list must not be empty")
@@ -101,15 +138,37 @@ object EdiSchema {
   }
 
   case class Composite(val ident: String, val name: String, val components: List[SegmentComponent],
-    val rules: List[OccurrenceRule])
+    val rules: List[OccurrenceRule]) {
+    def rewrite(prefix: String) = Composite(ident, name,
+      components.map { comp =>
+        comp match {
+          case ec: ElementComponent => ElementComponent(ec.element, Some(ec.name), prefix, ec.position, ec.usage, ec.count)
+          case cc: CompositeComponent =>
+            CompositeComponent(cc.composite, Some(cc.name), prefix, cc.position, cc.usage, cc.count)
+        }
+      },
+      rules)
+  }
 
   case class Segment(val ident: String, val name: String, val components: List[SegmentComponent],
     val rules: List[OccurrenceRule])
 
-  sealed abstract class TransactionComponent(val usage: Usage, val count: Int)
-  case class ReferenceComponent(val segment: Segment, use: Usage, cnt: Int) extends TransactionComponent(use, cnt)
-  case class GroupComponent(val ident: String, use: Usage, cnt: Int, val items: List[TransactionComponent])
-    extends TransactionComponent(use, cnt)
+  sealed abstract class TransactionComponent(val key: String, val usage: Usage, val count: Int)
+  case class ReferenceComponent(val segment: Segment, val position: String, use: Usage, cnt: Int)
+    extends TransactionComponent(segment.name, use, cnt)
+  sealed abstract class GroupBase(ky: String, use: Usage, cnt: Int, val items: List[TransactionComponent])
+    extends TransactionComponent(ky, use, cnt)
+  case class VariantGroup(val baseid: String, val elemval: String, use: Usage, cnt: Int,
+    itms: List[TransactionComponent]) extends GroupBase(s"$baseid[$elemval]", use, cnt, itms)
+  case class GroupComponent(val ident: String, use: Usage, cnt: Int,
+    itms: List[TransactionComponent], val varkey: Option[String], variants: List[VariantGroup])
+    extends GroupBase(ident, use, cnt, itms) {
+    val (position, leadseg) = itms match {
+      case (ref: ReferenceComponent) :: t => (ref.position, ref.segment)
+      case _ => throw new IllegalStateException(s"first item in group $ident is not a segment")
+    }
+    val varbyval = Map(variants map { v => (v.elemval, v) }: _*)
+  }
 
   case class Transaction(val ident: String, val name: String, val group: String,
     val heading: List[TransactionComponent], val detail: List[TransactionComponent],
@@ -118,14 +177,15 @@ object EdiSchema {
       def referencer(comps: List[TransactionComponent], segments: Set[Segment]): Set[Segment] =
         comps.foldLeft(segments)((segs, comp) => comp match {
           case ref: ReferenceComponent => segs + ref.segment
-          case group: GroupComponent => referencer(group.items, segs)
+          case group: GroupComponent =>
+            group.variants.foldLeft(referencer(group.items, segs))((acc, vg) => referencer(vg.items, acc))
         })
       referencer(summary, referencer(detail, referencer(heading, Set[Segment]())))
     }
     val compositesUsed = {
       def referencer(comps: List[SegmentComponent], composites: Set[Composite]): Set[Composite] =
         comps.foldLeft(composites)((acc, comp) => comp match {
-          case CompositeComponent(composite, _, _, _, _) => referencer(composite.components, acc + composite)
+          case CompositeComponent(composite, _, _, _, _, _) => referencer(composite.components, acc + composite)
           case _ => acc
         })
       segmentsUsed.foldLeft(Set[Composite]())((acc, seg) => referencer(seg.components, acc))
@@ -133,8 +193,8 @@ object EdiSchema {
     val elementsUsed = {
       def referencer(comps: List[SegmentComponent], elements: Set[Element]): Set[Element] =
         comps.foldLeft(elements)((acc, comp) => comp match {
-          case CompositeComponent(composite, _, _, _, _) => referencer(composite.components, acc)
-          case ElementComponent(element, _, _, _, _) => acc + element
+          case CompositeComponent(composite, _, _, _, _, _) => referencer(composite.components, acc)
+          case ElementComponent(element, _, _, _, _, _) => acc + element
         })
       segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
     }
@@ -152,18 +212,18 @@ object EdiSchema {
   }
 }
 
-case class EdiSchema(val ediForm: EdiSchema.EdiForm, val elements: Map[String, EdiSchema.Element],
+case class EdiSchema(val ediForm: EdiSchema.EdiForm, val version: String, val elements: Map[String, EdiSchema.Element],
   val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
   val transactions: Map[String, EdiSchema.Transaction]) {
-  def this() = this(EdiSchema.X12, Map[String, EdiSchema.Element](), Map[String, EdiSchema.Composite](),
+  def this(ver: String) = this(EdiSchema.X12, ver, Map[String, EdiSchema.Element](), Map[String, EdiSchema.Composite](),
     Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]())
-  def merge(other: EdiSchema) = EdiSchema(ediForm, elements ++ other.elements, composites ++ other.composites,
+  def merge(other: EdiSchema) = EdiSchema(ediForm, version, elements ++ other.elements, composites ++ other.composites,
     segments ++ other.segments, transactions ++ other.transactions)
   def merge(transact: EdiSchema.Transaction) = {
     val elemMap = elements ++ (transact.elementsUsed.foldLeft(Map[String, EdiSchema.Element]())((map, elem) => map + (elem.ident -> elem)))
     val compMap = composites ++ (transact.compositesUsed.foldLeft(Map[String, EdiSchema.Composite]())((map, comp) => map + (comp.ident -> comp)))
     val segMap = segments ++ (transact.segmentsUsed.foldLeft(Map[String, EdiSchema.Segment]())((map, seg) => map + (seg.ident -> seg)))
     val transMap = transactions + (transact.ident -> transact)
-    EdiSchema(ediForm, elemMap, compMap, segMap, transMap)
+    EdiSchema(ediForm, version, elemMap, compMap, segMap, transMap)
   }
 }

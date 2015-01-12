@@ -4,13 +4,7 @@ import java.io.Writer
 import java.io.StringWriter
 import scala.annotation.tailrec
 
-/** Write YAML representation of EDI schema.
-  *
-  * @author MuleSoft, Inc.
-  */
-object YamlWriter {
-
-  import EdiSchema._
+trait WritesYaml {
 
   val indentText = "  "
 
@@ -27,6 +21,15 @@ object YamlWriter {
     builder + '\''
     builder.toString
   }
+}
+
+/** Write YAML representation of EDI schema.
+  *
+  * @author MuleSoft, Inc.
+  */
+object YamlWriter extends WritesYaml with YamlDefs {
+
+  import EdiSchema._
 
   /** Get repetition count text value. */
   def countText(count: Int) =
@@ -38,7 +41,7 @@ object YamlWriter {
     * @param schema
     * @param writer
     */
-  def write(schema: EdiSchema, writer: Writer) = {
+  def write(schema: EdiSchema, imports: List[String], writer: Writer) = {
 
     def writeIndent(indent: Int) = writer append (indentText * indent)
 
@@ -52,33 +55,37 @@ object YamlWriter {
       writeIndented(label + ":", indent)
       segments foreach (segbase => segbase match {
         case refer: ReferenceComponent =>
-          writeIndented("- { " + keyValueQuote("idRef", refer.segment.ident) + ", " +
-            keyValuePair("usage", refer.usage.code toString) +
-            (if (refer.count != 1) ", " + keyValuePair("count", countText(refer.count)) else "") +
+          writeIndented("- { " + keyValueQuote(idRefKey, refer.segment.ident) + ", " +
+            keyValueQuote(positionKey, refer.position) + ", " + keyValuePair(usageKey, refer.usage.code toString) +
+            (if (refer.count != 1) ", " + keyValuePair(countKey, countText(refer.count)) else "") +
             " }", indent)
         case group: GroupComponent => {
-          writeIndented("- " + keyValueQuote("loopId", group.ident), indent)
-          writeIndented(keyValuePair("usage", group.usage.code toString), indent + 1)
-          if (group.count != 1) writeIndented(keyValuePair("count", countText(group.count)), indent + 1)
-          writeTransactionComps("items", group.items, indent + 1)
+          writeIndented("- " + keyValueQuote(loopIdKey, group.ident), indent)
+          writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1)
+          if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1)
+          writeTransactionComps(itemsKey, group.items, indent + 1)
         }
       })
     }
 
     def writeSegmentComponents(label: String, comps: List[SegmentComponent], indent: Int): Unit = {
       def componentId(component: SegmentComponent) = component match {
-        case ElementComponent(element, _, _, _, _) => element.ident
-        case CompositeComponent(composite, _, _, _, _) => composite.ident
+        case ElementComponent(element, _, _, _, _, _) => element.ident
+        case CompositeComponent(composite, _, _, _, _, _) => composite.ident
+      }
+      def componentDefaultNamed(component: SegmentComponent) = component match {
+        case ElementComponent(element, name, _, _, _, _) => component.name == element.name
+        case CompositeComponent(composite, _, _, _, _, _) => component.name == composite.name
       }
       @tailrec
       def writer(remain: List[SegmentComponent], dfltpos: Int): Unit = remain match {
         case comp :: t =>
           {
-            writeIndented("- { " + keyValueQuote("idRef", componentId(comp)) + ", " +
-              keyValueQuote("name", comp.name) + ", " +
-              (if (comp.position == dfltpos) "" else (keyValuePair("position", comp.position.toString) + ", ")) +
-              keyValuePair("usage", comp.usage.code toString) +
-              (if (comp.count != 1) ", " + keyValuePair("count", countText(comp.count)) else "") +
+            writeIndented("- { " + keyValueQuote(idRefKey, componentId(comp)) + ", " +
+              (if (componentDefaultNamed(comp)) "" else (keyValueQuote(nameKey, comp.name) + ", ")) +
+              (if (comp.position == dfltpos) "" else (keyValuePair(positionKey, comp.position.toString) + ", ")) +
+              keyValuePair(usageKey, comp.usage.code toString) +
+              (if (comp.count != 1) ", " + keyValuePair(countKey, countText(comp.count)) else "") +
               " }", indent)
             writer(t, dfltpos + 1)
           }
@@ -88,55 +95,71 @@ object YamlWriter {
       writer(comps, 1)
     }
 
-    // start with schema type
-    writeIndented(keyValuePair("form", schema.ediForm.text), 0)
+    // start with schema type and version
+    writeIndented(keyValuePair(formKey, schema.ediForm.text), 0)
+    writeIndented(keyValueQuote(versionKey, schema.version), 0)
+    if (imports.nonEmpty) {
+      
+      // write list of imports
+      writer.append(s"$importsKey: ['${imports.head}'")
+      imports.tail.foreach { path => writer.append(s", '$path'") }
+      writer.append(" ]\n")
+      
+    }
+    if (!schema.transactions.isEmpty) {
 
-    // write transaction details
-    writeIndented("transactions:", 0)
-    schema.transactions.values foreach (transact => {
-      writeIndented("- " + keyValueQuote("id", transact.ident), 0)
-      writeIndented(keyValuePair("name", transact.name), 1)
-      writeIndented(keyValuePair("group", transact.group), 1)
-      if (transact.heading.size > 0) writeTransactionComps("heading", transact.heading, 1)
-      if (transact.detail.size > 0) writeTransactionComps("detail", transact.detail, 1)
-      if (transact.summary.size > 0) writeTransactionComps("summary", transact.summary, 1)
-    })
-
-    // next write segment details
-    writeIndented("segments:", 0)
-    schema.segments.values foreach (segment => {
-      writeIndented("- " + keyValueQuote("id", segment.ident), 0)
-      writeIndented(keyValuePair("name", segment name), 1)
-      writeSegmentComponents("values", segment.components, 1)
-      if (!segment.rules.isEmpty) {
-        writeIndented("rules:", 1)
-        segment.rules foreach (rule => {
-          val builder = new StringBuilder
-          builder ++= "- {" ++= keyValueQuote("type", rule.code) ++= " values: ["
-          builder ++= rule.components.head.position.toString
-          rule.components.tail foreach (comp => builder ++= comp.position.toString ++= ", " )
-          builder ++= "]"
-          writeIndented(builder.toString, 1)
-        })
-      }
-    })
-
-    // next write composites details
-    if (!schema.composites.isEmpty) {
-      writeIndented("composites:", 0)
-      schema.composites.values foreach (composite => {
-        writeIndented("- " + keyValueQuote("id", composite.ident), 0)
-        writeIndented(keyValuePair("name", composite name), 1)
-        writeSegmentComponents("values", composite.components, 1)
+      // write transaction details
+      writeIndented(s"$transactionsKey:", 0)
+      schema.transactions.values foreach (transact => {
+        writeIndented("- " + keyValueQuote(idKey, transact.ident), 0)
+        writeIndented(keyValuePair(nameKey, transact.name), 1)
+        writeIndented(keyValuePair(groupKey, transact.group), 1)
+        if (transact.heading.size > 0) writeTransactionComps(headingKey, transact.heading, 1)
+        if (transact.detail.size > 0) writeTransactionComps(detailKey, transact.detail, 1)
+        if (transact.summary.size > 0) writeTransactionComps(summaryKey, transact.summary, 1)
       })
     }
+    if (!schema.segments.isEmpty) {
 
-    // finish with element details
-    writeIndented("elements:", 0)
-    schema.elements.values foreach (element =>
-      writeIndented("- { " + keyValueQuote("id", element.ident) + ", " +
-        keyValuePair("type", element.dataType.code) + ", " +
-        keyValuePair("minLength", element.minLength toString) + ", " +
-        keyValuePair("maxLength", element.maxLength toString) + " }", 0))
+      // write segment details
+      writeIndented("segments:", 0)
+      schema.segments.values foreach (segment => {
+        writeIndented("- " + keyValueQuote(idKey, segment.ident), 0)
+        writeIndented(keyValuePair(nameKey, segment name), 1)
+        writeSegmentComponents(valuesKey, segment.components, 1)
+        if (!segment.rules.isEmpty) {
+          writeIndented(s"$rulesKey:", 1)
+          segment.rules foreach (rule => {
+            val builder = new StringBuilder
+            builder ++= "- {" ++= keyValueQuote(typeKey, rule.code) ++= s" $valuesKey: ["
+            builder ++= rule.components.head.position.toString
+            rule.components.tail foreach (comp => builder ++= comp.position.toString ++= ", ")
+            builder ++= "]"
+            writeIndented(builder.toString, 1)
+          })
+        }
+      })
+    }
+    if (!schema.composites.isEmpty) {
+
+      // write composites details
+      writeIndented(compositesKey + ":", 0)
+      schema.composites.values foreach (composite => {
+        writeIndented("- " + keyValueQuote(idKey, composite.ident), 0)
+        writeIndented(keyValueQuote(nameKey, composite name), 1)
+        writeSegmentComponents(valuesKey, composite.components, 1)
+      })
+    }
+    if (!schema.elements.isEmpty) {
+
+      // write element details
+      writeIndented("elements:", 0)
+      schema.elements.values foreach (element =>
+        writeIndented("- { " + keyValueQuote(idKey, element.ident) + ", " +
+          keyValueQuote(nameKey, element name) + ", " +
+          keyValuePair(typeKey, element.dataType.code) + ", " +
+          keyValuePair(minLengthKey, element.minLength toString) + ", " +
+          keyValuePair(maxLengthKey, element.maxLength toString) + " }", 0))
+    }
   }
 }

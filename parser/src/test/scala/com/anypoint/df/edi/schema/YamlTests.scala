@@ -14,9 +14,9 @@ class RoundtripTest extends FlatSpec with Matchers {
   "YamlReader and YamlWriter" should "roundtrip a YAML schema file correctly" in {
     val stream = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val input = Source.fromInputStream(stream).mkString
-    val schema = YamlReader.loadYaml(new StringReader(input))
+    val schema = YamlReader.loadYaml(new StringReader(input), Array())
     val writer = new StringWriter
-    YamlWriter.write(schema, writer)
+    YamlWriter.write(schema, Nil, writer)
     val result = writer.toString()
     assert(input === result)
   }

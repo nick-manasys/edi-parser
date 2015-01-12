@@ -4,10 +4,7 @@ import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import java.io.ByteArrayInputStream
 
-
-/**
- * TODO
- *
+/** Tests for X12 table data converter.
  */
 class X12TablesConverterTests extends FlatSpec with Matchers {
 
