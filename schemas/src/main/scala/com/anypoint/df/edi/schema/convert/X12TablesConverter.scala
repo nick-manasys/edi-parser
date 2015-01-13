@@ -269,8 +269,7 @@ object X12TablesConverter {
     transactions.values.foreach(transact => {
       val schema = EdiSchema(X12, version, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
           Map(transact.ident -> transact))
-      writeSchema(schema, transact.ident, List(s"schemas/x12/$version/basedefs$yamlExtension"), yamldir)
-      verifySchema(schema, transact.ident, yamldir)
+      writeSchema(schema, transact.ident, List(s"/x12/$version/basedefs$yamlExtension"), yamldir)
     })
   }
 }

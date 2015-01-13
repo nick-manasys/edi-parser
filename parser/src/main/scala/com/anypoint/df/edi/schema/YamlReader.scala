@@ -323,11 +323,23 @@ object YamlReader extends YamlDefs {
         impsin.asScala.toList.foldLeft(new EdiSchema(version))((acc, path) => {
           def findImport(bases: List[String]): InputStream = bases match {
             case h :: t => {
-              val file = new File(h + '/' + path)
+              val file = new File(h + path)
               if (file.exists) new FileInputStream(file)
               else findImport(t)
             }
-            case _ => getClass.getClassLoader.getResourceAsStream(path)
+            case _ => {
+              val is = getClass.getResourceAsStream(path)
+              if (is == null) {
+                val is1 = getClass.getClassLoader.getResourceAsStream(path)
+                if (is1 == null) {
+                  val is2 = Thread.currentThread.getContextClassLoader.getResourceAsStream(path)
+                  if (is2 == null) {
+                    println(System.getProperty("java.class.path"))
+                    throw new IllegalArgumentException(s"base schema $path not found on any classpath")
+                  } else is2
+                } else is1
+              } else is
+              }
           }
           val is = findImport(bases)
           if (is == null) throw new IllegalArgumentException(s"base schema $path not found")

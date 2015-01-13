@@ -101,7 +101,7 @@ object YamlWriter extends WritesYaml with YamlDefs {
     if (imports.nonEmpty) {
       
       // write list of imports
-      writer.append(s"$importsKey: ['${imports.head}'")
+      writer.append(s"$importsKey: [ '${imports.head}'")
       imports.tail.foreach { path => writer.append(s", '$path'") }
       writer.append(" ]\n")
       

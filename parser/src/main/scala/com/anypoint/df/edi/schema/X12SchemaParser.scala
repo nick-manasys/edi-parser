@@ -41,6 +41,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
 
   /** Accumulated segment errors (as AK3 maps) from transaction. */
   val segmentErrors = Buffer[ValueMap]()
+  
+  /** Accumulated transaction errors. */
+  val transactionErrors = Buffer[TransactionSyntaxError]()
+  
+  /** Accumulated group errors. */
+  val groupErrors = Buffer[TransactionSyntaxError]()
 
   /** Lexical error handler. */
   case object X12ErrorHandler extends ErrorHandler {
@@ -128,11 +134,13 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     if (!dataErrors.isEmpty && config.reportDataErrors) {
       logger.info(s"error(s) found in parsing segment")
       val ak3 = new ValueMapImpl
-      ak3 put (segAK3.components(0).key, segment.ident)
-      ak3 put (segAK3.components(1).key, lexer.getSegmentNumber.toString)
-      group.foreach(ident => ak3 put (segAK3.components(2).key, ident))
-      ak3 put (segAK3.components(3).key, DataErrorsSegment.code.toString)
-      ak3 put (segAK2.ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
+      val ak3content = new ValueMapImpl
+      ak3content put (segAK3.components(0).key, segment.ident)
+      ak3content put (segAK3.components(1).key, lexer.getSegmentNumber.toString)
+      group.foreach(ident => ak3content put (segAK3.components(2).key, ident))
+      ak3content put (segAK3.components(3).key, DataErrorsSegment.code.toString)
+      ak3 put (segAK3.name, ak3content)
+      ak3 put (segAK4.ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
       segmentErrors += ak3
     }
     logger.info(s"now positioned at segment '${lexer.token}'")
@@ -305,7 +313,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
             data put (transactionSet, setprops)
             if (!segmentErrors.isEmpty) {
               val ak3s = JavaConversions.bufferAsJavaList(segmentErrors)
-              setack put (segAK3.components(0).key, ak3s)
+              setack put (segAK3 ident, ak3s)
             }
             val ak5data = new ValueMapImpl
             setack put (segAK5 name, ak5data)

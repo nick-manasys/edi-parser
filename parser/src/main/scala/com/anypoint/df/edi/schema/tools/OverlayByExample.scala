@@ -39,10 +39,9 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     })
   }
 
-  /** Builds schemas from X12 table data and outputs the schemas in YAML form. The arguments are 1) path to the
-    * directory containing the X12 table data files, and 2) path to the directory for the YAML output files. All
-    * existing files are deleted from the output directory before writing any output files. Each transaction is output
-    * as a separate file, with the transaction ID used as the file name (with extension ".yaml").
+  /** Reads a schema and parses one or more documents using that schema, then generates an overlay schema based on the
+   *  sample documents which marks as unused all segments and elements/composites which were not present in any of the
+   *  samples.
     */
   def main(args: Array[String]): Unit = {
     val schemaFile = new File(args(0))
