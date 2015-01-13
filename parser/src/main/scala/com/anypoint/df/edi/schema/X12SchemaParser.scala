@@ -36,15 +36,21 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Current segment reference, used in error reporting. */
   var currentSegment: Segment = null
 
+  /** Starting segment number for current transaction set. */
+  var setStartSegment = 0
+
+  /** Number of transaction sets in current group. */
+  var groupTransactionCount = 0
+
   /** Accumulated data errors (as AK4 maps) from segment. */
   val dataErrors = Buffer[ValueMap]()
 
   /** Accumulated segment errors (as AK3 maps) from transaction. */
   val segmentErrors = Buffer[ValueMap]()
-  
+
   /** Accumulated transaction errors. */
   val transactionErrors = Buffer[TransactionSyntaxError]()
-  
+
   /** Accumulated group errors. */
   val groupErrors = Buffer[GroupSyntaxError]()
 
@@ -199,8 +205,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
 
   /** Parse start of a functional group. */
   def openGroup() =
-    if (checkSegment(GSSegment)) parseSegment(GSSegment, None, "00000")
-    else throw new IllegalStateException("missing required GS segment")
+    if (checkSegment(GSSegment)) {
+      groupErrors.clear
+      groupTransactionCount = 0
+      parseSegment(GSSegment, None, "0000")
+    } else throw new IllegalStateException("missing required GS segment")
 
   /** Check if at functional group close segment. */
   def isGroupClose() = checkSegment(GESegment)
@@ -208,11 +217,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse close of a functional group. */
   def closeGroup(props: ValueMap) = {
     if (checkSegment(GESegment)) {
-      val endprops = parseSegment(GESegment, None, "00000")
-      if (props.get(groupControlKey) != endprops.get(groupControlEndKey)) {
-        throw new IllegalStateException("group control number in trailer does not match header")
-      }
-    } else throw new IllegalStateException("not positioned at GE segment")
+      val endprops = parseSegment(GESegment, None, "0000")
+      if (props.get(groupControlKey) != endprops.get(groupControlEndKey)) groupErrors += GroupControlNumberMismatch
+      if (endprops.get(numberOfSetsKey) != groupTransactionCount) groupErrors += GroupTransactionCountError
+    } else groupErrors += MissingGroupTrailer
   }
 
   /** Check if at transaction set open segment. */
@@ -221,7 +229,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse start of a transaction set. */
   def openSet() =
     if (checkSegment(STSegment)) {
-      val values = parseSegment(STSegment, None, "00000")
+      transactionErrors.clear
+      setStartSegment = lexer.getSegmentNumber
+      val values = parseSegment(STSegment, None, "0000")
+      groupTransactionCount += 1
       (values.get(transactionSetIdentifierKey).asInstanceOf[String], values)
     } else throw new IllegalStateException("missing required ST segment")
 
@@ -231,11 +242,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse close of a transaction set. */
   def closeSet(props: ValueMap) = {
     if (checkSegment(SESegment)) {
-      val endprops = parseSegment(SESegment, None, "00000")
-      if (props.get(transactionSetControlKey) != endprops.get(transactionSetControlEndKey)) {
-        throw new IllegalStateException("transaction set control number in trailer does not match header")
-      }
-    } else throw new IllegalStateException("not positioned at SE segment")
+      val endprops = parseSegment(SESegment, None, "0000")
+      if (props.get(transactionSetControlKey) != endprops.get(transactionSetControlEndKey))
+        transactionErrors += ControlNumberMismatch
+      val segcount = lexer.getSegmentNumber - setStartSegment
+      if (endprops.get(numberOfSegmentsKey) != segcount) transactionErrors += WrongSegmentCount
+    } else transactionErrors += MissingTrailerTransaction
   }
 
   /** Discard input past end of current transaction. */
@@ -307,7 +319,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
             if (setprops containsKey implementationConventionKey) {
               ak2data put (segAK2.components(2) key, setprops get (implementationConventionKey))
             }
-            rejectTransaction = false;
+            rejectTransaction = false
             val data = parseTransaction(t)
             data put (transactionGroup, group)
             data put (transactionSet, setprops)
@@ -317,8 +329,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
             }
             val ak5data = new ValueMapImpl
             setack put (segAK5 name, ak5data)
+            if (transactionErrors.nonEmpty) rejectTransaction = true
             if (rejectTransaction) {
               ak5data put (segAK5.components(0) key, RejectedTransaction code)
+              val limit = math.min(segAK5.components.length - 2, transactionErrors.length)
+              (0 until limit) foreach (i => ak5data put (segAK5.components(i + 1) key, transactionErrors(i)))
             } else {
               val list = transLists get setid
               list add (data)
@@ -337,6 +352,8 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ak9data put (segAK9.components(1) key, Integer valueOf (setCount))
       ak9data put (segAK9.components(2) key, Integer valueOf (setCount))
       ak9data put (segAK9.components(3) key, Integer valueOf (acceptCount))
+      val limit = math.min(segAK9.components.length - 5, groupErrors.length)
+      (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, transactionErrors(i)))
       val sedata = new ValueMapImpl
       ackhead put (segSE name, sedata)
       sedata put (segSE.components(0) key, Integer valueOf (setCount + 3))

@@ -88,12 +88,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), config)
     val props = parser.init
     intercept[IllegalStateException] { parser.openSet }
-    intercept[IllegalStateException] { parser.closeSet(new ValueMapImpl()) }
-    intercept[IllegalStateException] { parser.closeGroup(new ValueMapImpl()) }
     val gprops = parser.openGroup
     intercept[IllegalStateException] { parser.openGroup }
-    intercept[IllegalStateException] { parser.closeSet(new ValueMapImpl()) }
-    intercept[IllegalStateException] { parser.closeGroup(new ValueMapImpl()) }
   }
 
   it should "parse a complete interchange message" in {
