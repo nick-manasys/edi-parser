@@ -40,6 +40,16 @@ object X12Acknowledgment {
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+  
+  /** Functional group syntax error codes (X12 716 element codes). */
+  sealed abstract class GroupSyntaxError(val code: Int)
+  case object NotSupportedGroup extends GroupSyntaxError(1)
+  case object NotSupportedGroupVersion extends GroupSyntaxError(2)
+  case object MissingGroupTrailer extends GroupSyntaxError(3)
+  case object GroupControlNumberMismatch extends GroupSyntaxError(4)
+  case object GroupTransactionCountError extends GroupSyntaxError(5)
+  case object GroupControlNumberError extends GroupSyntaxError(6)
+  case object GroupControlNumberNotUnique extends GroupSyntaxError(19)
 
   /** Transaction syntax error codes (X12 718 element codes). */
   sealed abstract class TransactionSyntaxError(val code: Int)
@@ -50,21 +60,8 @@ object X12Acknowledgment {
   case object SegmentsInError extends TransactionSyntaxError(5)
   case object BadTransactionSetId extends TransactionSyntaxError(6)
   case object BadTransactionSetControl extends TransactionSyntaxError(7)
-  case object AuthenticationKeyUnknown extends TransactionSyntaxError(8)
-  case object EncryptionKeyUnknown extends TransactionSyntaxError(9)
-  case object ServiceNotAvailable extends TransactionSyntaxError(10)
-  case object UnknownSecurityRecipient extends TransactionSyntaxError(11)
-  case object IncorrectMessageLength extends TransactionSyntaxError(12)
-  case object MessageAuthenticationFailed extends TransactionSyntaxError(13)
-  case object UnknownSecurityOriginator extends TransactionSyntaxError(15)
-  case object DecryptionSyntaxError extends TransactionSyntaxError(16)
-  case object SecurityNotSupported extends TransactionSyntaxError(17)
   case object SetNotInGroup extends TransactionSyntaxError(18)
   case object InvalidImplementationConvention extends TransactionSyntaxError(23)
-  case object MissingS3ESecurityEndSegment extends TransactionSyntaxError(24)
-  case object MissingS3ESecurityStartSegment extends TransactionSyntaxError(25)
-  case object MissingS4ESecurityEndSegment extends TransactionSyntaxError(26)
-  case object MissingS4ESecurityStartSegment extends TransactionSyntaxError(27)
 
   /** Transaction set acknowledgment codes (X12 717 element codes). */
   sealed abstract class TransactionAcknowledgmentCode(val code: String)

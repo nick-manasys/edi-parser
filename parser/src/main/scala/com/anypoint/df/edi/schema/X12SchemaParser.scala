@@ -46,7 +46,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   val transactionErrors = Buffer[TransactionSyntaxError]()
   
   /** Accumulated group errors. */
-  val groupErrors = Buffer[TransactionSyntaxError]()
+  val groupErrors = Buffer[GroupSyntaxError]()
 
   /** Lexical error handler. */
   case object X12ErrorHandler extends ErrorHandler {
@@ -80,14 +80,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     if (config.reportDataErrors) {
       val comp = currentSegment.components(lexer.getElementNumber())
       val ak4 = new ValueMapImpl
-      val compPos = new ValueMapImpl
-      compPos put (segAK4compC030.components(0).key, lexer.getElementNumber() toString)
+      ak4 put (segAK4compC030.components(0).key, Integer.valueOf(lexer.getElementNumber()))
       comp match {
-        case ElementComponent(elem, _, _, _, _, _) => ak4 put (segAK4compC030.components(1).key, elem.ident)
-        case _: CompositeComponent => compPos put (segAK4compC030.components(1).key, lexer.getComponentNumber() toString)
+        case ElementComponent(elem, _, _, _, _, _) => ak4 put (segAK4.components(1).key, Integer.valueOf(elem.ident))
+        case _: CompositeComponent => ak4 put (segAK4compC030.components(1).key, Integer.valueOf(lexer.getComponentNumber()))
       }
-      if (comp.count != 1) compPos put (segAK4compC030.components(2).key, lexer.getRepetitionNumber() toString)
-      ak4 put (segAK4.components(1).key, compPos)
+      if (comp.count != 1) ak4 put (segAK4compC030.components(2).key, Integer.valueOf(lexer.getRepetitionNumber()))
       ak4 put (segAK4.components(2).key, error.code toString)
       if (error != InvalidCharacter) ak4 put (segAK4.components(3).key, lexer.token)
       dataErrors += ak4
@@ -134,12 +132,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     if (!dataErrors.isEmpty && config.reportDataErrors) {
       logger.info(s"error(s) found in parsing segment")
       val ak3 = new ValueMapImpl
-      val ak3content = new ValueMapImpl
-      ak3content put (segAK3.components(0).key, segment.ident)
-      ak3content put (segAK3.components(1).key, lexer.getSegmentNumber.toString)
-      group.foreach(ident => ak3content put (segAK3.components(2).key, ident))
-      ak3content put (segAK3.components(3).key, DataErrorsSegment.code.toString)
-      ak3 put (segAK3.name, ak3content)
+      val ak3data = new ValueMapImpl
+      ak3data put (segAK3.components(0).key, segment.ident)
+      ak3data put (segAK3.components(1).key, Integer.valueOf(lexer.getSegmentNumber))
+      group.foreach(ident => ak3data put (segAK3.components(2).key, ident))
+      ak3data put (segAK3.components(3).key, DataErrorsSegment.code.toString)
+      ak3 put (segAK3.name, ak3data)
       ak3 put (segAK4.ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
       segmentErrors += ak3
     }
@@ -152,10 +150,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     def addError(error: SegmentSyntaxError) =
       if (config.reportDataErrors) {
         val ak3 = new ValueMapImpl
-        ak3 put (segAK3.components(0).key, ident)
-        ak3 put (segAK3.components(1).key, lexer.getSegmentNumber.toString)
-        group.foreach(ident => ak3 put (segAK3.components(2).key, ident))
-        ak3 put (segAK3.components(3).key, error.code.toString)
+        val ak3data = new ValueMapImpl
+        ak3 put (segAK3.name, ak3data)
+        ak3data put (segAK3.components(0).key, ident)
+        ak3data put (segAK3.components(1).key, Integer.valueOf(lexer.getSegmentNumber))
+        group.foreach(ident => ak3data put (segAK3.components(2).key, ident))
+        ak3data put (segAK3.components(3).key, error.code.toString)
         segmentErrors += ak3
       }
     error match {
