@@ -55,9 +55,6 @@ public abstract class LexerBase
     /** Total number of groups in interchange. */
     int groupCount;
     
-    /** Segment number at last reset (from start of document). */
-    private int segmentBias;
-    
     /** Current segment number (from last reset). */
     private int segmentNumber;
     
@@ -451,10 +448,12 @@ public abstract class LexerBase
         checkLength(DataType.ALPHANUMERIC, minl, maxl);
         String text = token;
         int lastns = -1;
-        for (int i = text.length() - 1; i >= 0; i--) {
-            if (text.charAt(i) != ' ') {
-                lastns = i;
-                break;
+        for (int i = 0; i < text.length(); i++) {
+            char chr = text.charAt(i);
+            if (Character.isAlphabetic(chr) || Character.isDigit(chr)) {
+				lastns = i;
+			} else if (chr != ' ') {
+                handleError(DataType.ALPHA, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
         advance();
@@ -473,12 +472,18 @@ public abstract class LexerBase
         checkLength(DataType.ID, minl, maxl);
         String text = token;
         int lastns = -1;
+        boolean space = false;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
-            if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
-                handleError(DataType.ID, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
-            } else if (chr != ' ') {
-                lastns = i;
+            if (Character.isAlphabetic(chr) || (chr >= '0' && chr <= '9')) {
+            	if (space) {
+                	handleError(DataType.ID, ErrorCondition.INVALID_CHARACTER, "embedded space not allowed");
+            	}
+            	lastns = i;
+            } else if (chr == ' ') {
+            	space = true;
+            } else {
+            	handleError(DataType.ID, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
         advance();

@@ -22,7 +22,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   import X12SchemaValues._
 
   val DATETIME = "090604*1205"
-  val ISA = "ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *" + DATETIME + "*U*00401*000001244*0*P*>~"
+  val ISA = s"ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *$DATETIME*U*00401*000001244*0*P*>~"
   val GS = "GS*PO*006927180*IAIYUCAFOO*20080604*1205*168*X*004010~"
   val ST = "ST*850*000000176~"
   val IEA = "IEA*1*000001244~"

@@ -24,7 +24,11 @@ object ParseDocument {
       val is = new FileInputStream(new File(path))
       val parser = X12SchemaParser(is, schema, config)
       parser.parse match {
-        case Success(x) => x
+        case Success(x) => {
+          println(s"result from parsing $path:")
+          println(x.toString)
+          x
+        }
         case Failure(e) => throw new IllegalArgumentException(s"error parsing example $path: '${e.getMessage}'")
       }
     })
