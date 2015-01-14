@@ -61,7 +61,7 @@ class X12TablesConverterTests extends FlatSpec with Matchers {
       |"abc","klm"
       |"nop","qrs"
       |"nop","tuv"""".stripMargin('|')
-    gatherGroups(stringStream(multi1), 2) should be
+    gatherGroups("", stringStream(multi1), 2, None) should be
       (List(("abc", List(List("def"), List("hij"), List("klm")), ("nop", List(List("qrs"), List("tuv"))))))
   }
   
@@ -71,6 +71,16 @@ class X12TablesConverterTests extends FlatSpec with Matchers {
       |"abc","klm"
       |"nop","qrs"
       |"nop","tuv"""".stripMargin('|')
-    intercept[IllegalArgumentException] { gatherGroups(stringStream(multi1), 2) }
+    intercept[IllegalArgumentException] { gatherGroups("", stringStream(multi1), 2, None) }
+  }
+  
+  it should "allow a fill value to be used for the last column" in {
+    val multi1 = """"abc","def"
+      |"abc","hij","xxx"
+      |"abc","klm"
+      |"nop","qrs"
+      |"nop","tuv"""".stripMargin('|')
+    gatherGroups("", stringStream(multi1), 3, Some("zyx")) should be
+      (List(("abc", List(List("def", "zyx"), List("hij", "xxx"), List("klm", "zyx")), ("nop", List(List("qrs", "zyx"), List("tuv", "zyx"))))))
   }
 }

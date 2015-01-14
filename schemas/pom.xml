@@ -44,8 +44,8 @@
                 <launcher>
                   <mainClass>com.anypoint.df.edi.schema.convert.X12TablesConverter</mainClass>
                   <args>
-                    <arg>${basedir}/src/main/build-resources/x12/5010</arg>
-                    <arg>${project.build.directory}/schemas/x12/5010</arg>
+                    <arg>${basedir}/src/main/build-resources/x12</arg>
+                    <arg>${project.build.directory}/schemas/x12</arg>
                   </args>
                   <jvmArgs>
                     <jvmArg>-Xms256m</jvmArg>

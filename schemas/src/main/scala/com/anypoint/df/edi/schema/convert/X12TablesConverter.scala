@@ -75,17 +75,22 @@ object X12TablesConverter {
     *
     * @param in
     * @param count
+    * @param fill value used when last column not present (if supplied)
     * @return List(id, List[List[String]])
     */
-  def gatherGroups(in: InputStream, count: Int): ListOfKeyedLists = {
-    val result = foldInput(in, emptyListOfKeyedLists)((acc, list) =>
+  def gatherGroups(source: String, in: InputStream, count: Int, fill: Option[String]): ListOfKeyedLists = {
+    def append(id: String, next: List[String], acc: ListOfKeyedLists) = acc match {
+      case (key, values) :: tail if (key == id) => (key, next :: values) :: tail
+      case tail => (id, next :: Nil) :: tail
+    }
+    val result = foldInput(in, emptyListOfKeyedLists)((acc, list) => {
+      val length = list.length
       list match {
-        case id :: rest if (rest.length == count - 1) => acc match {
-          case (key, values) :: tail if (key == id) => (key, rest :: values) :: tail
-          case tail => (id, rest :: Nil) :: tail
-        }
-        case _ => throw new IllegalArgumentException("wrong number of values in file")
-      })
+        case id :: rest if (length == count) => append(id, rest, acc)
+        case id :: rest if (fill.nonEmpty && length == count - 1) => append(id, rest :+ fill.get, acc)
+        case _ => throw new IllegalArgumentException(s"wrong number of values in input $source: list")
+      }
+    })
     result.foldLeft(emptyListOfKeyedLists)((acc, pair) => pair match {
       case (key, list) => (key, list.reverse) :: acc
     })
@@ -218,18 +223,19 @@ object X12TablesConverter {
   def convertType(text: String) = if (text.length > 0) EdiConstants.toX12Type(text) else DataType.ALPHANUMERIC
 
   /** Write schema to file. */
-  def writeSchema(schema: EdiSchema, name: String, imports: List[String], yamldir: File) = {
+  def writeSchema(schema: EdiSchema, name: String, imports: List[String], outdir: File) = {
     println(s"writing schema $name")
-    val writer = new OutputStreamWriter(new FileOutputStream(new File(yamldir, name + yamlExtension)), "UTF-8")
+    val file = new File(outdir, name + yamlExtension)
+    val writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
     YamlWriter.write(schema, imports, writer)
     writer.close
   }
 
   /** Verify schema written to file. */
-  def verifySchema(baseSchema: EdiSchema, name: String, yamldir: File) = {
-    val reader = new InputStreamReader(new FileInputStream(new File(yamldir, name + yamlExtension)), "UTF-8")
-    val readSchema = YamlReader.loadYaml(reader, Array(yamldir.getParentFile.getParentFile.getParentFile.getAbsolutePath))
-//    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
+  def verifySchema(baseSchema: EdiSchema, name: String, outdir: File) = {
+    val reader = new InputStreamReader(new FileInputStream(new File(outdir, name + yamlExtension)), "UTF-8")
+    val readSchema = YamlReader.loadYaml(reader, Array(outdir.getParentFile.getParentFile.getParentFile.getAbsolutePath))
+    //    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }
 
   /** Builds schemas from X12 table data and outputs the schemas in YAML form. The arguments are 1) path to the
@@ -240,36 +246,45 @@ object X12TablesConverter {
   def main(args: Array[String]): Unit = {
     val x12dir = new File(args(0))
     val yamldir = new File(args(1))
-    if (yamldir.exists()) yamldir.listFiles().foreach { f => f.delete() }
+    if (yamldir.exists()) yamldir.listFiles.foreach { version =>
+      if (version.exists && version.isDirectory) {
+        version.listFiles.foreach { f => f.delete }
+        version.delete
+      }}
     else yamldir.mkdirs
-    val elemNames = nameMap(fileInput(x12dir, elementHeadersName))
-    val elemDefs = foldInput(fileInput(x12dir, elementDetailsName), Map.empty[String, Element])((map, list) =>
-      list match {
-        case number :: typ :: min :: max :: Nil =>
-          map + (number -> Element(number, elemNames(number), convertType(typ), convertLength(min), convertLength(max)))
-        case _ => throw new IllegalArgumentException("wrong number of values in file")
+    x12dir.listFiles.foreach (version => {
+      println(s"Processing ${version.getName}")
+      val elemNames = nameMap(fileInput(version, elementHeadersName))
+      val elemDefs = foldInput(fileInput(version, elementDetailsName), Map.empty[String, Element])((map, list) =>
+        list match {
+          case number :: typ :: min :: max :: Nil =>
+            map + (number -> Element(number, elemNames(number), convertType(typ), convertLength(min), convertLength(max)))
+          case _ => throw new IllegalArgumentException("wrong number of values in file")
+        })
+      val compNames = nameMap(fileInput(version, compositeHeadersName))
+      val compGroups = gatherGroups(compositeDetailsName, fileInput(version, compositeDetailsName), 4, None)
+      val compDefs = defineComposites(elemNames, elemDefs, compNames, compGroups)
+      val segNames = nameMap(fileInput(version, segmentHeadersName))
+      val segGroups = gatherGroups(segmentDetailsName, fileInput(version, segmentDetailsName), 5, Some("1"))
+      val segDefs = defineSegments(elemNames, elemDefs, compNames, compDefs, segNames, segGroups)
+      val setHeads = foldInput(fileInput(version, transHeadersName), Map.empty[String, (String, String)])((map, list) =>
+        list match {
+          case number :: name :: group :: Nil => map + (number -> (name, group))
+          case _ => throw new IllegalArgumentException("wrong number of values in file")
+        })
+      val setGroups = gatherGroups(transDetailsName, fileInput(version, transDetailsName), 9, None)
+      val vnum = version.getName
+      val baseSchema = EdiSchema(X12, vnum, elemDefs, compDefs, segDefs, Map[String, Transaction]())
+      val outdir = new File(yamldir, version.getName)
+      outdir.mkdirs
+      writeSchema(baseSchema, "basedefs", Nil, outdir)
+      verifySchema(baseSchema, "basedefs", outdir)
+      val transactions = defineTransactions(segDefs, setHeads, setGroups)
+      transactions.values.foreach(transact => {
+        val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
+          Map(transact.ident -> transact))
+        writeSchema(schema, transact.ident, List(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)
       })
-    val compNames = nameMap(fileInput(x12dir, compositeHeadersName))
-    val compGroups = gatherGroups(fileInput(x12dir, compositeDetailsName), 4)
-    val compDefs = defineComposites(elemNames, elemDefs, compNames, compGroups)
-    val segNames = nameMap(fileInput(x12dir, segmentHeadersName))
-    val segGroups = gatherGroups(fileInput(x12dir, segmentDetailsName), 5)
-    val segDefs = defineSegments(elemNames, elemDefs, compNames, compDefs, segNames, segGroups)
-    val setHeads = foldInput(fileInput(x12dir, transHeadersName), Map.empty[String, (String, String)])((map, list) =>
-      list match {
-        case number :: name :: group :: Nil => map + (number -> (name, group))
-        case _ => throw new IllegalArgumentException("wrong number of values in file")
-      })
-    val setGroups = gatherGroups(fileInput(x12dir, transDetailsName), 9)
-    val version = x12dir.getName
-    val baseSchema = EdiSchema(X12, version, elemDefs, compDefs, segDefs, Map[String, Transaction]())
-    writeSchema(baseSchema, "basedefs", Nil, yamldir)
-    verifySchema(baseSchema, "basedefs", yamldir)
-    val transactions = defineTransactions(segDefs, setHeads, setGroups)
-    transactions.values.foreach(transact => {
-      val schema = EdiSchema(X12, version, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
-        Map(transact.ident -> transact))
-      writeSchema(schema, transact.ident, List(s"/x12/$version/basedefs$yamlExtension"), yamldir)
     })
   }
 }
