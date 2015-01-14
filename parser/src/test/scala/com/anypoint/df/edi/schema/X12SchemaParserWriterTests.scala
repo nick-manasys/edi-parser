@@ -31,12 +31,14 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   def buildSE(count: Int) = s"SE*$count*000000176~"
 
+  val parserConfig = X12ParserConfig(true, true, true, true, true, true, true, true, true, Array[IdentityInformation](),
+    Array[IdentityInformation]())
+
   behavior of "X12SchemaParser"
 
   it should "parse the ISA segment when initialized" in {
     val in = new ByteArrayInputStream(ISA.getBytes())
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
-    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), config)
+    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
     val props = parser.init
     props.get(AUTHORIZATION_QUALIFIER) should be("00")
     props.get(AUTHORIZATION_INFO) should be("ABC       ")
@@ -59,8 +61,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "parse the envelope segments as requested" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
-    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), config)
+    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
     val props = parser.init
     val gprops = parser.openGroup
     gprops.get(functionalIdentifierKey) should be("PO")
@@ -84,8 +85,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "throw an exception when positioned at wrong segment" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
-    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), config)
+    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
     val props = parser.init
     intercept[IllegalStateException] { parser.openSet }
     val gprops = parser.openGroup
@@ -96,15 +96,14 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
-    val parser = X12SchemaParser(messageIn, schema, config)
+    val parser = X12SchemaParser(messageIn, schema, parserConfig)
     val result = parser.parse
     result.isInstanceOf[Success[ValueMap]] should be (true)
     val map = result.get
   }
-  
+
   behavior of "X12SchemaWriter"
-  
+
   it should "write the ISA envelope when initialized and then terminated" in {
     val out = new ByteArrayOutputStream
     val create = SchemaWriter.create(out, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty))
@@ -127,19 +126,18 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     writer.writer.countGroup()
     writer.term(props)
     val text = new String(out.toByteArray)
-    val start = ISA indexOf(DATETIME)
+    val start = ISA indexOf (DATETIME)
     val end = start + DATETIME.length
     val compare = ISA + IEA
     text.substring(0, start) should be (compare.substring(0, start))
     text.substring(end) should be (compare.substring(end))
   }
-  
+
   it should "roundtrip a parsed document" in {
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true)
-    val parser = X12SchemaParser(messageIn, schema, config)
+    val parser = X12SchemaParser(messageIn, schema, parserConfig)
     val parseResult = parser.parse
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
     val out = new ByteArrayOutputStream
@@ -154,6 +152,6 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val builder = new StringBuilder
     lines.foreach(line => builder.append(line))
     // TODO: fix comparison to ignore date/times in ISA and GS
-//    text should be (builder.toString)
+    //    text should be (builder.toString)
   }
 }

@@ -229,7 +229,7 @@ object X12TablesConverter {
   def verifySchema(baseSchema: EdiSchema, name: String, yamldir: File) = {
     val reader = new InputStreamReader(new FileInputStream(new File(yamldir, name + yamlExtension)), "UTF-8")
     val readSchema = YamlReader.loadYaml(reader, Array(yamldir.getParentFile.getParentFile.getParentFile.getAbsolutePath))
-    //    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
+//    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }
 
   /** Builds schemas from X12 table data and outputs the schemas in YAML form. The arguments are 1) path to the
@@ -268,7 +268,7 @@ object X12TablesConverter {
     val transactions = defineTransactions(segDefs, setHeads, setGroups)
     transactions.values.foreach(transact => {
       val schema = EdiSchema(X12, version, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
-          Map(transact.ident -> transact))
+        Map(transact.ident -> transact))
       writeSchema(schema, transact.ident, List(s"/x12/$version/basedefs$yamlExtension"), yamldir)
     })
   }

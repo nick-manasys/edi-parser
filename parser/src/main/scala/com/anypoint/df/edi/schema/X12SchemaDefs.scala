@@ -40,7 +40,7 @@ object X12Acknowledgment {
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
-  
+
   /** Functional group syntax error codes (X12 716 element codes). */
   sealed abstract class GroupSyntaxError(val code: Int)
   case object NotSupportedGroup extends GroupSyntaxError(1)
@@ -130,7 +130,7 @@ object X12Acknowledgment {
     ElementComponent(Element("723", "Data Element Syntax Error Code", ID, 1, 3), None, "AK403", 3, MandatoryUsage, 1),
     ElementComponent(Element("724", "Copy of Bad Data Element", ALPHANUMERIC, 1, 99), None, "AK404", 4, OptionalUsage, 1)), Nil)
   val segAK4compC030 = segAK4.components.head match {
-    case comp: CompositeComponent  => comp.composite
+    case comp: CompositeComponent => comp.composite
     case _ => throw new IllegalStateException("first component of segment AK4 must be a composite")
   }
   val segAK5 = Segment("AK5", "Transaction Set Response Trailer", List[SegmentComponent](

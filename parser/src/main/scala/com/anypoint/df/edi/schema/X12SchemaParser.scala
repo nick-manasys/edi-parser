@@ -21,10 +21,13 @@ import SchemaJavaValues._
 import X12SchemaValues._
 import X12Acknowledgment._
 
-/** Configuration parameters for X12 schema parser. */
+/** Configuration parameters for X12 schema parser. If either receiver or sender identity information is it is verified
+ *  in processed messages.
+ */
 case class X12ParserConfig(val lengthFail: Boolean, val asciiOnly: Boolean, val charFail: Boolean,
   val countFail: Boolean, val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean,
-  val occursFail: Boolean, val reportDataErrors: Boolean)
+  val occursFail: Boolean, val reportDataErrors: Boolean, val receiverIds: Array[IdentityInformation],
+  val senderIds: Array[IdentityInformation])
 
 /** Parser for X12 EDI documents. */
 case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConfig)
@@ -286,6 +289,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       val ackroot = new ValueMapImpl
       ackroot put (transactionId, trans997 ident)
       ackroot put (transactionName, trans997 name)
+      ackroot put (transactionInterSelfQualId, getRequiredValue(RECEIVER_ID_QUALIFIER, interchange))
+      ackroot put (transactionInterSelfId, getRequiredValue(RECEIVER_ID, interchange))
+      ackroot put (transactionInterPartnerQualId, getRequiredValue(SENDER_ID_QUALIFIER, interchange))
+      ackroot put (transactionInterPartnerId, getRequiredValue(SENDER_ID, interchange))
       val ackhead = new ValueMapImpl
       ackroot put (transactionHeading, ackhead)
       ackroot put (transactionDetail, new ValueMapImpl)
