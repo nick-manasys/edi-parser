@@ -28,8 +28,8 @@ import X12Acknowledgment._
 case class IdentityInformation(interchangeQualifier: String, interchangeId: String, interchangeType: String)
 
 /** Configuration parameters for X12 schema parser. If either receiver or sender identity information is it is verified
- *  in processed messages.
- */
+  * in processed messages.
+  */
 case class X12ParserConfig(val lengthFail: Boolean, val asciiOnly: Boolean, val charFail: Boolean,
   val countFail: Boolean, val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean,
   val occursFail: Boolean, val reportDataErrors: Boolean, val receiverIds: Array[IdentityInformation],
@@ -108,26 +108,18 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   }
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
-  def parseCompList(comps: List[SegmentComponent], expect: ItemType, map: ValueMap) =
-    comps foreach {
-      comp =>
-        if (expect == lexer.currentType) {
-          if (lexer.token.length > 0) parseComponent(comp, map)
-          else if (comp.usage == MandatoryUsage) addElementError(MissingRequiredElement)
-          else lexer.advance
-        } else lexer.currentType match {
-          case SEGMENT | END | DATA_ELEMENT =>
-            if (comp.usage == MandatoryUsage) addElementError(MissingRequiredElement)
-          case QUALIFIER => {
-            addElementError(TooManyComponents)
-            discardElement()
-          }
-          case REPETITION => {
-            addElementError(TooManyRepititions)
-            discardElement()
-          }
-        }
+  def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
+    def checkParse(comp: SegmentComponent, of: ItemType) =
+      if (of == lexer.currentType && lexer.token.length > 0) parseComponent(comp, map)
+      else if (comp.usage == MandatoryUsage) addElementError(MissingRequiredElement)
+    comps match {
+      case h :: t => {
+        checkParse(h, first)
+        t.foreach(comp => checkParse(comp, rest))
+      }
+      case _ =>
     }
+  }
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, group: Option[String], position: String): ValueMap = {
@@ -136,12 +128,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     dataErrors.clear
     currentSegment = segment
     lexer.advance
-    parseCompList(segment.components, DATA_ELEMENT, map)
+    parseCompList(segment.components, DATA_ELEMENT, DATA_ELEMENT, map)
     lexer.currentType match {
       case SEGMENT | END =>
       case _ => {
         addElementError(TooManyElements)
-        while (lexer.currentType != SEGMENT && lexer.currentType != END) discardElement
+        discardSegment
       }
     }
     if (!dataErrors.isEmpty && config.reportDataErrors) {
@@ -277,10 +269,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   def parse(): Try[ValueMap] = Try {
 
     import X12Acknowledgment._
-    
+
     def matchIdentity(interQual: String, interId: String, usage: String, allowed: Array[IdentityInformation]) =
-      allowed.filter { info => info.interchangeQualifier == interQual && info.interchangeId == interId &&
-        (info.interchangeType.length == 0 || info.interchangeType.indexOf(usage) >= 0) }
+      allowed.filter { info =>
+        info.interchangeQualifier == interQual && info.interchangeId == interId &&
+          (info.interchangeType.length == 0 || info.interchangeType.indexOf(usage) >= 0)
+      }
 
     val map = new ValueMapImpl
     val interchange = init

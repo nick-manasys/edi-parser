@@ -142,9 +142,9 @@ object EdiSchema {
     def rewrite(prefix: String) = Composite(ident, name,
       components.map { comp =>
         comp match {
-          case ec: ElementComponent => ElementComponent(ec.element, Some(ec.name), prefix, ec.position, ec.usage, ec.count)
+          case ec: ElementComponent => ElementComponent(ec.element, Some(ec.name), keyName(prefix, ec.position), ec.position, ec.usage, ec.count)
           case cc: CompositeComponent =>
-            CompositeComponent(cc.composite, Some(cc.name), prefix, cc.position, cc.usage, cc.count)
+            CompositeComponent(cc.composite, Some(cc.name), keyName(prefix, cc.position), cc.position, cc.usage, cc.count)
         }
       },
       rules)

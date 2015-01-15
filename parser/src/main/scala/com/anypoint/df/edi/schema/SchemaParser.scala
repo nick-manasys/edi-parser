@@ -28,8 +28,11 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   /** Read interchange trailer segment(s) and finish with stream. */
   protected def term(props: ValueMap): Unit
 
-  /** Discard remainder of current data element. */
-  def discardElement() = while (lexer.currentType == QUALIFIER || lexer.currentType == REPETITION) lexer.advance
+  /** Discard current element. */
+  def discardElement = {
+    lexer.advance
+    while (lexer.currentType == QUALIFIER || lexer.currentType == REPETITION) lexer.advance
+  }
 
   /** Parse a segment component, which is either an element or a composite. */
   def parseComponent(comp: SegmentComponent, map: ValueMap): Unit = {
@@ -51,24 +54,22 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       }
       case compComp: CompositeComponent => {
         val composite = compComp.composite
-        def parseCompInst(): ValueMap = {
-          val compmap = new ValueMapImpl()
-          parseCompList(composite.components, QUALIFIER, compmap)
-          compmap
-        }
         if (comp.count > 1) {
           val complist = new MapListImpl()
           map put (comp.key, complist)
-          (1 until comp.count) foreach { index =>
-            complist add (parseCompInst())
-          }
-        } else parseCompList(composite.components, QUALIFIER, map)
+          // TODO: check this logic
+          (1 until comp.count) foreach (index => {
+            val compmap = new ValueMapImpl()
+            parseCompList(composite.components, lexer.currentType(), QUALIFIER, compmap)
+            complist add compmap
+          })
+        } else parseCompList(composite.components, lexer.currentType(), QUALIFIER, map)
       }
     }
   }
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
-  def parseCompList(comps: List[SegmentComponent], expect: ItemType, map: ValueMap): Unit
+  def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap): Unit
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, group: Option[String], position: String): ValueMap
@@ -98,7 +99,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     * keys are segment or nested group names, values are maps or lists).
     */
   def parseTransaction(transaction: Transaction) = {
-    
+
     /** Get list of maps for key. If the list is not already set, this creates and returns a new one. */
     def getList(key: String, values: ValueMap) =
       if (values.containsKey(key)) values.get(key).asInstanceOf[MapList]
@@ -213,7 +214,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   /** Discard input past end of current segment. */
   def discardSegment() =
-    while (lexer.currentType() != ItemType.SEGMENT && lexer.currentType() != ItemType.END) lexer.advance()
+    while (lexer.currentType() != SEGMENT && lexer.currentType() != END) lexer.advance()
 
   /** Discard input past end of current transaction. */
   def discardTransaction(): Unit
