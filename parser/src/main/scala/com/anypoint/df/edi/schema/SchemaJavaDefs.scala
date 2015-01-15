@@ -35,13 +35,6 @@ trait SchemaJavaDefs {
   }
 }
 
-/** Entity identity information. Interchange qualifier and id are used for one direction of an interchange, while type
-  * (if non-zero length) is matched against the interchange type in an incoming message. The application identifier is
-  * used for the group header.
-  */
-case class IdentityInformation(interchangeQualifier: String, interchangeId: String, interchangeType: String,
-  applicationIdentifier: String)
-
 object SchemaJavaValues {
 
   // value keys for configuration

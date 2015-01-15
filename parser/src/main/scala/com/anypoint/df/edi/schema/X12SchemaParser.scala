@@ -21,6 +21,12 @@ import SchemaJavaValues._
 import X12SchemaValues._
 import X12Acknowledgment._
 
+/** Entity identity information. Interchange qualifier and id are used for one direction of an interchange, while type
+  * (if non-zero length) is matched against the interchange type in an incoming message. The application identifier is
+  * used for the group header.
+  */
+case class IdentityInformation(interchangeQualifier: String, interchangeId: String, interchangeType: String)
+
 /** Configuration parameters for X12 schema parser. If either receiver or sender identity information is it is verified
  *  in processed messages.
  */
@@ -197,8 +203,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   }
 
   def init() = {
+    val map = lexer.init(new ValueMapImpl())
     lexer.setHandler(X12ErrorHandler)
-    lexer.init(new ValueMapImpl())
+    map
   }
 
   def term(props: ValueMap) = lexer.term(props)
@@ -259,6 +266,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     discardSegment
   }
 
+  /** Discard input to end of current group. */
+  def discardToGroupEnd() =
+    while (lexer.currentType == SEGMENT && lexer.token() != GESegment.ident) discardSegment
+
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment) = segment.ident == STSegment.ident || segment.ident == SESegment.ident
 
@@ -266,9 +277,21 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   def parse(): Try[ValueMap] = Try {
 
     import X12Acknowledgment._
+    
+    def matchIdentity(interQual: String, interId: String, usage: String, allowed: Array[IdentityInformation]) =
+      allowed.filter { info => info.interchangeQualifier == interQual && info.interchangeId == interId &&
+        (info.interchangeType.length == 0 || info.interchangeType.indexOf(usage) >= 0) }
 
     val map = new ValueMapImpl
     val interchange = init
+    val senders = matchIdentity(getRequiredString(SENDER_ID_QUALIFIER, interchange),
+      getRequiredString(SENDER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.senderIds)
+    if (senders.length == 0 && config.senderIds.length > 0)
+      throw new LexicalException("Interchange sender infromation does not match configuration")
+    val receivers = matchIdentity(getRequiredString(RECEIVER_ID_QUALIFIER, interchange),
+      getRequiredString(RECEIVER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.receiverIds)
+    if (receivers.length == 0 && config.receiverIds.length > 0)
+      throw new LexicalException("Interchange receiver infromation does not match configuration")
     val builder = new StringBuilder
     builder append (lexer.getDataSeparator)
     builder append (lexer.getComponentSeparator)
@@ -310,7 +333,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       val setacks = new MapListImpl
       ackhead put ("AK2", setacks)
       var setCount = 0
-      var acceptCount = 0;
+      var acceptCount = 0
       while (!isGroupClose) {
         val (setid, setprops) = openSet
         ackroot put (transactionSet, setprops)

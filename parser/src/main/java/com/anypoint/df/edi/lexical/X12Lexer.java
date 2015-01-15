@@ -59,24 +59,28 @@ public class X12Lexer extends LexerBase
         
         // build interchange properties from segment data
         Map<String,Object> props = new HashMap<>();
-        props.put(AUTHORIZATION_QUALIFIER, advance());
-        props.put(AUTHORIZATION_INFO, advance());
-        props.put(SECURITY_QUALIFIER, advance());
-        props.put(SECURITY_INFO, advance());
-        props.put(SENDER_ID_QUALIFIER, advance());
-        props.put(SENDER_ID, advance());
-        props.put(RECEIVER_ID_QUALIFIER, advance());
-        props.put(RECEIVER_ID, advance());
         advance();
+        props.put(AUTHORIZATION_QUALIFIER, parseId(2, 2));
+        props.put(AUTHORIZATION_INFO, parseAlphaNumeric(10, 10));
+        props.put(SECURITY_QUALIFIER, parseId(2, 2));
+        props.put(SECURITY_INFO, parseAlphaNumeric(10, 10));
+        props.put(SENDER_ID_QUALIFIER, parseId(2, 2));
+        props.put(SENDER_ID, parseAlphaNumeric(15, 15));
+        props.put(RECEIVER_ID_QUALIFIER, parseId(2, 2));
+        props.put(RECEIVER_ID, parseAlphaNumeric(15, 15));
         props.put(INTERCHANGE_DATE, parseDate(6, 6));
         props.put(INTERCHANGE_TIME, Integer.valueOf(parseTime(4, 4)));
         String sep = token();
         repetitionSeparator = "U".equals(sep) ? -1 : sep.charAt(0);
-        props.put(VERSION_ID, advance());
         advance();
+        props.put(VERSION_ID, parseId(5, 5));
         props.put(INTER_CONTROL, parseInteger(9, 9));
-        props.put(ACK_REQUESTED, token());
-        props.put(TEST_INDICATOR, advance());
+        props.put(ACK_REQUESTED, parseId(1, 1));
+        String indicator = token();
+        if (indicator.length() != 1) {
+            throw new LexicalException("Interchange Usage Indicator error");
+        }
+        props.put(TEST_INDICATOR, indicator);
         componentSeparator = (char)reader.read();
         segmentTerminator = (char)reader.read();
         
