@@ -91,6 +91,8 @@ class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
     interProps put (RECEIVER_ID, partnerId)
     interProps put (SENDER_ID_QUALIFIER, selfQual)
     interProps put (SENDER_ID, selfId)
+    // temporary fixed value, until we can evaluate older forms
+    interProps put (VERSION_ID, "00501")
     init(getRequiredString(delimiterCharacters, map), getRequiredString(characterEncoding, map), interProps)
     interchanges foreach {
       case (_, interlist) => {
@@ -110,7 +112,7 @@ class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
             groupProps put (groupControlKey, Integer valueOf (groupnum))
             // TODO: get these from the schema
             groupProps put (responsibleAgencyKey, "X")
-            groupProps put (versionIdentifierKey, "005010")
+            groupProps put (versionIdentifierKey, schema.version)
             openGroup(groupCode, groupProps)
             writer.countGroup
             var setnum = 1

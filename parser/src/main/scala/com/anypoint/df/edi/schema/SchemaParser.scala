@@ -213,8 +213,10 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   }
 
   /** Discard input past end of current segment. */
-  def discardSegment() =
-    while (lexer.currentType() != SEGMENT && lexer.currentType() != END) lexer.advance()
+  def discardSegment() = {
+    if (lexer.currentType == SEGMENT) lexer.advance
+    while (lexer.currentType != SEGMENT && lexer.currentType != END) lexer.advance
+  }
 
   /** Discard input past end of current transaction. */
   def discardTransaction(): Unit

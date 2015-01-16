@@ -1,5 +1,5 @@
 form: X12
-version: '05010'
+version: '005010'
 transactions:
 - id: '850'
   name: Purchase order

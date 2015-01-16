@@ -59,7 +59,7 @@ public class X12Lexer extends LexerBase
         
         // build interchange properties from segment data
         Map<String,Object> props = new HashMap<>();
-        advance();
+        advance(ItemType.DATA_ELEMENT);
         props.put(AUTHORIZATION_QUALIFIER, parseId(2, 2));
         props.put(AUTHORIZATION_INFO, parseAlphaNumeric(10, 10));
         props.put(SECURITY_QUALIFIER, parseId(2, 2));

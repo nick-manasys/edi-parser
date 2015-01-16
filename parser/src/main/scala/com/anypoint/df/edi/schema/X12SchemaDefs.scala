@@ -51,6 +51,13 @@ object X12Acknowledgment {
   case object GroupControlNumberError extends GroupSyntaxError(6)
   case object GroupControlNumberNotUnique extends GroupSyntaxError(19)
 
+  /** Functional group acknowledgment codes (X12 717 element codes). */
+  sealed abstract class GroupAcknowledgmentCode(val code: String)
+  case object AcceptedGroup extends GroupAcknowledgmentCode("A")
+  case object AcceptedWithErrorsGroup extends GroupAcknowledgmentCode("E")
+  case object PartiallyAcceptedGroup extends GroupAcknowledgmentCode("P")
+  case object RejectedGroup extends GroupAcknowledgmentCode("R")
+
   /** Transaction syntax error codes (X12 718 element codes). */
   sealed abstract class TransactionSyntaxError(val code: Int)
   case object NotSupportedTransaction extends TransactionSyntaxError(1)

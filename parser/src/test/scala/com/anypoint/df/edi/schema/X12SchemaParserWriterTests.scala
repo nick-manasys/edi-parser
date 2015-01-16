@@ -31,8 +31,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   def buildSE(count: Int) = s"SE*$count*000000176~"
 
-  val parserConfig = X12ParserConfig(true, true, true, true, true, true, true, true, true, Array[IdentityInformation](),
-    Array[IdentityInformation]())
+  val parserConfig = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
+    Array[IdentityInformation](), Array[IdentityInformation]())
 
   behavior of "X12SchemaParser"
 

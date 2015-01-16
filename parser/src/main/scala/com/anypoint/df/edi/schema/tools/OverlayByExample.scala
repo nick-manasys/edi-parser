@@ -48,8 +48,8 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val schemaFile = new File(args(0))
     val schema = YamlReader.loadYaml(new InputStreamReader(new FileInputStream(schemaFile)), Array(args(1)))
     val examples = args.toList.tail.tail
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true, Array[IdentityInformation](),
-        Array[IdentityInformation]())
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
+      Array[IdentityInformation](), Array[IdentityInformation]())
     val merged = examples.map (path => {
       val is = new FileInputStream(new File(path))
       val parser = X12SchemaParser(is, schema, config)

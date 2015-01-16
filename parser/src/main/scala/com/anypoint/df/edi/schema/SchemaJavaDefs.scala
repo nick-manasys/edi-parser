@@ -33,6 +33,11 @@ trait SchemaJavaDefs {
     if (value.isInstanceOf[MapList]) value.asInstanceOf[MapList]
     else throw new IllegalArgumentException(s"not a map list '$key'")
   }
+  
+  def getAsString(key: String, dflt: String, map: ValueMap): String = {
+    val value = map.get(key)
+    if (value == null) dflt else value.toString
+  }
 }
 
 object SchemaJavaValues {
