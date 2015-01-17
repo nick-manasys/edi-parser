@@ -7,10 +7,11 @@ import java.util.GregorianCalendar
 import scala.collection.JavaConversions
 import scala.util.Try
 import com.anypoint.df.edi.lexical.X12Writer
+import com.anypoint.df.edi.lexical.WriteException
 
 /** Writer for X12 EDI documents.
   */
-class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
+case class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
   extends SchemaWriter(new X12Writer, sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   import com.anypoint.df.edi.lexical.X12Constants._
@@ -84,6 +85,7 @@ class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
       getRequiredString(transactionInterPartnerQualId, transdata),
       getRequiredString(transactionInterPartnerId, transdata)))
     // TODO: handle multiple interchanges correctly
+    if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
     val (selfQual, selfId, partnerQual, partnerId) = interchanges.keys.head
     val interProps = new ValueMapImpl
     interProps put (INTER_CONTROL, Integer valueOf (internum))

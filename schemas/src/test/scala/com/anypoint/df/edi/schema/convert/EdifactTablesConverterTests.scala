@@ -90,7 +90,7 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     intercept[IllegalStateException] { skipBlankLine(lines) }
   }
 
-  "readElements" should "read element definitions" in {
+/*  "readElements" should "read element definitions" in {
     val elems1 = readElements(stringStream(input1))
     elems1.size should be(2)
     elems1.head should be(Element("1000", "Document name", DataType.ALPHANUMERIC, 0, 35))
@@ -100,7 +100,7 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     elems2.head should be(Element("1000", "Document/message name", DataType.ALPHANUMERIC, 0, 35))
     elems2.tail.head should be(Element("1001", "Document/message name, coded", DataType.NUMBER, 0, 3))
   }
-
+*/
   "trimTrailing" should "trim only trailing spaces from line" in {
     val lines = stringLines("\nabc\n   \n def   \n  ghi   ")
     trimTrailing(lines.next) should be("")
@@ -281,7 +281,7 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     intercept[IllegalArgumentException] { parseTemplate(template, true, stringLines("AA\nAA\n")) }
   }
 
-  "readComposites" should "parse complete composite definitions" in {
+/*  "readComposites" should "parse complete composite definitions" in {
     val ctempl1a = buildTemplate(ctemplate1a)
     val ctempl1b = buildTemplate(ctemplate1b)
     val element1 = Element("3299", "", DataType.ALPHANUMERIC, 0, 3)
@@ -309,8 +309,8 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     readComposites(stringLines(separator + composite1a + "\n\n" + separator + composite1b),
         ctempl1a, ctempl1b, elemap) should be(List(comp1, comp2))
   }
-
-  "readSegments" should "parse complete segment definitions" in {
+*/
+/*  "readSegments" should "parse complete segment definitions" in {
     val stempl1a = buildTemplate(stemplate1a)
     val stempl1b = buildTemplate(stemplate1b)
     val element1 = Element("5463", "", DataType.ALPHANUMERIC, 0, 3)
@@ -345,4 +345,4 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     readSegments(stringLines(separator + segment1a + "\n\n" + separator + segment1b),
       stempl1a, stempl1b, elemap, compmap) should be(List(seg1, seg2))
   }
-}
+*/}

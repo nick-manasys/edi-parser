@@ -321,7 +321,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       if (rejectTransaction) {
         ak5data put (segAK5.components(0) key, RejectedTransaction code)
         val limit = math.min(segAK5.components.length - 2, transactionErrors.length)
-        (0 until limit) foreach (i => ak5data put (segAK5.components(i + 1) key, transactionErrors(i)))
+        (0 until limit) foreach (i => ak5data put (segAK5.components(i + 1) key, transactionErrors(i).code.toString))
       } else {
         val list = transLists get setid
         list add (data)
@@ -419,7 +419,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ak9data put (segAK9.components(2) key, Integer valueOf (groupTransactionCount))
       ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
       val limit = math.min(segAK9.components.length - 5, groupErrors.length)
-      (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i)))
+      (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
       val sedata = new ValueMapImpl
       ackhead put (segSE name, sedata)
       sedata put (segSE.components(1) key, ackId toString)
