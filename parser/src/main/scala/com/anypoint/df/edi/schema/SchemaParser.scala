@@ -131,7 +131,8 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       */
     def parseRepeatingGroup(group: GroupComponent, values: ValueMap): Unit = {
       def verifyRepeats(key: String, max: Int) =
-        if (getList(key, values).size >= max) segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops)
+        if (max > 0 && getList(key, values).size >= max)
+          segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops)
       def addInstance(key: String, data: ValueMap) =
         if (values.containsKey(key)) values get (key) match {
           case list: MapList => list add (data)
@@ -140,7 +141,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         else values put (key, data)
       @tailrec
       def parseRepeat(): Unit = {
-        logger.info(s"checking for loop start segment '${group.leadseg.ident}'': ${checkSegment(group.leadseg)}")
+        if (logger.isTraceEnabled) logger.trace(s"checking for loop start segment '${group.leadseg.ident}'': ${checkSegment(group.leadseg)}")
         if (checkSegment(group.leadseg)) {
           val leadmap = parseSegment(group.leadseg, Some(group.ident), group.items.head.asInstanceOf[ReferenceComponent].position)
           val varval = leadmap.get(group.varkey).asInstanceOf[String]
@@ -181,7 +182,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         case (ref: ReferenceComponent) :: tail => {
           val segment = ref.segment
           if (!isEnvelopeSegment(segment)) {
-            logger.info(s"checking for segment '${segment.ident}'': ${checkSegment(segment)}")
+            if (logger.isTraceEnabled) logger.trace(s"checking for segment '${segment.ident}'': ${checkSegment(segment)}")
             if (checkSegment(segment)) {
               if (ref.usage == UnusedUsage) segmentError(segment.ident, group, ComponentErrors.UnusedSegment)
               val data =

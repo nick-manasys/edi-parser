@@ -14,50 +14,69 @@ import com.anypoint.df.edi.schema.X12SchemaParser
 import scala.util.Failure
 import scala.util.Success
 import com.anypoint.df.edi.schema.IdentityInformation
+import com.anypoint.df.edi.schema.SchemaJavaValues._
 
 object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
 
-  def mergeMaps(map1: ValueMap, map2: ValueMap): ValueMap = {
-    map1.keySet.asScala.toList.foldLeft(map2)((acc, key) => {
-
-      // get value with lists of maps flattened to maps
-      val val1 = {
-        val value = map1.get(key)
-        if (value.isInstanceOf[MapList]) value.asInstanceOf[MapList].asScala.toList.
-          foldLeft[ValueMap](new ValueMapImpl)((acc, map) => mergeMaps(map, acc))
-        else value
+  /** Merge all values from the first ap into the second map. If the same key exist in both maps, the value of the
+    * second map is retained. The second map (which may have been modified by the method call) is always returned as
+    * the result.
+    */
+  def mergeMaps(map1: ValueMap, map2: ValueMap): Unit =
+    map1.keySet.asScala.toList.foreach(key => {
+      def forceMerge(m: ValueMap) = {
+        if (!map2.containsKey(key)) map2 put (key, new ValueMapImpl)
+        mergeMaps(m, map2.get(key).asInstanceOf[ValueMap])
       }
-
-      // combine with existing value, if any
-      if (map2.containsKey(key)) {
-        if (map2.get(key).isInstanceOf[MapList]) {
-          println("error")
+      map1.get(key) match {
+        case l: MapList => {
+          val flat = new ValueMapImpl
+          l.asScala.foreach {
+            case m: ValueMap => mergeMaps(m, flat)
+            case _ => throw new IllegalStateException("list value can only be merged with map")
+          }
+          forceMerge(flat)
         }
-        if (val1.isInstanceOf[ValueMap]) map2.put(key,
-          mergeMaps(val1.asInstanceOf[ValueMap], map2.get(key).asInstanceOf[ValueMap]))
-      } else map2.put(key, val1)
-      map2
+        case m: ValueMap => forceMerge(m)
+        case v => if (!map2.containsKey(key)) map2 put (key, v)
+      }
     })
-  }
 
   /** Reads a schema and parses one or more documents using that schema, then generates an overlay schema based on the
-   *  sample documents which marks as unused all segments and elements/composites which were not present in any of the
-   *  samples.
+    * sample documents which marks as unused all segments and elements/composites which were not present in any of the
+    * samples.
     */
   def main(args: Array[String]): Unit = {
+    def stripMeta(trans: ValueMap) = trans.asScala.foreach {
+      case (_, list: MapList) => list.asScala.foreach {
+        case m: ValueMap => {
+          m.remove(transactionSet)
+          m.remove(transactionGroup)
+        }
+        case _ => throw new IllegalStateException("transaction list items must be maps")
+      }
+      case _ => throw new IllegalStateException("transaction map values must be lists")
+    }
     val schemaFile = new File(args(0))
     val schema = YamlReader.loadYaml(new InputStreamReader(new FileInputStream(schemaFile)), Array(args(1)))
     val examples = args.toList.tail.tail
     val config = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
       Array[IdentityInformation](), Array[IdentityInformation]())
-    val merged = examples.map (path => {
+    val merged = new ValueMapImpl
+    examples.foreach (path => {
+      println(s"merging $path")
       val is = new FileInputStream(new File(path))
       val parser = X12SchemaParser(is, schema, config)
       parser.parse match {
-        case Success(x) => x
+        case Success(x) => {
+          val transacts = x.get(transactionsMap).asInstanceOf[ValueMap]
+          stripMeta(transacts)
+          println(transacts)
+          mergeMaps(transacts, merged)
+        }
         case Failure(e) => throw new IllegalArgumentException(s"error parsing example $path: '${e.getMessage}'")
       }
-    }).foldLeft[ValueMap](new ValueMapImpl)((acc, map) => mergeMaps(map, acc))
+    })
     println(merged)
   }
 }

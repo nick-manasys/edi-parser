@@ -142,11 +142,11 @@ object X12Acknowledgment {
   }
   val segAK5 = Segment("AK5", "Transaction Set Response Trailer", List[SegmentComponent](
     ElementComponent(Element("717", "Transaction Set Acknowledgment Code", ID, 1, 1), None, "AK501", 1, MandatoryUsage, 1),
-    ElementComponent(elem718, None, "AK501", 2, OptionalUsage, 1),
-    ElementComponent(elem718, None, "AK501", 3, OptionalUsage, 1),
-    ElementComponent(elem718, None, "AK501", 4, OptionalUsage, 1),
-    ElementComponent(elem718, None, "AK501", 5, OptionalUsage, 1),
-    ElementComponent(elem718, None, "AK501", 6, OptionalUsage, 1)), Nil)
+    ElementComponent(elem718, None, "AK502", 2, OptionalUsage, 1),
+    ElementComponent(elem718, None, "AK503", 3, OptionalUsage, 1),
+    ElementComponent(elem718, None, "AK504", 4, OptionalUsage, 1),
+    ElementComponent(elem718, None, "AK505", 5, OptionalUsage, 1),
+    ElementComponent(elem718, None, "AK506", 6, OptionalUsage, 1)), Nil)
   val segAK9 = Segment("AK9", "Functional Group Response Trailer", List[SegmentComponent](
     ElementComponent(Element("715", "Functional Group Acknowledge Code", ID, 1, 1), None, "AK901", 1, MandatoryUsage, 1),
     ElementComponent(Element("97", "Number of Transaction Sets Included", INTEGER, 1, 6), None, "AK902", 2, MandatoryUsage, 1),

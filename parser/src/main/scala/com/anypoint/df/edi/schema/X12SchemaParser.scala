@@ -56,6 +56,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
 
   /** Number of transaction sets accepted in current group. */
   var groupAcceptCount = 0
+  
+  /** One or more segments of transaction in error flag. */
+  var oneOrMoreSegmentsInError = false
 
   /** Accumulated data errors (as AK4 maps) from segment. */
   val dataErrors = Buffer[ValueMap]()
@@ -136,7 +139,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, group: Option[String], position: String): ValueMap = {
-    logger.info(s"parsing segment ${segment.ident} at position $position")
+    if (logger.isDebugEnabled) logger.debug(s"parsing segment ${segment.ident} at position $position")
     val map = new ValueMapImpl()
     dataErrors.clear
     currentSegment = segment
@@ -160,14 +163,16 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ak3 put (segAK3.name, ak3data)
       ak3 put (segAK4.ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
       segmentErrors += ak3
+      oneOrMoreSegmentsInError = true
     }
-    logger.info(s"now positioned at segment '${lexer.token}'")
+    if (logger.isDebugEnabled) logger.debug(s"now positioned at segment '${lexer.token}'")
     map
   }
 
   /** Report segment error. */
   def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError) = {
-    def addError(error: SegmentSyntaxError) =
+    def addError(error: SegmentSyntaxError) = {
+      oneOrMoreSegmentsInError = true
       if (config.reportDataErrors) {
         val ak3 = new ValueMapImpl
         val ak3data = new ValueMapImpl
@@ -177,7 +182,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         group.foreach(ident => ak3data put (segAK3.components(2).key, ident))
         ak3data put (segAK3.components(3).key, error.code.toString)
         segmentErrors += ak3
-      }
+      }}
     if (inTransaction) error match {
       case ComponentErrors.TooManyLoops => {
         addError(TooManyLoops)
@@ -249,6 +254,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   def openSet() =
     if (checkSegment(STSegment)) {
       transactionErrors.clear
+      oneOrMoreSegmentsInError = false
       lexer.resetSegmentNumber
       inTransaction = true
       val values = parseSegment(STSegment, None, "0000")
@@ -314,9 +320,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
               val ak3s = JavaConversions.bufferAsJavaList(segmentErrors)
               setack put (segAK3 ident, ak3s)
             }
-          } else transactionErrors :+ SetNotInGroup
-        case _ => transactionErrors :+ NotSupportedTransaction
+          } else transactionErrors += SetNotInGroup
+        case _ => transactionErrors += NotSupportedTransaction
       }
+      if (oneOrMoreSegmentsInError) transactionErrors += SegmentsInError
       if (transactionErrors.nonEmpty) rejectTransaction = true
       if (rejectTransaction) {
         ak5data put (segAK5.components(0) key, RejectedTransaction code)
@@ -346,7 +353,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       }
 
     def skipGroup(error: GroupSyntaxError) = {
-      groupErrors :+ error
+      groupErrors += error
       discardToGroupEnd
     }
 
