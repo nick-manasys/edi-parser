@@ -304,14 +304,44 @@ object YamlReader extends YamlDefs {
 
   }
 
+  /** Find schema and return input stream. This first looks at using the file system, trying each base string as a
+    * prefix to the supplied path. If none of the bases work, it tries loading off the classpath.
+    * @param path simple file path (use absolute path to load from schema jar).
+    * @param basePaths prefix paths for file system access (need to include empty string to load from current directory)
+    */
+  def findSchema(path: String, basePaths: Array[String]) = {
+    def findr(bases: List[String]): InputStream = bases match {
+      case h :: t => {
+        val file = new File(h + path)
+        if (file.exists) new FileInputStream(file)
+        else findr(t)
+      }
+      case _ => {
+        val is = getClass.getResourceAsStream(path)
+        if (is == null) {
+          val is1 = getClass.getClassLoader.getResourceAsStream(path)
+          if (is1 == null) {
+            val is2 = Thread.currentThread.getContextClassLoader.getResourceAsStream(path)
+            if (is2 == null) {
+              println(System.getProperty("java.class.path"))
+              throw new IllegalArgumentException(s"base schema $path not found on any classpath")
+            } else is2
+          } else is1
+        } else is
+      }
+    }
+    
+    findr(basePaths.toList)
+  }
+
   /** Read schema from YAML document.
     *
     * @param reader
+    * @param basePaths prefix paths for file system access
     * @returns schema
     */
   def loadYaml(reader: Reader, basePaths: Array[String]) = {
     val snake = new Yaml(new IgnoringConstructor())
-    val bases = basePaths.toList
 
     /** Read schema from YAML document, recursively reading and building on imported schemas. */
     def loadFully(reader: Reader): EdiSchema = {
@@ -321,27 +351,7 @@ object YamlReader extends YamlDefs {
       val baseSchema = if (input.containsKey(importsKey)) {
         val impsin = getRequiredStringList(importsKey, input)
         impsin.asScala.toList.foldLeft(new EdiSchema(version))((acc, path) => {
-          def findImport(bases: List[String]): InputStream = bases match {
-            case h :: t => {
-              val file = new File(h + path)
-              if (file.exists) new FileInputStream(file)
-              else findImport(t)
-            }
-            case _ => {
-              val is = getClass.getResourceAsStream(path)
-              if (is == null) {
-                val is1 = getClass.getClassLoader.getResourceAsStream(path)
-                if (is1 == null) {
-                  val is2 = Thread.currentThread.getContextClassLoader.getResourceAsStream(path)
-                  if (is2 == null) {
-                    println(System.getProperty("java.class.path"))
-                    throw new IllegalArgumentException(s"base schema $path not found on any classpath")
-                  } else is2
-                } else is1
-              } else is
-              }
-          }
-          val is = findImport(bases)
+          val is = findSchema(path, basePaths)
           if (is == null) throw new IllegalArgumentException(s"base schema $path not found")
           acc.merge(loadFully(new InputStreamReader(is, "UTF-8")))
         })
