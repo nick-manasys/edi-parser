@@ -50,7 +50,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     props.get(RECEIVER_ID) should be("IJDIECAFOX")
     val calendar = props.get(INTERCHANGE_DATE).asInstanceOf[java.util.Calendar]
     calendar.get(Calendar.YEAR) should be (2009)
-    calendar.get(Calendar.MONTH) should be (6)
+    calendar.get(Calendar.MONTH) should be (5)
     calendar.get(Calendar.DAY_OF_MONTH) should be (4)
     props.get(INTERCHANGE_TIME) should be((12 * 60 + 5) * 60 * 1000)
     props.get(VERSION_ID) should be("00401")
@@ -67,7 +67,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     gprops.get(functionalIdentifierKey) should be("PO")
     gprops.get(applicationSendersKey) should be("006927180")
     gprops.get(applicationReceiversKey) should be("IAIYUCAFOO")
-    gprops.get(groupDateKey) should be(new GregorianCalendar(2008, 6, 4))
+    gprops.get(groupDateKey) should be(new GregorianCalendar(2008, 5, 4))
     gprops.get(groupTimeKey) should be((12 * 60 + 5) * 60000)
     gprops.get(groupControlKey) should be(Integer.valueOf(168))
     gprops.get(responsibleAgencyKey) should be("X")

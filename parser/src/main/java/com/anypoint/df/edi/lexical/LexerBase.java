@@ -643,7 +643,7 @@ public abstract class LexerBase {
             }
         }
         advance();
-        return new GregorianCalendar(year, month, day);
+        return new GregorianCalendar(year, month - 1, day);
     }
 
     /**

@@ -148,10 +148,14 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
           if (group.varbyval.contains(varval)) {
             val variant = group.varbyval(varval)
             verifyRepeats(variant.key, variant.count)
-            addInstance(variant.key, parseSection(variant.items.tail, Some(group.ident)))
+            val parse = parseSection(variant.items.tail, Some(group.ident))
+            parse put (variant.items.head.key, leadmap)
+            addInstance(variant.key, parse)
           } else {
             verifyRepeats(group.key, group.count)
-            addInstance(group.key, parseSection(group.items.tail, Some(group.ident)))
+            val parse = parseSection(group.items.tail, Some(group.ident))
+            parse put (group.items.head.key, leadmap)
+            addInstance(group.key, parse)
           }
           parseRepeat()
         }
@@ -223,7 +227,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   def discardTransaction(): Unit
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
-  def isEnvelopeSegment(segment: Segment): Boolean
+  def isEnvelopeSegment(segment: Segment) = schema.ediForm.isEnvelopeSegment(segment)
 
   /** Parse the input message. */
   def parse(): Try[ValueMap]

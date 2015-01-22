@@ -31,7 +31,6 @@ trait X12SchemaDefs {
   val SESegment = Segment("SE", "Transaction set trailer", List[SegmentComponent](
     ElementComponent(Element("96", "", INTEGER, 1, 10), Some(numberOfSegmentsName), "SE01", 1, MandatoryUsage, 1),
     ElementComponent(Element("329", "", ALPHANUMERIC, 4, 9), Some(transactionSetControlName), "SE02", 2, MandatoryUsage, 1)), Nil)
-
 }
 
 object X12Acknowledgment {

@@ -57,7 +57,7 @@ object EdiSchema {
     * @param usage
     * @param count maximum repetition count
     */
-  abstract class SegmentComponent(val name: String, val key: String, val position: Int, val usage: Usage,
+  sealed abstract class SegmentComponent(val name: String, val key: String, val position: Int, val usage: Usage,
     val count: Int)
 
   /** Element segment (or composite) component.
@@ -203,9 +203,15 @@ object EdiSchema {
 
   type TransactionMap = Map[String, Transaction]
 
-  sealed abstract class EdiForm(val text: String)
-  case object EdiFact extends EdiForm("EDIFACT")
-  case object X12 extends EdiForm("X12")
+  sealed abstract class EdiForm(val text: String) {
+    def isEnvelopeSegment(segment: Segment): Boolean
+  }
+  case object EdiFact extends EdiForm("EDIFACT") {
+    def isEnvelopeSegment(segment: Segment) = Set( "UNH", "UNT" ) contains segment.ident
+  }
+  case object X12 extends EdiForm("X12") {
+    def isEnvelopeSegment(segment: Segment) = Set( "ST", "SE" ) contains segment.ident
+  }
   def convertEdiForm(value: String) = value match {
     case EdiFact.text => EdiFact
     case X12.text => X12

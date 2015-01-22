@@ -31,5 +31,7 @@ trait YamlDefs {
   val versionKey = "version"
   val importsKey = "imports"
   
+  val trimKey = "trim"
+  
   val anyRepeatsValue = ">1"
 }

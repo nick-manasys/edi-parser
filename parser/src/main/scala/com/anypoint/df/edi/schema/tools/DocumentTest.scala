@@ -36,6 +36,33 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     }
   }
 
+  /** Regenerate parsed document by writing map to output. This should give a document identical to the input, except
+    * for data/times and line endings following segment terminators.
+    * @param map
+    */
+  def printDoc(map: ValueMap) = {
+    val os = new ByteArrayOutputStream
+    val writer = X12SchemaWriter(os, schema)
+    val transacts = getRequiredValueMap(transactionsMap, map)
+    foreachListInMap(transacts, (translist: MapList) => 
+      foreachMapInList(translist, (tran: ValueMap) => {
+        val group = getRequiredValueMap(transactionGroup, tran)
+        val inter = getRequiredValueMap(groupInterchange, group)
+        tran put (transactionInterSelfQualId, getRequiredString(SENDER_ID_QUALIFIER, inter))
+        tran put (transactionInterSelfId, getRequiredString(SENDER_ID, inter))
+        tran put (transactionGroupSelfId, getRequiredString(applicationSendersKey, group))
+        tran put (transactionInterPartnerQualId, getRequiredString(RECEIVER_ID_QUALIFIER, inter))
+        tran put (transactionInterPartnerId, getRequiredString(RECEIVER_ID, inter))
+        tran put (transactionGroupPartnerId, getRequiredString(applicationReceiversKey, group))
+      }))
+    map put (characterEncoding, "ASCII")
+    writer.write(map, 1).get
+    os.toString
+  }
+
+  /** Write 997 acknowledgement information from parse as output document.
+    * @param map
+    */
   def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
     val writer = X12SchemaWriter(os, schema)
@@ -61,8 +88,8 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     }
     transactions put ("997", acks)
     outmap put (transactionsMap, transactions)
-    outmap put (delimiterCharacters, "*>U~");
-    outmap put (characterEncoding, "UTF-8");
+    outmap put (delimiterCharacters, "*>U~")
+    outmap put (characterEncoding, "UTF-8")
     writer.write(outmap, 1).get
     os.toString
   }

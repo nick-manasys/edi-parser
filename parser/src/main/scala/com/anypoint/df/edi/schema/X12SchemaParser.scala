@@ -290,9 +290,6 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         discardTransaction
       } else discardSegment
 
-  /** Check if an envelope segment (handled directly, outside of transaction). */
-  def isEnvelopeSegment(segment: Segment) = segment.ident == STSegment.ident || segment.ident == SESegment.ident
-
   /** Parse transactions in group. */
   def parseGroup(interchange: ValueMap, group: ValueMap, groupCode: String, ackhead: ValueMap,
     transLists: java.util.Map[String, MapList]) = {

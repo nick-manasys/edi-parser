@@ -38,6 +38,27 @@ trait SchemaJavaDefs {
     val value = map.get(key)
     if (value == null) dflt else value.toString
   }
+  
+  def foreachMapInMap(map: ValueMap, f: ValueMap => Unit) = {
+    val iter = map.values.iterator
+    while (iter.hasNext) {
+      f(iter.next.asInstanceOf[ValueMap])
+    }
+  }
+  
+  def foreachListInMap(map: ValueMap, f: MapList => Unit) = {
+    val iter = map.values.iterator
+    while (iter.hasNext) {
+      f(iter.next.asInstanceOf[MapList])
+    }
+  }
+  
+  def foreachMapInList(list: MapList, f: ValueMap => Unit) = {
+    val iter = list.iterator
+    while (iter.hasNext) {
+      f(iter.next.asInstanceOf[ValueMap])
+    }
+  }
 }
 
 object SchemaJavaValues {

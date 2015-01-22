@@ -65,7 +65,7 @@ public class LexerBaseTest
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
         Calendar date = lexer.parseDate(8, 8);
         assertEquals(2009, date.get(Calendar.YEAR));
-        assertEquals(6, date.get(Calendar.MONTH));
+        assertEquals(5, date.get(Calendar.MONTH));
         assertEquals(4, date.get(Calendar.DAY_OF_MONTH));
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
         assertEquals((12 * 60 + 5) * 60000, lexer.parseTime(4, 4));
