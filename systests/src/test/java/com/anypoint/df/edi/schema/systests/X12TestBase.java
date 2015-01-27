@@ -150,7 +150,15 @@ public abstract class X12TestBase extends TestBase {
     protected String parseAndReturnAck(String path) {
         DocumentTest test = new DocumentTest(schema);
         InputStream is = BiztalkTest.class.getResourceAsStream(path);
-        Map<String, Object> result = test.parse(is);
-        return test.printAck(result);
-    }
+        try {
+        	Map<String, Object> result = test.parse(is);
+        	return test.printAck(result);
+        } catch (Exception e ){
+        	return e.getMessage(); 
+        }
+        
+    }    
+    
+    
+    
 }
