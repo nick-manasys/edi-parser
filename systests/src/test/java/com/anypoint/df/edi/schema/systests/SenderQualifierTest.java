@@ -3,6 +3,7 @@ package com.anypoint.df.edi.schema.systests;
 import junit.framework.Assert;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class SenderQualifierTest extends X12TestBase {
@@ -29,6 +30,7 @@ public class SenderQualifierTest extends X12TestBase {
 		Assert.assertTrue(ediParseResult.contains(getExceptionText()));
 	}
 	
+	@Ignore
 	@Test 
 	public void qualifierMatch() throws Exception {
 		String ediParseResult = parsWithSenderIdentityInformation(getInputFilePath(), "ZZ", "MULESOFT", "");
