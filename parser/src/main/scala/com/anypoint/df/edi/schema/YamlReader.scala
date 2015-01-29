@@ -25,57 +25,15 @@ import java.io.InputStream
   *
   * @author MuleSoft, Inc.
   */
-object YamlReader extends YamlDefs {
+object YamlReader extends YamlDefs with SchemaJavaDefs {
 
   import EdiSchema._
 
-  type JavaMap[K, V] = java.util.Map[K, V]
-  type AnyMap = JavaMap[String, Any]
-  type JavaList[V] = java.util.List[V]
-
-  //
-  // functions for working with parsed data
-
-  /** Get child map value (error if not found). */
-  def getChildMap[K, V](key: String, map: JavaMap[K, V]): JavaMap[K, V] = map.get(key) match {
-    case child: JavaMap[K, V] => child
-    case null => throw new IllegalArgumentException("Missing required map value '" + key + '\'')
-    case _ => throw new IllegalArgumentException("Value '" + key + "' is not a map")
-  }
-
   /** Get child list value (error if not found). */
-  def getChildList[K, V](key: String, map: JavaMap[K, V]): JavaList[V] = map.get(key) match {
-    case child: JavaList[V] => child
+  def getChildList(key: String, map: ValueMap): SimpleList = map.get(key) match {
+    case child: SimpleList => child
     case null => throw new IllegalArgumentException("Missing required array '" + key + '\'')
     case _ => throw new IllegalArgumentException("Value '" + key + "' is not a list")
-  }
-
-  /** Get child list of maps value (error if not found). */
-  def getRequiredMapList(key: String, map: AnyMap): JavaList[AnyMap] = map.get(key) match {
-    case child: JavaList[AnyMap] => child
-    case null => throw new IllegalArgumentException("Missing required list of maps value '" + key + '\'')
-    case _ => throw new IllegalArgumentException("Value '" + key + "' is not a list of maps")
-  }
-
-  /** Get child list of strings value (error if not found). */
-  def getRequiredStringList(key: String, map: AnyMap): JavaList[String] = map.get(key) match {
-    case child: JavaList[String] => child
-    case null => throw new IllegalArgumentException("Missing required list of strings value '" + key + '\'')
-    case _ => throw new IllegalArgumentException("Value '" + key + "' is not a list of srings")
-  }
-
-  /** Get child string value (error if not found). */
-  def getRequiredString(key: String, map: AnyMap): String = map.get(key) match {
-    case child: String => child
-    case null => throw new IllegalArgumentException("Missing required string value '" + key + '\'')
-    case _ => throw new IllegalArgumentException("Value '" + key + "' is not a string")
-  }
-
-  /** Get child int value (error if not found). */
-  def getRequiredInt(key: String, map: AnyMap): Int = map.get(key) match {
-    case n: Int => n
-    case null => throw new IllegalArgumentException("Missing required integer value '" + key + '\'')
-    case _ => throw new IllegalArgumentException("Value '" + key + "' is not an integer")
   }
 
   /** Build segment components from input data.
@@ -86,29 +44,29 @@ object YamlReader extends YamlDefs {
     * @param composites known composites map
     * @returns components
     */
-  def parseSegmentComponents(parentId: String, list: JavaList[AnyMap], elements: Map[String, Element],
+  def parseSegmentComponents(parentId: String, list: MapList, elements: Map[String, Element],
     composites: Map[String, Composite]): List[SegmentComponent] = {
-    def convertComponent(values: AnyMap, dfltpos: Int) = {
+    def convertComponent(values: ValueMap, dfltpos: Int) = {
       val id = getRequiredString(idRefKey, values)
       val name = if (values.containsKey(nameKey)) Some(getRequiredString(nameKey, values)) else None
       val position = if (values.containsKey(positionKey)) getRequiredInt(positionKey, values) else dfltpos
       val key = keyName(parentId, position)
       val use = convertUsage(getRequiredString(usageKey, values))
-      val repeat = values.get(countKey) match {
-        case n: Int => n
+      val count = values.get(countKey) match {
+        case n: Integer => n.toInt
         case null => 1
         case _ => throw new IllegalArgumentException(s"Value $countKey must be an integer")
       }
 
-      if (elements.contains(id)) ElementComponent(elements(id), name, key, position, use, repeat)
+      if (elements.contains(id)) ElementComponent(elements(id), name, key, position, use, count)
       else if (composites.contains(id)) {
         val composite = composites(id)
-        if (repeat > 1) CompositeComponent(composite, name, key, position, use, repeat)
-        else CompositeComponent(composite.rewrite(key), name, key, position, use, repeat)
+        if (count > 1) CompositeComponent(composite, name, key, position, use, count)
+        else CompositeComponent(composite.rewrite(key), name, key, position, use, count)
       } else throw new IllegalArgumentException(s"No element or composite with id '$id'")
     }
     @tailrec
-    def parseComponent(remain: List[AnyMap], position: Int, prior: List[SegmentComponent]): List[SegmentComponent] =
+    def parseComponent(remain: List[ValueMap], position: Int, prior: List[SegmentComponent]): List[SegmentComponent] =
       remain match {
         case values :: t => parseComponent(t, position + 1, convertComponent(values, position) :: prior)
         case _ => prior.reverse
@@ -116,16 +74,71 @@ object YamlReader extends YamlDefs {
     parseComponent(list.asScala.toList, 1, Nil)
   }
 
+  def getUsageOverride(values: ValueMap, dflt: Usage) =
+    if (values.containsKey(usageKey)) convertUsage(getRequiredString(usageKey, values)) else dflt
+
+  def getCountOverride(values: ValueMap, dflt: Int) =
+    if (values.containsKey(countKey)) values.get(countKey) match {
+      case n: Integer => n.toInt
+      case null => 1
+      case _ => throw new IllegalArgumentException(s"Value $countKey must be an integer")
+    }
+    else dflt
+
+  /** Build segment components with input data overlaying base definition. For overlays the position value is required
+    * on the component and uniquely identifies the base component being modified.
+    * @param parentId identifier for parent segment or composite
+    * @param list list of maps of component data
+    * @param rules list of maps of rules
+    * @param elements known elements map
+    * @param composites known composites map
+    * @param base segment components in base definition (overlayed by parsed values)
+    * @returns components
+    */
+  def parseSegmentOverlayComponents(parentId: String, list: MapList, elements: Map[String, Element],
+    composites: Map[String, Composite], base: List[SegmentComponent]): List[SegmentComponent] = {
+    def convertComponent(values: ValueMap, comp: SegmentComponent) = {
+      val ident = comp match {
+        case elem: ElementComponent => elem.element.ident
+        case comp: CompositeComponent => comp.composite.ident
+      }
+      val id = getAs(idRefKey, ident, values)
+      if (id != ident) throw new IllegalArgumentException(s"component at position ${comp.position} does not match id $id")
+      val name = Some(getAs(nameKey, comp.name, values))
+      val use = getUsageOverride(values, comp.usage)
+      val count = getCountOverride(values, comp.count)
+      comp match {
+        case elem: ElementComponent => ElementComponent(elem.element, name, elem.key, elem.position, use, count)
+        case comp: CompositeComponent => CompositeComponent(comp.composite, name, comp.key, comp.position, use, count)
+      }
+    }
+    @tailrec
+    def parseComponent(remain: List[ValueMap], prior: List[SegmentComponent], base: List[SegmentComponent]): List[SegmentComponent] =
+      remain match {
+        case values :: t => {
+          val pos = getRequiredInt(positionKey, values)
+          base match {
+            case (comp: SegmentComponent) :: bt if (comp.position == pos) =>
+              parseComponent(t, convertComponent(values, comp) :: prior, bt)
+            case bh :: bt => parseComponent(remain, prior, bt)
+            case Nil => prior.reverse
+          }
+        }
+        case _ => prior.reverse ::: base
+      }
+    parseComponent(list.asScala.toList, Nil, base)
+  }
+
   /** Build rules from input data.
     * @param rules list of maps of rule data
     * @param comps components rule applies to
     * @returns rules
     */
-  def parseRules(rules: JavaList[AnyMap], comps: List[SegmentComponent]): List[OccurrenceRule] = {
+  def parseRules(rules: MapList, comps: List[SegmentComponent]): List[OccurrenceRule] = {
     val posidx = comps.foldLeft(Map[Int, SegmentComponent]())((acc, comp) => acc + (comp.position -> comp))
-    def convertRule(map: AnyMap) = {
+    def convertRule(map: ValueMap) = {
       val comps = getChildList(valuesKey, map).asScala.toList.map(value => value match {
-        case pos: Int => posidx(pos)
+        case pos: Integer => posidx(pos.toInt)
         case _ => throw new IllegalArgumentException("Not a valid component position for rule")
       })
       val typ = getRequiredString(typeKey, map)
@@ -149,35 +162,11 @@ object YamlReader extends YamlDefs {
     * @param segments known segments map
     * @returns components
     */
-  def parseTransactionComponents(base: List[AnyMap], over: List[AnyMap], segments: Map[String, Segment]) = {
-    def mergeOverlay = {
-      @tailrec
-      def merger(after: String, baserem: List[AnyMap], overrem: List[AnyMap], acc: List[AnyMap]): List[AnyMap] =
-        overrem match {
-          case overh :: overt =>
-            if (after == overh.get(afterKey)) merger(after, baserem, overt, overh :: acc)
-            else baserem match {
-              case baseh :: baset => {
-                val id = baseh.get(idRefKey).asInstanceOf[String]
-                if (id == overh.get(idRefKey)) {
-                  val keyiter = overh.keySet.iterator
-                  while (keyiter.hasNext) {
-                    val key = keyiter.next
-                    baseh.put(key, overh.get(key))
-                  }
-                  merger(id, baset, overt, baseh :: acc)
-                } else merger(id, baset, overrem, baseh :: acc)
-              }
-              case _ => throw new IllegalArgumentException(s"overlay value ${overh.get(idRefKey)} does not match base")
-            }
-          case _ => baserem.reverse ::: acc
-        }
-      merger("", base, over, Nil) reverse
-    }
-    def convertComponent(values: AnyMap) = {
+  def parseTransactionComponents(base: List[ValueMap], segments: Map[String, Segment]) = {
+    def convertComponent(values: ValueMap) = {
       val use = convertUsage(getRequiredString(usageKey, values))
       val count = values.get(countKey) match {
-        case n: Int => n
+        case n: Integer => n.toInt
         case s: String if (s == anyRepeatsValue) => -1
         case null => 1
         case _ => throw new IllegalArgumentException(s"Value $countKey must be an integer or the string '$anyRepeatsValue'")
@@ -193,12 +182,12 @@ object YamlReader extends YamlDefs {
       }
     }
     @tailrec
-    def parseComponent(remain: List[AnyMap], prior: List[TransactionComponent]): List[TransactionComponent] =
+    def parseComponent(remain: List[ValueMap], prior: List[TransactionComponent]): List[TransactionComponent] =
       remain match {
         case values :: t => parseComponent(t, convertComponent(values) :: prior)
         case _ => prior.reverse
       }
-    parseComponent(mergeOverlay, Nil)
+    parseComponent(base, Nil)
   }
 
   /** Build transaction part from input data.
@@ -208,53 +197,78 @@ object YamlReader extends YamlDefs {
     * @param segments known segments map
     * @returns components
     */
-  def parseTransactionPart(name: String, values: AnyMap, overs: AnyMap, segments: Map[String, Segment]) =
+  def parseTransactionPart(name: String, values: ValueMap, segments: Map[String, Segment]) =
     if (values.containsKey(name)) {
       val vallist = getRequiredMapList(name, values).asScala.toList
-      val overlist = if (overs.containsKey(name)) getRequiredMapList(name, overs).asScala.toList else Nil
-      parseTransactionComponents(vallist, overlist, segments)
+      parseTransactionComponents(vallist, segments)
     } else Nil
 
-  /** Map with iteration order matching insertion order. This should only be used when the map is rarely, if ever,
-    * going to have an element removed since it uses a linear search for this case.
+  /** Build transaction part as overlay to base part.
+    *
+    * @param name part name
+    * @param overs map of component data overlay lists
+    * @param segments known segments map
+    * @returns components
     */
-  private class InsertionOrderedMap[K, V](base: Map[K, V], keys: List[K]) extends AbstractMap[K, V] {
-    def this() = this(Map.empty[K, V], Nil)
-    def +[V1 >: V](kv: (K, V1)): Map[K, V1] = new InsertionOrderedMap(base + kv, keys :+ kv._1)
-    def -(key: K) = {
+  def parseTransactionOverlayPart(name: String, overs: ValueMap, base: List[TransactionComponent],
+    segments: Map[String, Segment]) =
+    if (overs.containsKey(name)) {
+      def overLevel(overs: MapList, base: List[TransactionComponent]) =
+        overr(overs.asScala.toList, Nil, base)
       @tailrec
-      def dropKey(past: List[K], remain: List[K]): List[K] = remain match {
-        case h :: t =>
-          if (key == h) past.reverse ::: t
-          else dropKey(h :: past, t)
-        case Nil => past.reverse
+      def overr(remain: List[ValueMap], prior: List[TransactionComponent], base: List[TransactionComponent]):
+      List[TransactionComponent] = remain match {
+        case values :: t => {
+          val position = getRequiredString(positionKey, values)
+          base match {
+            case (refc: ReferenceComponent) :: bt if (refc.position == position) => {
+              if (values.containsKey(idRefKey)) {
+                val compare = getRequiredString(idRefKey, values)
+                if (compare != refc.segment.ident) throw new IllegalStateException(s"segment at position $position is not $compare")
+              }
+              val use = getUsageOverride(values, refc.usage)
+              val count = getCountOverride(values, refc.count)
+              overr(t, ReferenceComponent(refc.segment, refc.position, use, count) :: prior, bt)
+            }
+            case (group: GroupComponent) :: bt if (group.position == position) => {
+              if (values.containsKey(loopIdRefKey)) {
+                val compare = getRequiredString(loopIdRefKey, values)
+                if (compare != group.ident) throw new IllegalStateException(s"loop at position $position is not $compare")
+              }
+              val use = getUsageOverride(values, group.usage)
+              val count = getCountOverride(values, group.count)
+              val items =
+                if (values.containsKey(itemsKey)) overLevel(getRequiredMapList(itemsKey, values), group.items)
+                else group.items
+              overr(t, GroupComponent(group.ident, use, count, items, group.varkey, group.variants) :: prior, bt)
+            }
+            case bh :: bt => overr(remain, bh :: prior, bt)
+            case Nil => prior.reverse
+          }
+        }
+        case _ => prior.reverse ::: base
       }
-      new InsertionOrderedMap(base - key, dropKey(Nil, keys))
-    }
-    def get(key: K) = base get (key)
-    def iterator = keys.iterator.map(k => (k, base(k)))
-  }
+
+      overLevel(getRequiredMapList(name, overs), base)
+    } else base
 
   /** Convert element definitions. */
-  private def convertElements(input: AnyMap) = {
-    val elmsin = getRequiredMapList(elementsKey, input)
-    elmsin.asScala.toList.foldLeft[Map[String, Element]](new InsertionOrderedMap[String, Element])(
-      (map, elmmap) =>
-        {
-          val ident = getRequiredString(idKey, elmmap)
-          val name = getRequiredString(nameKey, elmmap)
-          val typ = EdiConstants.toX12Type(getRequiredString(typeKey, elmmap))
-          val min = getRequiredInt(minLengthKey, elmmap)
-          val max = getRequiredInt(maxLengthKey, elmmap)
-          map + (ident -> Element(ident, name, typ, min, max))
-        })
-  }
+  private def convertElements(input: ValueMap, basedefs: Map[String, Element]) =
+    getRequiredMapList(elementsKey, input).asScala.toList.foldLeft(basedefs)(
+      (map, elmmap) => {
+        val ident = getRequiredString(idKey, elmmap)
+        val name = getRequiredString(nameKey, elmmap)
+        val typ = EdiConstants.toX12Type(getRequiredString(typeKey, elmmap))
+        val min = getRequiredInt(minLengthKey, elmmap)
+        val max = getRequiredInt(maxLengthKey, elmmap)
+        val result = map + (ident -> Element(ident, name, typ, min, max))
+        result
+      })
 
   /** Convert composite definitions. */
-  private def convertComposites(input: AnyMap, elements: Map[String, Element]) = {
-    val compsin = getRequiredMapList(compositesKey, input)
-    compsin.asScala.toList.foldLeft[Map[String, Composite]](new InsertionOrderedMap[String, Composite])((map, compmap) =>
-      {
+  private def convertComposites(input: ValueMap, elements: Map[String, Element], basedefs: Map[String, Composite]) =
+    getRequiredMapList(compositesKey, input).asScala.toList.foldLeft(basedefs)(
+      (map, compmap) => {
         val ident = getRequiredString(idKey, compmap)
         val name = getRequiredString(nameKey, compmap)
         val list = getRequiredMapList(valuesKey, compmap)
@@ -265,44 +279,72 @@ object YamlReader extends YamlDefs {
         } else Nil
         map + (ident -> Composite(ident, name, comps, rules))
       })
-  }
 
   /** Convert segment definitions. */
-  private def convertSegments(input: AnyMap, elements: Map[String, Element], composites: Map[String, Composite]) = {
-    val segsin = getRequiredMapList(segmentsKey, input)
-    segsin.asScala.toList.foldLeft[Map[String, Segment]](new InsertionOrderedMap[String, Segment])(
-      (map, segmap) =>
-        {
-          val ident = getRequiredString(idKey, segmap)
-          val name = getRequiredString(nameKey, segmap)
-          val list = getRequiredMapList(valuesKey, segmap)
-          val comps = parseSegmentComponents(ident, list, elements, composites)
-          val rules = if (segmap.containsKey(rulesKey)) {
-            val data = getRequiredMapList(rulesKey, segmap)
-            parseRules(data, comps)
-          } else Nil
-          map + (ident -> Segment(ident, name, comps, rules))
-        })
+  private def convertSegments(input: ValueMap, elements: Map[String, Element], composites: Map[String, Composite],
+    basedefs: Map[String, Segment]) = {
+    def getRules(segmap: ValueMap, comps: List[SegmentComponent]) =
+      if (segmap.containsKey(rulesKey)) {
+        val data = getRequiredMapList(rulesKey, segmap)
+        parseRules(data, comps)
+      } else Nil
 
+    def trimComps(comps: List[SegmentComponent], trim: Int) = {
+      val (keep, drop) = comps.splitAt(trim)
+      keep ::: (drop.foldLeft(List[SegmentComponent]())((acc, comp) => comp match {
+        case ElementComponent(element, oname, key, pos, _, count) => ElementComponent(element, oname, key, pos, UnusedUsage, count) :: acc
+        case CompositeComponent(composite, oname, key, pos, _, count) => CompositeComponent(composite, oname, key, pos, UnusedUsage, count) :: acc
+      }).reverse)
+    }
+
+    getRequiredMapList(segmentsKey, input).asScala.toList.
+      foldLeft(basedefs)((map, segmap) => if (segmap.containsKey(idKey)) {
+        val ident = getRequiredString(idKey, segmap)
+        val list = getRequiredMapList(valuesKey, segmap)
+        val comps = parseSegmentComponents(ident, list, elements, composites)
+        val name = getRequiredString(nameKey, segmap)
+        map + (ident -> Segment(ident, name, comps, getRules(segmap, comps)))
+      } else if (segmap.containsKey(idRefKey)) {
+        val idref = getRequiredString(idRefKey, segmap)
+        basedefs.get(idref) match {
+          case Some(basedef) => {
+            val name = getAs(nameKey, basedef.name, segmap)
+            val basecomps = if (segmap.containsKey(trimKey)) trimComps(basedef.components, getRequiredInt(trimKey, segmap)) else basedef.components
+            if (segmap.containsKey(valuesKey)) {
+              val list = getRequiredMapList(valuesKey, segmap)
+              val comps = parseSegmentOverlayComponents(idref, list, elements, composites, basecomps)
+              map + (idref -> Segment(idref, name, comps, getRules(segmap, comps)))
+            } else {
+              map + (idref -> Segment(idref, name, basedef.components, getRules(segmap, basecomps)))
+            }
+          }
+          case None => throw new IllegalStateException(s"referenced segment $idref is not defined")
+        }
+      } else throw new IllegalStateException(s"segment definition needs either $idKey or $idRefKey value"))
   }
 
   /** Convert transaction definitions. */
-  private def convertTransactions(input: AnyMap, segments: Map[String, Segment]) = {
-    val transin = getRequiredMapList(transactionsKey, input)
-    transin.asScala.toList.foldLeft[Map[String, Transaction]](
-      new InsertionOrderedMap[String, Transaction])((map, transmap) =>
-        {
-          val ident = getRequiredString(idKey, transmap)
-          val name = getRequiredString(nameKey, transmap)
-          val group = if (transmap.containsKey(groupKey)) transmap.get(groupKey).asInstanceOf[String] else ""
-          val emptymap = new java.util.HashMap[String, Any]
-          val heading = parseTransactionPart(headingKey, transmap, emptymap, segments)
-          val detail = parseTransactionPart(detailKey, transmap, emptymap, segments)
-          val summary = parseTransactionPart(summaryKey, transmap, emptymap, segments)
-          map + (ident -> Transaction(ident, name, group, heading, detail, summary))
-        })
-
-  }
+  private def convertTransactions(input: ValueMap, segments: Map[String, Segment], basedefs: Map[String, Transaction]) =
+    getRequiredMapList(transactionsKey, input).asScala.toList.
+      foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
+        val ident = getRequiredString(idKey, transmap)
+        val name = getRequiredString(nameKey, transmap)
+        val group = if (transmap.containsKey(groupKey)) transmap.get(groupKey).asInstanceOf[String] else ""
+        val heading = parseTransactionPart(headingKey, transmap, segments)
+        val detail = parseTransactionPart(detailKey, transmap, segments)
+        val summary = parseTransactionPart(summaryKey, transmap, segments)
+        map + (ident -> Transaction(ident, name, group, heading, detail, summary))
+      } else if (transmap.containsKey(idRefKey)) {
+        val idref = getRequiredString(idRefKey, transmap)
+        if (!basedefs.contains(idref)) throw new IllegalStateException(s"referenced transaction $idref is not defined")
+        val basedef = basedefs(idref)
+        val name = getAs(nameKey, basedef.name, transmap)
+        val group = getAs(groupKey, basedef.group, transmap)
+        val heading = parseTransactionOverlayPart(headingKey, transmap, basedef.heading, segments)
+        val detail = parseTransactionOverlayPart(detailKey, transmap, basedef.detail, segments)
+        val summary = parseTransactionOverlayPart(summaryKey, transmap, basedef.summary, segments)
+        map + (idref -> Transaction(idref, name, group, heading, detail, summary))
+      } else throw new IllegalStateException(s"transaction definition needs either $idKey or $idRefKey value"))
 
   /** Find schema and return input stream. This first looks at using the file system, trying each base string as a
     * prefix to the supplied path. If none of the bases work, it tries loading off the classpath.
@@ -324,13 +366,13 @@ object YamlReader extends YamlDefs {
             val is2 = Thread.currentThread.getContextClassLoader.getResourceAsStream(path)
             if (is2 == null) {
               println(System.getProperty("java.class.path"))
-              throw new IllegalArgumentException(s"base schema $path not found on any classpath")
+              throw new IllegalArgumentException(s"file $path not found on any classpath")
             } else is2
           } else is1
         } else is
       }
     }
-    
+
     findr(basePaths.toList)
   }
 
@@ -345,28 +387,30 @@ object YamlReader extends YamlDefs {
 
     /** Read schema from YAML document, recursively reading and building on imported schemas. */
     def loadFully(reader: Reader): EdiSchema = {
-      val input = snake.loadAs(reader, classOf[JavaMap[Any, Any]]).asInstanceOf[AnyMap];
+      val input = snake.loadAs(reader, classOf[ValueMap]).asInstanceOf[ValueMap];
       val form = convertEdiForm(input.get(formKey).toString)
       val version = getRequiredString(versionKey, input)
       val baseSchema = if (input.containsKey(importsKey)) {
-        val impsin = getRequiredStringList(importsKey, input)
+        val impsin = getChildList(importsKey, input).asInstanceOf[java.util.List[String]]
         impsin.asScala.toList.foldLeft(new EdiSchema(version))((acc, path) => {
           val is = findSchema(path, basePaths)
           if (is == null) throw new IllegalArgumentException(s"base schema $path not found")
           acc.merge(loadFully(new InputStreamReader(is, "UTF-8")))
         })
-
       } else new EdiSchema(version)
-      val elements = (if (input.containsKey(elementsKey)) convertElements(input)
-      else Map[String, Element]()) ++ baseSchema.elements
-      val composites = (if (input.containsKey(compositesKey)) convertComposites(input, elements)
-      else Map.empty[String, Composite]) ++ baseSchema.composites
-      val segments = (if (input.containsKey(segmentsKey)) convertSegments(input, elements, composites)
-      else Map.empty[String, Segment]) ++ baseSchema.segments
+      val elements =
+        if (input.containsKey(elementsKey)) convertElements(input, baseSchema.elements)
+        else baseSchema.elements
+      val composites =
+        if (input.containsKey(compositesKey)) convertComposites(input, elements, baseSchema.composites)
+        else baseSchema.composites
+      val segments =
+        if (input.containsKey(segmentsKey)) convertSegments(input, elements, composites, baseSchema.segments)
+        else baseSchema.segments
       val transactions =
-        if (input.containsKey(transactionsKey)) convertTransactions(input, segments)
-        else Map.empty[String, Transaction]
-      EdiSchema(form, version, elements, Map.empty[String, Composite], segments, transactions)
+        if (input.containsKey(transactionsKey)) convertTransactions(input, segments, baseSchema.transactions)
+        else baseSchema.transactions
+      EdiSchema(form, version, elements, composites, segments, transactions)
     }
 
     loadFully(reader)

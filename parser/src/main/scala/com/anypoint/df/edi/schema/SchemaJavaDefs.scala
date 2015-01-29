@@ -21,6 +21,13 @@ trait SchemaJavaDefs {
     if (value.isInstanceOf[String]) value.asInstanceOf[String]
     else throw new IllegalArgumentException(s"not a string value '$key'")
   }
+
+  /** Get child int value (error if not found). */
+  def getRequiredInt(key: String, map: ValueMap): Int = map.get(key) match {
+    case n: Integer => n
+    case null => throw new IllegalArgumentException("Missing required integer value '" + key + '\'')
+    case _ => throw new IllegalArgumentException("Value '" + key + "' is not an integer")
+  }
   
   def getRequiredValueMap(key: String, map: ValueMap): ValueMap = {
     def value = getRequiredValue(key, map)
@@ -34,10 +41,9 @@ trait SchemaJavaDefs {
     else throw new IllegalArgumentException(s"not a map list '$key'")
   }
   
-  def getAsString(key: String, dflt: String, map: ValueMap): String = {
-    val value = map.get(key)
-    if (value == null) dflt else value.toString
-  }
+  def getAs[T](key: String, dflt: T, map: ValueMap): T =
+    if (map.containsKey(key)) map.get(key).asInstanceOf[T]
+    else dflt
   
   def foreachMapInMap(map: ValueMap, f: ValueMap => Unit) = {
     val iter = map.values.iterator

@@ -30,10 +30,9 @@ public class SenderQualifierTest extends X12TestBase {
 		Assert.assertTrue(ediParseResult.contains(getExceptionText()));
 	}
 	
-	@Ignore
 	@Test 
 	public void qualifierMatch() throws Exception {
-		String ediParseResult = parsWithSenderIdentityInformation(getInputFilePath(), "ZZ", "MULESOFT", "");
+		String ediParseResult = parsWithSenderIdentityInformation(getInputFilePath(), "ZZ", "MODUS", "");
 		Assert.assertFalse(ediParseResult.contains(getExceptionText()));
 	}
 

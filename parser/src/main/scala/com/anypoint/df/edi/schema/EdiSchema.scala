@@ -161,7 +161,7 @@ object EdiSchema {
   case class VariantGroup(val baseid: String, val elemval: String, use: Usage, cnt: Int,
     itms: List[TransactionComponent]) extends GroupBase(s"$baseid[$elemval]", use, cnt, itms)
   case class GroupComponent(val ident: String, use: Usage, cnt: Int,
-    itms: List[TransactionComponent], val varkey: Option[String], variants: List[VariantGroup])
+    itms: List[TransactionComponent], val varkey: Option[String], val variants: List[VariantGroup])
     extends GroupBase(ident, use, cnt, itms) {
     val (position, leadseg) = itms match {
       case (ref: ReferenceComponent) :: t => (ref.position, ref.segment)

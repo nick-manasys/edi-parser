@@ -14,7 +14,7 @@ public abstract class TestBase {
     
     protected static void loadSchema(String path) {
         try {
-            InputStream is = BiztalkTest.class.getResourceAsStream(path);
+            InputStream is = YamlReader.findSchema(path, new String[] { "" });
             schema = YamlReader.loadYaml(new InputStreamReader(is, "ASCII"), new String[0]);
         } catch (Exception e) {
             throw new RuntimeException("Could not load schema file " + path, e);
@@ -41,7 +41,7 @@ public abstract class TestBase {
     }
     
     protected String readAsString(String path) throws IOException {
-        InputStream is = BiztalkTest.class.getResourceAsStream(path);
+        InputStream is = TestBase.class.getResourceAsStream(path);
         InputStreamReader reader = new InputStreamReader(is, "ASCII");
         StringWriter writer = new StringWriter();
         char[] buff = new char[2048];

@@ -223,7 +223,7 @@ object X12TablesConverter {
   def convertType(text: String) = if (text.length > 0) EdiConstants.toX12Type(text) else DataType.ALPHANUMERIC
 
   /** Write schema to file. */
-  def writeSchema(schema: EdiSchema, name: String, imports: List[String], outdir: File) = {
+  def writeSchema(schema: EdiSchema, name: String, imports: Array[String], outdir: File) = {
     println(s"writing schema $name")
     val file = new File(outdir, name + yamlExtension)
     val writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
@@ -277,13 +277,13 @@ object X12TablesConverter {
       val baseSchema = EdiSchema(X12, vnum, elemDefs, compDefs, segDefs, Map[String, Transaction]())
       val outdir = new File(yamldir, version.getName)
       outdir.mkdirs
-      writeSchema(baseSchema, "basedefs", Nil, outdir)
+      writeSchema(baseSchema, "basedefs", Array(), outdir)
       verifySchema(baseSchema, "basedefs", outdir)
       val transactions = defineTransactions(segDefs, setHeads, setGroups)
       transactions.values.foreach(transact => {
         val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
           Map(transact.ident -> transact))
-        writeSchema(schema, transact.ident, List(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)
+        writeSchema(schema, transact.ident, Array(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)
       })
     })
   }

@@ -33,7 +33,9 @@ case class IdentityInformation(interchangeQualifier: String, interchangeId: Stri
 case class X12ParserConfig(val lengthFail: Boolean, val asciiOnly: Boolean, val charFail: Boolean,
   val countFail: Boolean, val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean,
   val occursFail: Boolean, val reportDataErrors: Boolean, val generate997: Boolean, val generateTA1: Boolean,
-  val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation])
+  val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation]) {
+  if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
+}
 
 /** Parser for X12 EDI documents. */
 case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConfig)
@@ -402,9 +404,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
       ak1data put (segAK1.components(1) key, group get (groupControlKey))
       ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
-      val code = getAsString(functionalIdentifierKey, "", group)
+      val code = getAs(functionalIdentifierKey, "", group)
       if (functionalGroups.contains(code)) {
-        val version = getAsString(versionIdentifierKey, "", group)
+        val version = getAs(versionIdentifierKey, "", group)
         if (version == schema.version) {
           parseGroup(interchange, group, code, ackhead, transLists)
         } else skipGroup(NotSupportedGroupVersion)

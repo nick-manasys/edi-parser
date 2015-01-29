@@ -73,9 +73,10 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     /** Write list of modifications to segments in a transaction. Recurses when a loop has embedded changes. */
     def writeMods(indent: Int, mods: List[TransactionModification]): Unit = mods.foreach {
       case DropSegment(id, pos) =>
-        writeIndented(s"""- { ${keyValueQuote(idKey, id)}, ${keyValueQuote(positionKey, pos)}, ${keyValuePair(usageKey, UnusedUsage.code)} }""", indent, writer)
+        writeIndented(s"""- { ${keyValueQuote(idRefKey, id)}, ${keyValueQuote(positionKey, pos)}, ${keyValuePair(usageKey, UnusedUsage.code)} }""", indent, writer)
       case ModifyLoop(id, posThere, nested) =>
-        writeIndented(s"- ${keyValueQuote(loopIdKey, id)}", indent, writer)
+        writeIndented(s"- ${keyValueQuote(loopIdRefKey, id)}", indent, writer)
+        writeIndented(s"${keyValueQuote(positionKey, posThere)}", indent + 1, writer)
         writeSection(indent + 1, itemsKey, nested)
     }
     
@@ -94,7 +95,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       // write transaction modifications
       writeIndented(s"$transactionsKey:", 0, writer)
       transmods foreach (transmod => {
-        writeIndented(s"- ${keyValueQuote(idKey, transmod.ident)}", 0, writer)
+        writeIndented(s"- ${keyValueQuote(idRefKey, transmod.ident)}", 0, writer)
         if (transmod.headMods.nonEmpty) writeSection(1, headingKey, transmod.headMods)
         if (transmod.detailMods.nonEmpty) writeSection(1, detailKey, transmod.detailMods)
         if (transmod.summaryMods.nonEmpty) writeSection(1, summaryKey, transmod.summaryMods)
@@ -106,9 +107,10 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       writeIndented(s"$segmentsKey:", 0, writer)
       segmods foreach { case SegmentModification(ident, trim, drops) =>
         if (drops.isEmpty)
-          writeIndented(s"- { ${keyValuePair(idKey, ident)}, ${keyValuePair(trimKey, trim.get)} }", 0, writer)
+          writeIndented(s"- { ${keyValuePair(idRefKey, ident)}, ${keyValuePair(trimKey, trim.get)} }", 0, writer)
         else {
-          writeIndented(s"- ${keyValuePair(idKey, ident)}", 0, writer)
+          writeIndented(s"- ${keyValuePair(idRefKey, ident)}", 0, writer)
+          writeIndented(s"$itemsKey:", 1, writer)
           drops.foreach {
             drop => writeIndented(s"- { ${keyValuePair(positionKey, drop)}, ${keyValuePair(usageKey, UnusedUsage.code)} }", 1, writer)
             }}}
@@ -124,8 +126,8 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     */
   def main(args: Array[String]): Unit = {
 
-    val schemaFile = new File(args(0))
-    val schema = YamlReader.loadYaml(new InputStreamReader(new FileInputStream(schemaFile)), Array())
+    val is = YamlReader.findSchema(args(0), Array())
+    val schema = YamlReader.loadYaml(new InputStreamReader(is), Array())
     val examples = args.toList.tail.tail
     val config = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
       Array[IdentityInformation](), Array[IdentityInformation]())
@@ -204,7 +206,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val merged = new ValueMapImpl
     examples.foreach (path => {
       println(s"merging $path")
-      val is = new FileInputStream(new File(path))
+      val is = YamlReader.findSchema(path, Array())
       val parser = X12SchemaParser(is, schema, config)
       parser.parse match {
         case Success(x) => {

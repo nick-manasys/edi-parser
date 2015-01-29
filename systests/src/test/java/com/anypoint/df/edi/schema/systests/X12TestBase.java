@@ -176,7 +176,7 @@ public abstract class X12TestBase extends TestBase {
 		IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
 		IdentityInformation[] senders = new IdentityInformation[1];
 		senders[0] = identity;
-		X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true, null, senders);
+		X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true, new IdentityInformation[0], senders);
 
 		DocumentTest test = new DocumentTest(schema, config);
 		InputStream is = BiztalkTest.class.getResourceAsStream(inputFilePath);

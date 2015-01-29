@@ -32,6 +32,7 @@ trait YamlDefs {
   val importsKey = "imports"
   
   val trimKey = "trim"
+  val loopIdRefKey = "loopIdRef"
   
   val anyRepeatsValue = ">1"
 }

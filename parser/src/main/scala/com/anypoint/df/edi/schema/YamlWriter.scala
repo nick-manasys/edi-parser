@@ -50,9 +50,10 @@ object YamlWriter extends WritesYaml with YamlDefs {
   /** Write schema in YAML form.
     *
     * @param schema
+    * @param imports
     * @param writer
     */
-  def write(schema: EdiSchema, imports: List[String], writer: Writer) = {
+  def write(schema: EdiSchema, imports: Array[String], writer: Writer) = {
 
     def writeTransactionComps(label: String, segments: List[TransactionComponent], indent: Int): Unit = {
       writeIndented(label + ":", indent, writer)
@@ -113,7 +114,7 @@ object YamlWriter extends WritesYaml with YamlDefs {
 
       // write transaction details
       writeIndented(s"$transactionsKey:", 0, writer)
-      schema.transactions.values foreach (transact => {
+      schema.transactions.values.toList.sortBy { transact => transact.ident } foreach (transact => {
         writeIndented("- " + keyValueQuote(idKey, transact.ident), 0, writer)
         writeIndented(keyValuePair(nameKey, transact.name), 1, writer)
         writeIndented(keyValuePair(groupKey, transact.group), 1, writer)
@@ -126,7 +127,7 @@ object YamlWriter extends WritesYaml with YamlDefs {
 
       // write segment details
       writeIndented("segments:", 0, writer)
-      schema.segments.values foreach (segment => {
+      schema.segments.values.toList.sortBy { segment => segment.ident } foreach (segment => {
         writeIndented("- " + keyValueQuote(idKey, segment.ident), 0, writer)
         writeIndented(keyValuePair(nameKey, segment name), 1, writer)
         writeSegmentComponents(valuesKey, segment.components, 1)
@@ -147,7 +148,7 @@ object YamlWriter extends WritesYaml with YamlDefs {
 
       // write composites details
       writeIndented(compositesKey + ":", 0, writer)
-      schema.composites.values foreach (composite => {
+      schema.composites.values.toList.sortBy { composite => composite.ident } foreach (composite => {
         writeIndented("- " + keyValueQuote(idKey, composite.ident), 0, writer)
         writeIndented(keyValueQuote(nameKey, composite name), 1, writer)
         writeSegmentComponents(valuesKey, composite.components, 1)
@@ -157,12 +158,12 @@ object YamlWriter extends WritesYaml with YamlDefs {
 
       // write element details
       writeIndented("elements:", 0, writer)
-      schema.elements.values foreach (element =>
+      schema.elements.values.toList.sortBy { element => element.ident } foreach (element =>
         writeIndented("- { " + keyValueQuote(idKey, element.ident) + ", " +
           keyValueQuote(nameKey, element name) + ", " +
           keyValuePair(typeKey, element.dataType.code) + ", " +
           keyValuePair(minLengthKey, element.minLength toString) + ", " +
-          keyValuePair(maxLengthKey, element.maxLength toString) + " }", 0, writer))
+          keyValuePair(maxLengthKey, element.maxLength toString) + " }", 1, writer))
     }
   }
 }
