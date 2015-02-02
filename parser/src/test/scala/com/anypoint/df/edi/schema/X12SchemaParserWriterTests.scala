@@ -20,6 +20,14 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   import com.anypoint.df.edi.lexical.X12Constants._
   import SchemaJavaValues._
   import X12SchemaValues._
+  
+  class DefaultNumberProvider extends NumberProvider {
+    var number = 1
+    def nextInterchange = {
+      number += 1
+      number
+    }
+  }
 
   val DATETIME = "090604*1205"
   val ISA = s"ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *$DATETIME*U*00401*000001244*0*P*>~"
@@ -106,7 +114,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "write the ISA envelope when initialized and then terminated" in {
     val out = new ByteArrayOutputStream
-    val create = SchemaWriter.create(out, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty))
+    val create = SchemaWriter.create(out, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
+      new DefaultNumberProvider)
     assert(create.isSuccess)
     val writer = create.get
     val props = new ValueMapImpl
@@ -141,12 +150,12 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val parseResult = parser.parse
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
     val out = new ByteArrayOutputStream
-    val createWriter = SchemaWriter.create(out, schema)
+    val createWriter = SchemaWriter.create(out, schema, new DefaultNumberProvider)
     assert(createWriter.isSuccess)
     val writer = createWriter.get
     val props = parseResult.get
     props.put(characterEncoding, "UTF-8")
-    val writeResult = writer.write(props, 1)
+    writer.write(props)
     val text = new String(out.toByteArray)
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")).getLines
     val builder = new StringBuilder

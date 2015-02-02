@@ -153,16 +153,20 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   def isEnvelopeSegment(segment: Segment): Boolean
 
   /** Write the output message. */
-  def write(map: ValueMap, base: Int): Try[Int]
+  def write(map: ValueMap): Try[Unit]
+}
+
+trait NumberProvider {
+  def nextInterchange: Int
 }
 
 object SchemaWriter {
 
   /** Factory function to create writer instances. */
-  def create(out: OutputStream, schema: EdiSchema) = Try {
+  def create(out: OutputStream, schema: EdiSchema, numprov: NumberProvider) = Try {
     schema ediForm match {
       case EdiFact => throw new IllegalArgumentException()
-      case X12 => new X12SchemaWriter(out, schema)
+      case X12 => new X12SchemaWriter(out, schema, numprov)
     }
   }
 }

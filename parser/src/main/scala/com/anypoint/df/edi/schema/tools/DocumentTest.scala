@@ -8,6 +8,7 @@ import scala.util.Failure
 import scala.util.Success
 import com.anypoint.df.edi.schema.EdiSchema
 import com.anypoint.df.edi.schema.IdentityInformation
+import com.anypoint.df.edi.schema.NumberProvider
 import com.anypoint.df.edi.schema.SchemaJavaDefs
 import com.anypoint.df.edi.schema.X12ParserConfig
 import com.anypoint.df.edi.schema.X12SchemaDefs
@@ -35,6 +36,14 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
       case Failure(e) => throw e
     }
   }
+  
+  class DefaultNumberProvider extends NumberProvider {
+    var number = 0
+    def nextInterchange = {
+      number += 1
+      number
+    }
+  }
 
   /** Regenerate parsed document by writing map to output. This should give a document identical to the input, except
     * for data/times and line endings following segment terminators.
@@ -42,7 +51,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     */
   def printDoc(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val writer = X12SchemaWriter(os, schema)
+    val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider)
     val transacts = getRequiredValueMap(transactionsMap, map)
     foreachListInMap(transacts, (translist: MapList) => 
       foreachMapInList(translist, (tran: ValueMap) => {
@@ -56,7 +65,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
         tran put (transactionGroupPartnerId, getRequiredString(applicationReceiversKey, group))
       }))
     map put (characterEncoding, "ASCII")
-    writer.write(map, 1).get
+    writer.write(map).get
     os.toString
   }
 
@@ -65,7 +74,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     */
   def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val writer = X12SchemaWriter(os, schema)
+    val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider)
     val outmap = new ValueMapImpl(map)
     val transactions = new ValueMapImpl
     val acks = map.get(acknowledgments).asInstanceOf[MapList]
@@ -90,7 +99,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     outmap put (transactionsMap, transactions)
     outmap put (delimiterCharacters, "*>U~")
     outmap put (characterEncoding, "UTF-8")
-    writer.write(outmap, 1).get
+    writer.write(outmap).get
     os.toString
   }
 }

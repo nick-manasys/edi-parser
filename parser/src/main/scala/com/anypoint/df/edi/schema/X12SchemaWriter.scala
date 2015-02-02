@@ -11,7 +11,7 @@ import com.anypoint.df.edi.lexical.WriteException
 
 /** Writer for X12 EDI documents.
   */
-case class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
+case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: NumberProvider)
   extends SchemaWriter(new X12Writer, sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   import com.anypoint.df.edi.lexical.X12Constants._
@@ -74,8 +74,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
   def isEnvelopeSegment(segment: Segment) = segment.ident == "ST" || segment.ident == "SE"
 
   /** Write the output message. */
-  def write(map: ValueMap, basenum: Int) = Try({
-    var internum = basenum
+  def write(map: ValueMap) = Try({
     val transMap = getRequiredValueMap(transactionsMap, map)
     val transactions = JavaConversions.mapAsScalaMap(transMap).values.flatMap(value =>
       JavaConversions.iterableAsScalaIterable(value.asInstanceOf[MapList]))
@@ -88,7 +87,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
     val (selfQual, selfId, partnerQual, partnerId) = interchanges.keys.head
     val interProps = new ValueMapImpl
-    interProps put (INTER_CONTROL, Integer valueOf (internum))
+    interProps put (INTER_CONTROL, Integer valueOf (numprov.nextInterchange))
     interProps put (RECEIVER_ID_QUALIFIER, partnerQual)
     interProps put (RECEIVER_ID, partnerId)
     interProps put (SENDER_ID_QUALIFIER, selfQual)
@@ -134,9 +133,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema)
           }
         }
         term(interProps)
-        internum += 1
       }
     }
-    internum
   })
 }
