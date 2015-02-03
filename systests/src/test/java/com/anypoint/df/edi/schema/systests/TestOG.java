@@ -14,7 +14,7 @@ public class TestOG extends X12TestBase {
     
     @Test
     public void verifyGeneratedAcks() {
-        assertEquals("ISA*00*          *00*          *08*9262390000     *ZZ*08             *XXXXXX*XXXX*U*00501*XXXXXXXXX*X*P*>~GS*FA*8052495336*8136881188*XXXXXXXX*XXXX**X*005010~ST*997*1   ~AK1*OG*47*005010UCS~AK9*R*5*5*0*2~SE*4*1   ~GE*1*1~IEA*1*000000001~",
+        assertEquals("ISA*00*          *00*          *08*9262390000     *ZZ*08             *XXXXXX*XXXX*U*00501*XXXXXXXXX*X*P*>~GS*FA*8052495336*8136881188*XXXXXXXX*XXXX**X*005010~ST*997*0001~AK1*OG*47*005010UCS~AK9*R*5*5*0*2~SE*4*0001~GE*1*1~IEA*1*000000001~",
             stripAckDates(parseAndReturnAck("/x12/005010/testOG/testOG.edi")));
     }
 }

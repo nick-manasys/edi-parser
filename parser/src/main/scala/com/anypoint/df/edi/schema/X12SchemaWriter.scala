@@ -4,6 +4,7 @@ import java.io.OutputStream
 import java.nio.charset.Charset
 import java.util.Calendar
 import java.util.GregorianCalendar
+import scala.annotation.tailrec
 import scala.collection.JavaConversions
 import scala.util.Try
 import com.anypoint.df.edi.lexical.X12Writer
@@ -118,9 +119,12 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
             writer.countGroup
             var setnum = 1
             grouplist foreach (transaction => {
+              @tailrec
+              def zeroPad(text: String, length: Int): String =
+                if (text.length < length) zeroPad("0" + text, length) else text
               val ident = getRequiredString(transactionId, transaction)
               val setProps = new ValueMapImpl
-              setProps put (transactionSetControlKey, setnum toString)
+              setProps put (transactionSetControlKey, zeroPad(setnum toString, 4))
               if (transaction containsKey (transactionImplConventionRef)) setProps put (implementationConventionKey,
                 transaction get (transactionImplConventionRef))
               openSet(ident, setProps)
