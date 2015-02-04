@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mule.edi</groupId>
   <artifactId>edi</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>1.0-beta-1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Mule EDI Support</name>
 
@@ -38,14 +38,14 @@
 
   <distributionManagement>
     <repository>
-        <id>mule-releases</id>
-        <name>Mule Release Repository</name>
-        <url>https://repository-master.mulesoft.org/nexus/content/repositories/releases</url>
+        <id>edi-beta</id>
+        <name>EDI Module Beta Release Repository</name>
+        <url>https://repository-master.mulesoft.org/nexus/content/repositories/edi-module-beta</url>
     </repository>
     <snapshotRepository>
-        <id>mule-snapshots</id>
-        <name>Mule Snapshot Repository</name>
-        <url>https://repository-master.mulesoft.org/nexus/content/repositories/snapshots</url>
+        <id>edi-beta-snapshots</id>
+        <name>EDI Module Beta Snapshot Repository</name>
+        <url>https://repository-master.mulesoft.org/nexus/content/repositories/edi-module-beta-snapshots</url>
         <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
