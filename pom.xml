@@ -14,13 +14,13 @@
     <base.scala.version>2.11</base.scala.version>
     <scala.version>${base.scala.version}.1</scala.version>
   </properties>
-  
+
   <modules>
     <module>parser</module>
     <module>schemas</module>
     <module>systests</module>
   </modules>
-  
+
   <build>
     <pluginManagement>
       <plugins>
@@ -35,5 +35,18 @@
       </plugins>
     </pluginManagement>
   </build>
-  
+
+  <distributionManagement>
+    <repository>
+        <id>mule-releases</id>
+        <name>Mule Release Repository</name>
+        <url>https://repository-master.mulesoft.org/nexus/content/repositories/releases</url>
+    </repository>
+    <snapshotRepository>
+        <id>mule-snapshots</id>
+        <name>Mule Snapshot Repository</name>
+        <url>https://repository-master.mulesoft.org/nexus/content/repositories/snapshots</url>
+        <uniqueVersion>false</uniqueVersion>
+    </snapshotRepository>
+  </distributionManagement>
 </project>
