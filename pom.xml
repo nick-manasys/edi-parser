@@ -38,14 +38,14 @@
 
   <distributionManagement>
     <repository>
-        <id>edi-beta</id>
+        <id>studio-orbit</id>
         <name>EDI Module Beta Release Repository</name>
-        <url>https://repository-master.mulesoft.org/nexus/content/repositories/edi-module-beta</url>
+        <url>http://studio-repository.mulesoft.org:8081/nexus/content/repositories/edi-module-beta</url>
     </repository>
     <snapshotRepository>
-        <id>edi-beta-snapshots</id>
+        <id>studio-orbit-snapshots</id>
         <name>EDI Module Beta Snapshot Repository</name>
-        <url>https://repository-master.mulesoft.org/nexus/content/repositories/edi-module-beta-snapshots</url>
+        <url>http://studio-repository.mulesoft.org:8081/nexus/content/repositories/edi-module-beta-snapshots</url>
         <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
