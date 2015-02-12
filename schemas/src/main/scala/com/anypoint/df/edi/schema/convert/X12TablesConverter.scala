@@ -160,9 +160,16 @@ object X12TablesConverter {
       def descend(remain: List[List[String]], depth: Int): (List[List[String]], List[ComponentInfo]) =
         convertr(remain, depth, true, Nil)
 
-      /** Recursively convert lists of strings to data tuples, checking and handling loops. */
+      /** Recursively convert lists of strings to data tuples, checking and handling loops.
+        * @param remain list of lists of strings from input lines still to be processed
+        * @param depth current nesting depth, corresponding to sixth value in input line
+        * @param loop first line of loop flag, set on recursive call to collect components in the loop
+        * @param acc information for components representing lines processed so far
+        * @return (list of strings still to be processed, list of components at level in reverse order)
+        */
       @tailrec
-      def convertr(remain: List[List[String]], depth: Int, loop: Boolean, acc: List[ComponentInfo]): (List[List[String]], List[ComponentInfo]) = remain match {
+      def convertr(remain: List[List[String]], depth: Int, loop: Boolean,
+        acc: List[ComponentInfo]): (List[List[String]], List[ComponentInfo]) = remain match {
         case (areaid :: seq :: segid :: req :: max :: level :: repeat :: loopid :: Nil) :: tail => {
           val at = level.toInt
           if (depth > at || (!loop && depth == at && loopid != "")) {
@@ -180,28 +187,44 @@ object X12TablesConverter {
         case Nil => (Nil, acc)
         case _ => throw new IllegalArgumentException("wrong number of values")
       }
+
       rows.groupBy(_.head) map { case (key, list) => key -> convertr(list, 0, false, Nil)._2 }
     }
 
     /** Recursively convert component information list into transaction component list. */
-    def descend(remain: List[ComponentInfo]) = buildr(remain, Nil)
-    @tailrec
-    def buildr(remain: List[ComponentInfo], acc: List[TransactionComponent]): List[TransactionComponent] =
-      remain match {
-        case ComponentInfo(segment, seq, usage, repeat, loop) :: tail => {
-          val list =
-            if (loop.isEmpty) ReferenceComponent(segment, seq, usage, repeat) :: acc
-            else GroupComponent(segment.ident, usage, repeat, descend(loop), None, Nil) :: acc
-          buildr(tail, list)
+    def buildComps(table: Int, infos: List[ComponentInfo]) = {
+      def descend(remain: List[ComponentInfo]) = buildr(remain, Nil)
+      @tailrec
+      def buildr(remain: List[ComponentInfo], acc: List[TransactionComponent]): List[TransactionComponent] =
+        remain match {
+          case ComponentInfo(segment, seq, usage, repeat, loop) :: tail =>
+            if (loop.isEmpty) {
+              val position = SegmentPosition(table, seq)
+              if (segment.ident == "LS") acc match {
+                case (group: GroupComponent) :: (leref: ReferenceComponent) :: t => {
+                  val wrap = LoopWrapperComponent(segment, leref.segment, position, leref.position,
+                    group.leadSegment.ident, group)
+                  buildr(tail, wrap :: t)
+                }
+                case _ => throw new IllegalStateException("Malformed LS/LE loop")
+              }
+              else buildr(tail, ReferenceComponent(segment, position, usage, repeat) :: acc)
+            } else buildr(tail, GroupComponent(segment.ident, usage, repeat, descend(loop), None, Nil) :: acc)
+          case _ => acc
         }
-        case _ => acc
-      }
+      buildr(infos, Nil)
+    }
 
     groups.foldLeft(Map.empty[String, Transaction]) {
       case (map, (key, list)) => map + (key -> {
-        val areas = convertComponents(list).map { case (key, list) => key -> buildr(list, Nil) }
+        val tables = convertComponents(list).map {
+          case (key, list) => {
+            val table = key.toInt
+            table -> buildComps(table, list)
+          }
+        }
         val (name, group) = transHeads(key)
-        Transaction(key, name, group, areas.getOrElse("1", Nil), areas.getOrElse("2", Nil), areas.getOrElse("3", Nil))
+        Transaction(key, name, group, tables.getOrElse(1, Nil), tables.getOrElse(2, Nil), tables.getOrElse(3, Nil))
       })
     }
   }
@@ -250,7 +273,8 @@ object X12TablesConverter {
       if (version.exists && version.isDirectory) {
         version.listFiles.foreach { f => f.delete }
         version.delete
-      }}
+      }
+    }
     else yamldir.mkdirs
     x12dir.listFiles.foreach (version => {
       println(s"Processing ${version.getName}")

@@ -112,7 +112,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     }
 
     /** Write a portion of transaction data represented by a list of components (which may be segment references or
-      * loops) into a map.
+      * loops) from a map.
       */
     def writeSection(map: ValueMap, comps: List[TransactionComponent]): Unit = comps.foreach(comp => {
       def checkMissing() = comp.usage match {
@@ -128,6 +128,15 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
               if (ref.count != 1) writeRepeatingSegment(getRequiredMapList(key, map), ref.segment, ref.count)
               else writeSegment(getRequiredValueMap(key, map), ref.segment)
             } else checkMissing()
+          }
+        case wrap: LoopWrapperComponent =>
+          if (map.containsKey(key)) {
+            val idmap = new ValueMapImpl
+            idmap put (wrap.open.components.head.key, wrap.ident)
+            idmap put (wrap.close.components.head.key, wrap.ident)
+            writeSegment(idmap, wrap.open)
+            writeSection(getRequiredValueMap(key, map), wrap.loopGroup :: Nil)
+            writeSegment(idmap, wrap.close)
           }
         case group: GroupComponent =>
           var variant = false

@@ -56,7 +56,9 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
   case class DropSegment(id: String, pos: String) extends TransactionModification(id, pos)
   case class ModifyLoop(id: String, pos: String, val nested: List[TransactionModification])
     extends TransactionModification(id, pos)
-  
+  case class ModifyWrapper(id: String, pos: String, val nested: List[TransactionModification])
+    extends TransactionModification(id, pos)
+
   case class TransactionChanges(ident: String, headMods: List[TransactionModification],
     detailMods: List[TransactionModification], summaryMods: List[TransactionModification])
 
@@ -69,7 +71,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     */
   def writeOverlay(base: EdiSchema, basePath: String, transmods: List[TransactionChanges],
     segmods: List[SegmentModification], writer: Writer) {
-    
+
     /** Write list of modifications to segments in a transaction. Recurses when a loop has embedded changes. */
     def writeMods(indent: Int, mods: List[TransactionModification]): Unit = mods.foreach {
       case DropSegment(id, pos) =>
@@ -78,12 +80,17 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
         writeIndented(s"- ${keyValueQuote(loopIdRefKey, id)}", indent, writer)
         writeIndented(s"${keyValueQuote(positionKey, posThere)}", indent + 1, writer)
         writeSection(indent + 1, itemsKey, nested)
+      case ModifyWrapper(id, posThere, nested) =>
+        writeIndented(s"- ${keyValueQuote(wrapIdRefKey, id)}", indent, writer)
+        writeIndented(s"${keyValueQuote(positionKey, posThere)}", indent + 1, writer)
+        if (nested.isEmpty) writeIndented(keyValuePair(usageKey, UnusedUsage.code), indent + 1, writer)
+        else writeSection(indent + 1, loopKey, nested)
     }
-    
+
     /** Write list of modifications to segments in a transaction with leading label. */
     def writeSection(indent: Int, label: String, mods: List[TransactionModification]) = {
-        writeIndented(s"$label:", indent, writer)
-        writeMods(indent, mods)
+      writeIndented(s"$label:", indent, writer)
+      writeMods(indent, mods)
     }
 
     // start with schema type and version, and import base
@@ -102,21 +109,24 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       })
     }
     if (segmods.nonEmpty) {
-      
+
       // write segment modifications
       writeIndented(s"$segmentsKey:", 0, writer)
-      segmods foreach { case SegmentModification(ident, trim, drops) =>
-        if (drops.isEmpty)
-          writeIndented(s"- { ${keyValuePair(idRefKey, ident)}, ${keyValuePair(trimKey, trim.get)} }", 0, writer)
-        else {
-          writeIndented(s"- ${keyValuePair(idRefKey, ident)}", 0, writer)
-          writeIndented(s"$itemsKey:", 1, writer)
-          drops.foreach {
-            drop => writeIndented(s"- { ${keyValuePair(positionKey, drop)}, ${keyValuePair(usageKey, UnusedUsage.code)} }", 1, writer)
-            }}}
+      segmods foreach {
+        case SegmentModification(ident, trim, drops) =>
+          if (drops.isEmpty)
+            writeIndented(s"- { ${keyValuePair(idRefKey, ident)}, ${keyValuePair(trimKey, trim.get)} }", 0, writer)
+          else {
+            writeIndented(s"- ${keyValuePair(idRefKey, ident)}", 0, writer)
+            writeIndented(s"$itemsKey:", 1, writer)
+            drops.foreach {
+              drop => writeIndented(s"- { ${keyValuePair(positionKey, drop)}, ${keyValuePair(usageKey, UnusedUsage.code)} }", 1, writer)
+            }
+          }
+      }
     }
   }
-  
+
   type SegmentKeys = Map[Segment, Set[String]]
 
   /** Reads a schema and parses one or more documents using that schema, then generates an overlay schema based on the
@@ -149,13 +159,19 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       segments.foldLeft(List[TransactionModification]())((acc, comp) => comp match {
         case group: GroupComponent =>
           if (data.containsKey(comp.key)) {
-            val nested = transactionMods(group.items, data.get(comp.key).asInstanceOf[ValueMap])
+            val nested = transactionMods(group.items, getRequiredValueMap(comp.key, data))
             if (nested.isEmpty) acc
-            else ModifyLoop(group.ident, group.position, nested) :: acc
-          } else DropSegment(group.ident, group.position) :: acc
+            else ModifyLoop(group.ident, group.position.position, nested) :: acc
+          } else DropSegment(group.ident, group.position.position) :: acc
+        case wrap: LoopWrapperComponent =>
+          if (data.containsKey(comp.key)) {
+            val nested = transactionMods(wrap.loopGroup :: Nil, getRequiredValueMap(comp.key, data))
+            if (nested.isEmpty) acc
+            else ModifyWrapper(wrap.ident, wrap.position.position, nested) :: acc
+          } else ModifyWrapper(wrap.ident, wrap.position.position, Nil) :: acc
         case ref: ReferenceComponent =>
-          if (data.containsKey(comp.key) || schema.ediForm.isEnvelopeSegment(ref.segment)) acc
-          else DropSegment(ref.segment.ident, ref.position) :: acc
+          if (data.containsKey(comp.key) || schema.ediForm.isEnvelopeSegment(ref.segment.ident)) acc
+          else DropSegment(ref.segment.ident, ref.position.position) :: acc
       }).reverse
 
     /** Recursively scan transaction component structure to collect segment item usage information. */
@@ -163,14 +179,17 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       def mergeSet(data: ValueMap, used: Set[String]) = data.keySet.asScala.foldLeft(used)((acc, key) => acc + key)
       def collectr(segments: List[TransactionComponent], data: ValueMap, segmaps: SegmentKeys): SegmentKeys =
         segments.foldLeft(segmaps)((acc, comp) => comp match {
-        case group: GroupComponent =>
-          if (data.containsKey(comp.key)) collectr(group.items, data.get(comp.key).asInstanceOf[ValueMap], acc)
-          else acc
-        case ref: ReferenceComponent =>
-          if (data.containsKey(comp.key)) acc + (ref.segment ->
-            mergeSet(data.get(comp.key).asInstanceOf[ValueMap], acc.getOrElse(ref.segment, Set())))
-          else acc
-      })
+          case group: GroupComponent =>
+            if (data.containsKey(comp.key)) collectr(group.items, getRequiredValueMap(comp.key, data), acc)
+            else acc
+          case wrap: LoopWrapperComponent =>
+            if (data.containsKey(comp.key)) collectr(wrap.loopGroup :: Nil, getRequiredValueMap(comp.key, data), acc)
+            else acc
+          case ref: ReferenceComponent =>
+            if (data.containsKey(comp.key)) acc + (ref.segment ->
+              mergeSet(getRequiredValueMap(comp.key, data), acc.getOrElse(ref.segment, Set())))
+            else acc
+        })
       collectr(segments, data, prior)
     }
 
@@ -225,7 +244,8 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val overFile = new File(args(1))
     val writer = new FileWriter(overFile)
     val buffer = Buffer[TransactionChanges]()
-    val segmaps = merged.asScala.toList.foldLeft(Map[Segment, Set[String]]()) { case (acc, (key, map: ValueMap)) => {
+    val segmaps = merged.asScala.toList.foldLeft(Map[Segment, Set[String]]()) {
+      case (acc, (key, map: ValueMap)) => {
         val transact = schema.transactions(key)
         println(map)
         val headmap = map.get(transactionHeading).asInstanceOf[ValueMap]
@@ -236,7 +256,8 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
         val summarymods = transactionMods(transact.summary, summarymap)
         if (headmods.nonEmpty || detailmods.nonEmpty || summarymods.nonEmpty) buffer += TransactionChanges(transact.ident, headmods, detailmods, summarymods)
         collectSegments(transact.summary, summarymap, collectSegments(transact.detail, detailmap, collectSegments(transact.heading, headmap, acc)))
-      }}
+      }
+    }
     segmaps.foreach{ case (segment, idset) => println(s"segment ${segment.ident} => " + idset) }
     val segs = segmentMods(segmaps).sortBy { mod => mod.ident }
     segs.foreach { mod => println(mod) }

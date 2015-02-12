@@ -157,13 +157,14 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
   }
 
   /** Build transaction components from input data.
-    *
-    * @param list list of maps of component data
+    * @param maps list of maps of component data
+    * @param form EDI form
+    * @param table transaction table index
     * @param segments known segments map
     * @returns components
     */
-  def parseTransactionComponents(base: List[ValueMap], segments: Map[String, Segment]) = {
-    def convertComponent(values: ValueMap) = {
+  def parseTransactionComponents(maps: List[ValueMap], form: EdiForm, table: Int, segments: Map[String, Segment]) = {
+    def convertComponent(values: ValueMap): TransactionComponent = {
       val use = convertUsage(getRequiredString(usageKey, values))
       val count = values.get(countKey) match {
         case n: Integer => n.toInt
@@ -174,10 +175,20 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
       if (values.containsKey(itemsKey)) {
         val items = getRequiredMapList(itemsKey, values)
         GroupComponent(getRequiredString(loopIdKey, values), use, count, parseComponent(items.asScala.toList, Nil), None, Nil)
+      } else if (values.containsKey(wrapIdKey)) {
+        val wrapid = getRequiredString(wrapIdKey, values)
+        val list = getRequiredMapList(loopKey, values)
+        if (list.size != 1) throw new IllegalArgumentException(s"Single group definition required for loop with $wrapIdKey $wrapid")
+        val group = convertComponent(list.get(0)).asInstanceOf[GroupComponent]
+        if (segments.contains(form.loopWrapperStart) && segments.contains(form.loopWrapperEnd)) {
+          val start = SegmentPosition(table, getRequiredString(positionKey, values))
+          val end = SegmentPosition(table, getRequiredString(endPositionKey, values))
+          LoopWrapperComponent(segments(form.loopWrapperStart), segments(form.loopWrapperEnd), start, end,  wrapid, group)
+        } else throw new IllegalArgumentException(s"Missing loop wrapper segment definition (${form.loopWrapperStart} or ${form.loopWrapperEnd})")
       } else {
         val id = getRequiredString(idRefKey, values)
         val position = getRequiredString(positionKey, values)
-        if (segments.contains(id)) ReferenceComponent(segments(id), position, use, count)
+        if (segments.contains(id)) ReferenceComponent(segments(id), SegmentPosition(table, position), use, count)
         else throw new IllegalArgumentException(s"No segment with id '$id'")
       }
     }
@@ -187,26 +198,27 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
         case values :: t => parseComponent(t, convertComponent(values) :: prior)
         case _ => prior.reverse
       }
-    parseComponent(base, Nil)
+    parseComponent(maps, Nil)
   }
 
   /** Build transaction part from input data.
-    *
     * @param name part name
     * @param values map of component data lists
+    * @param form EDI form
+    * @param table transaction table index
     * @param segments known segments map
     * @returns components
     */
-  def parseTransactionPart(name: String, values: ValueMap, segments: Map[String, Segment]) =
+  def parseTransactionPart(name: String, values: ValueMap, form: EdiForm, table: Int, segments: Map[String, Segment]) =
     if (values.containsKey(name)) {
       val vallist = getRequiredMapList(name, values).asScala.toList
-      parseTransactionComponents(vallist, segments)
+      parseTransactionComponents(vallist, form, table, segments)
     } else Nil
 
   /** Build transaction part as overlay to base part.
-    *
     * @param name part name
     * @param overs map of component data overlay lists
+    * @param base original components
     * @param segments known segments map
     * @returns components
     */
@@ -215,9 +227,10 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
     if (overs.containsKey(name)) {
       def overLevel(overs: MapList, base: List[TransactionComponent]) =
         overr(overs.asScala.toList, Nil, base)
+      def overGroup(over: ValueMap, group: GroupComponent) =
+        overr(over :: Nil, Nil, group :: Nil).head.asInstanceOf[GroupComponent]
       @tailrec
-      def overr(remain: List[ValueMap], prior: List[TransactionComponent], base: List[TransactionComponent]):
-      List[TransactionComponent] = remain match {
+      def overr(remain: List[ValueMap], prior: List[TransactionComponent], base: List[TransactionComponent]): List[TransactionComponent] = remain match {
         case values :: t => {
           val position = getRequiredString(positionKey, values)
           base match {
@@ -229,6 +242,18 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
               val use = getUsageOverride(values, refc.usage)
               val count = getCountOverride(values, refc.count)
               overr(t, ReferenceComponent(refc.segment, refc.position, use, count) :: prior, bt)
+            }
+            case (wrap: LoopWrapperComponent) :: bt if (wrap.position == position) => {
+              if (values.containsKey(wrapIdRefKey)) {
+                val compare = getRequiredString(wrapIdRefKey, values)
+                if (compare != wrap.ident) throw new IllegalStateException(s"wrapper at position $position is not $compare")
+              }
+              val use = getUsageOverride(values, wrap.usage)
+              val count = getCountOverride(values, wrap.count)
+              val group =
+                if (values.containsKey(loopKey)) overGroup(getRequiredValueMap(loopKey, values), wrap.loopGroup)
+                else wrap.loopGroup
+              overr(t, LoopWrapperComponent(wrap.open, wrap.close, wrap.position, wrap.endPosition, wrap.ident, group) :: prior, bt)
             }
             case (group: GroupComponent) :: bt if (group.position == position) => {
               if (values.containsKey(loopIdRefKey)) {
@@ -324,15 +349,16 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
   }
 
   /** Convert transaction definitions. */
-  private def convertTransactions(input: ValueMap, segments: Map[String, Segment], basedefs: Map[String, Transaction]) =
+  private def convertTransactions(input: ValueMap, form: EdiForm, segments: Map[String, Segment],
+    basedefs: EdiSchema.TransactionMap) =
     getRequiredMapList(transactionsKey, input).asScala.toList.
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
         val name = getRequiredString(nameKey, transmap)
         val group = if (transmap.containsKey(groupKey)) transmap.get(groupKey).asInstanceOf[String] else ""
-        val heading = parseTransactionPart(headingKey, transmap, segments)
-        val detail = parseTransactionPart(detailKey, transmap, segments)
-        val summary = parseTransactionPart(summaryKey, transmap, segments)
+        val heading = parseTransactionPart(headingKey, transmap, form, 0, segments)
+        val detail = parseTransactionPart(detailKey, transmap, form, 1, segments)
+        val summary = parseTransactionPart(summaryKey, transmap, form, 2, segments)
         map + (ident -> Transaction(ident, name, group, heading, detail, summary))
       } else if (transmap.containsKey(idRefKey)) {
         val idref = getRequiredString(idRefKey, transmap)
@@ -408,12 +434,17 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
         if (input.containsKey(segmentsKey)) convertSegments(input, elements, composites, baseSchema.segments)
         else baseSchema.segments
       val transactions =
-        if (input.containsKey(transactionsKey)) convertTransactions(input, segments, baseSchema.transactions)
+        if (input.containsKey(transactionsKey)) convertTransactions(input, form, segments, baseSchema.transactions)
         else baseSchema.transactions
       EdiSchema(form, version, elements, composites, segments, transactions)
     }
 
-    loadFully(reader)
+    val loaded = loadFully(reader)
+    EdiSchema(loaded.ediForm, loaded.version, loaded.elements, loaded.composites, loaded.segments,
+      loaded.transactions.map{
+        case (k, Transaction(ident, name, group, heading, detail, summary)) => (k,
+          Transaction(ident, name, group, heading, detail, summary))
+      })
   }
 }
 

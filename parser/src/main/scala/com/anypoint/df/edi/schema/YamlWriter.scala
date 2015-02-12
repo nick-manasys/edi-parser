@@ -55,20 +55,35 @@ object YamlWriter extends WritesYaml with YamlDefs {
     */
   def write(schema: EdiSchema, imports: Array[String], writer: Writer) = {
 
+    def writeReferenceComponent(refer: ReferenceComponent, indent: Int): Unit = {
+      writeIndented("- { " + keyValueQuote(idRefKey, refer.segment.ident) + ", " +
+        keyValueQuote(positionKey, refer.position.position) + ", " + keyValuePair(usageKey, refer.usage.code toString) +
+        (if (refer.count != 1) ", " + keyValuePair(countKey, countText(refer.count)) else "") +
+        " }", indent, writer)
+    }
+
+    def writeWrapperComponent(wrap: LoopWrapperComponent, indent: Int): Unit = {
+      writeIndented("- " + keyValueQuote(wrapIdKey, wrap.ident), indent, writer)
+      writeIndented(keyValueQuote(positionKey, wrap.position.position), indent + 1, writer)
+      writeIndented(keyValueQuote(endPositionKey, wrap.endPosition.position), indent + 1, writer)
+      writeIndented(keyValuePair(usageKey, wrap.usage.code toString), indent + 1, writer)
+      writeIndented(s"$loopKey:", indent + 1, writer)
+      writeGroupComponent(wrap.loopGroup, indent + 1)
+    }
+
+    def writeGroupComponent(group: GroupComponent, indent: Int): Unit = {
+      writeIndented("- " + keyValueQuote(loopIdKey, group.ident), indent, writer)
+      writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1, writer)
+      if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1, writer)
+      writeTransactionComps(itemsKey, group.items, indent + 1)
+    }
+
     def writeTransactionComps(label: String, segments: List[TransactionComponent], indent: Int): Unit = {
       writeIndented(label + ":", indent, writer)
       segments foreach (segbase => segbase match {
-        case refer: ReferenceComponent =>
-          writeIndented("- { " + keyValueQuote(idRefKey, refer.segment.ident) + ", " +
-            keyValueQuote(positionKey, refer.position) + ", " + keyValuePair(usageKey, refer.usage.code toString) +
-            (if (refer.count != 1) ", " + keyValuePair(countKey, countText(refer.count)) else "") +
-            " }", indent, writer)
-        case group: GroupComponent => {
-          writeIndented("- " + keyValueQuote(loopIdKey, group.ident), indent, writer)
-          writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1, writer)
-          if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1, writer)
-          writeTransactionComps(itemsKey, group.items, indent + 1)
-        }
+        case refer: ReferenceComponent => writeReferenceComponent(refer, indent)
+        case wrap: LoopWrapperComponent => writeWrapperComponent(wrap, indent)
+        case group: GroupComponent => writeGroupComponent(group, indent)
       })
     }
 

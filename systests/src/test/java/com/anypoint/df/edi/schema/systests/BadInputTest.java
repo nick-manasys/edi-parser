@@ -35,7 +35,9 @@ public class BadInputTest extends X12TestBase {
 	public void badInput() throws Exception {
 		String ediParseException = parseAndReturnAck(getBadFilePath());
 		Assert.assertNotNull(ediParseException);
-		Assert.assertTrue(ediParseException.contains(getBadFileException()));
+		if (!ediParseException.contains(getBadFileException())) {
+		    Assert.fail("Expected exception text '" + getBadFileException() + "', got '" + ediParseException + "'");
+		}
 	}
 
 	@Parameters
@@ -45,6 +47,7 @@ public class BadInputTest extends X12TestBase {
 				{BadInputFiles.MISSING_ST, BadInputFiles.MISSING_ST_EX}, 
 				{BadInputFiles.RANDOM_FILE, BadInputFiles.RANDOM_FILE_EX}, 
 				{BadInputFiles.MISSING_GROUP, BadInputFiles.MISSING_GROUP_EX},
+				// TODO: fix tests to expect errors in acknowledgment
 //				{BadInputFiles.MISSING_BEG, BadInputFiles.MISSING_BEG_EX}, 
 //				{BadInputFiles.MISSING_PO1, BadInputFiles.MISSING_PO1_EX}, 
 //				{BadInputFiles.MISSING_SE, BadInputFiles.MISSING_SE_EX},

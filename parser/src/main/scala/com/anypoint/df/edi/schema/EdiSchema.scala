@@ -82,6 +82,10 @@ object EdiSchema {
   case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int)
     extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt)
 
+  /** Occurrence rule definition. Subclasses define the actual rule checking.
+    * @param code
+    * @param components
+    */
   sealed abstract class OccurrenceRule(val code: String, val components: List[SegmentComponent]) {
     if (components isEmpty) throw new IllegalArgumentException("components list must not be empty")
     def hasHead(map: java.util.Map[String, Object]) = map containsKey (components.head key)
@@ -137,6 +141,12 @@ object EdiSchema {
       } else true
   }
 
+  /** Composite definition.
+    * @param ident
+    * @param name
+    * @param components
+    * @param rules
+    */
   case class Composite(val ident: String, val name: String, val components: List[SegmentComponent],
     val rules: List[OccurrenceRule]) {
     def rewrite(prefix: String) = Composite(ident, name,
@@ -150,38 +160,149 @@ object EdiSchema {
       rules)
   }
 
+  /** Segment definition.
+    * @param ident
+    * @param name
+    * @param components
+    * @param rules
+    */
   case class Segment(val ident: String, val name: String, val components: List[SegmentComponent],
     val rules: List[OccurrenceRule])
 
-  sealed abstract class TransactionComponent(val key: String, val usage: Usage, val count: Int)
-  case class ReferenceComponent(val segment: Segment, val position: String, use: Usage, cnt: Int)
-    extends TransactionComponent(segment.name, use, cnt)
-  sealed abstract class GroupBase(ky: String, use: Usage, cnt: Int, val items: List[TransactionComponent])
-    extends TransactionComponent(ky, use, cnt)
-  case class VariantGroup(val baseid: String, val elemval: String, use: Usage, cnt: Int,
-    itms: List[TransactionComponent]) extends GroupBase(s"$baseid[$elemval]", use, cnt, itms)
+  /** Segment position within a transaction. Position numbers are reused across different tables of a transaction
+    * definition, so this gives a unique value for every segment.
+    * @param table
+    * @param position
+    */
+  case class SegmentPosition(table: Int, position: String) {
+    def isBefore(other: SegmentPosition) =
+      table < other.table || (table == other.table && position < other.position)
+  }
+
+  /** Base for all transaction components.
+    * @param key map key for data
+    * @param position segment (or starting segment) position
+    * @param usage
+    * @param count maximum repetition count (0 for unlimited)
+    */
+  sealed abstract class TransactionComponent(val key: String, val position: SegmentPosition, val usage: Usage,
+    val count: Int)
+
+  /** Build map from segment id to transaction component at level.
+    * @param comps
+    */
+  def componentsById(comps: List[TransactionComponent]) =
+    comps.foldLeft(Map[String, TransactionComponent]())((acc, comp) => comp match {
+      case ref: ReferenceComponent => acc + (ref.segment.ident -> ref)
+      case wrap: LoopWrapperComponent => acc + (wrap.open.ident + wrap.ident -> wrap)
+      case grp: GroupComponent => acc + (grp.leadSegment.ident -> grp)
+      case _ => acc
+    })
+
+  /** Segment reference.
+    * @param segment
+    * @param position
+    * @param use
+    * @param cnt
+    */
+  case class ReferenceComponent(val segment: Segment, pos: SegmentPosition, use: Usage, cnt: Int)
+    extends TransactionComponent(segment.name, pos, use, cnt)
+
+  /** Loop wrapper component.
+    * @param segment
+    * @param position
+    * @param loopGroup
+    */
+  case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
+    val endPosition: SegmentPosition, val ident: String, val loopGroup: GroupComponent)
+    extends TransactionComponent("", start, OptionalUsage, 1) {
+    val compsById = Map((open.ident + ident) -> ReferenceComponent(open, start, MandatoryUsage, 1),
+      (close.ident + ident) -> ReferenceComponent(close, endPosition, MandatoryUsage, 1))
+  }
+
+  /** Base for group components.
+    * @param ky
+    * @param use
+    * @param cnt
+    * @param items
+    */
+  sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int,
+    val items: List[TransactionComponent]) extends TransactionComponent(ky, pos, use, cnt) {
+
+    /** Components in group by segment identifier. */
+    val compsById = componentsById(items)
+  }
+
+  /** Variant of a group component. The items in a variant must be a subset of the items in the group.
+    * @param baseid base identifier for all variants of the group
+    * @param use
+    * @param cnt
+    * @param itms
+    */
+  case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
+    itms: List[TransactionComponent]) extends GroupBase(s"$baseid[$elemval]", pos, use, cnt, itms)
+
+  /** Get lead reference from list of transaction components. If the first component is not a reference this throws an
+    * exception.
+    * @param ident
+    * @param comps
+    */
+  def leadReference(ident: String, comps: List[TransactionComponent]) = comps match {
+    case (ref: ReferenceComponent) :: t => ref
+    case _ => throw new IllegalStateException(s"first item in group $ident is not a segment reference")
+  }
+
+  /** Group component consisting of one or more nested components.
+    * @param ident group identifier
+    * @param use
+    * @param cnt
+    * @param itms
+    * @param varkey key for field controlling variant selection
+    * @param variants group variant forms
+    */
   case class GroupComponent(val ident: String, use: Usage, cnt: Int,
     itms: List[TransactionComponent], val varkey: Option[String], val variants: List[VariantGroup])
-    extends GroupBase(ident, use, cnt, itms) {
-    val (position, leadseg) = itms match {
-      case (ref: ReferenceComponent) :: t => (ref.position, ref.segment)
-      case _ => throw new IllegalStateException(s"first item in group $ident is not a segment")
+    extends GroupBase(ident, leadReference(ident, itms).position, use, cnt, itms) {
+
+    /** Group start position and lead segment. */
+    val leadSegment = leadReference(ident, items).segment
+
+    /** End position. */
+    val endPosition: SegmentPosition = itms.last match {
+      case ref: ReferenceComponent => ref.position
+      case wrap: LoopWrapperComponent => wrap.endPosition
+      case grp: GroupComponent => grp.endPosition
+      case _ => throw new IllegalStateException(s"last item in group $ident is not a segment reference or group")
     }
+
+    /** Group variants by key value. */
     val varbyval = Map(variants map { v => (v.elemval, v) }: _*)
   }
 
+  /** Transaction set definition.
+    * @param ident
+    * @param name
+    * @param group
+    * @param heading
+    * @param detail
+    * @param summary
+    */
   case class Transaction(val ident: String, val name: String, val group: String,
     val heading: List[TransactionComponent], val detail: List[TransactionComponent],
     val summary: List[TransactionComponent]) {
+
+    /** Segments used in transaction set. */
     val segmentsUsed = {
       def referencer(comps: List[TransactionComponent], segments: Set[Segment]): Set[Segment] =
         comps.foldLeft(segments)((segs, comp) => comp match {
           case ref: ReferenceComponent => segs + ref.segment
-          case group: GroupComponent =>
-            group.variants.foldLeft(referencer(group.items, segs))((acc, vg) => referencer(vg.items, acc))
+          case wrap: LoopWrapperComponent => segs + wrap.open + wrap.close ++ referencer(wrap.loopGroup.items, segments)
+          case group: GroupComponent => referencer(group.items, segments)
         })
       referencer(summary, referencer(detail, referencer(heading, Set[Segment]())))
     }
+
+    /** Composites used in transaction set. */
     val compositesUsed = {
       def referencer(comps: List[SegmentComponent], composites: Set[Composite]): Set[Composite] =
         comps.foldLeft(composites)((acc, comp) => comp match {
@@ -190,6 +311,8 @@ object EdiSchema {
         })
       segmentsUsed.foldLeft(Set[Composite]())((acc, seg) => referencer(seg.components, acc))
     }
+
+    /** Elements used in transaction set. */
     val elementsUsed = {
       def referencer(comps: List[SegmentComponent], elements: Set[Element]): Set[Element] =
         comps.foldLeft(elements)((acc, comp) => comp match {
@@ -198,19 +321,39 @@ object EdiSchema {
         })
       segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
     }
+
+    /** Ids of all segments used in transaction set at any level. */
     val segmentIds = segmentsUsed.map(segment => segment.ident)
+
+    /** Top-level components in heading by segment id. */
+    val headingById = componentsById(heading)
+
+    /** Top-level components in detail by segment id. */
+    val detailById = componentsById(detail)
+
+    /** Top-level components in summary by segment id. */
+    val summaryById = componentsById(summary)
+
+    /** All top-level components in transaction. */
+    val compsById = headingById ++ detailById ++ summaryById
   }
 
   type TransactionMap = Map[String, Transaction]
 
   sealed abstract class EdiForm(val text: String) {
-    def isEnvelopeSegment(segment: Segment): Boolean
+    def isEnvelopeSegment(ident: String): Boolean
+    val loopWrapperStart: String
+    val loopWrapperEnd: String
   }
   case object EdiFact extends EdiForm("EDIFACT") {
-    def isEnvelopeSegment(segment: Segment) = Set( "UNH", "UNT" ) contains segment.ident
+    def isEnvelopeSegment(ident: String) = Set("UNH", "UNT") contains ident
+    val loopWrapperStart = "UGH"
+    val loopWrapperEnd = "UGT"
   }
   case object X12 extends EdiForm("X12") {
-    def isEnvelopeSegment(segment: Segment) = Set( "ST", "SE" ) contains segment.ident
+    def isEnvelopeSegment(ident: String) = Set("ISA", "IEA", "GS", "GE", "ST", "SE") contains ident
+    val loopWrapperStart = "LS"
+    val loopWrapperEnd = "LE"
   }
   def convertEdiForm(value: String) = value match {
     case EdiFact.text => EdiFact
@@ -220,7 +363,7 @@ object EdiSchema {
 
 case class EdiSchema(val ediForm: EdiSchema.EdiForm, val version: String, val elements: Map[String, EdiSchema.Element],
   val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
-  val transactions: Map[String, EdiSchema.Transaction]) {
+  val transactions: EdiSchema.TransactionMap) {
   def this(ver: String) = this(EdiSchema.X12, ver, Map[String, EdiSchema.Element](), Map[String, EdiSchema.Composite](),
     Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]())
   def merge(other: EdiSchema) = EdiSchema(ediForm, version, elements ++ other.elements, composites ++ other.composites,

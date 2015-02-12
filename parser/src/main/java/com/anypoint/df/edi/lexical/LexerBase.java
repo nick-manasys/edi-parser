@@ -18,64 +18,69 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 
 /**
- * Base EDI token scanner. The scanner supplies input tokens to consumers along
- * with token delimiter types, with three properties exposed: the delimiter at
- * the start of the current input token ({@link #currentType}), the delimiter at
- * the end of the current input token ({@link #nextType}), and the actual
- * current token ({@link #token}). Various typed parseXXX methods work with the
- * current token as typed data.
+ * Base EDI token scanner. The scanner supplies input tokens to consumers along with token delimiter types, with three
+ * properties exposed: the delimiter at the start of the current input token ({@link #currentType}), the delimiter at
+ * the end of the current input token ({@link #nextType}), and the actual current token ({@link #token}). Various typed
+ * parseXXX methods work with the current token as typed data.
  */
-public abstract class LexerBase {
+public abstract class LexerBase
+{
     protected final Logger logger = Logger.getLogger(getClass());
-
+    
     /** Stream supplying document data. */
     final InputStream stream;
-
+    
     /** Reader wrapping document data stream (created by {@link #init()}). */
     Reader reader;
-
+    
     /** Data element delimiter. */
     char dataSeparator;
-
+    
     /** Repeated element delimiter (-1 if unused). */
     int repetitionSeparator;
-
+    
     /** Component delimiter. */
     char componentSeparator;
-
+    
     /** Release character (-1 if unused). */
     int releaseIndicator;
-
+    
     /** Segment terminator. */
     char segmentTerminator;
-
+    
     /** Handler for lexical errors. */
     private ErrorHandler errorHandler;
-
+    
     /** Total number of groups in interchange. */
     int groupCount;
-
+    
     /** Current segment number (from last reset). */
     private int segmentNumber;
-
+    
     /** Data element number (from start of segment). */
     private int elementNumber;
-
+    
     /** Repetition number (from start of data element). */
     private int repetitionNumber;
-
+    
     /** Component number (from start of composite). */
     private int componentNumber;
-
+    
     /** Type of current token (starting delimiter). */
     private ItemType currentType;
-
+    
     /** Current token. */
     private String token;
-
+    
     /** Type of next token (ending delimiter of current token). */
     private ItemType nextType;
-
+    
+    /** Next token (<code>null</code> if not yet scanned). */
+    private String peekToken;
+    
+    /** Type of token following peeked token (ending delimiter of peek token, <code>null</code> if not yet scanned). */
+    private ItemType peekType;
+    
     /**
      * Constructor.
      *
@@ -94,10 +99,9 @@ public abstract class LexerBase {
         segmentTerminator = segterm;
         releaseIndicator = release;
     }
-
+    
     /**
-     * Read bytes from stream into array. Throws an IOException if not enough
-     * bytes are present to fill the array.
+     * Read bytes from stream into array. Throws an IOException if not enough bytes are present to fill the array.
      *
      * @param byts array
      * @param from starting offset in array
@@ -113,10 +117,9 @@ public abstract class LexerBase {
             offset += count;
         }
     }
-
+    
     /**
-     * Read bytes from stream. Throws an IOException if the required number of
-     * bytes is not present.
+     * Read bytes from stream. Throws an IOException if the required number of bytes is not present.
      *
      * @param num required number of bytes
      * @return bytes
@@ -127,7 +130,7 @@ public abstract class LexerBase {
         readArray(byts, 0);
         return byts;
     }
-
+    
     /**
      * Set error handler in use.
      *
@@ -136,7 +139,7 @@ public abstract class LexerBase {
     public void setHandler(ErrorHandler handler) {
         errorHandler = handler;
     }
-
+    
     /**
      * Get data separator character.
      *
@@ -145,7 +148,7 @@ public abstract class LexerBase {
     public char getDataSeparator() {
         return dataSeparator;
     }
-
+    
     /**
      * Get repetition character.
      *
@@ -154,7 +157,7 @@ public abstract class LexerBase {
     public int getRepetitionSeparator() {
         return repetitionSeparator;
     }
-
+    
     /**
      * Get component separator character.
      *
@@ -163,7 +166,7 @@ public abstract class LexerBase {
     public char getComponentSeparator() {
         return componentSeparator;
     }
-
+    
     /**
      * Get release (escape) character.
      *
@@ -172,7 +175,7 @@ public abstract class LexerBase {
     public int getReleaseIndicator() {
         return releaseIndicator;
     }
-
+    
     /**
      * Get segment terminator character.
      *
@@ -181,21 +184,21 @@ public abstract class LexerBase {
     public char getSegmentTerminator() {
         return segmentTerminator;
     }
-
+    
     /**
      * Count a group present in interchange.
      */
     public void countGroup() {
         groupCount++;
     }
-
+    
     /**
      * Reset the segment number counter.
      */
     public void resetSegmentNumber() {
         segmentNumber = 1;
     }
-
+    
     /**
      * Get current segment number (since last reset).
      *
@@ -204,7 +207,7 @@ public abstract class LexerBase {
     public int getSegmentNumber() {
         return segmentNumber;
     }
-
+    
     /**
      * Get data element number within segment.
      *
@@ -213,7 +216,7 @@ public abstract class LexerBase {
     public int getElementNumber() {
         return elementNumber;
     }
-
+    
     /**
      * Get data element repetition number.
      *
@@ -222,7 +225,7 @@ public abstract class LexerBase {
     public int getRepetitionNumber() {
         return repetitionNumber;
     }
-
+    
     /**
      * Get component number within composite.
      *
@@ -231,28 +234,27 @@ public abstract class LexerBase {
     public int getComponentNumber() {
         return componentNumber;
     }
-
+    
     /**
-     * Initialize document parse. This checks the start of the document to
-     * interpret any configuration information included. Returns with parser
-     * positioned past the interchange header segment(s).
+     * Initialize document parse. This checks the start of the document to interpret any configuration information
+     * included. Returns with parser positioned past the interchange header segment(s).
      *
      * @param default interchange properties (from partner configuration)
      * @return interchange properties
      * @throws IOException
      */
     public abstract Map<String, Object> init(Map<String, Object> dflts) throws IOException;
-
+    
     /**
-     * Complete document parse. This must be called with the parser positioned
-     * at the start of the interchange trailer segment.
+     * Complete document parse. This must be called with the parser positioned at the start of the interchange trailer
+     * segment.
      *
      * @param props
      * @return variation-specific result code
      * @throws IOException
      */
     public abstract Object term(Map<String, Object> props) throws IOException;
-
+    
     /**
      * Get the current token.
      *
@@ -261,7 +263,7 @@ public abstract class LexerBase {
     public String token() {
         return token;
     }
-
+    
     /**
      * Get the current token type (as determined by the preceding delimiter).
      *
@@ -270,25 +272,23 @@ public abstract class LexerBase {
     public ItemType currentType() {
         return currentType;
     }
-
+    
     /**
-     * Get the next token type (as determined by the trailing delimiter of the
-     * current token).
+     * Get the next token type (as determined by the trailing delimiter of the current token).
      *
      * @return type
      */
     public ItemType nextType() {
         return nextType;
     }
-
+    
     /**
-     * Handle lexical error. This passes off to the configured handler, but logs
-     * the error appropriately based on the result.
+     * Handle lexical error. This passes off to the configured handler, but logs the error appropriately based on the
+     * result.
      *
      * @param typ data type
      * @param err error condition
-     * @param explain optional supplemental explanation text (<code>null</code>
-     * if none)
+     * @param explain optional supplemental explanation text (<code>null</code> if none)
      * @throws LexicalException
      */
     void handleError(DataType typ, ErrorCondition err, String explain) throws LexicalException {
@@ -314,95 +314,118 @@ public abstract class LexerBase {
             }
         }
     }
-
+    
     /**
-     * Parse next item from input and advance. This sets the current state to
-     * the pending state, and sets the new pending state to the item parsed.
+     * Parse token beyond the current token.
+     *
+     * @return token
+     * @throws IOException
+     */
+    public String peek() throws IOException {
+        if (peekToken == null) {
+            
+            // start by skipping whitespace, if necessary
+            int value = reader.read();
+            if (nextType == ItemType.SEGMENT) {
+                while (value == '\n' || value == '\r' || value == ' ') {
+                    value = reader.read();
+                }
+            }
+            
+            // exit if now at end
+            if (value < 0) {
+                peekToken = "";
+                peekType = ItemType.END;
+                return peekToken;
+            }
+            
+            // accumulate value text to next delimiter
+            char chr = (char)value;
+            StringBuilder builder = new StringBuilder();
+            boolean escape = false;
+            while (true) {
+                if (escape) {
+                    builder.append(chr);
+                    escape = false;
+                } else if (chr == componentSeparator) {
+                    peekType = ItemType.QUALIFIER;
+                    break;
+                } else if (chr == dataSeparator) {
+                    peekType = ItemType.DATA_ELEMENT;
+                    break;
+                } else if (chr == segmentTerminator) {
+                    peekType = ItemType.SEGMENT;
+                    break;
+                } else if (chr == repetitionSeparator) {
+                    peekType = ItemType.REPETITION;
+                    break;
+                } else if (chr == releaseIndicator) {
+                    escape = true;
+                } else if (chr == -1) {
+                    peekType = ItemType.END;
+                    break;
+                } else {
+                    builder.append(chr);
+                }
+                chr = (char)reader.read();
+            }
+            peekToken = builder.length() > 0 ? builder.toString() : "";
+            
+        }
+        return peekToken;
+    }
+    
+    /**
+     * Parse next item from input and advance. This sets the current state to the pending state, and sets the new
+     * pending state to the item parsed.
      *
      * @return token
      * @throws IOException
      */
     public String advance() throws IOException {
-
-        // set current state to pending state
+        
+        // scan next token and set state
+        peek();
         currentType = nextType;
-
-        // start by skipping whitespace, if necessary, and setting counters
-        int value = reader.read();
+        
+        // update counters
         switch (currentType) {
-
+        
             case DATA_ELEMENT:
                 elementNumber++;
                 componentNumber = 0;
                 repetitionNumber = 0;
                 break;
-
+            
             case SEGMENT:
-                while (value == '\n' || value == '\r' || value == ' ') {
-                    value = reader.read();
-                }
                 segmentNumber++;
             case END:
                 elementNumber = 0;
                 componentNumber = 0;
                 repetitionNumber = 0;
                 break;
-
+            
             case QUALIFIER:
                 componentNumber++;
                 break;
-
+            
             case REPETITION:
                 repetitionNumber++;
                 componentNumber = 0;
                 break;
-                
+        
         }
         
-        // exit if now at end
-        if (value < 0) {
-            token = "";
-            nextType = ItemType.END;
-            return token;
-        }
-
-        // accumulate value text to next delimiter
-        char chr = (char) value;
-        StringBuilder builder = new StringBuilder();
-        boolean escape = false;
-        while (true) {
-            if (escape) {
-                builder.append(chr);
-                escape = false;
-            } else if (chr == componentSeparator) {
-                nextType = ItemType.QUALIFIER;
-                break;
-            } else if (chr == dataSeparator) {
-                nextType = ItemType.DATA_ELEMENT;
-                break;
-            } else if (chr == segmentTerminator) {
-                nextType = ItemType.SEGMENT;
-                break;
-            } else if (chr == repetitionSeparator) {
-                nextType = ItemType.REPETITION;
-                break;
-            } else if (chr == releaseIndicator) {
-                escape = true;
-            } else if (chr == -1) {
-                nextType = ItemType.END;
-                break;
-            } else {
-                builder.append(chr);
-            }
-            chr = (char) reader.read();
-        }
-        token = builder.length() > 0 ? builder.toString() : "";
+        // advance to next token
+        token = peekToken;
+        nextType = peekType;
+        peekToken = null;
+        peekType = null;
         return token;
     }
-
+    
     /**
-     * Advance with next token type specified. This is used by lexer
-     * implementations during initialization.
+     * Advance with next token type specified. This is used by lexer implementations during initialization.
      *
      * @param type
      * @return token
@@ -412,7 +435,7 @@ public abstract class LexerBase {
         nextType = type;
         return advance();
     }
-
+    
     /**
      * Verify the current token effective length.
      *
@@ -430,7 +453,7 @@ public abstract class LexerBase {
             handleError(type, ErrorCondition.TOO_LONG, "effective length " + length + " is greater than " + maxl);
         }
     }
-
+    
     /**
      * Verify the current token text length.
      *
@@ -442,7 +465,7 @@ public abstract class LexerBase {
     public void checkLength(DataType type, int minl, int maxl) throws LexicalException {
         checkLength(type, token.length(), minl, maxl);
     }
-
+    
     /**
      * Get current token as an alpha value and advance to next token.
      *
@@ -466,7 +489,7 @@ public abstract class LexerBase {
         advance();
         return text.substring(0, lastns + 1);
     }
-
+    
     /**
      * Get current token as an alphanumeric value and advance to next token.
      *
@@ -490,7 +513,7 @@ public abstract class LexerBase {
         advance();
         return text.substring(0, lastns + 1);
     }
-
+    
     /**
      * Get current token as an id value and advance to next token.
      *
@@ -520,10 +543,10 @@ public abstract class LexerBase {
         advance();
         return text.substring(0, lastns + 1);
     }
-
+    
     /**
-     * Check that the current token is an integer number is valid (contains only
-     * decimal digits) and of an allowed length.
+     * Check that the current token is an integer number is valid (contains only decimal digits) and of an allowed
+     * length.
      *
      * @param minl
      * @param maxl
@@ -542,7 +565,7 @@ public abstract class LexerBase {
         }
         checkLength(DataType.INTEGER, length, minl, maxl);
     }
-
+    
     /**
      * Get current token as an integer value and advance to next token.
      *
@@ -557,7 +580,7 @@ public abstract class LexerBase {
         advance();
         return Integer.valueOf(text);
     }
-
+    
     /**
      * Get current token as an integer value and advance to next token.
      *
@@ -572,11 +595,10 @@ public abstract class LexerBase {
         advance();
         return new BigInteger(text);
     }
-
+    
     /**
-     * Get current token as an X12 real number value and advance to next token.
-     * TODO: handle exponential indicators, allow comma decimal point for
-     * EDIFACT
+     * Get current token as an X12 real number value and advance to next token. TODO: handle exponential indicators,
+     * allow comma decimal point for EDIFACT
      *
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
@@ -602,11 +624,10 @@ public abstract class LexerBase {
         advance();
         return new BigDecimal(text);
     }
-
+    
     /**
-     * Get current token as an X12 date value and advance to next token. Note
-     * that this avoids the use of the Java DateFormat class, which has high
-     * time and memory overhead.
+     * Get current token as an X12 date value and advance to next token. Note that this avoids the use of the Java
+     * DateFormat class, which has high time and memory overhead.
      *
      * @param minl minimum length
      * @param maxl maximum length
@@ -626,7 +647,7 @@ public abstract class LexerBase {
                 handleError(DataType.DATE, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
-
+        
         // quick (and loose) check for date sanity
         int day = (text.charAt(length - 1) - '0') + (text.charAt(length - 2) - '0') * 10;
         int month = (text.charAt(length - 3) - '0') + (text.charAt(length - 4) - '0') * 10;
@@ -645,7 +666,7 @@ public abstract class LexerBase {
         advance();
         return new GregorianCalendar(year, month - 1, day);
     }
-
+    
     /**
      * Get current token as an X12 number value and advance to next token.
      *
@@ -658,7 +679,7 @@ public abstract class LexerBase {
     public BigDecimal parseImpliedDecimalNumber(int scale, int minl, int maxl) throws IOException {
         return new BigDecimal(parseBigInteger(minl, maxl), scale);
     }
-
+    
     /**
      * Get current token as an X12 time value and advance to next token.
      *
@@ -680,7 +701,7 @@ public abstract class LexerBase {
                 handleError(DataType.TIME, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
-
+        
         // quick (and loose) check for time sanity
         int hour = (text.charAt(0) - '0') * 10 + (text.charAt(1) - '0');
         int minute = (text.charAt(2) - '0') * 10 + (text.charAt(3) - '0');

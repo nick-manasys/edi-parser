@@ -14,6 +14,9 @@ trait YamlDefs {
   val afterKey = "after"
   val countKey = "count"
   val itemsKey = "items"
+  val wrapIdKey = "wrapId"
+  val loopKey = "loop"
+  val endPositionKey = "endPosition"
   val loopIdKey = "loopId"
   val compositesKey = "composites"
   val idKey = "id"
@@ -33,6 +36,7 @@ trait YamlDefs {
   
   val trimKey = "trim"
   val loopIdRefKey = "loopIdRef"
+  val wrapIdRefKey = "wrapIdRef"
   
   val anyRepeatsValue = ">1"
 }

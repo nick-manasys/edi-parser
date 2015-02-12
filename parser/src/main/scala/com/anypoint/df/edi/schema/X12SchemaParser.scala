@@ -140,7 +140,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   }
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
-  def parseSegment(segment: Segment, group: Option[String], position: String): ValueMap = {
+  def parseSegment(segment: Segment, group: Option[String], position: SegmentPosition): ValueMap = {
     if (logger.isDebugEnabled) logger.debug(s"parsing segment ${segment.ident} at position $position")
     val map = new ValueMapImpl()
     dataErrors.clear
@@ -230,7 +230,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     if (checkSegment(GSSegment)) {
       groupErrors.clear
       groupTransactionCount = 0
-      parseSegment(GSSegment, None, "0000")
+      parseSegment(GSSegment, None, SegmentPosition(0, "0000"))
     } else throw new IllegalStateException("missing required GS segment")
 
   /** Check if at functional group close segment. */
@@ -239,7 +239,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse close of a functional group. Returns number of transaction sets included in group. */
   def closeGroup(props: ValueMap) = {
     if (checkSegment(GESegment)) {
-      val endprops = parseSegment(GESegment, None, "0000")
+      val endprops = parseSegment(GESegment, None, SegmentPosition(0, "9999"))
       if (props.get(groupControlKey) != endprops.get(groupControlEndKey)) groupErrors += GroupControlNumberMismatch
       if (endprops.get(numberOfSetsKey) != groupTransactionCount) groupErrors += GroupTransactionCountError
       endprops.get(numberOfSetsKey).asInstanceOf[Integer]
@@ -259,7 +259,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       oneOrMoreSegmentsInError = false
       lexer.resetSegmentNumber
       inTransaction = true
-      val values = parseSegment(STSegment, None, "0000")
+      val values = parseSegment(STSegment, None, SegmentPosition(0, "0000"))
       groupTransactionCount += 1
       (values.get(transactionSetIdentifierKey).asInstanceOf[String], values)
     } else throw new IllegalStateException("missing required ST segment")
@@ -270,13 +270,16 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse close of a transaction set. */
   def closeSet(props: ValueMap) = {
     if (checkSegment(SESegment)) {
-      val endprops = parseSegment(SESegment, None, "0000")
+      val endprops = parseSegment(SESegment, None, SegmentPosition(0, "9999"))
       if (props.get(transactionSetControlKey) != endprops.get(transactionSetControlEndKey))
         transactionErrors += ControlNumberMismatch
       if (endprops.get(numberOfSegmentsKey) != lexer.getSegmentNumber) transactionErrors += WrongSegmentCount
       inTransaction = false
     } else transactionErrors += MissingTrailerTransaction
   }
+  
+  /** Convert loop start or end segment to identity form. If not at a loop segment, this just returns None. */
+  def convertLoop() = if (Set("LS", "LE").contains(lexer.token)) Some(lexer.token + lexer.peek) else None
 
   /** Discard input past end of current transaction. */
   def discardTransaction() = {

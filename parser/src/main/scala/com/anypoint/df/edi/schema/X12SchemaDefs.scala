@@ -165,13 +165,17 @@ object X12Acknowledgment {
     ElementComponent(elem1705, None, "ST03", 3, OptionalUsage, 1)), Nil)
 
   val trans997 = Transaction("997", "Functional Acknowledgment", "FA", List[TransactionComponent](
-    ReferenceComponent(segST, "0100", MandatoryUsage, 1), ReferenceComponent(segAK1, "0200", MandatoryUsage, 1),
+    ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
+    ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
     GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](
-      ReferenceComponent(segAK2, "0300", OptionalUsage, 1),
+      ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
       GroupComponent("AK3", OptionalUsage, -1, List[TransactionComponent](
-        ReferenceComponent(segAK3, "0400", OptionalUsage, 1), ReferenceComponent(segAK4, "0500", OptionalUsage, 99)), None, Nil),
-      ReferenceComponent(segAK5, "0600", MandatoryUsage, 1)), None, Nil), ReferenceComponent(segAK9, "0700", MandatoryUsage, 1),
-    ReferenceComponent(segSE, "0800", MandatoryUsage, 1)), List[TransactionComponent](), List[TransactionComponent]())
+        ReferenceComponent(segAK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
+        ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99)), None, Nil),
+      ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1)), None, Nil),
+      ReferenceComponent(segAK9, SegmentPosition(0, "0700"), MandatoryUsage, 1),
+    ReferenceComponent(segSE, SegmentPosition(0, "0800"), MandatoryUsage, 1)),
+    List[TransactionComponent](), List[TransactionComponent]())
 }
 
 object X12SchemaValues {
