@@ -39,75 +39,98 @@ object X12Acknowledgment {
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+  
+  trait Coded[K] {
+    val code: K
+  }
+  
+  def instanceMap[K, V <: Coded[K]](values: V*): Map[K, V] =
+    values.toList.foldLeft(Map[K, V]())((acc, value) => acc + (value.code -> value))
 
   /** Functional group syntax error codes (X12 716 element codes). */
-  sealed abstract class GroupSyntaxError(val code: Int)
-  case object NotSupportedGroup extends GroupSyntaxError(1)
-  case object NotSupportedGroupVersion extends GroupSyntaxError(2)
-  case object MissingGroupTrailer extends GroupSyntaxError(3)
-  case object GroupControlNumberMismatch extends GroupSyntaxError(4)
-  case object GroupTransactionCountError extends GroupSyntaxError(5)
-  case object GroupControlNumberError extends GroupSyntaxError(6)
-  case object GroupControlNumberNotUnique extends GroupSyntaxError(19)
+  sealed abstract class GroupSyntaxError(val code: String) extends Coded[String]
+  case object NotSupportedGroup extends GroupSyntaxError("1")
+  case object NotSupportedGroupVersion extends GroupSyntaxError("2")
+  case object MissingGroupTrailer extends GroupSyntaxError("3")
+  case object GroupControlNumberMismatch extends GroupSyntaxError("4")
+  case object GroupTransactionCountError extends GroupSyntaxError("5")
+  case object GroupControlNumberError extends GroupSyntaxError("6")
+  case object GroupControlNumberNotUnique extends GroupSyntaxError("19")
+  val GroupSyntaxErrors = instanceMap[String, GroupSyntaxError](NotSupportedGroup, NotSupportedGroupVersion,
+    MissingGroupTrailer, GroupControlNumberMismatch, GroupTransactionCountError, GroupControlNumberError,
+    GroupControlNumberNotUnique)
 
   /** Functional group acknowledgment codes (X12 717 element codes). */
-  sealed abstract class GroupAcknowledgmentCode(val code: String)
+  sealed abstract class GroupAcknowledgmentCode(val code: String) extends Coded[String]
   case object AcceptedGroup extends GroupAcknowledgmentCode("A")
   case object AcceptedWithErrorsGroup extends GroupAcknowledgmentCode("E")
   case object PartiallyAcceptedGroup extends GroupAcknowledgmentCode("P")
   case object RejectedGroup extends GroupAcknowledgmentCode("R")
+  val GroupAcknowledgmentCodes = instanceMap[String, GroupAcknowledgmentCode](AcceptedGroup, AcceptedWithErrorsGroup,
+    PartiallyAcceptedGroup, RejectedGroup)
 
   /** Transaction syntax error codes (X12 718 element codes). */
-  sealed abstract class TransactionSyntaxError(val code: Int)
-  case object NotSupportedTransaction extends TransactionSyntaxError(1)
-  case object MissingTrailerTransaction extends TransactionSyntaxError(2)
-  case object ControlNumberMismatch extends TransactionSyntaxError(3)
-  case object WrongSegmentCount extends TransactionSyntaxError(4)
-  case object SegmentsInError extends TransactionSyntaxError(5)
-  case object BadTransactionSetId extends TransactionSyntaxError(6)
-  case object BadTransactionSetControl extends TransactionSyntaxError(7)
-  case object SetNotInGroup extends TransactionSyntaxError(18)
-  case object InvalidImplementationConvention extends TransactionSyntaxError(23)
+  sealed abstract class TransactionSyntaxError(val code: String) extends Coded[String]
+  case object NotSupportedTransaction extends TransactionSyntaxError("1")
+  case object MissingTrailerTransaction extends TransactionSyntaxError("2")
+  case object ControlNumberMismatch extends TransactionSyntaxError("3")
+  case object WrongSegmentCount extends TransactionSyntaxError("4")
+  case object SegmentsInError extends TransactionSyntaxError("5")
+  case object BadTransactionSetId extends TransactionSyntaxError("6")
+  case object BadTransactionSetControl extends TransactionSyntaxError("7")
+  case object SetNotInGroup extends TransactionSyntaxError("18")
+  case object InvalidImplementationConvention extends TransactionSyntaxError("23")
+  val TransactionSyntaxErrors = instanceMap[String, TransactionSyntaxError](NotSupportedTransaction,
+    MissingTrailerTransaction, ControlNumberMismatch, WrongSegmentCount, SegmentsInError, BadTransactionSetId,
+    BadTransactionSetControl, SetNotInGroup, InvalidImplementationConvention)
 
   /** Transaction set acknowledgment codes (X12 717 element codes). */
-  sealed abstract class TransactionAcknowledgmentCode(val code: String)
+  sealed abstract class TransactionAcknowledgmentCode(val code: String) extends Coded[String]
   case object AcceptedTransaction extends TransactionAcknowledgmentCode("A")
   case object AcceptedWithErrorsTransaction extends TransactionAcknowledgmentCode("E")
   case object AuthenticationFailedTransaction extends TransactionAcknowledgmentCode("M")
   case object RejectedTransaction extends TransactionAcknowledgmentCode("R")
   case object ValidityFailedTransaction extends TransactionAcknowledgmentCode("W")
   case object DecryptionBadTransaction extends TransactionAcknowledgmentCode("X")
+  val TransactionAcknowledgmentCodes = instanceMap[String, TransactionAcknowledgmentCode](AcceptedTransaction,
+    AcceptedWithErrorsTransaction, AuthenticationFailedTransaction, RejectedTransaction, ValidityFailedTransaction,
+    DecryptionBadTransaction)
 
   /** Segment syntax error codes (X12 720 element codes). */
-  sealed abstract class SegmentSyntaxError(val code: Int)
-  case object UnrecognizedSegment extends SegmentSyntaxError(1)
-  case object UnexpectedSegment extends SegmentSyntaxError(2)
-  case object MissingMandatorySegment extends SegmentSyntaxError(3)
-  case object TooManyLoops extends SegmentSyntaxError(4)
-  case object TooManyOccurs extends SegmentSyntaxError(5)
-  case object NotInTransactionSegment extends SegmentSyntaxError(6)
-  case object OutOfOrderSegment extends SegmentSyntaxError(7)
-  case object DataErrorsSegment extends SegmentSyntaxError(8)
+  sealed abstract class SegmentSyntaxError(val code: String) extends Coded[String]
+  case object UnrecognizedSegment extends SegmentSyntaxError("1")
+  case object UnexpectedSegment extends SegmentSyntaxError("2")
+  case object MissingMandatorySegment extends SegmentSyntaxError("3")
+  case object TooManyLoops extends SegmentSyntaxError("4")
+  case object TooManyOccurs extends SegmentSyntaxError("5")
+  case object NotInTransactionSegment extends SegmentSyntaxError("6")
+  case object OutOfOrderSegment extends SegmentSyntaxError("7")
+  case object DataErrorsSegment extends SegmentSyntaxError("8")
+  val SegmentSyntaxErrors = instanceMap[String, SegmentSyntaxError](UnrecognizedSegment, UnexpectedSegment,
+    MissingMandatorySegment, TooManyLoops, TooManyOccurs, NotInTransactionSegment, OutOfOrderSegment, DataErrorsSegment)
 
   /** Information for a segment error (used to generate X12 AK3 segment). */
   case class SegmentError(val id: String, val position: Int, val loopId: Option[String],
     val error: Option[SegmentSyntaxError])
 
   /** Data element syntax error codes (X12 723 element codes). */
-  sealed abstract class ElementSyntaxError(val code: Int, val text: String)
-  case object MissingRequiredElement extends ElementSyntaxError(1, "missing required element")
-  case object MissingConditionalElement extends ElementSyntaxError(2, "missing conditional element")
-  case object TooManyElements extends ElementSyntaxError(3, "too many elements")
-  case object DataTooShort extends ElementSyntaxError(4, "data value too short")
-  case object DataTooLong extends ElementSyntaxError(5, "data value too long")
-  case object InvalidCharacter extends ElementSyntaxError(6, "invalid character in data value")
-  case object InvalidCodeValue extends ElementSyntaxError(7, "invalid code value")
-  case object InvalidDate extends ElementSyntaxError(8, "invalid date")
-  case object InvalidTime extends ElementSyntaxError(9, "invalid time")
-  case object ExclusionConditionViolated extends ElementSyntaxError(10, "exclusion condition violated")
-  case object TooManyRepititions extends ElementSyntaxError(11, "too many repetitions")
-  case object TooManyComponents extends ElementSyntaxError(12, "too many components")
-
+  sealed abstract class ElementSyntaxError(val code: String, val text: String) extends Coded[String]
+  case object MissingRequiredElement extends ElementSyntaxError("1", "missing required element")
+  case object MissingConditionalElement extends ElementSyntaxError("2", "missing conditional element")
+  case object TooManyElements extends ElementSyntaxError("3", "too many elements")
+  case object DataTooShort extends ElementSyntaxError("4", "data value too short")
+  case object DataTooLong extends ElementSyntaxError("5", "data value too long")
+  case object InvalidCharacter extends ElementSyntaxError("6", "invalid character in data value")
+  case object InvalidCodeValue extends ElementSyntaxError("7", "invalid code value")
+  case object InvalidDate extends ElementSyntaxError("8", "invalid date")
+  case object InvalidTime extends ElementSyntaxError("9", "invalid time")
+  case object ExclusionConditionViolated extends ElementSyntaxError("10", "exclusion condition violated")
+  case object TooManyRepititions extends ElementSyntaxError("11", "too many repetitions")
+  case object TooManyComponents extends ElementSyntaxError("12", "too many components")
+  val ElementSyntaxErrors = instanceMap[String, ElementSyntaxError](MissingRequiredElement, MissingConditionalElement,
+    TooManyElements, DataTooShort, DataTooLong, InvalidCharacter, InvalidCodeValue, InvalidDate, InvalidTime,
+    ExclusionConditionViolated, TooManyRepititions, TooManyComponents)
+  
   // 997 acknowledgment schema (generated code)
   val elem143 = Element("143", "Transaction Set Identifier Code", ID, 3, 3)
   val elem329 = Element("329", "Transaction Set Control Number", ALPHANUMERIC, 4, 9)

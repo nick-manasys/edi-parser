@@ -44,6 +44,9 @@ trait SchemaJavaDefs {
   def getAs[T](key: String, dflt: T, map: ValueMap): T =
     if (map.containsKey(key)) map.get(key).asInstanceOf[T]
     else dflt
+    
+  def applyIfPresent[T](key: String, map: ValueMap, f: T => Unit) =
+    if (map.containsKey(key)) f(map.get(key).asInstanceOf[T])
   
   def foreachMapInMap(map: ValueMap, f: ValueMap => Unit) = {
     val iter = map.values.iterator

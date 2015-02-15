@@ -160,6 +160,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")).getLines
     val builder = new StringBuilder
     lines.foreach(line => builder.append(line))
+    
     // TODO: fix comparison to ignore date/times in ISA and GS
     //    text should be (builder.toString)
   }

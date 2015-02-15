@@ -416,7 +416,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       } else skipGroup(NotSupportedGroup)
       val countPresent = closeGroup(group)
       val ak9data = new ValueMapImpl
-      val error = ackhead.containsKey(segAK2.ident)
+      val error = ackhead.containsKey(segAK2 ident)
       ackhead put (segAK9 name, ak9data)
       val result =
         if (groupErrors.nonEmpty) RejectedGroup
