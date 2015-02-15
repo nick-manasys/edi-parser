@@ -14,8 +14,10 @@ import java.util.Map;
 import scala.Array;
 
 import com.anypoint.df.edi.schema.IdentityInformation;
+import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.X12ParserConfig;
 import com.anypoint.df.edi.schema.X12SchemaParser;
+import com.anypoint.df.edi.schema.tools.Decode997;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 
 public abstract class X12TestBase extends TestBase {
@@ -152,6 +154,18 @@ public abstract class X12TestBase extends TestBase {
 		}
 		return working;
 	}
+	
+	/**
+	 * Print acknowledgment information from parse result map.
+	 *
+	 * @param result
+	 */
+	protected void printAcknowledgments(Map<String, Object> result) {
+	    List<Map<String, Object>> acks = (List<Map<String, Object>>)result.get(SchemaJavaValues.acknowledgments());
+	    for (Map<String, Object> ack: acks) {
+            System.out.println(Decode997.decode(ack));
+	    }
+	}
 
 	/**
 	 * Parse a document, then write out and return the generated 997
@@ -165,6 +179,7 @@ public abstract class X12TestBase extends TestBase {
 		InputStream is = BiztalkTest.class.getResourceAsStream(path);
 		try {
 			Map<String, Object> result = test.parse(is);
+			printAcknowledgments(result);
 			return test.printAck(result);
 		} catch (Exception e) {
 			return e.getMessage();
