@@ -21,13 +21,16 @@ object Decode997 extends X12SchemaDefs with SchemaJavaDefs {
     applyIfPresent[MapList](segAK2 ident, ackhead, list =>
       foreachMapInList(list, { map => {
           val ak2data = getRequiredValueMap(segAK2 name, map)
-          builder ++= s" Transaction ${getRequiredString(segAK2.components(0) key, ak2data)} with control number ${getRequiredInt(segAK2.components(1) key, ak2data)}, implementation reference ${getRequiredString(segAK2.components(2) key, ak2data)}\n"
+          builder ++= s" Transaction ${getRequiredString(segAK2.components(0) key, ak2data)} with control number ${getRequiredString(segAK2.components(1) key, ak2data)}"
+          applyIfPresent[String](segAK2.components(2) key, ak2data, value => builder ++= s", implementation reference $value")
+          builder ++= "\n"
           applyIfPresent[MapList](segAK3 ident, map, list =>
             foreachMapInList(list, { map => {
               val ak3data = getRequiredValueMap(segAK3 name, map)
               builder ++= s"  Segment ${getRequiredString(segAK3.components(0) key, ak3data)} at position ${getRequiredInt(segAK3.components(1) key, ak3data)}"
               applyIfPresent[String](segAK3.components(2) key, ak3data, value => builder ++= s" (loop $value)")
               applyIfPresent[String](segAK3.components(3) key, ak3data, value => builder ++= s" has syntax error ${SegmentSyntaxErrors(value)}")
+              builder ++= "\n"
               applyIfPresent[MapList](segAK4 ident, map, list =>
                 foreachMapInList(list, { ak4data => {
                   val comps = segAK4.components(0).asInstanceOf[EdiSchema.CompositeComponent].composite.components

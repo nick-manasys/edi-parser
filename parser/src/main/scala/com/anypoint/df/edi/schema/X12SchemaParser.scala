@@ -175,6 +175,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError) = {
     def addError(error: SegmentSyntaxError) = {
       oneOrMoreSegmentsInError = true
+      if (ident == "CTB") {
+        println
+      }
       if (config.reportDataErrors) {
         val ak3 = new ValueMapImpl
         val ak3data = new ValueMapImpl
@@ -409,8 +412,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
       val code = getAs(functionalIdentifierKey, "", group)
       if (functionalGroups.contains(code)) {
-        val version = getAs(versionIdentifierKey, "", group)
-        if (version == schema.version) {
+        if (group.get(responsibleAgencyKey) != "X" || group.get(versionIdentifierKey) == schema.version) {
           parseGroup(interchange, group, code, ackhead, transLists)
         } else skipGroup(NotSupportedGroupVersion)
       } else skipGroup(NotSupportedGroup)

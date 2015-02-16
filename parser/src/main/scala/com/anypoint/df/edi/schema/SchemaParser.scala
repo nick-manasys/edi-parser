@@ -159,6 +159,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         def parseRepeat(): Unit = {
           if (logger.isTraceEnabled) logger.trace(s"checking for loop start segment '${group.leadSegment.ident}'': ${checkSegment(group.leadSegment)}")
           if (checkSegment(group.leadSegment)) {
+            if (group.usage == UnusedUsage) segmentError(group.leadSegment.ident, Some(group.ident), ComponentErrors.UnusedSegment)
             val parse = new ValueMapImpl
             val leadmap = parseSegment(group.leadSegment, Some(group.ident), group.position)
             val varval = leadmap.get(group.varkey).asInstanceOf[String]
@@ -167,12 +168,12 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
               verifyRepeats(variant.key, variant.count)
               parse put (variant.items.head.key, leadmap)
               parseSection(variant.compsById, scopes, Some(group.ident), parse)
-              addInstance(variant.key, parse)
+              if (group.usage != UnusedUsage) addInstance(variant.key, parse)
             } else {
               verifyRepeats(group.key, group.count)
               parse put (group.items.head.key, leadmap)
               parseSection(group.compsById, scopes, Some(group.ident), parse)
-              addInstance(group.key, parse)
+              if (group.usage != UnusedUsage) addInstance(group.key, parse)
             }
             parseRepeat()
           }
@@ -254,7 +255,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
                   val data =
                     if (ref.count == 1) parseSegment(segment, group, ref.position)
                     else parseRepeatingSegment(segment, ref.count, group, ref.position)
-                  values put (segment.name, data)
+                  if (ref.usage != UnusedUsage) values put (segment.name, data)
                   parseComponents(nextpos)
                 }
               }
@@ -264,7 +265,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
                 parseComponents(grp.endPosition.position)
               }
               case None => convertLoop() match {
-                case Some(ident) => comps get (ident) match {
+                case Some(loopid) => comps get (loopid) match {
                   case Some(wrap: LoopWrapperComponent) =>
                     parseRepeatingGroup(wrap.loopGroup, values, ContainingScope(wrap.compsById, wrap.position) :: scopes)
                   case _ => if (!checkTerminate(ident, SegmentPosition(table, position))) parseComponents(position)
