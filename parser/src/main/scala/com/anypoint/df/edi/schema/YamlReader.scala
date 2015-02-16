@@ -183,7 +183,7 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
         if (segments.contains(form.loopWrapperStart) && segments.contains(form.loopWrapperEnd)) {
           val start = SegmentPosition(table, getRequiredString(positionKey, values))
           val end = SegmentPosition(table, getRequiredString(endPositionKey, values))
-          LoopWrapperComponent(segments(form.loopWrapperStart), segments(form.loopWrapperEnd), start, end,  wrapid, group)
+          LoopWrapperComponent(segments(form.loopWrapperStart), segments(form.loopWrapperEnd), start, end, wrapid, group)
         } else throw new IllegalArgumentException(s"Missing loop wrapper segment definition (${form.loopWrapperStart} or ${form.loopWrapperEnd})")
       } else {
         val id = getRequiredString(idRefKey, values)
@@ -234,40 +234,43 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
         case values :: t => {
           val position = getRequiredString(positionKey, values)
           base match {
-            case (refc: ReferenceComponent) :: bt if (refc.position == position) => {
-              if (values.containsKey(idRefKey)) {
-                val compare = getRequiredString(idRefKey, values)
-                if (compare != refc.segment.ident) throw new IllegalStateException(s"segment at position $position is not $compare")
+            case bh :: bt =>
+              if (bh.position.position == position) bh match {
+                case (refc: ReferenceComponent) => {
+                  if (values.containsKey(idRefKey)) {
+                    val compare = getRequiredString(idRefKey, values)
+                    if (compare != refc.segment.ident) throw new IllegalStateException(s"segment at position $position is not $compare")
+                  }
+                  val use = getUsageOverride(values, refc.usage)
+                  val count = getCountOverride(values, refc.count)
+                  overr(t, ReferenceComponent(refc.segment, refc.position, use, count) :: prior, bt)
+                }
+                case (wrap: LoopWrapperComponent) => {
+                  if (values.containsKey(wrapIdRefKey)) {
+                    val compare = getRequiredString(wrapIdRefKey, values)
+                    if (compare != wrap.ident) throw new IllegalStateException(s"wrapper at position $position is not $compare")
+                  }
+                  val use = getUsageOverride(values, wrap.usage)
+                  val count = getCountOverride(values, wrap.count)
+                  val group =
+                    if (values.containsKey(loopKey)) overGroup(getRequiredValueMap(loopKey, values), wrap.loopGroup)
+                    else wrap.loopGroup
+                  overr(t, LoopWrapperComponent(wrap.open, wrap.close, wrap.position, wrap.endPosition, wrap.ident, group) :: prior, bt)
+                }
+                case (group: GroupComponent) => {
+                  if (values.containsKey(loopIdRefKey)) {
+                    val compare = getRequiredString(loopIdRefKey, values)
+                    if (compare != group.ident) throw new IllegalStateException(s"loop at position $position is not $compare")
+                  }
+                  val use = getUsageOverride(values, group.usage)
+                  val count = getCountOverride(values, group.count)
+                  val items =
+                    if (values.containsKey(itemsKey)) overLevel(getRequiredMapList(itemsKey, values), group.items)
+                    else group.items
+                  overr(t, GroupComponent(group.ident, use, count, items, group.varkey, group.variants) :: prior, bt)
+                }
               }
-              val use = getUsageOverride(values, refc.usage)
-              val count = getCountOverride(values, refc.count)
-              overr(t, ReferenceComponent(refc.segment, refc.position, use, count) :: prior, bt)
-            }
-            case (wrap: LoopWrapperComponent) :: bt if (wrap.position == position) => {
-              if (values.containsKey(wrapIdRefKey)) {
-                val compare = getRequiredString(wrapIdRefKey, values)
-                if (compare != wrap.ident) throw new IllegalStateException(s"wrapper at position $position is not $compare")
-              }
-              val use = getUsageOverride(values, wrap.usage)
-              val count = getCountOverride(values, wrap.count)
-              val group =
-                if (values.containsKey(loopKey)) overGroup(getRequiredValueMap(loopKey, values), wrap.loopGroup)
-                else wrap.loopGroup
-              overr(t, LoopWrapperComponent(wrap.open, wrap.close, wrap.position, wrap.endPosition, wrap.ident, group) :: prior, bt)
-            }
-            case (group: GroupComponent) :: bt if (group.position == position) => {
-              if (values.containsKey(loopIdRefKey)) {
-                val compare = getRequiredString(loopIdRefKey, values)
-                if (compare != group.ident) throw new IllegalStateException(s"loop at position $position is not $compare")
-              }
-              val use = getUsageOverride(values, group.usage)
-              val count = getCountOverride(values, group.count)
-              val items =
-                if (values.containsKey(itemsKey)) overLevel(getRequiredMapList(itemsKey, values), group.items)
-                else group.items
-              overr(t, GroupComponent(group.ident, use, count, items, group.varkey, group.variants) :: prior, bt)
-            }
-            case bh :: bt => overr(remain, bh :: prior, bt)
+              else overr(remain, bh :: prior, bt)
             case Nil => prior.reverse
           }
         }
