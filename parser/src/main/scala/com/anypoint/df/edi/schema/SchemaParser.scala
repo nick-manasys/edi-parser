@@ -204,10 +204,10 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       def parseSection(comps: Map[String, TransactionComponent], scopes: List[ContainingScope],
         group: Option[String], values: ValueMap) = {
         val startPos = scopes.head.current.position
-        def checkTerminate(ident: String, position: SegmentPosition): Boolean = {
+        def checkTerminate(compid: String, ident: String, position: SegmentPosition): Boolean = {
           @tailrec
           def checkr(remain: List[ContainingScope]): Boolean = remain match {
-            case h :: t => h.comps.get(ident) match {
+            case h :: t => h.comps.get(compid) match {
               case Some(comp) =>
                 if (comp.position.isBefore(position)) {
                   segmentError(ident, group, ComponentErrors.OutOfOrderSegment)
@@ -219,7 +219,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
             case _ => {
               // segment not in any scope, report as out of order
               val error =
-                if (transaction.compsById.contains(ident)) ComponentErrors.OutOfOrderSegment
+                if (transaction.compsById.contains(compid)) ComponentErrors.OutOfOrderSegment
                 else ComponentErrors.UnknownSegment
               segmentError(ident, None, error)
               discardSegment()
@@ -227,6 +227,23 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
             }
           }
           checkr(scopes)
+        }
+
+        /** Parse a wrapped loop, handling wrap open and close segments directly.
+          * @param wrap
+          */
+        def parseWrappedLoop(wrap: LoopWrapperComponent) = {
+          discardSegment
+          parseRepeatingGroup(wrap.loopGroup, values, ContainingScope(wrap.compsById, wrap.position) :: scopes)
+          convertLoop.map { endid =>
+            wrap.compsById.get(endid) match {
+              case Some(ref: ReferenceComponent) => if (ref.segment == wrap.close) {
+                discardSegment
+                parseComponents(wrap.endPosition.position)
+              }
+              case _ =>
+            }
+          }
         }
 
         /** Parse section components, checking order by position and reporting errors but still handling all segments
@@ -264,14 +281,13 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
                 parseRepeatingGroup(grp, values, ContainingScope(comps, grp.position) :: scopes)
                 parseComponents(grp.endPosition.position)
               }
-              case None => convertLoop() match {
+              case None => convertLoop match {
                 case Some(loopid) => comps get (loopid) match {
-                  case Some(wrap: LoopWrapperComponent) =>
-                    parseRepeatingGroup(wrap.loopGroup, values, ContainingScope(wrap.compsById, wrap.position) :: scopes)
-                  case _ => if (!checkTerminate(ident, SegmentPosition(table, position))) parseComponents(position)
+                  case Some(wrap: LoopWrapperComponent) => parseWrappedLoop(wrap)
+                  case _ => if (!checkTerminate(loopid, ident, SegmentPosition(table, position))) parseComponents(position)
                 }
                 case None =>
-                  if (!checkTerminate(ident, SegmentPosition(table, position))) parseComponents(position)
+                  if (!checkTerminate(ident, ident, SegmentPosition(table, position))) parseComponents(position)
               }
               case _ => throw new IllegalStateException("Illegal structure for group $group")
             }
