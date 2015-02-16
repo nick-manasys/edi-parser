@@ -182,6 +182,7 @@ public abstract class X12TestBase extends TestBase {
 			printAcknowledgments(result);
 			return test.printAck(result);
 		} catch (Exception e) {
+		    e.printStackTrace();
 			return e.getMessage();
 		}
 
