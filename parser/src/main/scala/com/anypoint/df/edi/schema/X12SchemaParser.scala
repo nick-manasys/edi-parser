@@ -175,9 +175,6 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError) = {
     def addError(error: SegmentSyntaxError) = {
       oneOrMoreSegmentsInError = true
-      if (ident == "CTB") {
-        println
-      }
       if (config.reportDataErrors) {
         val ak3 = new ValueMapImpl
         val ak3data = new ValueMapImpl
