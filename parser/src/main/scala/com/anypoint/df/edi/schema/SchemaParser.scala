@@ -233,6 +233,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
           * @param wrap
           */
         def parseWrappedLoop(wrap: LoopWrapperComponent) = {
+          if (wrap.usage == UnusedUsage) segmentError(wrap.open.ident, Some(wrap.ident), ComponentErrors.UnusedSegment)
           discardSegment
           parseRepeatingGroup(wrap.loopGroup, values, ContainingScope(wrap.compsById, wrap.position) :: scopes)
           convertLoop.map { endid =>

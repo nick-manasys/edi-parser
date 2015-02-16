@@ -209,13 +209,17 @@ object EdiSchema {
     extends TransactionComponent(segment.name, pos, use, cnt)
 
   /** Loop wrapper component.
-    * @param segment
-    * @param position
+    * @param open
+    * @param close
+    * @param start
+    * @param endPosition
+    * @param use
+    * @param ident
     * @param loopGroup
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
-    val endPosition: SegmentPosition, val ident: String, val loopGroup: GroupComponent)
-    extends TransactionComponent("", start, OptionalUsage, 1) {
+    val endPosition: SegmentPosition, use: Usage, val ident: String, val loopGroup: GroupComponent)
+    extends TransactionComponent("", start, use, 1) {
     val compsById = Map((open.ident + ident) -> ReferenceComponent(open, start, MandatoryUsage, 1),
       (close.ident + ident) -> ReferenceComponent(close, endPosition, MandatoryUsage, 1))
   }

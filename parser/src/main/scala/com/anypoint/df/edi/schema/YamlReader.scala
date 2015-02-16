@@ -183,7 +183,7 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
         if (segments.contains(form.loopWrapperStart) && segments.contains(form.loopWrapperEnd)) {
           val start = SegmentPosition(table, getRequiredString(positionKey, values))
           val end = SegmentPosition(table, getRequiredString(endPositionKey, values))
-          LoopWrapperComponent(segments(form.loopWrapperStart), segments(form.loopWrapperEnd), start, end, wrapid, group)
+          LoopWrapperComponent(segments(form.loopWrapperStart), segments(form.loopWrapperEnd), start, end, OptionalUsage, wrapid, group)
         } else throw new IllegalArgumentException(s"Missing loop wrapper segment definition (${form.loopWrapperStart} or ${form.loopWrapperEnd})")
       } else {
         val id = getRequiredString(idRefKey, values)
@@ -255,7 +255,7 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
                   val group =
                     if (values.containsKey(loopKey)) overGroup(getRequiredValueMap(loopKey, values), wrap.loopGroup)
                     else wrap.loopGroup
-                  overr(t, LoopWrapperComponent(wrap.open, wrap.close, wrap.position, wrap.endPosition, wrap.ident, group) :: prior, bt)
+                  overr(t, LoopWrapperComponent(wrap.open, wrap.close, wrap.position, wrap.endPosition, use, wrap.ident, group) :: prior, bt)
                 }
                 case (group: GroupComponent) => {
                   if (values.containsKey(loopIdRefKey)) {
