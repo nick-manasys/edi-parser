@@ -39,13 +39,78 @@ object X12Acknowledgment {
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
-  
+
   trait Coded[K] {
     val code: K
   }
-  
+
   def instanceMap[K, V <: Coded[K]](values: V*): Map[K, V] =
     values.toList.foldLeft(Map[K, V]())((acc, value) => acc + (value.code -> value))
+
+  /** Interchange acknowledgment codes (TA1 I17 element codes). */
+  sealed abstract class InterchangeAcknowledgmentCode(val code: String) extends Coded[String]
+  case object AcknowledgedNoErrors extends InterchangeAcknowledgmentCode("A")
+  case object AcknowledgedWithErrors extends InterchangeAcknowledgmentCode("E")
+  case object AcknowledgedRejected extends InterchangeAcknowledgmentCode("R")
+  val InterchangeAcknowledgmentCode = instanceMap[String, InterchangeAcknowledgmentCode](AcknowledgedNoErrors,
+    AcknowledgedWithErrors, AcknowledgedRejected)
+
+  /** Interchange note codes (TA1 I18 element codes). */
+  sealed abstract class InterchangeNoteCode(val code: String) extends Coded[String]
+  case object InterchangeNoError extends InterchangeNoteCode("000")
+  case object InterchangeControlNumberMismatch extends InterchangeNoteCode("001")
+  case object InterchangeUnsupportedStandard extends InterchangeNoteCode("002")
+  case object InterchangeUnsupportedVersion extends InterchangeNoteCode("003")
+  case object InterchangeSegmentTerminator extends InterchangeNoteCode("004")
+  case object InterchangeSenderIdQual extends InterchangeNoteCode("005")
+  case object InterchangeSenderId extends InterchangeNoteCode("006")
+  case object InterchangeReceiverIdQual extends InterchangeNoteCode("007")
+  case object InterchangeReceiverId extends InterchangeNoteCode("008")
+  case object InterchangeUnknownReceiverId extends InterchangeNoteCode("009")
+  case object InterchangeAuthorizationInfoQual extends InterchangeNoteCode("010")
+  case object InterchangeAuthorizationInfo extends InterchangeNoteCode("011")
+  case object InterchangeSecurityInfoQual extends InterchangeNoteCode("012")
+  case object InterchangeSecurityInfo extends InterchangeNoteCode("013")
+  case object InterchangeInvalidDate extends InterchangeNoteCode("014")
+  case object InterchangeInvalidTime extends InterchangeNoteCode("015")
+  case object InterchangeInvalidStandardsIdentifier extends InterchangeNoteCode("016")
+  case object InterchangeInvalidVersionId extends InterchangeNoteCode("017")
+  case object InterchangeInvalidControlNumber extends InterchangeNoteCode("018")
+  case object InterchangeInvalidAcknowledgmentRequested extends InterchangeNoteCode("019")
+  case object InterchangeInvalidTestIndicator extends InterchangeNoteCode("020")
+  case object InterchangeInvalidGroupCount extends InterchangeNoteCode("021")
+  case object InterchangeInvalidControlStructure extends InterchangeNoteCode("022")
+  case object InterchangeEndOfFile extends InterchangeNoteCode("023")
+  case object InterchangeInvalidContent extends InterchangeNoteCode("024")
+  case object InterchangeDuplicateNumber extends InterchangeNoteCode("025")
+  case object InterchangeDataElementSeparator extends InterchangeNoteCode("026")
+  case object InterchangeComponentElementSeparator extends InterchangeNoteCode("027")
+  val InterchangeNoteCodes = instanceMap[String, InterchangeNoteCode](InterchangeNoError,
+    InterchangeControlNumberMismatch, InterchangeUnsupportedStandard, InterchangeUnsupportedVersion,
+    InterchangeSegmentTerminator, InterchangeSenderIdQual, InterchangeSenderId, InterchangeReceiverIdQual,
+    InterchangeReceiverId, InterchangeUnknownReceiverId, InterchangeInvalidDate, InterchangeInvalidTime,
+    InterchangeInvalidStandardsIdentifier, InterchangeInvalidVersionId, InterchangeInvalidControlNumber,
+    InterchangeInvalidAcknowledgmentRequested, InterchangeInvalidTestIndicator, InterchangeInvalidGroupCount,
+    InterchangeInvalidControlStructure, InterchangeEndOfFile, InterchangeInvalidContent, InterchangeDuplicateNumber,
+    InterchangeDataElementSeparator, InterchangeComponentElementSeparator)
+
+  /** Associate lexer start status codes from ISA segment with interchange note codes. */
+  import com.anypoint.df.edi.lexical.X12Lexer.InterchangeStartStatus
+  val LexerStatusInterchangeNote = Map(
+    (InterchangeStartStatus.AUTHORIZATION_QUALIFIER_ERROR -> InterchangeAuthorizationInfoQual),
+    (InterchangeStartStatus.AUTHORIZATION_INFO_ERROR -> InterchangeAuthorizationInfo),
+    (InterchangeStartStatus.SECURITY_QUALIFIER_ERROR -> InterchangeSecurityInfoQual),
+    (InterchangeStartStatus.SECURITY_INFO_ERROR -> InterchangeSecurityInfo),
+    (InterchangeStartStatus.SENDER_ID_QUALIFIER_ERROR -> InterchangeSenderIdQual),
+    (InterchangeStartStatus.SENDER_ID_ERROR -> InterchangeSenderId),
+    (InterchangeStartStatus.RECEIVER_ID_QUALIFIER_ERROR -> InterchangeReceiverIdQual),
+    (InterchangeStartStatus.RECEIVER_ID_ERROR -> InterchangeReceiverId),
+    (InterchangeStartStatus.INTERCHANGE_DATE_ERROR -> InterchangeInvalidDate),
+    (InterchangeStartStatus.INTERCHANGE_TIME_ERROR -> InterchangeInvalidTime),
+    (InterchangeStartStatus.VERSION_ID_ERROR -> InterchangeInvalidVersionId),
+    (InterchangeStartStatus.INTER_CONTROL_ERROR -> InterchangeInvalidControlNumber),
+    (InterchangeStartStatus.ACK_REQUESTED_ERROR -> InterchangeInvalidAcknowledgmentRequested),
+    (InterchangeStartStatus.TEST_INDICATOR_ERROR -> InterchangeInvalidTestIndicator))
 
   /** Functional group syntax error codes (X12 716 element codes). */
   sealed abstract class GroupSyntaxError(val code: String) extends Coded[String]
@@ -130,7 +195,7 @@ object X12Acknowledgment {
   val ElementSyntaxErrors = instanceMap[String, ElementSyntaxError](MissingRequiredElement, MissingConditionalElement,
     TooManyElements, DataTooShort, DataTooLong, InvalidCharacter, InvalidCodeValue, InvalidDate, InvalidTime,
     ExclusionConditionViolated, TooManyRepititions, TooManyComponents)
-  
+
   // 997 acknowledgment schema (generated code)
   val elem143 = Element("143", "Transaction Set Identifier Code", ID, 3, 3)
   val elem329 = Element("329", "Transaction Set Control Number", ALPHANUMERIC, 4, 9)
@@ -196,9 +261,17 @@ object X12Acknowledgment {
         ReferenceComponent(segAK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
         ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99)), None, Nil),
       ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1)), None, Nil),
-      ReferenceComponent(segAK9, SegmentPosition(0, "0700"), MandatoryUsage, 1),
+    ReferenceComponent(segAK9, SegmentPosition(0, "0700"), MandatoryUsage, 1),
     ReferenceComponent(segSE, SegmentPosition(0, "0800"), MandatoryUsage, 1)),
     List[TransactionComponent](), List[TransactionComponent]())
+
+  // TA1 acknowledgment data (generated code)
+  val segTA1 = Segment("TA1", "Interchange Acknowledgment", List[SegmentComponent](
+    ElementComponent(Element("I12", "Interchange Control Number", INTEGER, 9, 9), None, "TA101", 1, MandatoryUsage, 1),
+    ElementComponent(Element("I08", "Interchange Date", DATE, 6, 6), None, "TA102", 2, MandatoryUsage, 1),
+    ElementComponent(Element("I09", "Interchange Time", TIME, 4, 4), None, "TA103", 3, MandatoryUsage, 1),
+    ElementComponent(Element("I17", "Interchange Acknowledgment Code", ID, 1, 1), None, "TA104", 4, MandatoryUsage, 1),
+    ElementComponent(Element("I18", "Interchange Note Code", ID, 3, 3), None, "TA105", 5, MandatoryUsage, 1)), Nil)
 }
 
 object X12SchemaValues {

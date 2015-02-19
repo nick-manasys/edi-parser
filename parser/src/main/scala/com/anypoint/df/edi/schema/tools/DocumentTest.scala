@@ -15,13 +15,14 @@ import com.anypoint.df.edi.schema.X12SchemaDefs
 import com.anypoint.df.edi.schema.X12SchemaParser
 import com.anypoint.df.edi.schema.X12SchemaWriter
 import com.anypoint.df.edi.schema.YamlReader
+import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.X12Constants._
 import java.io.InputStream
 
 case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12SchemaDefs with SchemaJavaDefs {
 
   def this(sch: EdiSchema) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true, true, true,
-    true, Array[IdentityInformation](), Array[IdentityInformation]()))
+    true, ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation]()))
 
   import com.anypoint.df.edi.schema.X12Acknowledgment._
   import com.anypoint.df.edi.schema.SchemaJavaValues._
@@ -77,7 +78,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider)
     val outmap = new ValueMapImpl(map)
     val transactions = new ValueMapImpl
-    val acks = map.get(acknowledgments).asInstanceOf[MapList]
+    val acks = map.get(functionalAcknowledgments).asInstanceOf[MapList]
     val ackiter = acks.iterator
     while (ackiter.hasNext) {
       val ackmap = ackiter.next

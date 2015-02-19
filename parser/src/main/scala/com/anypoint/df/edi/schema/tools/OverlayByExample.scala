@@ -22,6 +22,7 @@ import scala.annotation.tailrec
 import com.anypoint.df.edi.schema.X12SchemaDefs
 import com.anypoint.df.edi.schema.SchemaParser
 import scala.collection.mutable.Buffer
+import com.anypoint.df.edi.lexical.EdiConstants._
 import java.io.FileWriter
 
 object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
@@ -140,7 +141,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val schema = YamlReader.loadYaml(new InputStreamReader(is), Array())
     val examples = args.toList.tail.tail
     val config = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
-      Array[IdentityInformation](), Array[IdentityInformation]())
+      ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation]())
 
     /** Strip metadata (transaction set and group links) out of transaction data to avoid excess overhead on merge. */
     def stripMeta(trans: ValueMap) = trans.asScala.foreach {

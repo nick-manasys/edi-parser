@@ -16,4 +16,14 @@ public class LexicalException extends IOException
     public LexicalException(String msg) {
         super(msg);
     }
+    
+    /**
+     * Constructor.
+     *
+     * @param msg
+     * @param t
+     */
+    public LexicalException(String msg, Throwable t) {
+        super(msg, t);
+    }
 }

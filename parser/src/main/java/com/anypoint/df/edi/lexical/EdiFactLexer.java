@@ -9,6 +9,8 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.anypoint.df.edi.lexical.X12Lexer.InterchangeStartStatus;
+
 import static com.anypoint.df.edi.lexical.EdiConstants.*;
 import static com.anypoint.df.edi.lexical.EdiFactConstants.*;
 
@@ -82,11 +84,12 @@ public class EdiFactLexer extends LexerBase
      * parsing, along with the character encoding. Returns with the parser positioned past the end of the UNB
      * Interchange Header segment.
      *
-     * @param default interchange properties (from partner configuration)
-     * @return interchange properties
+     * @param dflt interchange properties (from partner configuration)
+     * @param props store for property values from interchange
+     * @return status
      * @throws IOException 
      */
-    public Map<String,Object> init(Map<String, Object> dflts) throws IOException {
+    public Object init(Map<String, Object> dflts, Map<String,Object> props) throws IOException {
         
         // check the segment tag
         byte[] byts = readBytes(3);
@@ -131,7 +134,6 @@ public class EdiFactLexer extends LexerBase
         advance(ItemType.DATA_ELEMENT);
         
         // build interchange properties from segment data
-        Map<String,Object> props = new HashMap<>();
         props.put(SYNTAX_IDENTIFIER, synid);
         props.put(SYNTAX_VERSION_NUMBER, requireNextItem(ItemType.QUALIFIER));
         props.put(SENDER_IDENTIFICATION, requireNextItem(ItemType.DATA_ELEMENT));
@@ -177,7 +179,7 @@ public class EdiFactLexer extends LexerBase
         if (ItemType.SEGMENT != nextType()) {
             props.put(TEST_INDICATOR, advance());
         }
-        return props;
+        return null;
     }
 
     /**

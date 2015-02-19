@@ -234,17 +234,7 @@ public abstract class LexerBase
     public int getComponentNumber() {
         return componentNumber;
     }
-    
-    /**
-     * Initialize document parse. This checks the start of the document to interpret any configuration information
-     * included. Returns with parser positioned past the interchange header segment(s).
-     *
-     * @param default interchange properties (from partner configuration)
-     * @return interchange properties
-     * @throws IOException
-     */
-    public abstract Map<String, Object> init(Map<String, Object> dflts) throws IOException;
-    
+        
     /**
      * Complete document parse. This must be called with the parser positioned at the start of the interchange trailer
      * segment.
@@ -491,7 +481,7 @@ public abstract class LexerBase
     }
     
     /**
-     * Get current token as an alphanumeric value and advance to next token.
+     * Get current token as a string value and advance to next token.
      *
      * @param minl minimum length
      * @param maxl maximum length
@@ -503,11 +493,8 @@ public abstract class LexerBase
         String text = token;
         int lastns = -1;
         for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
-            if (Character.isAlphabetic(chr) || Character.isDigit(chr)) {
+            if (text.charAt(i) != ' ') {
                 lastns = i;
-            } else if (chr != ' ') {
-                handleError(DataType.ALPHA, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
             }
         }
         advance();

@@ -11,12 +11,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import scala.Array;
-
+import com.anypoint.df.edi.lexical.EdiConstants;
 import com.anypoint.df.edi.schema.IdentityInformation;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.X12ParserConfig;
-import com.anypoint.df.edi.schema.X12SchemaParser;
 import com.anypoint.df.edi.schema.tools.Decode997;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 
@@ -161,9 +159,12 @@ public abstract class X12TestBase extends TestBase {
 	 * @param result
 	 */
 	protected void printAcknowledgments(Map<String, Object> result) {
-	    List<Map<String, Object>> acks = (List<Map<String, Object>>)result.get(SchemaJavaValues.acknowledgments());
-	    for (Map<String, Object> ack: acks) {
-            System.out.println(Decode997.decode(ack));
+	    List<Map<String, Object>> acks = (List<Map<String, Object>>)result.
+	        get(SchemaJavaValues.functionalAcknowledgments());
+	    if (acks != null) {
+	        for (Map<String, Object> ack: acks) {
+	            System.out.println(Decode997.decode(ack));
+	        }
 	    }
 	}
 
@@ -188,11 +189,13 @@ public abstract class X12TestBase extends TestBase {
 
 	}
 
-	protected String parsWithSenderIdentityInformation(String inputFilePath, String interchangeQualifier, String interchangeId, String interchangeType) {
+	protected String parsWithSenderIdentityInformation(String inputFilePath, String interchangeQualifier,
+	    String interchangeId, String interchangeType) {
 		IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
 		IdentityInformation[] senders = new IdentityInformation[1];
 		senders[0] = identity;
-		X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true, new IdentityInformation[0], senders);
+		X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
+		    EdiConstants.ASCII_CHARSET, new IdentityInformation[0], senders);
 
 		DocumentTest test = new DocumentTest(schema, config);
 		InputStream is = BiztalkTest.class.getResourceAsStream(inputFilePath);

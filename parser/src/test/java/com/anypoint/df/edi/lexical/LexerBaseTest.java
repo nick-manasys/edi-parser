@@ -19,9 +19,9 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
 public class LexerBaseTest
 {
     public TestLexer initializeLexer(String text) throws IOException {
-        InputStream is = new ByteArrayInputStream(text.getBytes(EdiConstants.UTF8_CHARSET));
+        InputStream is = new ByteArrayInputStream(text.getBytes(EdiConstants.ASCII_CHARSET));
         TestLexer lexer = new TestLexer(is);
-        lexer.init(null);
+        lexer.init(null, null);
         return lexer;
     }
     
@@ -198,7 +198,7 @@ public class LexerBaseTest
     
     @Test
     public void testCharacterErrors() throws Exception {
-        TestLexer lexer = initializeLexer("I D*AL0PH*1ALPHANU/*12345A*+123.45*12-345*09 604* 205~");
+        TestLexer lexer = initializeLexer("I D*AL0PH*12345A*+123.45*12-345*09 604* 205~");
         try {
         	lexer.parseId(3, 3);
         	fail();
@@ -206,11 +206,6 @@ public class LexerBaseTest
         lexer.advance();
         try {
         	lexer.parseAlpha(5, 5);
-        	fail();
-		} catch (LexicalException e) { }
-        lexer.advance();
-        try {
-        	lexer.parseAlphaNumeric(9, 9);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();

@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.anypoint.df.edi.lexical.EdiConstants.*;
@@ -18,7 +17,13 @@ import static com.anypoint.df.edi.lexical.X12Constants.*;
 public class X12Lexer extends LexerBase
 {
     /** Status returned by {@link X12Lexer#term(Map)} method. */
-    public enum InterchangeStatus { VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR }
+    public enum InterchangeStartStatus { VALID, AUTHORIZATION_QUALIFIER_ERROR, AUTHORIZATION_INFO_ERROR,
+        SECURITY_QUALIFIER_ERROR, SECURITY_INFO_ERROR, SENDER_ID_QUALIFIER_ERROR, SENDER_ID_ERROR,
+        RECEIVER_ID_QUALIFIER_ERROR, RECEIVER_ID_ERROR, INTERCHANGE_DATE_ERROR, INTERCHANGE_TIME_ERROR,
+        VERSION_ID_ERROR, INTER_CONTROL_ERROR, ACK_REQUESTED_ERROR, TEST_INDICATOR_ERROR }
+    
+    /** Status returned by {@link X12Lexer#term(Map)} method. */
+    public enum InterchangeEndStatus { VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR }
     
     /**
      * Constructor.
@@ -30,63 +35,143 @@ public class X12Lexer extends LexerBase
     }
     
     /**
+     * Replace current status only if current status is {@link InterchangeStartStatus.VALID}. This is used so that if
+     * multiple errors are found in the interchange header the first error be preserved and returned.
+     *
+     * @param status
+     * @param replace
+     * @return status
+     */
+    private static InterchangeStartStatus replaceValidStatus(InterchangeStartStatus status, InterchangeStartStatus replace) {
+        if (status == InterchangeStartStatus.VALID) {
+            return replace;
+        }
+        return status;
+    }
+    
+    /**
      * Initialize document parse. This checks the start of the document to find the separator characters used in
      * parsing, along with the character encoding. Returns with the parser positioned past the end of the ISA
      * Interchange Control Header segment.
      * 
-     * @param default interchange properties (from partner configuration)
-     * @return interchange properties
-     * @throws IOException 
+     * @param charset character encoding (from partner configuration)
+     * @param props store for property values from interchange
+     * @return status
      */
-    public Map<String,Object> init(Map<String, Object> dflts) throws IOException {
-        
-        // check the segment tag
-        byte[] byts = readBytes(3);
-        String tag = new String(byts, ASCII_CHARSET);
-        if (!"ISA".equals(tag)) {
-            throw new IOException(String.format("Message is missing ISA segment (starts with bytes %02X, %02X, %02X)", byts[0], byts[1], byts[2]));
+    public InterchangeStartStatus init(Charset charset, Map<String,Object> props) {
+        try {
+            // check the segment tag
+            reader = new BufferedReader(new InputStreamReader(stream, charset));
+            char[] chrs = new char[3];
+            chrs[0] = (char)reader.read();
+            chrs[1] = (char)reader.read();
+            chrs[2] = (char)reader.read();
+            String tag = new String(chrs);
+            if (!"ISA".equals(tag)) {
+                throw new IllegalStateException("Message is missing ISA segment (starts with " + tag + ")");
+            }
+            
+            // get data element separator as next character
+            dataSeparator = (char)reader.read();
+            
+            // set interchange properties from segment data
+            advance(ItemType.DATA_ELEMENT);
+            InterchangeStartStatus result = InterchangeStartStatus.VALID;
+            try {
+                props.put(AUTHORIZATION_QUALIFIER, parseId(2, 2));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.AUTHORIZATION_QUALIFIER_ERROR);
+                advance();
+            }
+            try {
+                props.put(AUTHORIZATION_INFO, parseAlphaNumeric(10, 10));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.AUTHORIZATION_INFO_ERROR);
+                advance();
+            }
+            try {
+                props.put(SECURITY_QUALIFIER, parseId(2, 2));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.SECURITY_QUALIFIER_ERROR);
+                advance();
+            }
+            try {
+                props.put(SECURITY_INFO, parseAlphaNumeric(10, 10));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.SECURITY_INFO_ERROR);
+                advance();
+            }
+            try {
+                props.put(SENDER_ID_QUALIFIER, parseId(2, 2));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.SENDER_ID_QUALIFIER_ERROR);
+                advance();
+            }
+            try {
+                props.put(SENDER_ID, parseAlphaNumeric(15, 15));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.SENDER_ID_ERROR);
+                advance();
+            }
+            try {
+                props.put(RECEIVER_ID_QUALIFIER, parseId(2, 2));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.RECEIVER_ID_QUALIFIER_ERROR);
+                advance();
+            }
+            try {
+                props.put(RECEIVER_ID, parseAlphaNumeric(15, 15));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.RECEIVER_ID_ERROR);
+                advance();
+            }
+            try {
+                props.put(INTERCHANGE_DATE, parseDate(6, 6));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.INTERCHANGE_DATE_ERROR);
+                advance();
+            }
+            try {
+                props.put(INTERCHANGE_TIME, Integer.valueOf(parseTime(4, 4)));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.INTERCHANGE_TIME_ERROR);
+                advance();
+            }
+            String sep = token();
+            repetitionSeparator = "U".equals(sep) ? -1 : sep.charAt(0);
+            advance();
+            try {
+                props.put(VERSION_ID, parseId(5, 5));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.VERSION_ID_ERROR);
+                advance();
+            }
+            try {
+                props.put(INTER_CONTROL, parseInteger(9, 9));
+            } catch (LexicalException e) {
+                throw new LexicalException("Interchange aborted due to Interchange Control Number error", e);
+            }
+            try {
+                props.put(ACK_REQUESTED, parseId(1, 1));
+            } catch (LexicalException e) {
+                result = replaceValidStatus(result, InterchangeStartStatus.ACK_REQUESTED_ERROR);
+                advance();
+            }
+            String indicator = token();
+            if (indicator.length() != 1 || !("I".equals(indicator) || "P".equals(indicator) || "T".equals(indicator))) {
+                result = replaceValidStatus(result, InterchangeStartStatus.TEST_INDICATOR_ERROR);
+            }
+            props.put(TEST_INDICATOR, indicator);
+            componentSeparator = (char)reader.read();
+            segmentTerminator = (char)reader.read();
+            
+            // advance to start of next segment
+            advance(ItemType.SEGMENT);
+            return result;
+            
+        } catch (IOException e) {
+            throw new IllegalStateException("Interchange aborted due to error reading header", e);
         }
-        
-        // get record separator as next character
-        dataSeparator = (char)readBytes(1)[0];
-        
-        // turn stream into reader with appropriate character set
-        Charset charset = (Charset)dflts.get(CHAR_SET);
-        if (charset == null) {
-            charset = UTF8_CHARSET;
-        }
-        reader = new BufferedReader(new InputStreamReader(stream, charset));
-        
-        // build interchange properties from segment data
-        Map<String,Object> props = new HashMap<>();
-        advance(ItemType.DATA_ELEMENT);
-        props.put(AUTHORIZATION_QUALIFIER, parseId(2, 2));
-        props.put(AUTHORIZATION_INFO, parseAlphaNumeric(10, 10));
-        props.put(SECURITY_QUALIFIER, parseId(2, 2));
-        props.put(SECURITY_INFO, parseAlphaNumeric(10, 10));
-        props.put(SENDER_ID_QUALIFIER, parseId(2, 2));
-        props.put(SENDER_ID, parseAlphaNumeric(15, 15));
-        props.put(RECEIVER_ID_QUALIFIER, parseId(2, 2));
-        props.put(RECEIVER_ID, parseAlphaNumeric(15, 15));
-        props.put(INTERCHANGE_DATE, parseDate(6, 6));
-        props.put(INTERCHANGE_TIME, Integer.valueOf(parseTime(4, 4)));
-        String sep = token();
-        repetitionSeparator = "U".equals(sep) ? -1 : sep.charAt(0);
-        advance();
-        props.put(VERSION_ID, parseId(5, 5));
-        props.put(INTER_CONTROL, parseInteger(9, 9));
-        props.put(ACK_REQUESTED, parseId(1, 1));
-        String indicator = token();
-        if (indicator.length() != 1) {
-            throw new LexicalException("Interchange Usage Indicator error");
-        }
-        props.put(TEST_INDICATOR, indicator);
-        componentSeparator = (char)reader.read();
-        segmentTerminator = (char)reader.read();
-        
-        // advance to start of next segment
-        advance(ItemType.SEGMENT);
-        return props;
     }
 
     /**
@@ -94,14 +179,14 @@ public class X12Lexer extends LexerBase
      * @throws IOException
      * @see com.anypoint.df.edi.lexical.LexerBase#term(java.util.Map)
      */
-    public InterchangeStatus term(Map<String, Object> props) throws IOException {
+    public InterchangeEndStatus term(Map<String, Object> props) throws IOException {
         if (!"IEA".equals(token())) {
             throw new IllegalStateException("not at trailer");
         }
         advance();
         int count = parseInteger(1, 5).intValue();
         if (count != groupCount) {
-            return InterchangeStatus.GROUP_COUNT_ERROR;
+            return InterchangeEndStatus.GROUP_COUNT_ERROR;
         }
         int number = parseInteger(9, 9).intValue();
         Object expected = props.get(INTER_CONTROL);
@@ -109,8 +194,8 @@ public class X12Lexer extends LexerBase
             throw new IllegalStateException(INTER_CONTROL + " value must be an Integer");
         }
         if (((Integer)expected).intValue() != number) {
-            return InterchangeStatus.CONTROL_NUMBER_ERROR;
+            return InterchangeEndStatus.CONTROL_NUMBER_ERROR;
         }
-        return InterchangeStatus.VALID;
+        return InterchangeEndStatus.VALID;
     }
 }

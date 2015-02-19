@@ -1,12 +1,17 @@
 
 package com.anypoint.df.edi.lexical;
 
+import java.nio.charset.Charset;
+
 /**
  * Constants for X12 documents.
  */
 public final class X12Constants
 {
     private X12Constants() {}
+    
+    // standard character sets
+    public static final Charset EBCDIC_CHARSET = Charset.forName("IBM1047");
     
     // configuration properties
     public static final String CHAR_SET = "Character set";

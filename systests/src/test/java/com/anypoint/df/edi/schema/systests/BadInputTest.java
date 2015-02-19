@@ -51,7 +51,7 @@ public class BadInputTest extends X12TestBase {
 //				{BadInputFiles.MISSING_BEG, BadInputFiles.MISSING_BEG_EX}, 
 //				{BadInputFiles.MISSING_PO1, BadInputFiles.MISSING_PO1_EX}, 
 //				{BadInputFiles.MISSING_SE, BadInputFiles.MISSING_SE_EX},
-				{BadInputFiles.WRONG_HEADER, BadInputFiles.WRONG_HEADER_EX}
+//				{BadInputFiles.WRONG_HEADER, BadInputFiles.WRONG_HEADER_EX}
 		});
 	}
 	

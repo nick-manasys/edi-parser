@@ -1,21 +1,20 @@
 package com.anypoint.df.edi.schema
 
-import java.io.InputStream
-import java.io.IOException
+import java.io.{ InputStream, IOException }
+import java.nio.charset.Charset
+import java.util.{ Calendar, GregorianCalendar }
 import scala.collection.JavaConversions
 import scala.collection.mutable.Buffer
 import scala.util.Try
 import scala.util.Success
+import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, X12Lexer }
+import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
-import com.anypoint.df.edi.lexical.LexerBase
-import com.anypoint.df.edi.lexical.LexicalException
-import com.anypoint.df.edi.lexical.X12Constants._
-import com.anypoint.df.edi.lexical.X12Lexer
-import com.anypoint.df.edi.lexical.ErrorHandler
-import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
+import com.anypoint.df.edi.lexical.X12Constants._
+import com.anypoint.df.edi.lexical.X12Lexer._
 import EdiSchema._
 import SchemaJavaValues._
 import X12SchemaValues._
@@ -33,9 +32,11 @@ case class IdentityInformation(interchangeQualifier: String, interchangeId: Stri
 case class X12ParserConfig(val lengthFail: Boolean, val asciiOnly: Boolean, val charFail: Boolean,
   val countFail: Boolean, val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean,
   val occursFail: Boolean, val reportDataErrors: Boolean, val generate997: Boolean, val generateTA1: Boolean,
-  val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation]) {
+  val charSet: Charset, val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation]) {
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
+
+case class InterchangeException(note: InterchangeNoteCode) extends LexicalException(s"Interchange error note")
 
 /** Parser for X12 EDI documents. */
 case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConfig)
@@ -58,9 +59,15 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
 
   /** Number of transaction sets accepted in current group. */
   var groupAcceptCount = 0
-  
+
   /** One or more segments of transaction in error flag. */
   var oneOrMoreSegmentsInError = false
+
+  /** Interchange note code. */
+  var interchangeNote: InterchangeNoteCode = null
+
+  /** Interchange acknowledgment code. */
+  var interchangeAck: InterchangeAcknowledgmentCode = null
 
   /** Accumulated data errors (as AK4 maps) from segment. */
   val dataErrors = Buffer[ValueMap]()
@@ -184,7 +191,8 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         group.foreach(ident => ak3data put (segAK3.components(2).key, ident))
         ak3data put (segAK3.components(3).key, error.code.toString)
         segmentErrors += ak3
-      }}
+      }
+    }
     if (inTransaction) error match {
       case ComponentErrors.TooManyLoops => {
         addError(TooManyLoops)
@@ -214,11 +222,8 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     }
   }
 
-  def init() = {
-    val map = lexer.init(new ValueMapImpl())
-    lexer.setHandler(X12ErrorHandler)
-    map
-  }
+  /** Report interchange error, which always throws an exception. */
+  def interchangeError(error: InterchangeNoteCode) = throw new InterchangeException(error)
 
   def term(props: ValueMap) = lexer.term(props)
 
@@ -277,7 +282,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       inTransaction = false
     } else transactionErrors += MissingTrailerTransaction
   }
-  
+
   /** Convert loop start or end segment to identity form. If not at a loop segment, this just returns None. */
   def convertLoop() = if (Set("LS", "LE").contains(lexer.token)) Some(lexer.token + lexer.peek) else None
 
@@ -342,6 +347,8 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     }
     if (setacks.size > 0) ackhead put (segAK2.ident, setacks)
   }
+  
+  def init(encoding: Charset, data: ValueMap) = lexer.asInstanceOf[X12Lexer].init(encoding, data)
 
   /** Parse the input message. */
   def parse(): Try[ValueMap] = Try {
@@ -359,33 +366,34 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       discardToGroupEnd
     }
 
+    def buildDelims = {
+      val builder = new StringBuilder
+      builder append (lexer.getDataSeparator)
+      builder append (lexer.getComponentSeparator)
+      builder append (if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
+      builder append (lexer.getSegmentTerminator)
+      builder append (if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
+      builder toString
+    }
+
     val map = new ValueMapImpl
-    val interchange = init
-    val senders = matchIdentity(getRequiredString(SENDER_ID_QUALIFIER, interchange),
-      getRequiredString(SENDER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.senderIds)
-    if (senders.length == 0 && config.senderIds.length > 0)
-      throw new LexicalException("Interchange sender infromation does not match configuration")
-    val receivers = matchIdentity(getRequiredString(RECEIVER_ID_QUALIFIER, interchange),
-      getRequiredString(RECEIVER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.receiverIds)
-    if (receivers.length == 0 && config.receiverIds.length > 0)
-      throw new LexicalException("Interchange receiver infromation does not match configuration")
-    val builder = new StringBuilder
-    builder append (lexer.getDataSeparator)
-    builder append (lexer.getComponentSeparator)
-    builder append (if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
-    builder append (lexer.getSegmentTerminator)
-    builder append (if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
-    map put (delimiterCharacters, builder.toString)
-    val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
-    schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
-    map put (transactionsMap, transLists)
-    val acksList = new MapListImpl
-    map put (acknowledgments, acksList)
-    var ackId = 1
-    while (isGroupOpen) {
-      val group = openGroup
-      group put (groupInterchange, interchange)
-      lexer.countGroup()
+    val interAckList = new MapListImpl
+    map put (interchangeAcknowledgments, interAckList)
+    val interchange = new ValueMapImpl
+    val ta1map = new ValueMapImpl
+
+    def buildTA1(ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode) = {
+      ta1map put (segTA1.components(0) key, interchange get (INTER_CONTROL))
+      val calendar = new GregorianCalendar
+      ta1map put (segTA1.components(1) key, calendar)
+      val milli = (calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000
+      ta1map put (segTA1.components(2) key, Integer valueOf (milli))
+      ta1map put (segTA1.components(3) key, ack code)
+      ta1map put (segTA1.components(4) key, note code)
+      interAckList add ta1map
+    }
+
+    def buildAckRoot = {
       val ackroot = new ValueMapImpl
       ackroot put (transactionId, trans997 ident)
       ackroot put (transactionName, trans997 name)
@@ -393,48 +401,84 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ackroot put (transactionInterSelfId, getRequiredValue(RECEIVER_ID, interchange))
       ackroot put (transactionInterPartnerQualId, getRequiredValue(SENDER_ID_QUALIFIER, interchange))
       ackroot put (transactionInterPartnerId, getRequiredValue(SENDER_ID, interchange))
-      val ackhead = new ValueMapImpl
-      ackroot put (transactionHeading, ackhead)
-      ackroot put (transactionDetail, new ValueMapImpl)
-      ackroot put (transactionSummary, new ValueMapImpl)
-      ackroot put (transactionGroup, group)
-      val stdata = new ValueMapImpl
-      ackhead put (segST name, stdata)
-      stdata put (segST.components(0) key, trans997 ident)
-      stdata put (segST.components(1) key, ackId toString)
-      val ak1data = new ValueMapImpl
-      ackhead put (segAK1 name, ak1data)
-      ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
-      ak1data put (segAK1.components(1) key, group get (groupControlKey))
-      ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
-      val code = getAs(functionalIdentifierKey, "", group)
-      if (functionalGroups.contains(code)) {
-        if (group.get(responsibleAgencyKey) != "X" || group.get(versionIdentifierKey) == schema.version) {
-          parseGroup(interchange, group, code, ackhead, transLists)
-        } else skipGroup(NotSupportedGroupVersion)
-      } else skipGroup(NotSupportedGroup)
-      val countPresent = closeGroup(group)
-      val ak9data = new ValueMapImpl
-      val error = ackhead.containsKey(segAK2 ident)
-      ackhead put (segAK9 name, ak9data)
-      val result =
-        if (groupErrors.nonEmpty) RejectedGroup
-        else if (groupTransactionCount == groupAcceptCount) if (error) AcceptedWithErrorsGroup else AcceptedGroup
-        else if (groupAcceptCount > 0) PartiallyAcceptedGroup
-        else RejectedGroup
-      ak9data put (segAK9.components(0) key, result code)
-      ak9data put (segAK9.components(1) key, Integer valueOf (countPresent))
-      ak9data put (segAK9.components(2) key, Integer valueOf (groupTransactionCount))
-      ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
-      val limit = math.min(segAK9.components.length - 5, groupErrors.length)
-      (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
-      val sedata = new ValueMapImpl
-      ackhead put (segSE name, sedata)
-      sedata put (segSE.components(1) key, ackId toString)
-      if (config.generate997) acksList add (ackroot)
-      ackId += 1
+      ackroot
     }
-    term(interchange)
+
+    try {
+      val result = init(config charSet, interchange)
+      LexerStatusInterchangeNote get (result) foreach (code => interchangeError(code))
+      lexer.setHandler(X12ErrorHandler)
+      val senders = matchIdentity(getRequiredString(SENDER_ID_QUALIFIER, interchange),
+        getRequiredString(SENDER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.senderIds)
+      if (senders.length == 0 && config.senderIds.length > 0)
+        throw new LexicalException("Interchange sender infromation does not match configuration")
+      val receivers = matchIdentity(getRequiredString(RECEIVER_ID_QUALIFIER, interchange),
+        getRequiredString(RECEIVER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.receiverIds)
+      if (receivers.length == 0 && config.receiverIds.length > 0)
+        throw new LexicalException("Interchange receiver information does not match configuration")
+      map put (delimiterCharacters, buildDelims)
+      val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
+      schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
+      map put (transactionsMap, transLists)
+      val funcAckList = new MapListImpl
+      map put (functionalAcknowledgments, funcAckList)
+      var ackId = 1
+      var interNote = InterchangeNoError
+      while (isGroupOpen) {
+        val group = openGroup
+        group put (groupInterchange, interchange)
+        lexer.countGroup()
+        val ackroot = buildAckRoot
+        val ackhead = new ValueMapImpl
+        ackroot put (transactionHeading, ackhead)
+        ackroot put (transactionDetail, new ValueMapImpl)
+        ackroot put (transactionSummary, new ValueMapImpl)
+        ackroot put (transactionGroup, group)
+        val stdata = new ValueMapImpl
+        ackhead put (segST name, stdata)
+        stdata put (segST.components(0) key, trans997 ident)
+        stdata put (segST.components(1) key, ackId toString)
+        val ak1data = new ValueMapImpl
+        ackhead put (segAK1 name, ak1data)
+        ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
+        ak1data put (segAK1.components(1) key, group get (groupControlKey))
+        ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
+        val code = getAs(functionalIdentifierKey, "", group)
+        if (functionalGroups.contains(code)) {
+          if (group.get(responsibleAgencyKey) != "X" || group.get(versionIdentifierKey) == schema.version) {
+            parseGroup(interchange, group, code, ackhead, transLists)
+          } else skipGroup(NotSupportedGroupVersion)
+        } else skipGroup(NotSupportedGroup)
+        val countPresent = closeGroup(group)
+        val ak9data = new ValueMapImpl
+        val error = ackhead.containsKey(segAK2 ident)
+        ackhead put (segAK9 name, ak9data)
+        val result =
+          if (groupErrors.nonEmpty) RejectedGroup
+          else if (groupTransactionCount == groupAcceptCount) if (error) AcceptedWithErrorsGroup else AcceptedGroup
+          else if (groupAcceptCount > 0) PartiallyAcceptedGroup
+          else RejectedGroup
+        ak9data put (segAK9.components(0) key, result code)
+        ak9data put (segAK9.components(1) key, Integer valueOf (countPresent))
+        ak9data put (segAK9.components(2) key, Integer valueOf (groupTransactionCount))
+        ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
+        val limit = math.min(segAK9.components.length - 5, groupErrors.length)
+        (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
+        val sedata = new ValueMapImpl
+        ackhead put (segSE name, sedata)
+        sedata put (segSE.components(1) key, ackId toString)
+        if (config.generate997) funcAckList add (ackroot)
+        ackId += 1
+      }
+      term(interchange)
+      interNote match {
+        case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError)
+        case _ => buildTA1(AcknowledgedWithErrors, interNote)
+      }
+    } catch {
+      case InterchangeException(note) => buildTA1(AcknowledgedRejected, note)
+      case e: IOException => buildTA1(AcknowledgedRejected, InterchangeEndOfFile)
+    }
     map
   }
 }

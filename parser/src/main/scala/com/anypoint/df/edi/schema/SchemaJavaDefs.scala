@@ -77,7 +77,8 @@ object SchemaJavaValues {
   val characterEncoding = "Encoding"
 
   // value keys for parse output map
-  val acknowledgments = "Acknowledgments"
+  val functionalAcknowledgments = "Acknowledgments"
+  val interchangeAcknowledgments = "InterchangeAcks"
   val transactionsMap = "Transactions"
   
   // value keys for group data

@@ -13,6 +13,8 @@ import java.util.Calendar
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.File
+import com.anypoint.df.edi.lexical.EdiConstants._
+import com.anypoint.df.edi.lexical.X12Lexer.InterchangeStartStatus._
 
 class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs with X12SchemaDefs {
 
@@ -39,7 +41,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   def buildSE(count: Int) = s"SE*$count*000000176~"
 
-  val parserConfig = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
+  val parserConfig = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true, ASCII_CHARSET,
     Array[IdentityInformation](), Array[IdentityInformation]())
 
   behavior of "X12SchemaParser"
@@ -47,7 +49,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   it should "parse the ISA segment when initialized" in {
     val in = new ByteArrayInputStream(ISA.getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
-    val props = parser.init
+    val props = new ValueMapImpl
+    parser.init(ASCII_CHARSET, props) should be (VALID)
     props.get(AUTHORIZATION_QUALIFIER) should be("00")
     props.get(AUTHORIZATION_INFO) should be("ABC")
     props.get(SECURITY_QUALIFIER) should be("00")
@@ -70,7 +73,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   it should "parse the envelope segments as requested" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
-    val props = parser.init
+    val props = new ValueMapImpl
+    parser.init(ASCII_CHARSET, props) should be (VALID)
     val gprops = parser.openGroup
     gprops.get(functionalIdentifierKey) should be("PO")
     gprops.get(applicationSendersKey) should be("006927180")
@@ -94,7 +98,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   it should "throw an exception when positioned at wrong segment" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
-    val props = parser.init
+    val props = new ValueMapImpl
+    parser.init(ASCII_CHARSET, props) should be (VALID)
     intercept[IllegalStateException] { parser.openSet }
     val gprops = parser.openGroup
     intercept[IllegalStateException] { parser.openGroup }

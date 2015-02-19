@@ -1,13 +1,14 @@
 
 package com.anypoint.df.edi.lexical;
 
-import static com.anypoint.df.edi.lexical.EdiConstants.UTF8_CHARSET;
+import static com.anypoint.df.edi.lexical.EdiConstants.ASCII_CHARSET;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
@@ -27,14 +28,15 @@ public class X12LexerWriterTest
         InputStream in = new ByteArrayInputStream(ENVELOPE.getBytes("UTF-8"));
         X12Lexer lexer = new X12Lexer(in);
         Map<String, Object> dflts = Collections.EMPTY_MAP;
-        Map<String, Object> props = lexer.init(dflts);
+        Map<String, Object> props = new HashMap<>();
+        lexer.init(ASCII_CHARSET, props);
         lexer.term(props);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         X12Writer writer = new X12Writer();
-        writer.configureX12(os, UTF8_CHARSET, '*', '>', -1, '~');
+        writer.configureX12(os, ASCII_CHARSET, '*', '>', -1, '~');
         writer.init(props);
         writer.term(props);
-        String result = new String(os.toByteArray(), UTF8_CHARSET);
+        String result = new String(os.toByteArray(), ASCII_CHARSET);
         int datestart = ENVELOPE.indexOf(DATETIME);
         int dateend = datestart + DATETIME.length();
         assertEquals(ENVELOPE.substring(0, datestart), result.substring(0, datestart));

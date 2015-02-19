@@ -5,7 +5,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.HashMap;
 import java.util.Map;
 
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
@@ -28,14 +27,15 @@ public class TestLexer extends LexerBase
     /**
      * Initialize document parse.
      * 
-     * @param default interchange properties (from partner configuration)
-     * @return interchange properties
+     * @param default unused
+     * @param data unused
+     * @return <code>null</code>
      * @throws IOException 
      */
-    public Map<String,Object> init(Map<String, Object> dflts) throws IOException {
-        reader = new BufferedReader(new InputStreamReader(stream, EdiConstants.UTF8_CHARSET));
+    public Object init(Map<String, Object> dflts, Map<String,Object> data) throws IOException {
+        reader = new BufferedReader(new InputStreamReader(stream, EdiConstants.ASCII_CHARSET));
         advance(ItemType.SEGMENT);
-        return new HashMap<>();
+        return null;
     }
 
     /**
