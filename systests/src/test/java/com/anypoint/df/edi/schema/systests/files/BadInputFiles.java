@@ -16,18 +16,22 @@ public final class BadInputFiles {
 	
 	/** Missing ST Segment**/
 	public static final String MISSING_ST = "/x12/005010/bad-input/850-missing-st.edi"; 
-	public static final String MISSING_ST_EX = "missing required ST segment";
+	public static final String MISSING_ST_EX = "RejectedGroup, contained 1 transaction set(s) with 0 received and 0 accepted";
 	
 	/** Missing BEG Segment**/
 	public static final String MISSING_BEG = "/x12/005010/bad-input/850-missing-beg.edi"; 
-	public static final String MISSING_BEG_EX = "missing required BEG segment";
+	public static final String MISSING_BEG_EX = "Segment BEG at position 15 has syntax error MissingMandatorySegment";
 	
 	/** Missing PO1 Segment**/
 	public static final String MISSING_PO1= "/x12/005010/bad-input/850-missing-po1.edi"; 
-	public static final String MISSING_PO1_EX = "missing required PO1 segment";
+	public static final String MISSING_PO1_EX = "Segment PO1 at position 19 has syntax error MissingMandatorySegment";
 	
 	/** Missing SE Segment**/
 	public static final String MISSING_SE= "/x12/005010/bad-input/850-missing-se.edi"; 
-	public static final String MISSING_SE_EX = "missing required SE segment";
+	public static final String MISSING_SE_EX = "Error codes:  MissingTrailerTransaction";
+    
+    /** Missing GE Segment**/
+    public static final String MISSING_GE= "/x12/005010/bad-input/850-missing-ge.edi"; 
+    public static final String MISSING_GE_EX = "Error codes:  MissingGroupTrailer";
 	
 }

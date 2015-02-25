@@ -28,16 +28,16 @@ class SchemaDump(writer: PrintWriter) {
       builder ++= text
     }
 
-    def indent() = depth += 1
-    def outdent() = depth -= 1
+    def indent = depth += 1
+    def outdent = depth -= 1
 
-    def break() = {
+    def break = {
       writer.println(builder.toString)
       builder.clear
       (0 to depth) foreach { _ => (builder ++= "  ") }
     }
 
-    def length() = builder.length
+    def length = builder.length
   }
 
   val builder = new IndentingBuilder(1)

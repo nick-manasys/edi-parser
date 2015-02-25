@@ -60,9 +60,10 @@ public class EdiFactLexer extends LexerBase
      * @param repsep default repetition separator character
      * @param segterm default segment terminator character
      * @param release default release character
+     * @param subst substitution character for invalid character in string (-1 if unused)
      */
-    public EdiFactLexer(InputStream is, char datasep, char subsep, char repsep, char segterm, int release) {
-        super(is, datasep, subsep, repsep, segterm, release);
+    public EdiFactLexer(InputStream is, char datasep, char subsep, char repsep, char segterm, int release, int subst) {
+        super(is, datasep, subsep, repsep, segterm, release, subst, null);
     }
     
     /**

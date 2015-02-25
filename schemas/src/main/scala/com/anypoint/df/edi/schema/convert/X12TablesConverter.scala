@@ -269,7 +269,7 @@ object X12TablesConverter {
   def main(args: Array[String]): Unit = {
     val x12dir = new File(args(0))
     val yamldir = new File(args(1))
-    if (yamldir.exists()) yamldir.listFiles.foreach { version =>
+    if (yamldir.exists) yamldir.listFiles.foreach { version =>
       if (version.exists && version.isDirectory) {
         version.listFiles.foreach { f => f.delete }
         version.delete

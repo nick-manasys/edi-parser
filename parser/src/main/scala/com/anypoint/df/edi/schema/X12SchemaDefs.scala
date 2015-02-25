@@ -8,6 +8,9 @@ trait X12SchemaDefs {
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+  
+  val InterchangeStartSegment = "ISA"
+  val InterchangeEndSegment = "IEA"
 
   val GSSegment = Segment("GS", "Functional group header", List[SegmentComponent](
     ElementComponent(Element("479", "", ID, 2, 2), Some(functionalIdentifierName), "GS01", 1, MandatoryUsage, 1),

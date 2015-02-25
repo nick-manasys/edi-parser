@@ -44,14 +44,7 @@ public class BadInputTest extends X12TestBase {
 	public static Collection<Object[]> badEdi850Files(){ 
 		
 		return Arrays.asList(new Object[][]{
-				{BadInputFiles.MISSING_ST, BadInputFiles.MISSING_ST_EX}, 
 				{BadInputFiles.RANDOM_FILE, BadInputFiles.RANDOM_FILE_EX}, 
-				{BadInputFiles.MISSING_GROUP, BadInputFiles.MISSING_GROUP_EX},
-				// TODO: fix tests to expect errors in acknowledgment
-//				{BadInputFiles.MISSING_BEG, BadInputFiles.MISSING_BEG_EX}, 
-//				{BadInputFiles.MISSING_PO1, BadInputFiles.MISSING_PO1_EX}, 
-//				{BadInputFiles.MISSING_SE, BadInputFiles.MISSING_SE_EX},
-//				{BadInputFiles.WRONG_HEADER, BadInputFiles.WRONG_HEADER_EX}
 		});
 	}
 	

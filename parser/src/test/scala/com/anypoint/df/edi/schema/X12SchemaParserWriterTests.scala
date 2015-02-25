@@ -50,7 +50,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val in = new ByteArrayInputStream(ISA.getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
     val props = new ValueMapImpl
-    parser.init(ASCII_CHARSET, props) should be (VALID)
+    parser.init(props) should be (VALID)
     props.get(AUTHORIZATION_QUALIFIER) should be("00")
     props.get(AUTHORIZATION_INFO) should be("ABC")
     props.get(SECURITY_QUALIFIER) should be("00")
@@ -74,7 +74,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
     val props = new ValueMapImpl
-    parser.init(ASCII_CHARSET, props) should be (VALID)
+    parser.init(props) should be (VALID)
     val gprops = parser.openGroup
     gprops.get(functionalIdentifierKey) should be("PO")
     gprops.get(applicationSendersKey) should be("006927180")
@@ -89,7 +89,6 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     sprops.get(transactionSetIdentifierKey) should be("850")
     sprops.get(transactionSetControlKey) should be("000000176")
     sprops.containsKey(implementationConventionKey) should be(false)
-    parser.isSetClose should be(true)
     parser.closeSet(sprops)
     parser.isGroupClose should be(true)
     parser.closeGroup(gprops)
@@ -99,7 +98,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
     val props = new ValueMapImpl
-    parser.init(ASCII_CHARSET, props) should be (VALID)
+    parser.init(props) should be (VALID)
     intercept[IllegalStateException] { parser.openSet }
     val gprops = parser.openGroup
     intercept[IllegalStateException] { parser.openGroup }

@@ -30,23 +30,23 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   protected def writeSegment(map: ValueMap, segment: Segment): Unit = {
 
     /** Write a value from map. */
-    def writeValue(map: ValueMap, typ: ItemType, comp: SegmentComponent): Unit = {
+    def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
       def writeSimple(value: Any, dtype: DataType, min: Int, max: Int) = dtype match {
         case ALPHA => writer.writeAlpha(value.asInstanceOf[String], min, max)
         case ALPHANUMERIC => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
         case ID => writer.writeId(value.asInstanceOf[String], min, max)
         case DATE => writer.writeDate(value.asInstanceOf[Calendar], min, max)
-        case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue(), min, max)
+        case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue, min, max)
         case NUMBER | REAL => writer.writeDecimal(value.asInstanceOf[BigDecimal], min, max)
         case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)
         case BINARY => throw new WriteException("Handling not implemented for binary values")
-        case typ: DataType if (typ.isDecimal()) =>
+        case typ: DataType if (typ.isDecimal) =>
           writer.writeImplicitDecimal(value.asInstanceOf[BigDecimal], typ.decimalPlaces, min, max)
       }
 
       def writeComponent(value: Object) = {
-        typ match {
+        if (!skip) typ match {
           case SEGMENT => writer.writeSegmentTerminator
           case DATA_ELEMENT => writer.writeDataSeparator
           case QUALIFIER => writer.writeSubDelimiter
@@ -56,36 +56,46 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
           case ElementComponent(elem, _, _, _, _, _) =>
             writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
           case CompositeComponent(composite, _, _, _, _, _) =>
-            writeCompList(value.asInstanceOf[ValueMap], QUALIFIER, composite.components)
+            writeCompList(value.asInstanceOf[ValueMap], QUALIFIER, true, composite.components)
         }
       }
 
-      if (map.containsKey(comp.key)) {
-        val value = map.get(comp.key)
-        if (comp.count > 1) {
-          if (!value.isInstanceOf[SimpleList]) throw new WriteException(s"expected list of values for property ${comp.name}")
-          else {
-            val iter = JavaConversions.asScalaIterator(value.asInstanceOf[SimpleList].iterator)
-            iter.foreach(value => writeComponent(value))
+      comp match {
+        case cc: CompositeComponent if (cc.count == 1) =>
+          if (cc.composite.components.exists { ccc => map containsKey ccc.key }) writeComponent(map)
+        case _ =>
+          if (map.containsKey(comp.key)) {
+            val value = map.get(comp.key)
+            if (comp.count > 1) {
+              if (!value.isInstanceOf[SimpleList]) throw new WriteException(s"expected list of values for property ${comp.name}")
+              else {
+                val iter = JavaConversions.asScalaIterator(value.asInstanceOf[SimpleList].iterator)
+                iter.foreach(value => writeComponent(value))
+              }
+            } else writeComponent(value)
+          } else comp.usage match {
+            case MandatoryUsage => throw new WriteException(s"missing required value '${comp.name}'")
+            case _ => typ match {
+              case SEGMENT => writer.writeSegmentTerminator
+              case DATA_ELEMENT => writer.skipElement
+              case QUALIFIER => writer.skipSubElement
+              case REPETITION =>
+            }
           }
-        } else writeComponent(value)
-      } else comp.usage match {
-        case MandatoryUsage => throw new WriteException(s"missing required value '${comp.name}'")
-        case _ => typ match {
-          case SEGMENT => writer.writeSegmentTerminator
-          case DATA_ELEMENT => writer.skipElement
-          case QUALIFIER => writer.skipSubElement
-          case REPETITION =>
-        }
       }
     }
 
     /** Write a list of components (which may be the segment itself, a repeated set of values, or a composite). */
-    def writeCompList(map: ValueMap, typ: ItemType, comps: List[SegmentComponent]) =
-      comps foreach { comp => writeValue(map, typ, comp) }
+    def writeCompList(map: ValueMap, typ: ItemType, skip: Boolean, comps: List[SegmentComponent]): Unit = comps match {
+      case h :: t => {
+        writeValue(map, typ, skip, h)
+        writeCompList(map, typ, false, t)
+      }
+      case _ =>
+    }
 
     writer.writeToken(segment.ident)
-    writeCompList(map, DATA_ELEMENT, segment.components)
+    writeCompList(map, DATA_ELEMENT, false, segment.components)
     writer.writeSegmentTerminator
   }
 
@@ -115,10 +125,13 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       * loops) from a map.
       */
     def writeSection(map: ValueMap, comps: List[TransactionComponent]): Unit = comps.foreach(comp => {
-      def checkMissing() = comp.usage match {
+      def checkMissing = comp.usage match {
         case MandatoryUsage => throw new WriteException(s"missing required value '${comp.key}'")
         case _ =>
       }
+      def writeGroup(key: String, group: GroupBase) =
+        if (group.count == 1) writeSection(getRequiredValueMap(key, map), group.items)
+        else writeRepeatingGroup(getRequiredMapList(key, map), group)
       val key = comp.key
       comp match {
         case ref: ReferenceComponent =>
@@ -127,7 +140,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
               val value = map.get(key)
               if (ref.count != 1) writeRepeatingSegment(getRequiredMapList(key, map), ref.segment, ref.count)
               else writeSegment(getRequiredValueMap(key, map), ref.segment)
-            } else checkMissing()
+            } else checkMissing
           }
         case wrap: LoopWrapperComponent =>
           if (map.containsKey(key)) {
@@ -135,18 +148,19 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
             idmap put (wrap.open.components.head.key, wrap.ident)
             idmap put (wrap.close.components.head.key, wrap.ident)
             writeSegment(idmap, wrap.open)
-            writeSection(getRequiredValueMap(key, map), wrap.loopGroup :: Nil)
+            writeGroup(key, wrap.loopGroup)
             writeSegment(idmap, wrap.close)
           }
         case group: GroupComponent =>
           var variant = false
-          group.variants.foreach { gv => if (map.containsKey(gv.key)) {
-            variant = true
-            if (gv.count > 1) writeRepeatingGroup(getRequiredMapList(key, map), group)
-            else writeSection(getRequiredValueMap(gv.key, map), gv.items)
-          }}
-          if (map.containsKey(key)) writeRepeatingGroup(getRequiredMapList(key, map), group)
-          else if (!variant) checkMissing()
+          group.variants.foreach { gv =>
+            if (map.containsKey(gv.key)) {
+              variant = true
+              writeGroup(gv.key, gv)
+            }
+          }
+          if (map.containsKey(key)) writeGroup(key, group)
+          else if (!variant) checkMissing
       }
     })
 
@@ -174,7 +188,7 @@ object SchemaWriter {
   /** Factory function to create writer instances. */
   def create(out: OutputStream, schema: EdiSchema, numprov: NumberProvider) = Try {
     schema ediForm match {
-      case EdiFact => throw new IllegalArgumentException()
+      case EdiFact => throw new IllegalArgumentException
       case X12 => new X12SchemaWriter(out, schema, numprov)
     }
   }

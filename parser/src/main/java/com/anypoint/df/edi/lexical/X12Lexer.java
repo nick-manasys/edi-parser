@@ -20,7 +20,7 @@ public class X12Lexer extends LexerBase
     public enum InterchangeStartStatus { VALID, AUTHORIZATION_QUALIFIER_ERROR, AUTHORIZATION_INFO_ERROR,
         SECURITY_QUALIFIER_ERROR, SECURITY_INFO_ERROR, SENDER_ID_QUALIFIER_ERROR, SENDER_ID_ERROR,
         RECEIVER_ID_QUALIFIER_ERROR, RECEIVER_ID_ERROR, INTERCHANGE_DATE_ERROR, INTERCHANGE_TIME_ERROR,
-        VERSION_ID_ERROR, INTER_CONTROL_ERROR, ACK_REQUESTED_ERROR, TEST_INDICATOR_ERROR }
+        VERSION_ID_ERROR, INTER_CONTROL_ERROR, ACK_REQUESTED_ERROR, TEST_INDICATOR_ERROR, NO_DATA }
     
     /** Status returned by {@link X12Lexer#term(Map)} method. */
     public enum InterchangeEndStatus { VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR }
@@ -29,9 +29,13 @@ public class X12Lexer extends LexerBase
      * Constructor.
      * 
      * @param is input
+     * @param charset input character encoding
+     * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param chset character set selection
      */
-    public X12Lexer(InputStream is) {
-        super(is, (char)0, (char)0, -1, (char)0, -1);
+    public X12Lexer(InputStream is, Charset charset, int subst, CharacterSet chset) {
+        super(is, (char)0, (char)0, -1, (char)0, -1, subst, chset.flags());
+        reader = new BufferedReader(new InputStreamReader(stream, charset));
     }
     
     /**
@@ -54,16 +58,23 @@ public class X12Lexer extends LexerBase
      * parsing, along with the character encoding. Returns with the parser positioned past the end of the ISA
      * Interchange Control Header segment.
      * 
-     * @param charset character encoding (from partner configuration)
      * @param props store for property values from interchange
      * @return status
      */
-    public InterchangeStartStatus init(Charset charset, Map<String,Object> props) {
+    public InterchangeStartStatus init(Map<String,Object> props) {
         try {
+            // make sure data is present
+            int value = reader.read();
+            while (value == '\n' || value == '\r' || value == ' ') {
+                value = reader.read();
+            }
+            if (value < 0) {
+                return InterchangeStartStatus.NO_DATA;
+            }
+            
             // check the segment tag
-            reader = new BufferedReader(new InputStreamReader(stream, charset));
             char[] chrs = new char[3];
-            chrs[0] = (char)reader.read();
+            chrs[0] = (char)value;
             chrs[1] = (char)reader.read();
             chrs[2] = (char)reader.read();
             String tag = new String(chrs);
@@ -188,7 +199,11 @@ public class X12Lexer extends LexerBase
         if (count != groupCount) {
             return InterchangeEndStatus.GROUP_COUNT_ERROR;
         }
-        int number = parseInteger(9, 9).intValue();
+        
+        // this may be followed by another ISA segment, so don't advance beyond the segment terminator
+        checkInteger(9, 9);
+        String text = token();
+        int number = Integer.valueOf(text);
         Object expected = props.get(INTER_CONTROL);
         if (!(expected instanceof Integer)) {
             throw new IllegalStateException(INTER_CONTROL + " value must be an Integer");

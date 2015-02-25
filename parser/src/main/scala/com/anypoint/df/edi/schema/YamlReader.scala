@@ -412,7 +412,7 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
     * @returns schema
     */
   def loadYaml(reader: Reader, basePaths: Array[String]) = {
-    val snake = new Yaml(new IgnoringConstructor())
+    val snake = new Yaml(new IgnoringConstructor)
 
     /** Read schema from YAML document, recursively reading and building on imported schemas. */
     def loadFully(reader: Reader): EdiSchema = {
@@ -456,8 +456,8 @@ private class IgnoringConstructor extends Constructor {
   val original = this.yamlConstructors.get(null)
   this.yamlConstructors.put(null, new AbstractConstruct {
     def construct(node: Node): Object = {
-      if (node.getTag().startsWith("!KnownTag")) original.construct(node)
-      else node.getNodeId() match {
+      if (node.getTag.startsWith("!KnownTag")) original.construct(node)
+      else node.getNodeId match {
         case NodeId.scalar => yamlConstructors.get(Tag.STR).construct(node);
         case NodeId.sequence => yamlConstructors.get(Tag.SEQ).construct(node);
         case NodeId.mapping => yamlConstructors.get(Tag.MAP).construct(node);

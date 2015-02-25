@@ -215,11 +215,12 @@ object EdiSchema {
     * @param endPosition
     * @param use
     * @param ident
-    * @param loopGroup
+    * @param grp
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
-    val endPosition: SegmentPosition, use: Usage, val ident: String, val loopGroup: GroupComponent)
-    extends TransactionComponent("", start, use, 1) {
+    val endPosition: SegmentPosition, use: Usage, val ident: String, grp: GroupComponent)
+    extends TransactionComponent(open.ident + ident, start, use, 1) {
+    val loopGroup = GroupComponent(grp.ident, grp.usage, grp.count, grp.items, grp.varkey, grp.variants, Some(key))
     val compsById = Map((open.ident + ident) -> ReferenceComponent(open, start, MandatoryUsage, 1),
       (close.ident + ident) -> ReferenceComponent(close, endPosition, MandatoryUsage, 1))
   }
@@ -263,10 +264,11 @@ object EdiSchema {
     * @param itms
     * @param varkey key for field controlling variant selection
     * @param variants group variant forms
+    * @param ky explicit key value (ident used by default)
     */
-  case class GroupComponent(val ident: String, use: Usage, cnt: Int,
-    itms: List[TransactionComponent], val varkey: Option[String], val variants: List[VariantGroup])
-    extends GroupBase(ident, leadReference(ident, itms).position, use, cnt, itms) {
+  case class GroupComponent(val ident: String, use: Usage, cnt: Int, itms: List[TransactionComponent],
+    val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None)
+    extends GroupBase(ky.getOrElse(ident), leadReference(ident, itms).position, use, cnt, itms) {
 
     /** Group start position and lead segment. */
     val leadSegment = leadReference(ident, items).segment

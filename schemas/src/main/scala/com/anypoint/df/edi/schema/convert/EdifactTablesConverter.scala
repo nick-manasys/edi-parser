@@ -92,7 +92,7 @@ object EdifactTablesConverter {
       if (line.length > 0) merger(acc + " " + line)
       else acc
     }
-    def nextBlob(): String = merger(lines.next.trim)
+    def nextBlob: String = merger(lines.next.trim)
     @tailrec
     def buildr(acc: List[Element]): List[Element] =
       if (skipBreakLine(lines)) {
@@ -299,7 +299,7 @@ object EdifactTablesConverter {
   def main(args: Array[String]): Unit = {
     val edifactdir = new File(args(0))
     val yamldir = new File(args(2))
-    if (yamldir.exists()) yamldir.listFiles().foreach { f => f.delete() }
+    if (yamldir.exists) yamldir.listFiles.foreach { f => f.delete }
     else yamldir.mkdirs
     val elemfile = new File(edifactdir, elementDefsName + "." + args(1))
     val elemstream = new FileInputStream(elemfile)

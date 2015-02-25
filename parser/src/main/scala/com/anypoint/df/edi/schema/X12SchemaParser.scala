@@ -36,11 +36,12 @@ case class X12ParserConfig(val lengthFail: Boolean, val asciiOnly: Boolean, val 
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
 
-case class InterchangeException(note: InterchangeNoteCode) extends LexicalException(s"Interchange error note")
+case class InterchangeException(note: InterchangeNoteCode, text: String) extends LexicalException(text)
 
 /** Parser for X12 EDI documents. */
 case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConfig)
-  extends SchemaParser(new X12Lexer(in), sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
+  extends SchemaParser(new X12Lexer(in, config charSet, -1, CharacterSet.EXTENDED),
+    sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   /** Set of functional groups supported by schema. */
   val functionalGroups = schema.transactions.values.map { t => t.group } toSet
@@ -54,11 +55,32 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Current segment reference, used in error reporting. */
   var currentSegment: Segment = null
 
+  /** Control number for current interchange, used in error reporting. */
+  var interchangeNumber = 0
+
+  /** Segment number for interchange start. */
+  var interchangeStartSegment = 0
+
+  /** Flag for currently in a group. */
+  var inGroup = false
+
+  /** Control number for current group, used in error reporting. */
+  var groupNumber = 0
+
+  /** Segment number for group start. */
+  var groupStartSegment = 0
+
   /** Number of transaction sets seen in current group. */
   var groupTransactionCount = 0
 
   /** Number of transaction sets accepted in current group. */
   var groupAcceptCount = 0
+
+  /** Control number for current transaction, used in error reporting. */
+  var transactionNumber = ""
+
+  /** Starting segment number for transaction. */
+  var transactionStartSegment = 0
 
   /** One or more segments of transaction in error flag. */
   var oneOrMoreSegmentsInError = false
@@ -107,14 +129,39 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     case _ => true
   }
 
+  def positionInTransaction = s"segment ${lexer.getSegmentNumber - transactionStartSegment + 1} of transaction ${transactionNumber} in group $groupNumber of interchange $interchangeNumber"
+  def positionInGroup = s"segment ${lexer.getSegmentNumber - groupStartSegment + 1} in group $groupNumber of interchange $interchangeNumber"
+  def positionInInterchange = s"segment ${lexer.getSegmentNumber - interchangeStartSegment + 1} of interchange $interchangeNumber"
+  def positionInMessage = s"segment ${lexer.getSegmentNumber}"
+
+  def describeError(fatal: Boolean) = if (fatal) "fatal" else "recoverable"
+
+  def describeComponent(incomp: Boolean) =
+    if (incomp) s" for component '${currentSegment.components(lexer.getElementNumber - 1).name}'"
+    else ""
+
+  def logErrorInTransaction(fatal: Boolean, incomp: Boolean, text: String) =
+    logger.error(s"${describeError(fatal)} transaction error $text${describeComponent(incomp)} at $positionInTransaction")
+
+  def logTransactionEnvelopeError(fatal: Boolean, incomp: Boolean, text: String) =
+    logger.error(s"${describeError(fatal)} transaction error $text${describeComponent(incomp)} at $positionInGroup")
+
+  def logGroupEnvelopeError(fatal: Boolean, incomp: Boolean, text: String) =
+    logger.error(s"${describeError(fatal)} group error $text${describeComponent(incomp)} at $positionInInterchange")
+
+  def logInterchangeEnvelopeError(fatal: Boolean, text: String) =
+    logger.error(s"${describeError(fatal)} interchange error $text at $positionInMessage")
+
   /** Accumulate element error, failing transaction if severe. */
   def addElementError(error: ElementSyntaxError) = {
+    val fatal = checkFatal(error)
     if (inTransaction) {
-      if (checkFatal(error)) rejectTransaction = true
+      logErrorInTransaction(fatal, true, error.text)
+      if (fatal) rejectTransaction = true
+      val comp = currentSegment.components(lexer.getElementNumber)
       if (config.reportDataErrors) {
-        val comp = currentSegment.components(lexer.getElementNumber)
         val ak4 = new ValueMapImpl
-        ak4 put (segAK4compC030.components(0).key, Integer.valueOf(lexer.getElementNumber))
+        ak4 put (segAK4compC030.components(0).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
         comp match {
           case ElementComponent(elem, _, _, _, _, _) => ak4 put (segAK4.components(1).key, Integer.valueOf(elem.ident))
           case _: CompositeComponent => ak4 put (segAK4compC030.components(1).key, Integer.valueOf(lexer.getComponentNumber))
@@ -124,7 +171,8 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         if (error != InvalidCharacter) ak4 put (segAK4.components(3).key, lexer.token)
         dataErrors += ak4
       }
-    }
+    } else if (inGroup) logTransactionEnvelopeError(true, true, error.text)
+    else logGroupEnvelopeError(false, true, error.text)
   }
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
@@ -137,6 +185,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
           lexer.advance
         }
       } else if (comp.usage == MandatoryUsage) addElementError(MissingRequiredElement)
+
     comps match {
       case h :: t => {
         checkParse(h, first)
@@ -148,8 +197,8 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, group: Option[String], position: SegmentPosition): ValueMap = {
-    if (logger.isDebugEnabled) logger.debug(s"parsing segment ${segment.ident} at position $position")
-    val map = new ValueMapImpl()
+    if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
+    val map = new ValueMapImpl
     dataErrors.clear
     currentSegment = segment
     lexer.advance
@@ -166,7 +215,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       val ak3 = new ValueMapImpl
       val ak3data = new ValueMapImpl
       ak3data put (segAK3.components(0).key, segment.ident)
-      ak3data put (segAK3.components(1).key, Integer.valueOf(lexer.getSegmentNumber))
+      ak3data put (segAK3.components(1).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
       group.foreach(ident => ak3data put (segAK3.components(2).key, ident))
       ak3data put (segAK3.components(3).key, DataErrorsSegment.code.toString)
       ak3 put (segAK3.name, ak3data)
@@ -174,184 +223,201 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       segmentErrors += ak3
       oneOrMoreSegmentsInError = true
     }
-    if (logger.isDebugEnabled) logger.debug(s"now positioned at segment '${lexer.token}'")
+    if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.token}'")
     map
   }
 
   /** Report segment error. */
   def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError) = {
-    def addError(error: SegmentSyntaxError) = {
+    def addError(fatal: Boolean, error: SegmentSyntaxError) = {
       oneOrMoreSegmentsInError = true
       if (config.reportDataErrors) {
         val ak3 = new ValueMapImpl
         val ak3data = new ValueMapImpl
         ak3 put (segAK3.name, ak3data)
         ak3data put (segAK3.components(0).key, ident)
-        ak3data put (segAK3.components(1).key, Integer.valueOf(lexer.getSegmentNumber))
+        ak3data put (segAK3.components(1).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
         group.foreach(ident => ak3data put (segAK3.components(2).key, ident))
         ak3data put (segAK3.components(3).key, error.code.toString)
         segmentErrors += ak3
       }
+      error match {
+        case MissingMandatorySegment => logErrorInTransaction(fatal, false, s"${error.toString} $ident")
+        case _ => logErrorInTransaction(fatal, false, error.toString)
+      }
+      if (fatal) rejectTransaction = true
     }
-    if (inTransaction) error match {
-      case ComponentErrors.TooManyLoops => {
-        addError(TooManyLoops)
-        if (config.occursFail) rejectTransaction = true
-      }
-      case ComponentErrors.TooManyRepetitions => {
-        addError(TooManyOccurs)
-        if (config.occursFail) rejectTransaction = true
-      }
-      case ComponentErrors.MissingRequired => {
-        addError(MissingMandatorySegment)
-        rejectTransaction = true;
-      }
-      case ComponentErrors.UnknownSegment => {
-        addError(UnrecognizedSegment)
-        if (config.unknownFail) rejectTransaction = true
-      }
-      case ComponentErrors.OutOfOrderSegment => {
-        addError(OutOfOrderSegment)
-        if (config.orderFail) rejectTransaction = true
-      }
-      case ComponentErrors.UnusedSegment =>
-        if (config.unusedFail) {
-          addError(UnexpectedSegment)
-          rejectTransaction = true
-        }
+
+    error match {
+      case ComponentErrors.TooManyLoops => addError(config.occursFail, TooManyLoops)
+      case ComponentErrors.TooManyRepetitions => addError(config.occursFail, TooManyOccurs)
+      case ComponentErrors.MissingRequired => addError(true, MissingMandatorySegment)
+      case ComponentErrors.UnknownSegment => addError(config.unknownFail, UnrecognizedSegment)
+      case ComponentErrors.OutOfOrderSegment => addError(config.orderFail, OutOfOrderSegment)
+      case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, UnexpectedSegment)
     }
   }
-
-  /** Report interchange error, which always throws an exception. */
-  def interchangeError(error: InterchangeNoteCode) = throw new InterchangeException(error)
 
   def term(props: ValueMap) = lexer.term(props)
 
   /** Check if at functional group open segment. */
-  def isGroupOpen() = checkSegment(GSSegment)
+  def isGroupOpen = checkSegment(GSSegment)
+
+  def groupError(error: GroupSyntaxError) = {
+    groupErrors += error
+    logGroupEnvelopeError(true, false, error.toString)
+  }
 
   /** Parse start of a functional group. */
-  def openGroup() =
+  def openGroup =
     if (checkSegment(GSSegment)) {
       groupErrors.clear
+      groupStartSegment = lexer.getSegmentNumber
       groupTransactionCount = 0
-      parseSegment(GSSegment, None, SegmentPosition(0, "0000"))
+      val map = parseSegment(GSSegment, None, SegmentPosition(0, "0000"))
+      inGroup = true
+      map
     } else throw new IllegalStateException("missing required GS segment")
 
   /** Check if at functional group close segment. */
-  def isGroupClose() = checkSegment(GESegment)
+  def isGroupClose = checkSegment(GESegment)
 
   /** Parse close of a functional group. Returns number of transaction sets included in group. */
   def closeGroup(props: ValueMap) = {
+    inGroup = false
     if (checkSegment(GESegment)) {
       val endprops = parseSegment(GESegment, None, SegmentPosition(0, "9999"))
-      if (props.get(groupControlKey) != endprops.get(groupControlEndKey)) groupErrors += GroupControlNumberMismatch
-      if (endprops.get(numberOfSetsKey) != groupTransactionCount) groupErrors += GroupTransactionCountError
+      if (props.get(groupControlKey) != endprops.get(groupControlEndKey)) groupError(GroupControlNumberMismatch)
+      if (endprops.get(numberOfSetsKey) != groupTransactionCount) groupError(GroupTransactionCountError)
       endprops.get(numberOfSetsKey).asInstanceOf[Integer]
     } else {
-      groupErrors += MissingGroupTrailer
+      groupError(MissingGroupTrailer)
       Integer valueOf (0)
     }
   }
 
+  def transactionError(error: TransactionSyntaxError) = {
+    transactionErrors += error
+    logErrorInTransaction(true, false, error.toString)
+  }
+
   /** Check if at transaction set open segment. */
-  def isSetOpen() = checkSegment(STSegment)
+  def isSetOpen = checkSegment(STSegment)
 
   /** Parse start of a transaction set. */
-  def openSet() =
+  def openSet =
     if (checkSegment(STSegment)) {
       transactionErrors.clear
       oneOrMoreSegmentsInError = false
-      lexer.resetSegmentNumber
       inTransaction = true
+      transactionStartSegment = lexer.getSegmentNumber
       val values = parseSegment(STSegment, None, SegmentPosition(0, "0000"))
       groupTransactionCount += 1
       (values.get(transactionSetIdentifierKey).asInstanceOf[String], values)
-    } else throw new IllegalStateException("missing required ST segment")
+    } else throw new IllegalStateException("not positioned at ST segment")
 
   /** Check if at transaction set close segment. */
-  def isSetClose() = checkSegment(SESegment)
+  def isSetClose = checkSegment(SESegment)
 
   /** Parse close of a transaction set. */
   def closeSet(props: ValueMap) = {
     if (checkSegment(SESegment)) {
       val endprops = parseSegment(SESegment, None, SegmentPosition(0, "9999"))
-      if (props.get(transactionSetControlKey) != endprops.get(transactionSetControlEndKey))
-        transactionErrors += ControlNumberMismatch
-      if (endprops.get(numberOfSegmentsKey) != lexer.getSegmentNumber) transactionErrors += WrongSegmentCount
+      if (props.get(transactionSetControlKey) != endprops.get(transactionSetControlEndKey)) {
+        transactionError(ControlNumberMismatch)
+      }
+      val segcount = lexer.getSegmentNumber - transactionStartSegment
+      if (endprops.get(numberOfSegmentsKey) != Integer.valueOf(segcount)) transactionError(WrongSegmentCount)
       inTransaction = false
-    } else transactionErrors += MissingTrailerTransaction
+    } else transactionError(MissingTrailerTransaction)
   }
 
   /** Convert loop start or end segment to identity form. If not at a loop segment, this just returns None. */
-  def convertLoop() = if (Set("LS", "LE").contains(lexer.token)) Some(lexer.token + lexer.peek) else None
+  def convertLoop = if (Set("LS", "LE").contains(lexer.token)) Some(lexer.token + lexer.peek) else None
 
   /** Discard input past end of current transaction. */
-  def discardTransaction() = {
-    while (lexer.currentType == SEGMENT && lexer.token != SESegment.ident) discardSegment
+  def discardTransaction = {
+    while (lexer.currentType != SEGMENT || lexer.token != SESegment.ident) discardSegment
     discardSegment
   }
 
   /** Discard input to end of current group. */
-  def discardToGroupEnd() =
+  def discardToGroupEnd =
     while (!isGroupClose)
       if (isSetOpen) {
         groupTransactionCount += 1
         discardTransaction
       } else discardSegment
 
+  /** Discard input past end of current interchange. */
+  def discardInterchange = {
+    while (lexer.currentType != SEGMENT || lexer.token != "IEA") discardSegment
+    discardSegment
+  }
+
   /** Parse transactions in group. */
   def parseGroup(interchange: ValueMap, group: ValueMap, groupCode: String, ackhead: ValueMap,
     transLists: java.util.Map[String, MapList]) = {
     val setacks = new MapListImpl
-    while (!isGroupClose) {
-      val (setid, setprops) = openSet
-      val setack = new ValueMapImpl
-      val ak2data = new ValueMapImpl
-      setack put (segAK2 name, ak2data)
-      ak2data put (segAK2.components(0) key, setprops get (transactionSetIdentifierKey))
-      ak2data put (segAK2.components(1) key, setprops get (transactionSetControlKey))
-      if (setprops containsKey implementationConventionKey)
-        ak2data put (segAK2.components(2) key, setprops get (implementationConventionKey))
-      val ak5data = new ValueMapImpl
-      setack put (segAK5 name, ak5data)
-      rejectTransaction = false
-      var data: ValueMap = null
-      schema.transactions(setid) match {
-        case t: Transaction =>
-          if (t.group == groupCode) {
-            data = parseTransaction(t)
-            data put (transactionGroup, group)
-            data put (transactionSet, setprops)
-            if (segmentErrors.nonEmpty) {
-              val ak3s = JavaConversions.bufferAsJavaList(segmentErrors)
-              setack put (segAK3 ident, ak3s)
-            }
-          } else transactionErrors += SetNotInGroup
-        case _ => transactionErrors += NotSupportedTransaction
-      }
-      if (oneOrMoreSegmentsInError) transactionErrors += SegmentsInError
-      if (transactionErrors.nonEmpty) rejectTransaction = true
-      if (rejectTransaction) {
-        ak5data put (segAK5.components(0) key, RejectedTransaction code)
-        val limit = math.min(segAK5.components.length - 2, transactionErrors.length)
-        (0 until limit) foreach (i => ak5data put (segAK5.components(i + 1) key, transactionErrors(i).code.toString))
+    while (lexer.currentType != END && !isGroupClose) {
+      if (isSetOpen) {
+        val (setid, setprops) = openSet
+        transactionNumber = getRequiredString(transactionSetControlKey, setprops)
+        val setack = new ValueMapImpl
+        val ak2data = new ValueMapImpl
+        setack put (segAK2 name, ak2data)
+        ak2data put (segAK2.components(0) key, setprops get (transactionSetIdentifierKey))
+        ak2data put (segAK2.components(1) key, setprops get (transactionSetControlKey))
+        if (setprops containsKey implementationConventionKey)
+          ak2data put (segAK2.components(2) key, setprops get (implementationConventionKey))
+        val ak5data = new ValueMapImpl
+        setack put (segAK5 name, ak5data)
+        rejectTransaction = false
+        var data: ValueMap = null
+        schema.transactions(setid) match {
+          case t: Transaction =>
+            if (t.group == groupCode) {
+              data = parseTransaction(t)
+              data put (transactionGroup, group)
+              data put (transactionSet, setprops)
+              if (segmentErrors.nonEmpty) {
+                val ak3s = JavaConversions.bufferAsJavaList(segmentErrors)
+                setack put (segAK3 ident, ak3s)
+              }
+            } else transactionError(SetNotInGroup)
+          case _ => transactionError(NotSupportedTransaction)
+        }
+        while (lexer.currentType != END && !isEnvelopeSegment(lexer.token)) {
+          logger.error(s"discarding $positionInTransaction (${lexer.token}) found when looking for transaction set end")
+          discardSegment
+        }
+        if (isSetClose) closeSet(setprops)
+        else transactionError(MissingTrailerTransaction)
+        if (oneOrMoreSegmentsInError) transactionError(SegmentsInError)
+        if (transactionErrors.nonEmpty) rejectTransaction = true
+        if (rejectTransaction) {
+          ak5data put (segAK5.components(0) key, RejectedTransaction code)
+          val limit = math.min(segAK5.components.length - 2, transactionErrors.length)
+          (0 until limit) foreach (i => ak5data put (segAK5.components(i + 1) key, transactionErrors(i).code.toString))
+        } else {
+          val list = transLists get setid
+          list add (data)
+          groupAcceptCount += 1
+          ak5data put (segAK5.components(0) key, AcceptedTransaction code)
+        }
+        if (rejectTransaction || segmentErrors.nonEmpty) setacks add setack
       } else {
-        val list = transLists get setid
-        list add (data)
-        groupAcceptCount += 1
-        ak5data put (segAK5.components(0) key, AcceptedTransaction code)
+        logger.error(s"discarding $positionInGroup (${lexer.token}) found when looking for transaction set start")
+        discardSegment
       }
-      if (rejectTransaction || segmentErrors.nonEmpty) setacks add setack
-      closeSet(setprops)
     }
     if (setacks.size > 0) ackhead put (segAK2.ident, setacks)
   }
-  
-  def init(encoding: Charset, data: ValueMap) = lexer.asInstanceOf[X12Lexer].init(encoding, data)
+
+  def init(data: ValueMap) = lexer.asInstanceOf[X12Lexer].init(data)
 
   /** Parse the input message. */
-  def parse(): Try[ValueMap] = Try {
+  def parse: Try[ValueMap] = Try {
 
     import X12Acknowledgment._
 
@@ -379,10 +445,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     val map = new ValueMapImpl
     val interAckList = new MapListImpl
     map put (interchangeAcknowledgments, interAckList)
-    val interchange = new ValueMapImpl
     val ta1map = new ValueMapImpl
 
-    def buildTA1(ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode) = {
+    def buildTA1(ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode, interchange: ValueMap) = {
       ta1map put (segTA1.components(0) key, interchange get (INTER_CONTROL))
       val calendar = new GregorianCalendar
       ta1map put (segTA1.components(1) key, calendar)
@@ -393,7 +458,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       interAckList add ta1map
     }
 
-    def buildAckRoot = {
+    def buildAckRoot(interchange: ValueMap) = {
       val ackroot = new ValueMapImpl
       ackroot put (transactionId, trans997 ident)
       ackroot put (transactionName, trans997 name)
@@ -404,9 +469,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ackroot
     }
 
-    try {
-      val result = init(config charSet, interchange)
-      LexerStatusInterchangeNote get (result) foreach (code => interchangeError(code))
+    def parseInterchange(interchange: ValueMap): InterchangeNoteCode = {
       lexer.setHandler(X12ErrorHandler)
       val senders = matchIdentity(getRequiredString(SENDER_ID_QUALIFIER, interchange),
         getRequiredString(SENDER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.senderIds)
@@ -424,60 +487,100 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       map put (functionalAcknowledgments, funcAckList)
       var ackId = 1
       var interNote = InterchangeNoError
-      while (isGroupOpen) {
-        val group = openGroup
-        group put (groupInterchange, interchange)
-        lexer.countGroup()
-        val ackroot = buildAckRoot
-        val ackhead = new ValueMapImpl
-        ackroot put (transactionHeading, ackhead)
-        ackroot put (transactionDetail, new ValueMapImpl)
-        ackroot put (transactionSummary, new ValueMapImpl)
-        ackroot put (transactionGroup, group)
-        val stdata = new ValueMapImpl
-        ackhead put (segST name, stdata)
-        stdata put (segST.components(0) key, trans997 ident)
-        stdata put (segST.components(1) key, ackId toString)
-        val ak1data = new ValueMapImpl
-        ackhead put (segAK1 name, ak1data)
-        ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
-        ak1data put (segAK1.components(1) key, group get (groupControlKey))
-        ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
-        val code = getAs(functionalIdentifierKey, "", group)
-        if (functionalGroups.contains(code)) {
-          if (group.get(responsibleAgencyKey) != "X" || group.get(versionIdentifierKey) == schema.version) {
-            parseGroup(interchange, group, code, ackhead, transLists)
-          } else skipGroup(NotSupportedGroupVersion)
-        } else skipGroup(NotSupportedGroup)
-        val countPresent = closeGroup(group)
-        val ak9data = new ValueMapImpl
-        val error = ackhead.containsKey(segAK2 ident)
-        ackhead put (segAK9 name, ak9data)
-        val result =
-          if (groupErrors.nonEmpty) RejectedGroup
-          else if (groupTransactionCount == groupAcceptCount) if (error) AcceptedWithErrorsGroup else AcceptedGroup
-          else if (groupAcceptCount > 0) PartiallyAcceptedGroup
-          else RejectedGroup
-        ak9data put (segAK9.components(0) key, result code)
-        ak9data put (segAK9.components(1) key, Integer valueOf (countPresent))
-        ak9data put (segAK9.components(2) key, Integer valueOf (groupTransactionCount))
-        ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
-        val limit = math.min(segAK9.components.length - 5, groupErrors.length)
-        (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
-        val sedata = new ValueMapImpl
-        ackhead put (segSE name, sedata)
-        sedata put (segSE.components(1) key, ackId toString)
-        if (config.generate997) funcAckList add (ackroot)
-        ackId += 1
+      while (lexer.currentType != END && lexer.token != InterchangeEndSegment) {
+        if (isGroupOpen) {
+          val group = openGroup
+          groupStartSegment = lexer.getSegmentNumber - 2
+          groupNumber = getRequiredInt(groupControlKey, group)
+          group put (groupInterchange, interchange)
+          lexer.countGroup
+          val ackroot = buildAckRoot(interchange)
+          val ackhead = new ValueMapImpl
+          ackroot put (transactionHeading, ackhead)
+          ackroot put (transactionDetail, new ValueMapImpl)
+          ackroot put (transactionSummary, new ValueMapImpl)
+          ackroot put (transactionGroup, group)
+          val stdata = new ValueMapImpl
+          ackhead put (segST name, stdata)
+          stdata put (segST.components(0) key, trans997 ident)
+          stdata put (segST.components(1) key, ackId toString)
+          val ak1data = new ValueMapImpl
+          ackhead put (segAK1 name, ak1data)
+          ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
+          ak1data put (segAK1.components(1) key, group get (groupControlKey))
+          ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
+          val code = getAs(functionalIdentifierKey, "", group)
+          if (functionalGroups.contains(code)) {
+            if (group.get(responsibleAgencyKey) != "X" || group.get(versionIdentifierKey) == schema.version) {
+              parseGroup(interchange, group, code, ackhead, transLists)
+            } else skipGroup(NotSupportedGroupVersion)
+          } else skipGroup(NotSupportedGroup)
+          val countPresent = closeGroup(group)
+          val ak9data = new ValueMapImpl
+          val error = ackhead.containsKey(segAK2 ident)
+          ackhead put (segAK9 name, ak9data)
+          val result =
+            if (groupErrors.nonEmpty) RejectedGroup
+            else if (groupTransactionCount == groupAcceptCount) if (error) AcceptedWithErrorsGroup else AcceptedGroup
+            else if (groupAcceptCount > 0) PartiallyAcceptedGroup
+            else RejectedGroup
+          ak9data put (segAK9.components(0) key, result code)
+          ak9data put (segAK9.components(1) key, Integer valueOf (countPresent))
+          ak9data put (segAK9.components(2) key, Integer valueOf (groupTransactionCount))
+          ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
+          val limit = math.min(segAK9.components.length - 5, groupErrors.length)
+          (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
+          val sedata = new ValueMapImpl
+          ackhead put (segSE name, sedata)
+          sedata put (segSE.components(1) key, ackId toString)
+          if (config.generate997) funcAckList add (ackroot)
+          ackId += 1
+        } else {
+          logger.error(s"discarding $positionInInterchange (${lexer.token}) found when looking for group start")
+          discardSegment
+        }
       }
-      term(interchange)
-      interNote match {
-        case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError)
-        case _ => buildTA1(AcknowledgedWithErrors, interNote)
+      if (lexer.currentType == END) {
+        logger.error(s"end of file with missing $InterchangeEndSegment")
+        InterchangeEndOfFile
+      } else {
+        term(interchange)
+        interNote
       }
-    } catch {
-      case InterchangeException(note) => buildTA1(AcknowledgedRejected, note)
-      case e: IOException => buildTA1(AcknowledgedRejected, InterchangeEndOfFile)
+    }
+
+    var done = false
+    while (!done) {
+      val interchange = new ValueMapImpl
+      try {
+        lexer.setHandler(null)
+        val result = init(interchange)
+        if (result == InterchangeStartStatus.NO_DATA) done = true
+        else {
+          LexerStatusInterchangeNote get (result) foreach (code => {
+            val text = s"Irrecoverable error in $InterchangeStartSegment at ${lexer.getSegmentNumber}" +
+              (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
+              ": " + code
+            logger error text
+            throw InterchangeException(code, text)
+          })
+          interchangeStartSegment = lexer.getSegmentNumber - 1
+          interchangeNumber = getRequiredInt(INTER_CONTROL, interchange)
+          parseInterchange(interchange) match {
+            case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError, interchange)
+            case note => buildTA1(AcknowledgedWithErrors, note, interchange)
+          }
+        }
+      } catch {
+        case InterchangeException(note, text) => {
+          buildTA1(AcknowledgedRejected, note, interchange)
+          discardInterchange
+        }
+        case e: IOException => {
+          buildTA1(AcknowledgedRejected, InterchangeEndOfFile, interchange)
+          throw e
+        }
+      }
     }
     map
   }

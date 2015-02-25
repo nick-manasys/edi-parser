@@ -30,6 +30,12 @@ public abstract class LexerBase
     /** Stream supplying document data. */
     final InputStream stream;
     
+    /** Substitution character for invalid character in string (-1 if unused). */
+    final int substitutionChar;
+    
+    /** Allowed character set for string data (<code>null</code> if unrestricted). */
+    final boolean[] allowedChars;
+    
     /** Reader wrapping document data stream (created by {@link #init()}). */
     Reader reader;
     
@@ -54,7 +60,7 @@ public abstract class LexerBase
     /** Total number of groups in interchange. */
     int groupCount;
     
-    /** Current segment number (from last reset). */
+    /** Current segment number. */
     private int segmentNumber;
     
     /** Data element number (from start of segment). */
@@ -90,14 +96,19 @@ public abstract class LexerBase
      * @param repsep default repetition separator character (-1 if none)
      * @param segterm default segment terminator character
      * @param release default release character (-1 if none)
+     * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param chars allowed character set flags for string data (<code>null</code> if unrestricted)
      */
-    public LexerBase(InputStream is, char datasep, char subsep, int repsep, char segterm, int release) {
+    public LexerBase(InputStream is, char datasep, char subsep, int repsep, char segterm, int release, int subst,
+        boolean[] chars) {
         stream = is;
         dataSeparator = datasep;
         componentSeparator = subsep;
         repetitionSeparator = repsep;
         segmentTerminator = segterm;
         releaseIndicator = release;
+        substitutionChar = subst;
+        allowedChars = chars;
     }
     
     /**
@@ -190,13 +201,6 @@ public abstract class LexerBase
      */
     public void countGroup() {
         groupCount++;
-    }
-    
-    /**
-     * Reset the segment number counter.
-     */
-    public void resetSegmentNumber() {
-        segmentNumber = 1;
     }
     
     /**
@@ -357,7 +361,11 @@ public abstract class LexerBase
                 } else {
                     builder.append(chr);
                 }
-                chr = (char)reader.read();
+                value = reader.read();
+                if (value < 0) {
+                    throw new IOException("Unexpected end of file in data");
+                }
+                chr = (char)value;
             }
             peekToken = builder.length() > 0 ? builder.toString() : "";
             
@@ -493,7 +501,14 @@ public abstract class LexerBase
         String text = token;
         int lastns = -1;
         for (int i = 0; i < text.length(); i++) {
-            if (text.charAt(i) != ' ') {
+            char chr = text.charAt(i);
+            if (allowedChars != null && (chr > allowedChars.length || !allowedChars[chr])) {
+                handleError(DataType.ALPHANUMERIC, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
+                if (substitutionChar >= 0) {
+                    text = text.replace(chr, (char)substitutionChar);
+                }
+            }
+            if (chr != ' ') {
                 lastns = i;
             }
         }
@@ -539,7 +554,7 @@ public abstract class LexerBase
      * @param maxl
      * @throws IOException
      */
-    private void checkInteger(int minl, int maxl) throws LexicalException {
+    protected void checkInteger(int minl, int maxl) throws LexicalException {
         String text = token;
         int length = 0;
         for (int i = 0; i < text.length(); i++) {
