@@ -22,9 +22,6 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   val logger = Logger.getLogger(getClass.getName)
 
-  /** Read interchange trailer segment(s) and finish with stream. */
-  protected def term(props: ValueMap): Unit
-
   /** Discard current element. */
   def discardElement = {
     lexer.advance

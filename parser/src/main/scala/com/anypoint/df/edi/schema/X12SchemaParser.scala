@@ -141,16 +141,16 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     else ""
 
   def logErrorInTransaction(fatal: Boolean, incomp: Boolean, text: String) =
-    logger.error(s"${describeError(fatal)} transaction error $text${describeComponent(incomp)} at $positionInTransaction")
+    logger.error(s"${describeError(fatal)} transaction error '$text'${describeComponent(incomp)} at $positionInTransaction")
 
   def logTransactionEnvelopeError(fatal: Boolean, incomp: Boolean, text: String) =
-    logger.error(s"${describeError(fatal)} transaction error $text${describeComponent(incomp)} at $positionInGroup")
+    logger.error(s"${describeError(fatal)} transaction error '$text'${describeComponent(incomp)} at $positionInGroup")
 
   def logGroupEnvelopeError(fatal: Boolean, incomp: Boolean, text: String) =
-    logger.error(s"${describeError(fatal)} group error $text${describeComponent(incomp)} at $positionInInterchange")
+    logger.error(s"${describeError(fatal)} group error '$text'${describeComponent(incomp)} at $positionInInterchange")
 
   def logInterchangeEnvelopeError(fatal: Boolean, text: String) =
-    logger.error(s"${describeError(fatal)} interchange error $text at $positionInMessage")
+    logger.error(s"${describeError(fatal)} interchange error '$text'' at $positionInMessage")
 
   /** Accumulate element error, failing transaction if severe. */
   def addElementError(error: ElementSyntaxError) = {
@@ -241,10 +241,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         ak3data put (segAK3.components(3).key, error.code.toString)
         segmentErrors += ak3
       }
-      error match {
-        case MissingMandatorySegment => logErrorInTransaction(fatal, false, s"${error.toString} $ident")
-        case _ => logErrorInTransaction(fatal, false, error.toString)
-      }
+      logErrorInTransaction(fatal, false, s"${error.text}: $ident")
       if (fatal) rejectTransaction = true
     }
 
@@ -258,14 +255,19 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     }
   }
 
-  def term(props: ValueMap) = lexer.term(props)
+  /** Check if at interchange envelope segment. */
+  def isInterchangeEnvelope = lexer.currentType == SEGMENT &&
+    (lexer.token == InterchangeStartSegment || lexer.token == InterchangeEndSegment)
+
+  /** Check if at functional group envelope segment. */
+  def isGroupEnvelope = checkSegment(GSSegment) || checkSegment(GESegment)
 
   /** Check if at functional group open segment. */
   def isGroupOpen = checkSegment(GSSegment)
 
   def groupError(error: GroupSyntaxError) = {
     groupErrors += error
-    logGroupEnvelopeError(true, false, error.toString)
+    logGroupEnvelopeError(true, false, error.text)
   }
 
   /** Parse start of a functional group. */
@@ -298,7 +300,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
 
   def transactionError(error: TransactionSyntaxError) = {
     transactionErrors += error
-    logErrorInTransaction(true, false, error.toString)
+    logErrorInTransaction(true, false, error.text)
   }
 
   /** Check if at transaction set open segment. */
@@ -359,7 +361,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   def parseGroup(interchange: ValueMap, group: ValueMap, groupCode: String, ackhead: ValueMap,
     transLists: java.util.Map[String, MapList]) = {
     val setacks = new MapListImpl
-    while (lexer.currentType != END && !isGroupClose) {
+    while (lexer.currentType != END && !isGroupEnvelope && !isInterchangeEnvelope) {
       if (isSetOpen) {
         val (setid, setprops) = openSet
         transactionNumber = getRequiredString(transactionSetControlKey, setprops)
@@ -414,7 +416,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     if (setacks.size > 0) ackhead put (segAK2.ident, setacks)
   }
 
-  def init(data: ValueMap) = lexer.asInstanceOf[X12Lexer].init(data)
+  def init(data: ValueMap): X12Lexer.InterchangeStartStatus = lexer.asInstanceOf[X12Lexer].init(data)
+
+  def term(props: ValueMap): X12Lexer.InterchangeEndStatus = lexer.asInstanceOf[X12Lexer].term(props)
 
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try {
@@ -487,7 +491,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       map put (functionalAcknowledgments, funcAckList)
       var ackId = 1
       var interNote = InterchangeNoError
-      while (lexer.currentType != END && lexer.token != InterchangeEndSegment) {
+      while (lexer.currentType != END && !isInterchangeEnvelope) {
         if (isGroupOpen) {
           val group = openGroup
           groupStartSegment = lexer.getSegmentNumber - 2
@@ -543,9 +547,17 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       if (lexer.currentType == END) {
         logger.error(s"end of file with missing $InterchangeEndSegment")
         InterchangeEndOfFile
-      } else {
-        term(interchange)
+      } else if (lexer.token == InterchangeEndSegment) {
+        LexerEndStatusInterchangeNote get term(interchange) foreach (code => {
+            val text = s"Irrecoverable error in $InterchangeEndSegment at ${lexer.getSegmentNumber}" +
+              (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
+              ": " + code.text
+            logger error text
+        })
         interNote
+      } else {
+        logInterchangeEnvelopeError(true, s"Missing $InterchangeEndSegment")
+        InterchangeInvalidControlStructure
       }
     }
 
@@ -557,7 +569,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         val result = init(interchange)
         if (result == InterchangeStartStatus.NO_DATA) done = true
         else {
-          LexerStatusInterchangeNote get (result) foreach (code => {
+          LexerStartStatusInterchangeNote get (result) foreach (code => {
             val text = s"Irrecoverable error in $InterchangeStartSegment at ${lexer.getSegmentNumber}" +
               (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
               ": " + code

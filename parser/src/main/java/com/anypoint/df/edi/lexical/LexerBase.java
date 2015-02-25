@@ -238,16 +238,6 @@ public abstract class LexerBase
     public int getComponentNumber() {
         return componentNumber;
     }
-        
-    /**
-     * Complete document parse. This must be called with the parser positioned at the start of the interchange trailer
-     * segment.
-     *
-     * @param props
-     * @return variation-specific result code
-     * @throws IOException
-     */
-    public abstract Object term(Map<String, Object> props) throws IOException;
     
     /**
      * Get the current token.
