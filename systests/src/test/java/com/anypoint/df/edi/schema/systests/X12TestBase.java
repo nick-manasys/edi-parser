@@ -131,6 +131,7 @@ public abstract class X12TestBase extends TestBase {
 			String is = iterin.next();
 			String os = iterout.next();
 			assertEquals(is, os);
+			System.out.println(is + " = " + os);
 		}
 		assertFalse(iterin.hasNext());
 		assertFalse(iterout.hasNext());

@@ -135,9 +135,11 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     props.put(INTER_CONTROL, Integer.valueOf(1244))
     props.put(ACK_REQUESTED, "0")
     props.put(TEST_INDICATOR, "P")
-    writer.init("*>U~", "UTF-8", props)
+    writer.configure("*>U~", "UTF-8")
+    writer.writer.init(props)
     writer.writer.countGroup()
     writer.term(props)
+    writer.writer.close
     val text = new String(out.toByteArray)
     val start = ISA indexOf (DATETIME)
     val end = start + DATETIME.length

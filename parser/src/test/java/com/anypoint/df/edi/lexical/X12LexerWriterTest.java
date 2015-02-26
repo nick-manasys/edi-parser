@@ -38,6 +38,7 @@ public class X12LexerWriterTest
         writer.configureX12(os, ASCII_CHARSET, '*', '>', -1, '~');
         writer.init(props);
         writer.term(props);
+        writer.close();
         String result = new String(os.toByteArray(), ASCII_CHARSET);
         int datestart = ENVELOPE.indexOf(DATETIME);
         int dateend = datestart + DATETIME.length();

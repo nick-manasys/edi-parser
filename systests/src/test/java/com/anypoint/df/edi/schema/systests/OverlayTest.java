@@ -30,6 +30,7 @@ public class OverlayTest extends X12TestBase {
     public void verifyWrite() throws Exception {
         parseAndCheckWrite("/x12/005010/biztalk-interop/850x1.edi");
         parseAndCheckWrite("/x12/005010/biztalk-interop/850x2.edi");
+        parseAndCheckWrite("/x12/005010/biztalk-interop/850-multiple.edi");
     }
     
     @Test

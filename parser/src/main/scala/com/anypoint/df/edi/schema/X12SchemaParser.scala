@@ -450,6 +450,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
     val interAckList = new MapListImpl
     map put (interchangeAcknowledgments, interAckList)
     val ta1map = new ValueMapImpl
+    val funcAckList = new MapListImpl
+    map put (functionalAcknowledgments, funcAckList)
+    val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
+    schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
+    map put (transactionsMap, transLists)
 
     def buildTA1(ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode, interchange: ValueMap) = {
       ta1map put (segTA1.components(0) key, interchange get (INTER_CONTROL))
@@ -484,11 +489,6 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       if (receivers.length == 0 && config.receiverIds.length > 0)
         throw new LexicalException("Interchange receiver information does not match configuration")
       map put (delimiterCharacters, buildDelims)
-      val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
-      schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
-      map put (transactionsMap, transLists)
-      val funcAckList = new MapListImpl
-      map put (functionalAcknowledgments, funcAckList)
       var ackId = 1
       var interNote = InterchangeNoError
       while (lexer.currentType != END && !isInterchangeEnvelope) {

@@ -54,14 +54,14 @@ public abstract class LexerBase
     /** Segment terminator. */
     char segmentTerminator;
     
-    /** Handler for lexical errors. */
-    private ErrorHandler errorHandler;
-    
     /** Total number of groups in interchange. */
     int groupCount;
     
     /** Current segment number. */
-    private int segmentNumber;
+    int segmentNumber;
+    
+    /** Handler for lexical errors. */
+    private ErrorHandler errorHandler;
     
     /** Data element number (from start of segment). */
     private int elementNumber;

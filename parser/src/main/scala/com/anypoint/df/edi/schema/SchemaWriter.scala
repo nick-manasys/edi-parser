@@ -20,12 +20,6 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 
   import SchemaJavaValues._
 
-  /** Initialize writer and output interchange header segment(s). */
-  def init(delims: String, encoding: String, props: ValueMap): Unit
-
-  /** Output interchange trailer segment(s) and finish with stream. */
-  def term(props: ValueMap): Unit
-
   /** Write a segment from a map of values. */
   protected def writeSegment(map: ValueMap, segment: Segment): Unit = {
 

@@ -177,6 +177,8 @@ public class X12Lexer extends LexerBase
             segmentTerminator = (char)reader.read();
             
             // advance to start of next segment
+            segmentNumber++;
+            groupCount = 0;
             advance(ItemType.SEGMENT);
             return result;
             

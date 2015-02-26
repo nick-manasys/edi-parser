@@ -4,8 +4,6 @@ package com.anypoint.df.edi.lexical;
 import static com.anypoint.df.edi.lexical.X12Constants.ACK_REQUESTED;
 import static com.anypoint.df.edi.lexical.X12Constants.AUTHORIZATION_INFO;
 import static com.anypoint.df.edi.lexical.X12Constants.AUTHORIZATION_QUALIFIER;
-import static com.anypoint.df.edi.lexical.X12Constants.INTERCHANGE_DATE;
-import static com.anypoint.df.edi.lexical.X12Constants.INTERCHANGE_TIME;
 import static com.anypoint.df.edi.lexical.X12Constants.INTER_CONTROL;
 import static com.anypoint.df.edi.lexical.X12Constants.RECEIVER_ID;
 import static com.anypoint.df.edi.lexical.X12Constants.RECEIVER_ID_QUALIFIER;
@@ -132,6 +130,8 @@ public class X12Writer extends WriterBase
         writeProperty(TEST_INDICATOR, props, "P", 1, 1);
         writeSubDelimiter();
         writeSegmentTerminator();
+        
+        groupCount = 0;
     }
 
     /**
@@ -146,6 +146,5 @@ public class X12Writer extends WriterBase
         writeDataSeparator();
         writeInterchangeControlNumber(props);
         writeSegmentTerminator();
-        writer.close();
     }
 }

@@ -24,13 +24,12 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
   var setSegmentBase = 0
   var inGroup = false
 
-  /** Initialize writer and output interchange header segment(s). */
-  def init(delims: String, encoding: String, props: ValueMap) = {
+  /** Configure writer. */
+  def configure(delims: String, encoding: String) = {
     if (delims.size < 4 || delims.size > 5) throw new IllegalArgumentException("delimiter string must be 4 or 5 characters")
     val repsep = if (delims(2) == 'U') -1 else delims(2)
     writer.asInstanceOf[X12Writer].configureX12(out, Charset.forName(encoding), delims(0), delims(1),
       repsep, delims(3))
-    writer.init(props)
   }
 
   /** Output interchange trailer segment(s) and finish with stream. */
@@ -76,6 +75,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
 
   /** Write the output message. */
   def write(map: ValueMap) = Try({
+    configure(getRequiredString(delimiterCharacters, map), getRequiredString(characterEncoding, map))
     val transMap = getRequiredValueMap(transactionsMap, map)
     val transactions = JavaConversions.mapAsScalaMap(transMap).values.flatMap(value =>
       JavaConversions.iterableAsScalaIterable(value.asInstanceOf[MapList]))
@@ -83,21 +83,19 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
       getRequiredString(transactionInterSelfQualId, transdata),
       getRequiredString(transactionInterSelfId, transdata),
       getRequiredString(transactionInterPartnerQualId, transdata),
-      getRequiredString(transactionInterPartnerId, transdata)))
-    // TODO: handle multiple interchanges correctly
+      getRequiredString(transactionInterPartnerId, transdata))).toSeq.sortBy(_._1)
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
-    val (selfQual, selfId, partnerQual, partnerId) = interchanges.keys.head
-    val interProps = new ValueMapImpl
-    interProps put (INTER_CONTROL, Integer valueOf (numprov.nextInterchange))
-    interProps put (RECEIVER_ID_QUALIFIER, partnerQual)
-    interProps put (RECEIVER_ID, partnerId)
-    interProps put (SENDER_ID_QUALIFIER, selfQual)
-    interProps put (SENDER_ID, selfId)
-    // temporary fixed value, until we can evaluate older forms
-    interProps put (VERSION_ID, "00501")
-    init(getRequiredString(delimiterCharacters, map), getRequiredString(characterEncoding, map), interProps)
     interchanges foreach {
-      case (_, interlist) => {
+      case ((selfQual, selfId, partnerQual, partnerId), interlist) => {
+        val interProps = new ValueMapImpl
+        interProps put (INTER_CONTROL, Integer valueOf (numprov.nextInterchange))
+        interProps put (RECEIVER_ID_QUALIFIER, partnerQual)
+        interProps put (RECEIVER_ID, partnerId)
+        interProps put (SENDER_ID_QUALIFIER, selfQual)
+        interProps put (SENDER_ID, selfId)
+        // temporary fixed value, until we can evaluate older forms
+        interProps put (VERSION_ID, "00501")
+        writer.init(interProps)
         val groups = interlist.groupBy(transdata => {
           val ident = getRequiredString(transactionId, transdata)
           val transdef = schema.transactions(ident)
@@ -139,5 +137,6 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
         term(interProps)
       }
     }
+    writer close
   })
 }

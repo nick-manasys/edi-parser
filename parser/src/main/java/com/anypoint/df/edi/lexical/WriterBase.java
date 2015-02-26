@@ -124,6 +124,15 @@ public abstract class WriterBase
     }
     
     /**
+     * Close writer when output completed.
+     *
+     * @throws IOException
+     */
+    public void close() throws IOException {
+        writer.close();
+    }
+    
+    /**
      * Initialize document output, writing any interchange header segment(s) required by the protocol variation.
      *
      * @param props
