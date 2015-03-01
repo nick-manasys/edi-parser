@@ -93,8 +93,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
         interProps put (RECEIVER_ID, partnerId)
         interProps put (SENDER_ID_QUALIFIER, selfQual)
         interProps put (SENDER_ID, selfId)
-        // temporary fixed value, until we can evaluate older forms
-        interProps put (VERSION_ID, "00501")
+        interProps put (VERSION_ID, getAs(interchangeVersionId, "00501", map))
         writer.init(interProps)
         val groups = interlist.groupBy(transdata => {
           val ident = getRequiredString(transactionId, transdata)

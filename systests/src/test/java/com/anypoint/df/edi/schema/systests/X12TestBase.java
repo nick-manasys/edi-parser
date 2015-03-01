@@ -179,6 +179,9 @@ public abstract class X12TestBase extends TestBase {
 	protected String parseAndReturnAck(String path) {
 		DocumentTest test = new DocumentTest(schema);
 		InputStream is = BiztalkTest.class.getResourceAsStream(path);
+		if (is == null) {
+		    throw new IllegalArgumentException("File " + path + " not found");
+		}
 		try {
 			Map<String, Object> result = test.parse(is);
 			printAcknowledgments(result);

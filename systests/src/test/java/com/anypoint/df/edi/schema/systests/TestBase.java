@@ -42,6 +42,9 @@ public abstract class TestBase {
     
     protected String readAsString(String path) throws IOException {
         InputStream is = TestBase.class.getResourceAsStream(path);
+        if (is == null) {
+            throw new IllegalArgumentException("Path " + path + " not found");
+        }
         InputStreamReader reader = new InputStreamReader(is, "ASCII");
         StringWriter writer = new StringWriter();
         char[] buff = new char[2048];

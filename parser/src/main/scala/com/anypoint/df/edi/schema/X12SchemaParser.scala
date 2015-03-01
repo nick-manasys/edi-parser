@@ -196,7 +196,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   }
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
-  def parseSegment(segment: Segment, group: Option[String], position: SegmentPosition): ValueMap = {
+  def parseSegment(segment: Segment, group: Option[GroupComponent], position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
     val map = new ValueMapImpl
     dataErrors.clear
@@ -423,8 +423,6 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try {
 
-    import X12Acknowledgment._
-
     def matchIdentity(interQual: String, interId: String, usage: String, allowed: Array[IdentityInformation]) =
       allowed.filter { info =>
         info.interchangeQualifier == interQual && info.interchangeId == interId &&
@@ -489,8 +487,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       if (receivers.length == 0 && config.receiverIds.length > 0)
         throw new LexicalException("Interchange receiver information does not match configuration")
       map put (delimiterCharacters, buildDelims)
+      map put (interchangeVersionId, getRequiredString(VERSION_ID, interchange))
       var ackId = 1
-      var interNote = InterchangeNoError
+      var interNote: InterchangeNoteCode = InterchangeNoError
       while (lexer.currentType != END && !isInterchangeEnvelope) {
         if (isGroupOpen) {
           val group = openGroup
@@ -541,6 +540,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
           ackId += 1
         } else {
           logger.error(s"discarding $positionInInterchange (${lexer.token}) found when looking for group start")
+          interNote = InterchangeInvalidContent
           discardSegment
         }
       }

@@ -121,9 +121,18 @@ public class X12Writer extends WriterBase
         int time = (calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000;
         writeTime(time, 4, 4);
         writeDataSeparator();
-        writer.write(repetitionSeparator > 0 ? repetitionSeparator : 'U');
+        Object version = getRequired(VERSION_ID, props);
+        if (!(version instanceof String)) {
+            throw new WriteException("expected String value for property '" + VERSION_ID + "'");
+        }
+        if ("00402".compareTo(version.toString()) <= 0) {
+            writer.write(repetitionSeparator > 0 ? repetitionSeparator : 'U');
+        } else {
+            writer.write('U');
+        }
         writeDataSeparator();
-        writeProperty(VERSION_ID, props, "00000", 5, 5);
+        writeAlphaNumeric(version.toString(), 5, 5);
+        writeDataSeparator();
         writeInterchangeControlNumber(props);
         writeDataSeparator();
         writeProperty(ACK_REQUESTED, props, "0", 1, 1);

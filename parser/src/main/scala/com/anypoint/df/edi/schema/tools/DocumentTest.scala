@@ -18,6 +18,7 @@ import com.anypoint.df.edi.schema.YamlReader
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.X12Constants._
 import java.io.InputStream
+import com.anypoint.df.edi.schema.X12SchemaValues
 
 case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12SchemaDefs with SchemaJavaDefs {
 
