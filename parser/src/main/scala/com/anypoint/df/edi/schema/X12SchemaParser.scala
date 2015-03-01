@@ -370,8 +370,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         setack put (segAK2 name, ak2data)
         ak2data put (segAK2.components(0) key, setprops get (transactionSetIdentifierKey))
         ak2data put (segAK2.components(1) key, setprops get (transactionSetControlKey))
-        if (setprops containsKey implementationConventionKey)
+        if (schema.version == "005010" && setprops.containsKey(implementationConventionKey)) {
           ak2data put (segAK2.components(2) key, setprops get (implementationConventionKey))
+        }
         val ak5data = new ValueMapImpl
         setack put (segAK5 name, ak5data)
         rejectTransaction = false
@@ -511,7 +512,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
           ackhead put (segAK1 name, ak1data)
           ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
           ak1data put (segAK1.components(1) key, group get (groupControlKey))
-          ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
+          if (schema.version == "005010") ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
           val code = getAs(functionalIdentifierKey, "", group)
           if (functionalGroups.contains(code)) {
             if (group.get(responsibleAgencyKey) != "X" || group.get(versionIdentifierKey) == schema.version) {

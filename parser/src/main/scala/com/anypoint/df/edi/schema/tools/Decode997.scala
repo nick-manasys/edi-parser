@@ -17,7 +17,9 @@ object Decode997 extends X12SchemaDefs with SchemaJavaDefs {
     val stdata = getRequiredValueMap(segST name, ackhead)
     builder ++= s"Control number ${getRequiredString(segST.components(1) key, stdata)}\n"
     val ak1data = getRequiredValueMap(segAK1 name, ackhead)
-    builder ++= s"Acknowledged group code ${getRequiredString(segAK1.components(0) key, ak1data)} with control number ${getRequiredInt(segAK1.components(1) key, ak1data)}, version ${getRequiredString(segAK1.components(2) key, ak1data)}\n"
+    builder ++= s"Acknowledged group code ${getRequiredString(segAK1.components(0) key, ak1data)} with control number ${getRequiredInt(segAK1.components(1) key, ak1data)}"
+    applyIfPresent[String](segAK1.components(2) key, ak1data, value => builder ++= s", version $value")
+    builder ++= "\n"
     applyIfPresent[MapList](segAK2 ident, ackhead, list =>
       foreachMapInList(list, { map => {
           val ak2data = getRequiredValueMap(segAK2 name, map)
