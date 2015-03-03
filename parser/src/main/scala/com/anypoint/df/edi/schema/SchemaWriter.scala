@@ -176,14 +176,3 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 trait NumberProvider {
   def nextInterchange: Int
 }
-
-object SchemaWriter {
-
-  /** Factory function to create writer instances. */
-  def create(out: OutputStream, schema: EdiSchema, numprov: NumberProvider) = Try {
-    schema ediForm match {
-      case EdiFact => throw new IllegalArgumentException
-      case X12 => new X12SchemaWriter(out, schema, numprov)
-    }
-  }
-}

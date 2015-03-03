@@ -282,6 +282,9 @@ object X12Acknowledgment {
 }
 
 object X12SchemaValues {
+  
+  // root properties
+  val interchangeVersionId = "InterchangeVersion"
 
   // group properties from GS segment
   val functionalIdentifierName = "Functional identifier code";

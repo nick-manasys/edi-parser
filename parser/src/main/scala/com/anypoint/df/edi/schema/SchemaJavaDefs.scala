@@ -75,7 +75,6 @@ object SchemaJavaValues {
   // value keys for configuration
   val delimiterCharacters = "Delimiters"
   val characterEncoding = "Encoding"
-  val interchangeVersionId = "InterchangeVersion"
 
   // value keys for parse output map
   val functionalAcknowledgments = "Acknowledgments"

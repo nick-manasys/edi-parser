@@ -6,15 +6,7 @@ import java.io.FileInputStream
 import java.io.InputStreamReader
 import scala.util.Failure
 import scala.util.Success
-import com.anypoint.df.edi.schema.EdiSchema
-import com.anypoint.df.edi.schema.IdentityInformation
-import com.anypoint.df.edi.schema.NumberProvider
-import com.anypoint.df.edi.schema.SchemaJavaDefs
-import com.anypoint.df.edi.schema.X12ParserConfig
-import com.anypoint.df.edi.schema.X12SchemaDefs
-import com.anypoint.df.edi.schema.X12SchemaParser
-import com.anypoint.df.edi.schema.X12SchemaWriter
-import com.anypoint.df.edi.schema.YamlReader
+import com.anypoint.df.edi.schema._
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.X12Constants._
 import java.io.InputStream
@@ -53,7 +45,8 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     */
   def printDoc(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider)
+    val config = X12WriterConfig(CharacterSet.BASIC, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map))
+    val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider, config)
     val transacts = getRequiredValueMap(transactionsMap, map)
     foreachListInMap(transacts, (translist: MapList) => 
       foreachMapInList(translist, (tran: ValueMap) => {
@@ -66,7 +59,6 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
         tran put (transactionInterPartnerId, getRequiredString(RECEIVER_ID, inter))
         tran put (transactionGroupPartnerId, getRequiredString(applicationReceiversKey, group))
       }))
-    map put (characterEncoding, "ASCII")
     writer.write(map).get
     os.toString
   }
@@ -76,7 +68,8 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     */
   def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider)
+    val config = X12WriterConfig(CharacterSet.BASIC, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map))
+    val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider, config)
     val outmap = new ValueMapImpl(map)
     val transactions = new ValueMapImpl
     val acks = map.get(functionalAcknowledgments).asInstanceOf[MapList]
