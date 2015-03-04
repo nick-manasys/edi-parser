@@ -23,6 +23,7 @@ import com.anypoint.df.edi.schema.X12SchemaDefs
 import com.anypoint.df.edi.schema.SchemaParser
 import scala.collection.mutable.Buffer
 import com.anypoint.df.edi.lexical.EdiConstants._
+import com.anypoint.df.edi.lexical.X12Constants._
 import java.io.FileWriter
 
 object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
@@ -140,8 +141,8 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val is = YamlReader.findSchema(args(0), Array())
     val schema = YamlReader.loadYaml(new InputStreamReader(is), Array())
     val examples = args.toList.tail.tail
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
-      ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation]())
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, CharacterSet.EXTENDED,
+      ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]())
 
     /** Strip metadata (transaction set and group links) out of transaction data to avoid excess overhead on merge. */
     def stripMeta(trans: ValueMap) = trans.asScala.foreach {
@@ -227,7 +228,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     examples.foreach (path => {
       println(s"merging $path")
       val is = YamlReader.findSchema(path, Array())
-      val parser = X12SchemaParser(is, schema, config)
+      val parser = X12SchemaParser(is, schema, new DefaultNumberValidator, config)
       parser.parse match {
         case Success(x) => {
           val transacts = x.get(transactionsMap).asInstanceOf[ValueMap]

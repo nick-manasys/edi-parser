@@ -15,21 +15,14 @@ import java.io.FileInputStream
 import java.io.File
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.X12Lexer.InterchangeStartStatus._
+import com.anypoint.df.edi.schema.tools.{ DefaultNumberProvider, DefaultNumberValidator }
 
 class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs with X12SchemaDefs {
 
-  import EdiSchema._
   import com.anypoint.df.edi.lexical.X12Constants._
+  import EdiSchema._
   import SchemaJavaValues._
   import X12SchemaValues._
-  
-  class DefaultNumberProvider extends NumberProvider {
-    var number = 1
-    def nextInterchange = {
-      number += 1
-      number
-    }
-  }
 
   val DATETIME = "090604*1205"
   val ISA = s"ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *$DATETIME*U*00401*000001244*0*P*>~"
@@ -41,14 +34,15 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   def buildSE(count: Int) = s"SE*$count*000000176~"
 
-  val parserConfig = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true, ASCII_CHARSET,
-    Array[IdentityInformation](), Array[IdentityInformation]())
+  val parserConfig = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, CharacterSet.EXTENDED,
+    ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]())
 
   behavior of "X12SchemaParser"
 
   it should "parse the ISA segment when initialized" in {
     val in = new ByteArrayInputStream(ISA.getBytes())
-    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
+    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
+      new DefaultNumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (VALID)
     props.get(AUTHORIZATION_QUALIFIER) should be("00")
@@ -72,7 +66,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "parse the envelope segments as requested" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
+    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
+      new DefaultNumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (VALID)
     val gprops = parser.openGroup
@@ -96,7 +91,8 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "throw an exception when positioned at wrong segment" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty), parserConfig)
+    val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
+      new DefaultNumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (VALID)
     intercept[IllegalStateException] { parser.openSet }
@@ -108,7 +104,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-    val parser = X12SchemaParser(messageIn, schema, parserConfig)
+    val parser = X12SchemaParser(messageIn, schema, new DefaultNumberValidator, parserConfig)
     val result = parser.parse
     result.isInstanceOf[Success[ValueMap]] should be (true)
     val map = result.get
@@ -151,7 +147,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-    val parser = X12SchemaParser(messageIn, schema, parserConfig)
+    val parser = X12SchemaParser(messageIn, schema, new DefaultNumberValidator, parserConfig)
     val parseResult = parser.parse
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
     val out = new ByteArrayOutputStream

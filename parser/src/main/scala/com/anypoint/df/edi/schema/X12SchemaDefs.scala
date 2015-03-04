@@ -17,10 +17,10 @@ trait X12SchemaDefs {
     ElementComponent(Element("142", "", ALPHANUMERIC, 2, 15), Some(applicationSendersName), "GS02", 2, MandatoryUsage, 1),
     ElementComponent(Element("124", "", ALPHANUMERIC, 2, 15), Some(applicationReceiversName), "GS03", 3, MandatoryUsage, 1),
     ElementComponent(Element("373", "", DATE, 8, 8), Some(groupDateName), "GS04", 4, MandatoryUsage, 1),
-    ElementComponent(Element("337", "", TIME, 4, 4), Some(groupTimeName), "GS05", 5, MandatoryUsage, 1),
+    ElementComponent(Element("337", "", TIME, 4, 8), Some(groupTimeName), "GS05", 5, MandatoryUsage, 1),
     ElementComponent(Element("28", "", INTEGER, 1, 9), Some(groupControlName), "GS06", 6, MandatoryUsage, 1),
     ElementComponent(Element("455", "", ID, 1, 2), Some(responsibleAgencyName), "GS07", 7, MandatoryUsage, 1),
-    ElementComponent(Element("480", "", ALPHANUMERIC, 2, 12), Some(versionIdentifierName), "GS08", 8, MandatoryUsage, 1)), Nil)
+    ElementComponent(Element("480", "", ALPHANUMERIC, 1, 12), Some(versionIdentifierName), "GS08", 8, MandatoryUsage, 1)), Nil)
 
   val GESegment = Segment("GE", "Functional group trailer", List[SegmentComponent](
     ElementComponent(Element("97", "", INTEGER, 1, 6), Some(numberOfSetsName), "GE01", 1, MandatoryUsage, 1),

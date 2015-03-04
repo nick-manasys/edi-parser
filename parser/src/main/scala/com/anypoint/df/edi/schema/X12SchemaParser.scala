@@ -26,21 +26,23 @@ import X12Acknowledgment._
   */
 case class IdentityInformation(interchangeQualifier: String, interchangeId: String, interchangeType: String)
 
-/** Configuration parameters for X12 schema parser. If either receiver or sender identity information is it is verified
-  * in processed messages.
+/** Configuration parameters for X12 schema parser. If either receiver or sender identity information is included it is
+  * verified in processed messages. If no version ids are specified, any X12 version that starts with the schema version
+  * is accepted.
   */
-case class X12ParserConfig(val lengthFail: Boolean, val asciiOnly: Boolean, val charFail: Boolean,
-  val countFail: Boolean, val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean,
-  val occursFail: Boolean, val reportDataErrors: Boolean, val generate997: Boolean, val generateTA1: Boolean,
-  val charSet: Charset, val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation]) {
+case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
+  val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
+  val reportDataErrors: Boolean, val generate997: Boolean, val generateTA1: Boolean, val strChar: CharacterSet,
+  val charSet: Charset, val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation],
+  val versionIds: Array[String]) {
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
 
 case class InterchangeException(note: InterchangeNoteCode, text: String) extends LexicalException(text)
 
 /** Parser for X12 EDI documents. */
-case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConfig)
-  extends SchemaParser(new X12Lexer(in, config charSet, -1, CharacterSet.EXTENDED),
+case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidator, config: X12ParserConfig)
+  extends SchemaParser(new X12Lexer(in, config charSet, -1, config.strChar),
     sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   /** Set of functional groups supported by schema. */
@@ -214,12 +216,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       logger.info(s"error(s) found in parsing segment")
       val ak3 = new ValueMapImpl
       val ak3data = new ValueMapImpl
-      ak3data put (segAK3.components(0).key, segment.ident)
-      ak3data put (segAK3.components(1).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
-      group.foreach(ident => ak3data put (segAK3.components(2).key, ident))
-      ak3data put (segAK3.components(3).key, DataErrorsSegment.code.toString)
+      ak3data put (segAK3 components(0) key, segment.ident)
+      ak3data put (segAK3 components(1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
+      group.foreach(gcomp => ak3data put (segAK3 components(2) key, gcomp ident))
+      ak3data put (segAK3 components(3) key, DataErrorsSegment.code.toString)
       ak3 put (segAK3.name, ak3data)
-      ak3 put (segAK4.ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
+      ak3 put (segAK4 ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
       segmentErrors += ak3
       oneOrMoreSegmentsInError = true
     }
@@ -235,10 +237,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         val ak3 = new ValueMapImpl
         val ak3data = new ValueMapImpl
         ak3 put (segAK3.name, ak3data)
-        ak3data put (segAK3.components(0).key, ident)
-        ak3data put (segAK3.components(1).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
-        group.foreach(ident => ak3data put (segAK3.components(2).key, ident))
-        ak3data put (segAK3.components(3).key, error.code.toString)
+        ak3data put (segAK3 components(0) key, ident)
+        ak3data put (segAK3 components(1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
+        group.foreach(ident => ak3data put (segAK3 components(2) key, ident))
+        ak3data put (segAK3 components(3) key, error.code.toString)
         segmentErrors += ak3
       }
       logErrorInTransaction(fatal, false, s"${error.text}: $ident")
@@ -476,6 +478,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
       ackroot put (transactionInterPartnerId, getRequiredValue(SENDER_ID, interchange))
       ackroot
     }
+    
+    def validateVersion(agency: String, version: String) =
+      if (config.versionIds.length != 0) {
+        config.versionIds.exists { _ == version }
+      } else agency != "X" || version.startsWith(schema version)
 
     def parseInterchange(interchange: ValueMap): InterchangeNoteCode = {
       lexer.setHandler(X12ErrorHandler)
@@ -515,9 +522,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
           if (schema.version == "005010") ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
           val code = getAs(functionalIdentifierKey, "", group)
           if (functionalGroups.contains(code)) {
-            if (group.get(responsibleAgencyKey) != "X" || group.get(versionIdentifierKey) == schema.version) {
-              parseGroup(interchange, group, code, ackhead, transLists)
-            } else skipGroup(NotSupportedGroupVersion)
+            val agency = getRequiredString(responsibleAgencyKey, group)
+            val version = getRequiredString(versionIdentifierKey, group)
+            if (validateVersion(agency, version)) parseGroup(interchange, group, code, ackhead, transLists)
+            else skipGroup(NotSupportedGroupVersion)
           } else skipGroup(NotSupportedGroup)
           val countPresent = closeGroup(group)
           val ak9data = new ValueMapImpl
@@ -550,10 +558,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, config: X12ParserConf
         InterchangeEndOfFile
       } else if (lexer.token == InterchangeEndSegment) {
         LexerEndStatusInterchangeNote get term(interchange) foreach (code => {
-            val text = s"Irrecoverable error in $InterchangeEndSegment at ${lexer.getSegmentNumber}" +
-              (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
-              ": " + code.text
-            logger error text
+          val text = s"Irrecoverable error in $InterchangeEndSegment at ${lexer.getSegmentNumber}" +
+            (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
+            ": " + code.text
+          logger error text
         })
         interNote
       } else {

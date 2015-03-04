@@ -97,6 +97,8 @@ object SchemaJavaValues {
   val transactionInterSelfQualId = "InterIdQualSelf"
   val transactionInterSelfId = "InterIdSelf"
   val transactionGroupSelfId = "GroupIdSelf"
+  val transactionGroupAgencyCode = "ResponsibleAgencyCode"
+  val transactionGroupVersionCode = "VersionIdentifierCode"
   val transactionInterPartnerQualId = "InterIdQualPartner"
   val transactionInterPartnerId = "InterIdPartner"
   val transactionGroupPartnerId = "GroupIdPartner"

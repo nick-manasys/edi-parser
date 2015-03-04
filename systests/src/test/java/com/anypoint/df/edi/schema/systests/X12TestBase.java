@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.anypoint.df.edi.lexical.EdiConstants;
+import com.anypoint.df.edi.lexical.X12Constants.CharacterSet;
 import com.anypoint.df.edi.schema.IdentityInformation;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.X12ParserConfig;
@@ -59,6 +60,11 @@ public abstract class X12TestBase extends TestBase {
 		int gsControlNum = nthOffset(datasep, gsTime, 1, text);
 		text = replaceRange('X', gsDate + 1, gsTime, text);
 		text = replaceRange('X', gsTime + 1, gsControlNum, text);
+		int timeLength = gsControlNum - gsTime - 1;
+		if (timeLength > 4) {
+		    text = text.substring(0, gsTime + 1) + text.substring(gsTime + timeLength - 3);
+		    gsControlNum -= timeLength - 4;
+		}
 		int numEnd = nthOffset(datasep, gsControlNum, 1, text);
 		return text.substring(0, gsControlNum + 1) + text.substring(numEnd);
 	}
@@ -198,8 +204,9 @@ public abstract class X12TestBase extends TestBase {
 		IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
 		IdentityInformation[] senders = new IdentityInformation[1];
 		senders[0] = identity;
-		X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, true, true, true,
-		    EdiConstants.ASCII_CHARSET, new IdentityInformation[0], senders);
+		X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, true, true,
+		    CharacterSet.EXTENDED, EdiConstants.ASCII_CHARSET, new IdentityInformation[0], new IdentityInformation[0],
+		    new String[0]);
 
 		DocumentTest test = new DocumentTest(schema, config);
 		InputStream is = BiztalkTest.class.getResourceAsStream(inputFilePath);

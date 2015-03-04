@@ -175,4 +175,6 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 
 trait NumberProvider {
   def nextInterchange: Int
+  def nextGroup: Int
+  def nextSet: Int
 }

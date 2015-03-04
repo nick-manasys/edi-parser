@@ -20,21 +20,22 @@ case class X12WriterConfig(val stringChars: CharacterSet, val subChar: Int, val 
 
 /** Writer for X12 EDI documents.
   */
-case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: NumberProvider, val config: X12WriterConfig)
+case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: NumberProvider, config: X12WriterConfig)
   extends SchemaWriter(new X12Writer, sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   import EdiSchema._
   import SchemaJavaValues._
   import X12SchemaValues._
 
-  case class TransactionSet(val ident: String, val index: Int, val data: ValueMap) {
+  case class TransactionSet(val ident: String, val index: Int, val selfId: String, val partnerId: String,
+    val agencyCode: String, val versionId: String, val data: ValueMap) {
     override def toString = s"transaction $ident at index $index"
   }
 
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
-  
+
   /** Configure lexical-level writer. */
   def configureLexical = {
     writer.asInstanceOf[X12Writer].configureX12(out, config.charSet, config.delims(0), config.delims(1),
@@ -102,10 +103,17 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
         val transbuff = JavaConversions.asScalaBuffer(transets.asInstanceOf[MapList])
         val sequence = (0 until transbuff.size) map { i =>
           val transdata = transbuff(i)
-          if (!transdata.containsKey(transactionId)) throw new WriteException(s"transaction $transnum at index $i missing required value $transactionId")
-          val transid = transdata.get(transactionId)
-          if (transid != transnum) throw new WriteException(s"transaction $transnum at index $i $transactionId value does not match containing type")
-          TransactionSet(transnum, i, transdata)
+          try {
+            val transid = getRequiredString(transactionId, transdata)
+            if (transid != transnum) throw new IllegalArgumentException(s"$transactionId value '$transid'' does not match containing type")
+            val selfid = getRequiredString(transactionGroupSelfId, transdata)
+            val partnerid = getRequiredString(transactionGroupPartnerId, transdata)
+            val agencyCode = getRequiredString(transactionGroupAgencyCode, transdata)
+            val versionid = getRequiredString(transactionGroupVersionCode, transdata)
+            TransactionSet(transnum, i, selfid, partnerid, agencyCode, versionid, transdata)
+          } catch {
+            case e: IllegalArgumentException => throw new WriteException(s"transaction $transnum at index $i ${e.getMessage}")
+          }
         }
         sequence.iterator.toList.groupBy(tupleKey(_))
       }
@@ -117,15 +125,15 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
   def write(map: ValueMap) = Try({
     configureLexical
     val transMap = getRequiredValueMap(transactionsMap, map)
-//    val transactions = JavaConversions.mapAsScalaMap(transMap).values.flatMap(value =>
-//      JavaConversions.iterableAsScalaIterable(value.asInstanceOf[MapList]))
-//    val part1 = transactions.groupBy(transdata => (
-//      getRequiredString(transactionInterSelfQualId, transdata),
-//      getRequiredString(transactionInterSelfId, transdata),
-//      getRequiredString(transactionInterPartnerQualId, transdata),
-//      getRequiredString(transactionInterPartnerId, transdata)))
-//    val part2 = part1.toSeq
-//    val interchanges = part2.sortBy(_._1)
+    //    val transactions = JavaConversions.mapAsScalaMap(transMap).values.flatMap(value =>
+    //      JavaConversions.iterableAsScalaIterable(value.asInstanceOf[MapList]))
+    //    val part1 = transactions.groupBy(transdata => (
+    //      getRequiredString(transactionInterSelfQualId, transdata),
+    //      getRequiredString(transactionInterSelfId, transdata),
+    //      getRequiredString(transactionInterPartnerQualId, transdata),
+    //      getRequiredString(transactionInterPartnerId, transdata)))
+    //    val part2 = part1.toSeq
+    //    val interchanges = part2.sortBy(_._1)
     val interchanges = transactionInterchanges(transMap)
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
     interchanges foreach {
@@ -140,23 +148,21 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
         writer.init(interProps)
         val groups = interlist.groupBy(transet => {
           val transdef = schema.transactions(transet.ident)
-          val selfid = getRequiredString(transactionGroupSelfId, transet.data)
-          val partnerid = getRequiredString(transactionGroupPartnerId, transet.data)
-          (selfid, partnerid, transdef group)
+          (transet selfId, transet partnerId, transet agencyCode, transet versionId, transdef group)
         })
-        var groupnum = 1
         groups foreach {
-          case ((selfGroup, partnerGroup, groupCode), grouplist) => {
+          case ((selfGroup, partnerGroup, agency, version, groupCode), grouplist) => {
             val groupProps = new ValueMapImpl
             groupProps put (applicationSendersKey, selfGroup)
             groupProps put (applicationReceiversKey, partnerGroup)
-            groupProps put (groupControlKey, Integer valueOf (groupnum))
+            groupProps put (groupControlKey, Integer valueOf (numprov.nextGroup))
+            groupProps put (responsibleAgencyKey, agency)
+            groupProps put (versionIdentifierKey, version)
             // TODO: get these from the schema
-            groupProps put (responsibleAgencyKey, "X")
-            groupProps put (versionIdentifierKey, schema.version)
+//            groupProps put (responsibleAgencyKey, "X")
+//            groupProps put (versionIdentifierKey, schema.version)
             openGroup(groupCode, groupProps)
             writer.countGroup
-            var setnum = 1
             grouplist foreach (transet => {
               @tailrec
               def zeroPad(text: String, length: Int): String =
@@ -164,16 +170,14 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, val numprov: Number
               val transdata = transet.data
               val ident = getRequiredString(transactionId, transdata)
               val setProps = new ValueMapImpl
-              setProps put (transactionSetControlKey, zeroPad(setnum toString, 4))
+              setProps put (transactionSetControlKey, zeroPad(numprov.nextSet toString, 4))
               if (transdata containsKey (transactionImplConventionRef)) setProps put (implementationConventionKey,
                 transdata get (transactionImplConventionRef))
               openSet(ident, setProps)
               writeTransaction(transdata, schema transactions (ident))
               closeSet(setProps)
-              setnum += 1
             })
             closeGroup(groupProps)
-            groupnum += 1
           }
         }
         term(interProps)

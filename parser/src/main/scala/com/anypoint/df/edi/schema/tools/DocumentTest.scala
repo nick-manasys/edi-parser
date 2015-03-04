@@ -12,10 +12,34 @@ import com.anypoint.df.edi.lexical.X12Constants._
 import java.io.InputStream
 import com.anypoint.df.edi.schema.X12SchemaValues
 
+class DefaultNumberProvider extends NumberProvider {
+  var interNum = 0
+  var groupNum = 0
+  var setNum = 0
+  def nextInterchange = {
+    interNum += 1
+    interNum
+  }
+  def nextGroup = {
+    groupNum += 1
+    groupNum
+  }
+  def nextSet = {
+    setNum += 1
+    setNum
+  }
+}
+
+class DefaultNumberValidator extends NumberValidator {
+  def validateInterchange(num: Int) = true
+  def validateGroup(num: Int) = true
+  def validateSet(num: String) = true
+}
+
 case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12SchemaDefs with SchemaJavaDefs {
 
   def this(sch: EdiSchema) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true, true, true,
-    true, ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation]()))
+    CharacterSet.EXTENDED, ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]()))
 
   import com.anypoint.df.edi.schema.X12Acknowledgment._
   import com.anypoint.df.edi.schema.SchemaJavaValues._
@@ -24,18 +48,10 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
   /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found.
     */
   def parse(is: InputStream): ValueMap = {
-    val parser = X12SchemaParser(is, schema, config)
+    val parser = X12SchemaParser(is, schema, new DefaultNumberValidator, config)
     parser.parse match {
       case Success(x) => x
       case Failure(e) => throw e
-    }
-  }
-  
-  class DefaultNumberProvider extends NumberProvider {
-    var number = 0
-    def nextInterchange = {
-      number += 1
-      number
     }
   }
 
@@ -58,6 +74,8 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
         tran put (transactionInterPartnerQualId, getRequiredString(RECEIVER_ID_QUALIFIER, inter))
         tran put (transactionInterPartnerId, getRequiredString(RECEIVER_ID, inter))
         tran put (transactionGroupPartnerId, getRequiredString(applicationReceiversKey, group))
+        tran put (transactionGroupAgencyCode, getRequiredString(responsibleAgencyKey, group))
+        tran put (transactionGroupVersionCode, getRequiredString(versionIdentifierKey, group))
       }))
     writer.write(map).get
     os.toString
@@ -85,6 +103,8 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
       ackmap put (transactionInterPartnerQualId, interchange.get(RECEIVER_ID_QUALIFIER))
       ackmap put (transactionInterPartnerId, interchange.get(SENDER_ID_QUALIFIER))
       ackmap put (transactionGroupPartnerId, group.get(applicationSendersKey))
+      ackmap put (transactionGroupAgencyCode, group.get(responsibleAgencyKey))
+      ackmap put (transactionGroupVersionCode, group.get(versionIdentifierKey))
       if (set != null) {
         val implConv = set get (implementationConventionKey)
         if (implConv != null) ackmap put (transactionImplConventionRef, implConv)
