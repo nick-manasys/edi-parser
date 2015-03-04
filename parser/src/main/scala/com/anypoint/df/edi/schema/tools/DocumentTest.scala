@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.InputStreamReader
+import scala.collection.mutable.Set
 import scala.util.Failure
 import scala.util.Success
 import com.anypoint.df.edi.schema._
@@ -31,9 +32,17 @@ class DefaultNumberProvider extends NumberProvider {
 }
 
 class DefaultNumberValidator extends NumberValidator {
-  def validateInterchange(num: Int) = true
-  def validateGroup(num: Int) = true
-  def validateSet(num: String) = true
+  var groupNums = Set[Int]()
+  var setNums = Set[String]()
+  def validateInterchange(num: Int) = {
+    groupNums = Set[Int]()
+    true
+  }
+  def validateGroup(num: Int) = {
+    setNums = Set[String]()
+    groupNums.add(num)
+  }
+  def validateSet(num: String) = setNums.add(num)
 }
 
 case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12SchemaDefs with SchemaJavaDefs {
@@ -64,7 +73,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     val config = X12WriterConfig(CharacterSet.BASIC, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map))
     val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider, config)
     val transacts = getRequiredValueMap(transactionsMap, map)
-    foreachListInMap(transacts, (translist: MapList) => 
+    foreachListInMap(transacts, (translist: MapList) =>
       foreachMapInList(translist, (tran: ValueMap) => {
         val group = getRequiredValueMap(transactionGroup, tran)
         val inter = getRequiredValueMap(groupInterchange, group)

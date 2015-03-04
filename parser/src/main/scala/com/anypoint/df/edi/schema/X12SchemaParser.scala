@@ -216,10 +216,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
       logger.info(s"error(s) found in parsing segment")
       val ak3 = new ValueMapImpl
       val ak3data = new ValueMapImpl
-      ak3data put (segAK3 components(0) key, segment.ident)
-      ak3data put (segAK3 components(1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
-      group.foreach(gcomp => ak3data put (segAK3 components(2) key, gcomp ident))
-      ak3data put (segAK3 components(3) key, DataErrorsSegment.code.toString)
+      ak3data put (segAK3 components (0) key, segment.ident)
+      ak3data put (segAK3 components (1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
+      group.foreach(gcomp => ak3data put (segAK3 components (2) key, gcomp ident))
+      ak3data put (segAK3 components (3) key, DataErrorsSegment.code.toString)
       ak3 put (segAK3.name, ak3data)
       ak3 put (segAK4 ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
       segmentErrors += ak3
@@ -237,10 +237,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
         val ak3 = new ValueMapImpl
         val ak3data = new ValueMapImpl
         ak3 put (segAK3.name, ak3data)
-        ak3data put (segAK3 components(0) key, ident)
-        ak3data put (segAK3 components(1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
-        group.foreach(ident => ak3data put (segAK3 components(2) key, ident))
-        ak3data put (segAK3 components(3) key, error.code.toString)
+        ak3data put (segAK3 components (0) key, ident)
+        ak3data put (segAK3 components (1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
+        group.foreach(ident => ak3data put (segAK3 components (2) key, ident))
+        ak3data put (segAK3 components (3) key, error.code.toString)
         segmentErrors += ak3
       }
       logErrorInTransaction(fatal, false, s"${error.text}: $ident")
@@ -371,7 +371,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
         val ak2data = new ValueMapImpl
         setack put (segAK2 name, ak2data)
         ak2data put (segAK2.components(0) key, setprops get (transactionSetIdentifierKey))
-        ak2data put (segAK2.components(1) key, setprops get (transactionSetControlKey))
+        ak2data put (segAK2.components(1) key, transactionNumber)
         if (schema.version == "005010" && setprops.containsKey(implementationConventionKey)) {
           ak2data put (segAK2.components(2) key, setprops get (implementationConventionKey))
         }
@@ -379,19 +379,21 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
         setack put (segAK5 name, ak5data)
         rejectTransaction = false
         var data: ValueMap = null
-        schema.transactions(setid) match {
-          case t: Transaction =>
-            if (t.group == groupCode) {
-              data = parseTransaction(t)
-              data put (transactionGroup, group)
-              data put (transactionSet, setprops)
-              if (segmentErrors.nonEmpty) {
-                val ak3s = JavaConversions.bufferAsJavaList(segmentErrors)
-                setack put (segAK3 ident, ak3s)
-              }
-            } else transactionError(SetNotInGroup)
-          case _ => transactionError(NotSupportedTransaction)
-        }
+        if (numval.validateSet(transactionNumber)) {
+          schema.transactions(setid) match {
+            case t: Transaction =>
+              if (t.group == groupCode) {
+                data = parseTransaction(t)
+                data put (transactionGroup, group)
+                data put (transactionSet, setprops)
+                if (segmentErrors.nonEmpty) {
+                  val ak3s = JavaConversions.bufferAsJavaList(segmentErrors)
+                  setack put (segAK3 ident, ak3s)
+                }
+              } else transactionError(SetNotInGroup)
+            case _ => transactionError(NotSupportedTransaction)
+          }
+        } else transactionError(BadTransactionSetControl)
         while (lexer.currentType != END && !isEnvelopeSegment(lexer.token)) {
           logger.error(s"discarding $positionInTransaction (${lexer.token}) found when looking for transaction set end")
           discardSegment
@@ -478,7 +480,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
       ackroot put (transactionInterPartnerId, getRequiredValue(SENDER_ID, interchange))
       ackroot
     }
-    
+
     def validateVersion(agency: String, version: String) =
       if (config.versionIds.length != 0) {
         config.versionIds.exists { _ == version }
@@ -520,13 +522,15 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
           ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
           ak1data put (segAK1.components(1) key, group get (groupControlKey))
           if (schema.version == "005010") ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
-          val code = getAs(functionalIdentifierKey, "", group)
-          if (functionalGroups.contains(code)) {
-            val agency = getRequiredString(responsibleAgencyKey, group)
-            val version = getRequiredString(versionIdentifierKey, group)
-            if (validateVersion(agency, version)) parseGroup(interchange, group, code, ackhead, transLists)
-            else skipGroup(NotSupportedGroupVersion)
-          } else skipGroup(NotSupportedGroup)
+          if (numval.validateGroup(groupNumber)) {
+            val code = getAs(functionalIdentifierKey, "", group)
+            if (functionalGroups.contains(code)) {
+              val agency = getRequiredString(responsibleAgencyKey, group)
+              val version = getRequiredString(versionIdentifierKey, group)
+              if (validateVersion(agency, version)) parseGroup(interchange, group, code, ackhead, transLists)
+              else skipGroup(NotSupportedGroupVersion)
+            } else skipGroup(NotSupportedGroup)
+          } else skipGroup(GroupControlNumberNotUnique)
           val countPresent = closeGroup(group)
           val ak9data = new ValueMapImpl
           val error = ackhead.containsKey(segAK2 ident)
@@ -587,9 +591,15 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
           })
           interchangeStartSegment = lexer.getSegmentNumber - 1
           interchangeNumber = getRequiredInt(INTER_CONTROL, interchange)
-          parseInterchange(interchange) match {
-            case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError, interchange)
-            case note => buildTA1(AcknowledgedWithErrors, note, interchange)
+          if (numval.validateInterchange(interchangeNumber)) {
+            parseInterchange(interchange) match {
+              case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError, interchange)
+              case note => buildTA1(AcknowledgedWithErrors, note, interchange)
+            }
+          } else {
+            val text = s"Duplicate interchange control number $interchangeNumber in $InterchangeStartSegment at ${lexer.getSegmentNumber}"
+            logger error text
+            throw InterchangeException(InterchangeDuplicateNumber, text)
           }
         }
       } catch {
