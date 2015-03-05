@@ -70,7 +70,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     */
   def printDoc(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterSet.BASIC, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map))
+    val config = X12WriterConfig(CharacterSet.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
     val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider, config)
     val transacts = getRequiredValueMap(transactionsMap, map)
     foreachListInMap(transacts, (translist: MapList) =>
@@ -95,7 +95,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     */
   def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterSet.BASIC, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map))
+    val config = X12WriterConfig(CharacterSet.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
     val writer = X12SchemaWriter(os, schema, new DefaultNumberProvider, config)
     val outmap = new ValueMapImpl(map)
     val transactions = new ValueMapImpl

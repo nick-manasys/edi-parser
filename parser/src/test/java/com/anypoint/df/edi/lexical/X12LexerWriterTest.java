@@ -7,7 +7,6 @@ import static org.junit.Assert.assertEquals;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,13 +28,11 @@ public class X12LexerWriterTest
     public void roundTripEnvelope() throws Exception {
         InputStream in = new ByteArrayInputStream(ENVELOPE.getBytes("UTF-8"));
         X12Lexer lexer = new X12Lexer(in, ASCII_CHARSET, -1, CharacterSet.EXTENDED);
-        Map<String, Object> dflts = Collections.EMPTY_MAP;
         Map<String, Object> props = new HashMap<>();
         lexer.init(props);
         lexer.term(props);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        X12Writer writer = new X12Writer();
-        writer.configureX12(os, ASCII_CHARSET, '*', '>', -1, '~');
+        X12Writer writer = new X12Writer(os, ASCII_CHARSET, '*', '>', -1, '~', null, -1, CharacterSet.BASIC);
         writer.init(props);
         writer.term(props);
         writer.close();

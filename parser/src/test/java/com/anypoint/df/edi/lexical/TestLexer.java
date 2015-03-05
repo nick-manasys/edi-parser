@@ -21,7 +21,11 @@ public class TestLexer extends LexerBase
      * @param is input
      */
     public TestLexer(InputStream is) {
-        super(is, '*', '\\', '^', '~', -1, -1, null);
+        super(is, -1, -1, null);
+        dataSeparator = '*';
+        componentSeparator = '\\';
+        repetitionSeparator = '^';
+        segmentTerminator = '~';
     }
     
     /**

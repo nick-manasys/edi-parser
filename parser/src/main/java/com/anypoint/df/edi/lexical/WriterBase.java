@@ -36,58 +36,103 @@ public abstract class WriterBase
     private static final int MILLIS_PER_HOUR = MILLIS_PER_MINUTE * 60;
     
     /** Destination stream for document data. */
-    protected OutputStream stream;
+    protected final OutputStream stream;
     
     /** Writer wrapping document data stream. */
-    protected Writer writer;
+    protected final Writer writer;
+    
+    /** Substitution character for invalid character in string (-1 if unused). */
+    private final int substitutionChar;
+    
+    /** Allowed character set for string data (<code>null</code> if unrestricted). */
+    private final boolean[] allowedChars;
     
     /** Sub-element delimiter. */
-    protected char subElement;
+    private final char subElement;
     
     /** Data element delimiter. */
-    protected char dataSeparator;
+    private final char dataSeparator;
     
     /** Repeated component delimiter (-1 if unused). */
-    protected int repetitionSeparator;
+    protected final int repetitionSeparator;
     
     /** Release character (-1 if unused). */
-    protected int releaseIndicator;
+    private final int releaseIndicator;
 
     /** Segment terminator. */
-    protected char segmentTerminator;
+    private final char segmentTerminator;
+    
+    /** Separator between segments (following segment terminator; <code>null</code> if none). */
+    private final String segmentSeparator;
+    
+    /** Flag for positioned at segment start. */
+    private boolean segmentStart;
     
     /** Number of segments written. */
-    protected int segmentCount;
+    private int segmentCount;
     
     /** Number of groups in interchange. */
     protected int groupCount;
     
     /** Number of skipped data elements. */
-    protected int skippedElementCount;
+    private int skippedElementCount;
     
     /** Number of skipped sub-elements. */
-    protected int skippedSubCount;
+    private int skippedSubCount;
     
     /**
-     * Configure writer for use.
+     * Constructor.
      *
      * @param os output
      * @param encoding character set encoding
      * @param datasep data separator character
      * @param subsep sub-element separator character
-     * @param repsep repetition separator character
+     * @param repsep repetition separator character (-1 if unused)
      * @param segterm segment terminator character
+     * @param segsep inter-segment separator (following segment terminator; <code>null</code> if none)
      * @param release release character
+     * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param chars allowed character set flags for string data (<code>null</code> if unrestricted)
      */
-    protected void configure(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
-        int release) {
+    protected WriterBase(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
+        String segsep, int release, int subst, boolean[] chars) {
         stream = os;
         dataSeparator = datasep;
         subElement = subsep;
         repetitionSeparator = repsep;
         segmentTerminator = segterm;
+        segmentSeparator = segsep;
         releaseIndicator = release;
+        substitutionChar = subst;
+        boolean[] allowed;
+        if (chars == null) {
+            int limit = Math.max(datasep, Math.max(subsep, Math.max(repsep, Math.max(segterm, release))));
+            allowed = new boolean[limit];
+            for (int i = 0; i < limit; i++) {
+                allowed[i] = true;
+            }
+        } else {
+            allowed = new boolean[chars.length];
+            System.arraycopy(chars, 0, allowed, 0, chars.length);
+        }
+        clearFlag(datasep, allowed);
+        clearFlag(subsep, allowed);
+        clearFlag(repsep, allowed);
+        clearFlag(segterm, allowed);
+        allowedChars = allowed;
         writer = new OutputStreamWriter(new BufferedOutputStream(os), encoding);
+    }
+    
+    /**
+     * Clear flag for character in array, if in range.
+     *
+     * @param chr
+     * @param flags
+     */
+    private void clearFlag(int chr, boolean[] flags) {
+        if (chr >= 0 && chr < flags.length) {
+            flags[chr] = false;
+        }
     }
     
     /**
@@ -149,12 +194,25 @@ public abstract class WriterBase
     public abstract void term(Map<String,Object> props) throws IOException;
     
     /**
+     * Check for start of segment, and write segment separator if so.
+     *
+     * @throws IOException
+     */
+    private void checkSegmentStart() throws IOException {
+        if (segmentStart && segmentSeparator != null) {
+            writer.write(segmentSeparator);
+        }
+        segmentStart = false;
+    }
+
+    /**
      * Write data separator(s). If any data values have been skipped this also writes out the separators for those
      * values.
      *
      * @throws IOException
      */
     public void writeDataSeparator() throws IOException {
+        checkSegmentStart();
         writer.write(dataSeparator);
         for (int i = 0; i < skippedElementCount; i++) {
             writer.write(dataSeparator);
@@ -171,6 +229,7 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeSubDelimiter() throws IOException {
+        checkSegmentStart();
         writer.write(subElement);
         for (int i = 0; i < skippedSubCount; i++) {
             writer.write(subElement);
@@ -188,6 +247,7 @@ public abstract class WriterBase
         skippedElementCount = 0;
         skippedSubCount = 0;
         segmentCount++;
+        segmentStart = true;
     }
     
     /**
@@ -196,6 +256,7 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeRepetitionSeparator() throws IOException {
+        checkSegmentStart();
         writer.write(repetitionSeparator);
     }
     
@@ -206,9 +267,10 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeToken(String text) throws IOException {
+        checkSegmentStart();
         writer.write(text);
     }
-    
+
     /**
      * Write text with space characters appended to minimum length. If the text is longer than the maximum length this
      * throws an exception.
@@ -260,11 +322,23 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeAlphaNumeric(String text, int minl, int maxl) throws IOException {
+        for (int i = 0; i < text.length(); i++) {
+            char chr = text.charAt(i);
+            if (chr > allowedChars.length || !allowedChars[chr]) {
+                if (substitutionChar >= 0) {
+                    text = text.replace(chr, (char)substitutionChar);
+                } else {
+                    throw new WriteException("character '" + chr + "' not allowed in string");
+                }
+            }
+        }
         writePadded(text, minl, maxl);
     }
     
     /**
-     * Write text as an id value.
+     * Write text as an id value. This format allows a single space to be added at the end of the value, which must
+     * otherwise consist only of alphas and digits. If any lowercase alphas are present they are silently converted to
+     * uppercase.
      *
      * @param text
      * @param minl minimum length
@@ -273,14 +347,19 @@ public abstract class WriterBase
      */
     public void writeId(String text, int minl, int maxl) throws IOException {
         int length = text.length();
-        if (length < minl || length > maxl) {
+        if (length < (minl - 1) || length > maxl) {
             throw new WriteException("length outside of allowed range");
         }
         for (int i = 0; i < length; i++) {
             char chr = text.charAt(i);
-            if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9')) {
-                throw new WriteException("id value type characters must be alphas or digits");
+            if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9') && (chr != ' ' || i < length - 1)) {
+                throw new WriteException("character '" + chr + "' not allowed in id");
+            } else if (Character.isLowerCase(chr)) {
+                text = text.toUpperCase();
             }
+        }
+        if (length == minl - 1) {
+            text = text + " ";
         }
         writeToken(text);
     }

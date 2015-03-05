@@ -9,8 +9,6 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.anypoint.df.edi.lexical.X12Lexer.InterchangeStartStatus;
-
 import static com.anypoint.df.edi.lexical.EdiConstants.*;
 import static com.anypoint.df.edi.lexical.EdiFactConstants.*;
 
@@ -51,6 +49,11 @@ public class EdiFactLexer extends LexerBase
         }
     }
     
+    private final char defaultDatasep;
+    private final char defaultSubsep;
+    private final char defaultRepsep;
+    private final char defaultSegterm;
+    
     /**
      * Constructor.
      *
@@ -63,7 +66,11 @@ public class EdiFactLexer extends LexerBase
      * @param subst substitution character for invalid character in string (-1 if unused)
      */
     public EdiFactLexer(InputStream is, char datasep, char subsep, char repsep, char segterm, int release, int subst) {
-        super(is, datasep, subsep, repsep, segterm, release, subst, null);
+        super(is, release, subst, null);
+        defaultDatasep = datasep;
+        defaultSubsep = subsep;
+        defaultRepsep = repsep;
+        defaultSegterm = segterm;
     }
     
     /**

@@ -16,4 +16,14 @@ public class WriteException extends IOException
     public WriteException(String msg) {
         super(msg);
     }
+    
+    /**
+     * Constructor.
+     *
+     * @param msg
+     * @param t
+     */
+    public WriteException(String msg, Throwable t) {
+        super(msg, t);
+    }
 }

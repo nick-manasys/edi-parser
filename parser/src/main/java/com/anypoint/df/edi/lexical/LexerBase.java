@@ -9,7 +9,6 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -91,21 +90,11 @@ public abstract class LexerBase
      * Constructor.
      *
      * @param is input
-     * @param datasep default data separator character
-     * @param subsep default sub-element separator character
-     * @param repsep default repetition separator character (-1 if none)
-     * @param segterm default segment terminator character
-     * @param release default release character (-1 if none)
      * @param subst substitution character for invalid character in string (-1 if unused)
      * @param chars allowed character set flags for string data (<code>null</code> if unrestricted)
      */
-    public LexerBase(InputStream is, char datasep, char subsep, int repsep, char segterm, int release, int subst,
-        boolean[] chars) {
+    public LexerBase(InputStream is, int release, int subst, boolean[] chars) {
         stream = is;
-        dataSeparator = datasep;
-        componentSeparator = subsep;
-        repetitionSeparator = repsep;
-        segmentTerminator = segterm;
         releaseIndicator = release;
         substitutionChar = subst;
         allowedChars = chars;

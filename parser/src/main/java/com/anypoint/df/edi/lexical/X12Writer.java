@@ -21,23 +21,29 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Map;
 
+import com.anypoint.df.edi.lexical.X12Constants.CharacterSet;
+
 /**
  * Writer variation for X12.
  */
 public class X12Writer extends WriterBase
 {
     /**
-     * Configure writer for use.
+     * Constructor.
      *
-     * @param os
-     * @param encoding
-     * @param datasep
-     * @param subsep
-     * @param repsep
-     * @param segterm
+     * @param os output
+     * @param encoding character set encoding
+     * @param datasep data separator character
+     * @param subsep sub-element separator character
+     * @param repsep repetition separator character (-1 if unused)
+     * @param segterm segment terminator character
+     * @param segsep inter-segment separator (following segment terminator; <code>null</code> if none)
+     * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param chset character set selection
      */
-    public void configureX12(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm) {
-        configure(os, encoding, datasep, subsep, repsep, segterm, -1);
+    public X12Writer(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
+        String segsep, int subst, CharacterSet chset) {
+        super(os, encoding, datasep, subsep, repsep, segterm, segsep, -1, subst, chset.flags());
     }
     
     /**

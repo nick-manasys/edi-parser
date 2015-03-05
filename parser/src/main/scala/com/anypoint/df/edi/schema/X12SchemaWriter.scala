@@ -13,7 +13,8 @@ import com.anypoint.df.edi.lexical.X12Writer
 
 /** Configuration parameters for X12 schema writer.
   */
-case class X12WriterConfig(val stringChars: CharacterSet, val subChar: Int, val charSet: Charset, val delims: String) {
+case class X12WriterConfig(val stringChars: CharacterSet, val subChar: Int, val charSet: Charset, val delims: String,
+  val suffix: String) {
   if (delims.size < 4 || delims.size > 5) throw new IllegalArgumentException("delimiter string must be 4 or 5 characters")
   val repsep = if (delims(2) == 'U') -1 else delims(2)
 }
@@ -21,7 +22,9 @@ case class X12WriterConfig(val stringChars: CharacterSet, val subChar: Int, val 
 /** Writer for X12 EDI documents.
   */
 case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: NumberProvider, config: X12WriterConfig)
-  extends SchemaWriter(new X12Writer, sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
+  extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
+      config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars),
+      sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   import EdiSchema._
   import SchemaJavaValues._
@@ -35,12 +38,20 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: NumberProv
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
+  
+  def logAndThrow(text: String, cause: Option[Throwable]) = {
+    logger error text
+    cause match {
+      case Some(e) => throw new WriteException(text, e)
+      case _ => throw new WriteException(text)
+    }
+  }
 
   /** Configure lexical-level writer. */
-  def configureLexical = {
-    writer.asInstanceOf[X12Writer].configureX12(out, config.charSet, config.delims(0), config.delims(1),
-      config.repsep, config.delims(3))
-  }
+//  def configureLexical = {
+//    writer.asInstanceOf[X12Writer].configureX12(out, config.charSet, config.delims(0), config.delims(1),
+//      config.repsep, config.delims(3))
+//  }
 
   /** Output interchange trailer segment(s) and finish with stream. */
   def term(props: ValueMap) = {
@@ -95,7 +106,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: NumberProv
         getRequiredString(transactionInterPartnerQualId, transet.data),
         getRequiredString(transactionInterPartnerId, transet.data))
     } catch {
-      case e: IllegalArgumentException => throw new WriteException(s"$transet ${e.getMessage}")
+      case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
     }
     val scalaTrans = JavaConversions.mapAsScalaMap(transMap)
     val result = scalaTrans.flatMap {
@@ -112,7 +123,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: NumberProv
             val versionid = getRequiredString(transactionGroupVersionCode, transdata)
             TransactionSet(transnum, i, selfid, partnerid, agencyCode, versionid, transdata)
           } catch {
-            case e: IllegalArgumentException => throw new WriteException(s"transaction $transnum at index $i ${e.getMessage}")
+            case e: IllegalArgumentException => logAndThrow(s"transaction $transnum at index $i ${e.getMessage}", None)
           }
         }
         sequence.iterator.toList.groupBy(tupleKey(_))
@@ -123,18 +134,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: NumberProv
 
   /** Write the output message. */
   def write(map: ValueMap) = Try({
-    configureLexical
-    val transMap = getRequiredValueMap(transactionsMap, map)
-    //    val transactions = JavaConversions.mapAsScalaMap(transMap).values.flatMap(value =>
-    //      JavaConversions.iterableAsScalaIterable(value.asInstanceOf[MapList]))
-    //    val part1 = transactions.groupBy(transdata => (
-    //      getRequiredString(transactionInterSelfQualId, transdata),
-    //      getRequiredString(transactionInterSelfId, transdata),
-    //      getRequiredString(transactionInterPartnerQualId, transdata),
-    //      getRequiredString(transactionInterPartnerId, transdata)))
-    //    val part2 = part1.toSeq
-    //    val interchanges = part2.sortBy(_._1)
-    val interchanges = transactionInterchanges(transMap)
+    val interchanges = transactionInterchanges(getRequiredValueMap(transactionsMap, map))
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
     interchanges foreach {
       case ((selfQual, selfId, partnerQual, partnerId), interlist) => {
@@ -158,24 +158,24 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: NumberProv
             groupProps put (groupControlKey, Integer valueOf (numprov.nextGroup))
             groupProps put (responsibleAgencyKey, agency)
             groupProps put (versionIdentifierKey, version)
-            // TODO: get these from the schema
-//            groupProps put (responsibleAgencyKey, "X")
-//            groupProps put (versionIdentifierKey, schema.version)
             openGroup(groupCode, groupProps)
             writer.countGroup
-            grouplist foreach (transet => {
+            grouplist foreach (transet => try {
               @tailrec
               def zeroPad(text: String, length: Int): String =
                 if (text.length < length) zeroPad("0" + text, length) else text
               val transdata = transet.data
-              val ident = getRequiredString(transactionId, transdata)
               val setProps = new ValueMapImpl
               setProps put (transactionSetControlKey, zeroPad(numprov.nextSet toString, 4))
               if (transdata containsKey (transactionImplConventionRef)) setProps put (implementationConventionKey,
                 transdata get (transactionImplConventionRef))
-              openSet(ident, setProps)
-              writeTransaction(transdata, schema transactions (ident))
+              openSet(transet ident, setProps)
+              writeTransaction(transdata, schema transactions (transet ident))
               closeSet(setProps)
+            } catch {
+              case e @ (_ : IllegalArgumentException | _ : WriteException) => {
+                logAndThrow(s"transaction ${transet ident} at index ${transet index} ${e.getMessage}", Some(e))
+              }
             })
             closeGroup(groupProps)
           }

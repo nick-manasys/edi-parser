@@ -7,6 +7,8 @@ import java.util.Calendar
 import scala.collection.JavaConversions
 import scala.util.Try
 
+import org.apache.log4j.Logger
+
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
@@ -19,6 +21,8 @@ import com.anypoint.df.edi.schema.EdiSchema._
 abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) extends SchemaJavaDefs {
 
   import SchemaJavaValues._
+
+  val logger = Logger.getLogger(getClass.getName)
 
   /** Write a segment from a map of values. */
   protected def writeSegment(map: ValueMap, segment: Segment): Unit = {
@@ -89,7 +93,12 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     }
 
     writer.writeToken(segment.ident)
-    writeCompList(map, DATA_ELEMENT, false, segment.components)
+    try {
+        writeCompList(map, DATA_ELEMENT, false, segment.components)
+    } catch {
+        case e @ (_ : IllegalArgumentException | _ : WriteException) =>
+          throw new WriteException(s"${e.getMessage} for segment ${segment.ident}")
+    }
     writer.writeSegmentTerminator
   }
 
@@ -158,12 +167,9 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       }
     })
 
-    if (!transaction.heading.isEmpty) writeSection(
-      getRequiredValueMap(transactionHeading, map), transaction.heading)
-    if (!transaction.detail.isEmpty) writeSection(
-      getRequiredValueMap(transactionDetail, map), transaction.detail)
-    if (!transaction.summary.isEmpty) writeSection(
-      getRequiredValueMap(transactionSummary, map), transaction.summary)
+    if (!transaction.heading.isEmpty) writeSection(getRequiredValueMap(transactionHeading, map), transaction.heading)
+    if (!transaction.detail.isEmpty) writeSection(getRequiredValueMap(transactionDetail, map), transaction.detail)
+    if (!transaction.summary.isEmpty) writeSection(getRequiredValueMap(transactionSummary, map), transaction.summary)
   }
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
