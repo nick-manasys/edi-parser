@@ -204,7 +204,7 @@ public abstract class X12TestBase extends TestBase {
 		IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
 		IdentityInformation[] senders = new IdentityInformation[1];
 		senders[0] = identity;
-		X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, true, true,
+		X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true,
 		    CharacterSet.EXTENDED, EdiConstants.ASCII_CHARSET, new IdentityInformation[0], new IdentityInformation[0],
 		    new String[0]);
 

@@ -47,7 +47,7 @@ class DefaultNumberValidator extends NumberValidator {
 
 case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12SchemaDefs with SchemaJavaDefs {
 
-  def this(sch: EdiSchema) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true, true, true,
+  def this(sch: EdiSchema) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true,
     CharacterSet.EXTENDED, ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]()))
 
   import com.anypoint.df.edi.schema.X12Acknowledgment._

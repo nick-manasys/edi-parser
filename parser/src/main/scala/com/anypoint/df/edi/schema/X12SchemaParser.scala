@@ -32,8 +32,8 @@ case class IdentityInformation(interchangeQualifier: String, interchangeId: Stri
   */
 case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
   val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
-  val reportDataErrors: Boolean, val generate997: Boolean, val generateTA1: Boolean, val strChar: CharacterSet,
-  val charSet: Charset, val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation],
+  val reportDataErrors: Boolean, val strChar: CharacterSet, val charSet: Charset,
+  val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation],
   val versionIds: Array[String]) {
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
@@ -139,7 +139,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
   def describeError(fatal: Boolean) = if (fatal) "fatal" else "recoverable"
 
   def describeComponent(incomp: Boolean) =
-    if (incomp) s" for component '${currentSegment.components(lexer.getElementNumber - 1).name}'"
+    if (incomp) {
+      val index = 0 max (lexer.getElementNumber - 1)
+      s" for component '${currentSegment.components(index).name}'"
+    }
     else ""
 
   def logErrorInTransaction(fatal: Boolean, incomp: Boolean, text: String) =
@@ -549,7 +552,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
           val sedata = new ValueMapImpl
           ackhead put (segSE name, sedata)
           sedata put (segSE.components(1) key, ackId toString)
-          if (config.generate997) funcAckList add (ackroot)
+          funcAckList add (ackroot)
           ackId += 1
         } else {
           logger.error(s"discarding $positionInInterchange (${lexer.token}) found when looking for group start")

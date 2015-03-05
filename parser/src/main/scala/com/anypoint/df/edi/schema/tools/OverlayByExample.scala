@@ -141,7 +141,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val is = YamlReader.findSchema(args(0), Array())
     val schema = YamlReader.loadYaml(new InputStreamReader(is), Array())
     val examples = args.toList.tail.tail
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, true, true, CharacterSet.EXTENDED,
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, CharacterSet.EXTENDED,
       ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]())
 
     /** Strip metadata (transaction set and group links) out of transaction data to avoid excess overhead on merge. */
