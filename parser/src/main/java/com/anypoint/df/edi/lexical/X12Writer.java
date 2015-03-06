@@ -141,7 +141,7 @@ public class X12Writer extends WriterBase
         writeDataSeparator();
         writeInterchangeControlNumber(props);
         writeDataSeparator();
-        writeProperty(ACK_REQUESTED, props, "0", 1, 1);
+        writeProperty(ACK_REQUESTED, props, "1", 1, 1);
         writeProperty(TEST_INDICATOR, props, "P", 1, 1);
         writeSubDelimiter();
         writeSegmentTerminator();

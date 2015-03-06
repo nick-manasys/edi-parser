@@ -178,9 +178,3 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   /** Write the output message. */
   def write(map: ValueMap): Try[Unit]
 }
-
-trait NumberProvider {
-  def nextInterchange: Int
-  def nextGroup: Int
-  def nextSet: Int
-}

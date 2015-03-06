@@ -228,7 +228,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     examples.foreach (path => {
       println(s"merging $path")
       val is = YamlReader.findSchema(path, Array())
-      val parser = X12SchemaParser(is, schema, new DefaultNumberValidator, config)
+      val parser = X12SchemaParser(is, schema, new DefaultX12NumberValidator, config)
       parser.parse match {
         case Success(x) => {
           val transacts = x.get(transactionsMap).asInstanceOf[ValueMap]

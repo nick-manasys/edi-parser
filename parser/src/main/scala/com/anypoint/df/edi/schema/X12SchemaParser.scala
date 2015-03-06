@@ -38,10 +38,17 @@ case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val c
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
 
+trait X12NumberValidator {
+  def interchangIdentifier(senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
+  def validateInterchange(num: Int, interchange: String): Boolean
+  def validateGroup(num: Int, interchange: String, senderCode: String, receiverCode: String): Boolean
+  def validateSet(number: String, interchange: String, senderCode: String, receiverCode: String): Boolean
+}
+
 case class InterchangeException(note: InterchangeNoteCode, text: String) extends LexicalException(text)
 
 /** Parser for X12 EDI documents. */
-case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidator, config: X12ParserConfig)
+case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberValidator, config: X12ParserConfig)
   extends SchemaParser(new X12Lexer(in, config charSet, -1, config.strChar),
     sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
@@ -142,8 +149,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
     if (incomp) {
       val index = 0 max (lexer.getElementNumber - 1)
       s" for component '${currentSegment.components(index).name}'"
-    }
-    else ""
+    } else ""
 
   def logErrorInTransaction(fatal: Boolean, incomp: Boolean, text: String) =
     logger.error(s"${describeError(fatal)} transaction error '$text'${describeComponent(incomp)} at $positionInTransaction")
@@ -364,7 +370,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
 
   /** Parse transactions in group. */
   def parseGroup(interchange: ValueMap, group: ValueMap, groupCode: String, ackhead: ValueMap,
-    transLists: java.util.Map[String, MapList]) = {
+    transLists: java.util.Map[String, MapList], providerId: String, groupSender: String, groupReceiver: String) = {
     val setacks = new MapListImpl
     while (lexer.currentType != END && !isGroupEnvelope && !isInterchangeEnvelope) {
       if (isSetOpen) {
@@ -382,7 +388,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
         setack put (segAK5 name, ak5data)
         rejectTransaction = false
         var data: ValueMap = null
-        if (numval.validateSet(transactionNumber)) {
+        if (numval.validateSet(transactionNumber, providerId, groupSender, groupReceiver)) {
           schema.transactions(setid) match {
             case t: Transaction =>
               if (t.group == groupCode) {
@@ -489,7 +495,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
         config.versionIds.exists { _ == version }
       } else agency != "X" || version.startsWith(schema version)
 
-    def parseInterchange(interchange: ValueMap): InterchangeNoteCode = {
+    def parseInterchange(interchange: ValueMap, providerId: String): InterchangeNoteCode = {
       lexer.setHandler(X12ErrorHandler)
       val senders = matchIdentity(getRequiredString(SENDER_ID_QUALIFIER, interchange),
         getRequiredString(SENDER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.senderIds)
@@ -525,13 +531,16 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
           ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
           ak1data put (segAK1.components(1) key, group get (groupControlKey))
           if (schema.version == "005010") ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
-          if (numval.validateGroup(groupNumber)) {
+          val groupSender = getRequiredString(applicationSendersKey, group)
+          val groupReceiver = getRequiredString(applicationReceiversKey, group)
+          if (numval.validateGroup(groupNumber, groupSender, groupReceiver, providerId)) {
             val code = getAs(functionalIdentifierKey, "", group)
             if (functionalGroups.contains(code)) {
               val agency = getRequiredString(responsibleAgencyKey, group)
               val version = getRequiredString(versionIdentifierKey, group)
-              if (validateVersion(agency, version)) parseGroup(interchange, group, code, ackhead, transLists)
-              else skipGroup(NotSupportedGroupVersion)
+              if (validateVersion(agency, version)) {
+                parseGroup(interchange, group, code, ackhead, transLists, providerId, groupSender, groupReceiver)
+              } else skipGroup(NotSupportedGroupVersion)
             } else skipGroup(NotSupportedGroup)
           } else skipGroup(GroupControlNumberNotUnique)
           val countPresent = closeGroup(group)
@@ -594,8 +603,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: NumberValidat
           })
           interchangeStartSegment = lexer.getSegmentNumber - 1
           interchangeNumber = getRequiredInt(INTER_CONTROL, interchange)
-          if (numval.validateInterchange(interchangeNumber)) {
-            parseInterchange(interchange) match {
+          val providerId = numval.interchangIdentifier(getRequiredString(SENDER_ID_QUALIFIER, interchange),
+            getRequiredString(SENDER_ID, interchange), getRequiredString(RECEIVER_ID_QUALIFIER, interchange),
+            getRequiredString(RECEIVER_ID, interchange))
+          if (numval.validateInterchange(interchangeNumber, providerId)) {
+            parseInterchange(interchange, providerId) match {
               case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError, interchange)
               case note => buildTA1(AcknowledgedWithErrors, note, interchange)
             }

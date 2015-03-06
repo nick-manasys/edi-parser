@@ -103,4 +103,5 @@ object SchemaJavaValues {
   val transactionInterPartnerId = "InterIdPartner"
   val transactionGroupPartnerId = "GroupIdPartner"
   val transactionImplConventionRef = "ImplConventionRef"
+  val transactionInterchangeUsage = "InterchangeUsage"
 }

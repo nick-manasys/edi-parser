@@ -348,9 +348,3 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   /** Parse the input message. */
   def parse: Try[ValueMap]
 }
-
-trait NumberValidator {
-  def validateInterchange(num: Int): Boolean
-  def validateGroup(num: Int): Boolean
-  def validateSet(num: String): Boolean
-}

@@ -15,7 +15,7 @@ import java.io.FileInputStream
 import java.io.File
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.X12Lexer.InterchangeStartStatus._
-import com.anypoint.df.edi.schema.tools.{ DefaultNumberProvider, DefaultNumberValidator }
+import com.anypoint.df.edi.schema.tools.{ DefaultX12NumberProvider, DefaultX12NumberValidator }
 
 class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs with X12SchemaDefs {
 
@@ -42,7 +42,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   it should "parse the ISA segment when initialized" in {
     val in = new ByteArrayInputStream(ISA.getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultNumberValidator, parserConfig)
+      new DefaultX12NumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (VALID)
     props.get(AUTHORIZATION_QUALIFIER) should be("00")
@@ -67,7 +67,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   it should "parse the envelope segments as requested" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultNumberValidator, parserConfig)
+      new DefaultX12NumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (VALID)
     val gprops = parser.openGroup
@@ -92,7 +92,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   it should "throw an exception when positioned at wrong segment" in {
     val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
     val parser = X12SchemaParser(in, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultNumberValidator, parserConfig)
+      new DefaultX12NumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (VALID)
     intercept[IllegalStateException] { parser.openSet }
@@ -104,7 +104,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-    val parser = X12SchemaParser(messageIn, schema, new DefaultNumberValidator, parserConfig)
+    val parser = X12SchemaParser(messageIn, schema, new DefaultX12NumberValidator, parserConfig)
     val result = parser.parse
     result.isInstanceOf[Success[ValueMap]] should be (true)
     val map = result.get
@@ -116,7 +116,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val out = new ByteArrayOutputStream
     val config = X12WriterConfig(CharacterSet.BASIC, -1, ASCII_CHARSET, "*>U~", null)
     val writer = X12SchemaWriter(out, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultNumberProvider, config)
+      new DefaultX12NumberProvider, config)
     val props = new ValueMapImpl
     props.put(AUTHORIZATION_QUALIFIER, "00")
     props.put(AUTHORIZATION_INFO, "ABC")
@@ -146,12 +146,12 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-    val parser = X12SchemaParser(messageIn, schema, new DefaultNumberValidator, parserConfig)
+    val parser = X12SchemaParser(messageIn, schema, new DefaultX12NumberValidator, parserConfig)
     val parseResult = parser.parse
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
     val out = new ByteArrayOutputStream
     val config = X12WriterConfig(CharacterSet.BASIC, -1, ASCII_CHARSET, "*>U~", null)
-    val writer = X12SchemaWriter(out, schema, new DefaultNumberProvider, config)
+    val writer = X12SchemaWriter(out, schema, new DefaultX12NumberProvider, config)
     val props = parseResult.get
     writer.write(props)
     val text = new String(out.toByteArray)
