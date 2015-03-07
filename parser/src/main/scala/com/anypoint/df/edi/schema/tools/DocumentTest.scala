@@ -139,7 +139,7 @@ object DocumentTest {
     */
   def main(args: Array[String]): Unit = {
     val schemaFile = new File(args(0))
-    val schema = YamlReader.loadYaml(new InputStreamReader(new FileInputStream(schemaFile)), Array(args(1)))
+    val schema = new YamlReader().loadYaml(new InputStreamReader(new FileInputStream(schemaFile)), Array(args(1)))
     val parse = new DocumentTest(schema)
     val examples = args.toList.tail.tail
     examples.map (path => {

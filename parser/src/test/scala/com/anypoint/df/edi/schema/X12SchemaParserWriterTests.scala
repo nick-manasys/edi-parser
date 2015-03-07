@@ -102,7 +102,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "parse a complete interchange message" in {
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
-    val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
     val parser = X12SchemaParser(messageIn, schema, new DefaultX12NumberValidator, parserConfig)
     val result = parser.parse
@@ -144,7 +144,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "roundtrip a parsed document" in {
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
-    val schema = YamlReader.loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
     val parser = X12SchemaParser(messageIn, schema, new DefaultX12NumberValidator, parserConfig)
     val parseResult = parser.parse

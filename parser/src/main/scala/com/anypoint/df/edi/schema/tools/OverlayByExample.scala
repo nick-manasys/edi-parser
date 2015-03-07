@@ -138,8 +138,9 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     */
   def main(args: Array[String]): Unit = {
 
-    val is = YamlReader.findSchema(args(0), Array())
-    val schema = YamlReader.loadYaml(new InputStreamReader(is), Array())
+    val yaml = new YamlReader()
+    val is = yaml.findSchema(args(0), Array())
+    val schema = yaml.loadYaml(new InputStreamReader(is), Array())
     val examples = args.toList.tail.tail
     val config = X12ParserConfig(true, true, true, true, true, true, true, true, CharacterSet.EXTENDED,
       ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]())
@@ -227,7 +228,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val merged = new ValueMapImpl
     examples.foreach (path => {
       println(s"merging $path")
-      val is = YamlReader.findSchema(path, Array())
+      val is = yaml.findSchema(path, Array())
       val parser = X12SchemaParser(is, schema, new DefaultX12NumberValidator, config)
       parser.parse match {
         case Success(x) => {

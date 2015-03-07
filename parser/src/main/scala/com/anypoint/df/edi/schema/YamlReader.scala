@@ -16,6 +16,7 @@ import scala.collection.mutable.Buffer
 import java.io.StringWriter
 import java.io.StringReader
 import scala.collection.immutable.AbstractMap
+import scala.collection.mutable
 import com.anypoint.df.edi.lexical.EdiConstants
 import java.io.InputStreamReader
 import java.io.FileInputStream
@@ -25,9 +26,11 @@ import java.io.InputStream
   *
   * @author MuleSoft, Inc.
   */
-object YamlReader extends YamlDefs with SchemaJavaDefs {
+class YamlReader extends YamlDefs with SchemaJavaDefs {
 
   import EdiSchema._
+  
+  val schemaCache = mutable.Map[String, EdiSchema]()
 
   /** Get child list value (error if not found). */
   def getChildList(key: String, map: ValueMap): SimpleList = map.get(key) match {
@@ -422,9 +425,16 @@ object YamlReader extends YamlDefs with SchemaJavaDefs {
       val baseSchema = if (input.containsKey(importsKey)) {
         val impsin = getChildList(importsKey, input).asInstanceOf[java.util.List[String]]
         impsin.asScala.toList.foldLeft(new EdiSchema(version))((acc, path) => {
-          val is = findSchema(path, basePaths)
-          if (is == null) throw new IllegalArgumentException(s"base schema $path not found")
-          acc.merge(loadFully(new InputStreamReader(is, "UTF-8")))
+          schemaCache.get(path) match {
+            case Some(schema) => acc.merge(schema)
+            case None => {
+                val is = findSchema(path, basePaths)
+                    if (is == null) throw new IllegalArgumentException(s"base schema $path not found")
+                val schema = loadFully(new InputStreamReader(is, "UTF-8"))
+                schemaCache += path -> schema
+                acc.merge(schema)
+            }
+          }
         })
       } else new EdiSchema(version)
       val elements =
