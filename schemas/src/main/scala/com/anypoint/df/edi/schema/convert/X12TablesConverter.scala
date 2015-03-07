@@ -304,9 +304,9 @@ object X12TablesConverter {
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
       verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
-      val binseg = segDefs.get("BIN")
+      val binsegs = segDefs.get("BIN").toList ::: segDefs.get("BDS").toList
       val transactions = defineTransactions(segDefs, setHeads, setGroups).values.filter {
-        trans => binseg.forall { seg => !trans.segmentsUsed.contains(seg) }
+        trans => binsegs.forall { seg => !trans.segmentsUsed.contains(seg) }
       }
       transactions foreach (transact => {
         val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
