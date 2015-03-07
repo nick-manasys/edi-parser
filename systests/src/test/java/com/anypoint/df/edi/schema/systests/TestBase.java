@@ -14,8 +14,9 @@ public abstract class TestBase {
     
     protected static void loadSchema(String path) {
         try {
-            InputStream is = YamlReader.findSchema(path, new String[] { "" });
-            schema = YamlReader.loadYaml(new InputStreamReader(is, "ASCII"), new String[0]);
+            YamlReader yamlrdr = new YamlReader();
+            InputStream is = yamlrdr.findSchema(path, new String[] { "" });
+            schema = yamlrdr.loadYaml(new InputStreamReader(is, "ASCII"), new String[0]);
         } catch (Exception e) {
             throw new RuntimeException("Could not load schema file " + path, e);
         }

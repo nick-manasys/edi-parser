@@ -255,9 +255,9 @@ object X12TablesConverter {
   }
 
   /** Verify schema written to file. */
-  def verifySchema(baseSchema: EdiSchema, name: String, outdir: File) = {
+  def verifySchema(baseSchema: EdiSchema, name: String, outdir: File, yamlrdr: YamlReader) = {
     val reader = new InputStreamReader(new FileInputStream(new File(outdir, name + yamlExtension)), "UTF-8")
-    val readSchema = YamlReader.loadYaml(reader, Array(outdir.getParentFile.getParentFile.getParentFile.getAbsolutePath))
+    val readSchema = yamlrdr.loadYaml(reader, Array(outdir.getParentFile.getParentFile.getParentFile.getAbsolutePath))
     //    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }
 
@@ -276,6 +276,7 @@ object X12TablesConverter {
       }
     }
     else yamldir.mkdirs
+    val yamlrdr = new YamlReader()
     x12dir.listFiles.foreach (version => {
       println(s"Processing ${version.getName}")
       val elemNames = nameMap(fileInput(version, elementHeadersName))
@@ -302,9 +303,12 @@ object X12TablesConverter {
       val outdir = new File(yamldir, version.getName)
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
-      verifySchema(baseSchema, "basedefs", outdir)
-      val transactions = defineTransactions(segDefs, setHeads, setGroups)
-      transactions.values.foreach(transact => {
+      verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
+      val binseg = segDefs.get("BIN")
+      val transactions = defineTransactions(segDefs, setHeads, setGroups).values.filter {
+        trans => binseg.forall { seg => !trans.segmentsUsed.contains(seg) }
+      }
+      transactions foreach (transact => {
         val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
           Map(transact.ident -> transact))
         writeSchema(schema, transact.ident, Array(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)

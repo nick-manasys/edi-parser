@@ -180,7 +180,7 @@ object SegmentsToCode {
     */
   def main(args: Array[String]): Unit = {
     val yamlin = new InputStreamReader(new FileInputStream(new File(args(0))), "UTF-8")
-    val schema = YamlReader.loadYaml(yamlin, Array())
+    val schema = new YamlReader().loadYaml(yamlin, Array())
     val writer = new PrintWriter(System.out)
     new SchemaDump(writer).toCode(args.toList.tail.map { ident => schema.segments(ident) })
     writer.flush
@@ -194,7 +194,7 @@ object SchemaToCode {
     */
   def main(args: Array[String]): Unit = {
     val yamlin = new InputStreamReader(new FileInputStream(new File(args(0))), "UTF-8")
-    val schema = YamlReader.loadYaml(yamlin, Array())
+    val schema = new YamlReader().loadYaml(yamlin, Array())
     val writer = new PrintWriter(System.out)
     val dumper = new SchemaDump(writer)
     schema.transactions.values.foreach(transact => dumper.toCode(transact))

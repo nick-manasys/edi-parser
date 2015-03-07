@@ -300,10 +300,10 @@ object EdiSchema {
     /** Segments used in transaction set. */
     val segmentsUsed = {
       def referencer(comps: List[TransactionComponent], segments: Set[Segment]): Set[Segment] =
-        comps.foldLeft(segments)((segs, comp) => comp match {
-          case ref: ReferenceComponent => segs + ref.segment
-          case wrap: LoopWrapperComponent => segs + wrap.open + wrap.close ++ referencer(wrap.loopGroup.items, segments)
-          case group: GroupComponent => referencer(group.items, segments)
+        comps.foldLeft(segments)((acc, comp) => comp match {
+          case ref: ReferenceComponent => acc + ref.segment
+          case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.items, acc) + wrap.open + wrap.close
+          case group: GroupComponent => referencer(group.items, acc)
         })
       referencer(summary, referencer(detail, referencer(heading, Set[Segment]())))
     }
