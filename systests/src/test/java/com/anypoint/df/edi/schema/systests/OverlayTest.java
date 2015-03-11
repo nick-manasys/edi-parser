@@ -2,12 +2,9 @@ package com.anypoint.df.edi.schema.systests;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.FileWriter;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.anypoint.df.edi.schema.YamlWriter$;
 import com.anypoint.df.edi.schema.tools.OverlayByExample$;
 
 public class OverlayTest extends X12TestBase {
@@ -18,9 +15,9 @@ public class OverlayTest extends X12TestBase {
             OverlayByExample$.MODULE$.main(new String[] { "/x12/005010/850.esl", "target/850-over.esl",
                 "/x12/005010/biztalk-interop/850x1.edi", "/x12/005010/biztalk-interop/850x2.edi" });
             loadSchema("target/850-over.esl");
-            // TODO: temporary write of modified schema to file
-            FileWriter writer = new FileWriter("overlay-schema.esl");
-            YamlWriter$.MODULE$.write(schema, new String[0], writer);
+            // uncommment to write modified schema to file
+//            FileWriter writer = new FileWriter("overlay-schema.esl");
+//            YamlWriter$.MODULE$.write(schema, new String[0], writer);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -30,8 +27,7 @@ public class OverlayTest extends X12TestBase {
     public void verifyWrite() throws Exception {
         parseAndCheckWrite("/x12/005010/biztalk-interop/850x1.edi");
         parseAndCheckWrite("/x12/005010/biztalk-interop/850x2.edi");
-        // temporarily disable until ordering can be made stable
-//        parseAndCheckWrite("/x12/005010/biztalk-interop/850-multiple.edi");
+        parseAndCheckWrite("/x12/005010/biztalk-interop/850-multiple.edi");
     }
     
     @Test

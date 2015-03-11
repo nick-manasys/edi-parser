@@ -6,6 +6,7 @@ import java.util.Calendar
 import java.util.GregorianCalendar
 import scala.annotation.tailrec
 import scala.collection.JavaConversions
+import scala.collection.immutable.TreeMap
 import scala.util.Try
 import com.anypoint.df.edi.lexical.WriteException
 import com.anypoint.df.edi.lexical.X12Constants._
@@ -31,8 +32,8 @@ trait X12NumberProvider {
   */
 case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberProvider, config: X12WriterConfig)
   extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
-      config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars),
-      sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
+    config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars),
+    sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   import EdiSchema._
   import SchemaJavaValues._
@@ -46,7 +47,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
-  
+
   def logAndThrow(text: String, cause: Option[Throwable]) = {
     logger error text
     cause match {
@@ -112,8 +113,8 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
       case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
     }
     val scalaTrans = JavaConversions.mapAsScalaMap(transMap)
-    val result = scalaTrans.flatMap {
-      case ((transnum, transets)) => {
+    val result = scalaTrans.foldLeft(TreeMap[(String, String, String, String, String), List[TransactionSet]]()) {
+      case (acc, (transnum, transets)) => {
         val transbuff = JavaConversions.asScalaBuffer(transets.asInstanceOf[MapList])
         val sequence = (0 until transbuff.size) map { i =>
           val transdata = transbuff(i)
@@ -129,10 +130,17 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
             case e: IllegalArgumentException => logAndThrow(s"transaction $transnum at index $i ${e.getMessage}", None)
           }
         }
-        sequence.iterator.toList.groupBy(tupleKey(_))
+        sequence.foldLeft(acc) ((acc, tset) => {
+          val key = tupleKey(tset)
+          val list = acc get (key) match {
+            case Some(l) => l
+            case None => Nil
+          }
+          acc + (key -> (tset :: list))
+        })
       }
     }
-    result.toList
+    result toList
   }
 
   /** Write the output message. */
@@ -142,8 +150,8 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
     interchanges foreach {
       case ((selfQual, selfId, partnerQual, partnerId, useIndicator), interlist) => {
         val interProps = new ValueMapImpl
-        val providerId = numprov interchangIdentifier(selfQual, selfId, partnerQual, partnerId)
-        interProps put (INTER_CONTROL, Integer valueOf (numprov nextInterchange(providerId)))
+        val providerId = numprov interchangIdentifier (selfQual, selfId, partnerQual, partnerId)
+        interProps put (INTER_CONTROL, Integer valueOf (numprov nextInterchange (providerId)))
         interProps put (RECEIVER_ID_QUALIFIER, partnerQual)
         interProps put (RECEIVER_ID, partnerId)
         interProps put (SENDER_ID_QUALIFIER, selfQual)
@@ -161,7 +169,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
             val groupProps = new ValueMapImpl
             groupProps put (applicationSendersKey, selfGroup)
             groupProps put (applicationReceiversKey, partnerGroup)
-            groupProps put (groupControlKey, Integer valueOf (numprov nextGroup(providerId, selfGroup, partnerGroup)))
+            groupProps put (groupControlKey, Integer valueOf (numprov nextGroup (providerId, selfGroup, partnerGroup)))
             groupProps put (responsibleAgencyKey, agency)
             groupProps put (versionIdentifierKey, version)
             openGroup(groupCode, groupProps)
@@ -172,14 +180,14 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
                 if (text.length < length) zeroPad("0" + text, length) else text
               val transdata = transet.data
               val setProps = new ValueMapImpl
-              setProps put (transactionSetControlKey, zeroPad(numprov nextSet(providerId, selfGroup, partnerGroup), 4))
+              setProps put (transactionSetControlKey, zeroPad(numprov nextSet (providerId, selfGroup, partnerGroup), 4))
               if (transdata containsKey (transactionImplConventionRef)) setProps put (implementationConventionKey,
                 transdata get (transactionImplConventionRef))
               openSet(transet ident, setProps)
               writeTransaction(transdata, schema transactions (transet ident))
               closeSet(setProps)
             } catch {
-              case e @ (_ : IllegalArgumentException | _ : WriteException) => {
+              case e @ (_: IllegalArgumentException | _: WriteException) => {
                 logAndThrow(s"transaction ${transet ident} at index ${transet index} ${e.getMessage}", Some(e))
               }
             })
