@@ -137,7 +137,7 @@ object X12TablesConverter {
 
   /** Build map from transaction ids to definitions. */
   def defineTransactions(segments: Map[String, Segment], transHeads: Map[String, (String, String)],
-    groups: ListOfKeyedLists) = {
+    groups: ListOfKeyedLists, excludeSegs: Set[Segment]) = {
 
     /** Converted form of component information from transaction details row. */
     case class ComponentInfo(segment: Segment, seq: String, usage: Usage, repeat: Int, loop: List[ComponentInfo])
@@ -208,8 +208,15 @@ object X12TablesConverter {
                 }
                 case _ => throw new IllegalStateException("Malformed LS/LE loop")
               }
-              else buildr(tail, ReferenceComponent(segment, position, usage, repeat) :: acc)
-            } else buildr(tail, GroupComponent(segment.ident, usage, repeat, descend(loop), None, Nil) :: acc)
+              else if (excludeSegs.contains(segment)) {
+                if (usage == MandatoryUsage) Nil
+                else buildr(tail, acc)
+              } else buildr(tail, ReferenceComponent(segment, position, usage, repeat) :: acc)
+            } else {
+              val comps = descend(loop)
+              if (comps.isEmpty) buildr(tail, acc)
+              else buildr(tail, GroupComponent(segment ident, usage, repeat, comps, None, Nil) :: acc)
+            }
           case _ => acc
         }
       buildr(infos, Nil)
@@ -304,9 +311,9 @@ object X12TablesConverter {
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
       verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
-      val binsegs = segDefs.get("BIN").toList ::: segDefs.get("BDS").toList
-      val transactions = defineTransactions(segDefs, setHeads, setGroups).values.filter {
-        trans => binsegs.forall { seg => !trans.segmentsUsed.contains(seg) }
+      val binSegs = segDefs.get("BIN").toSet ++ segDefs.get("BDS").toSet
+      val transactions = defineTransactions(segDefs, setHeads, setGroups, binSegs).values.filter {
+        trans => binSegs.forall { seg => !trans.segmentsUsed.contains(seg) }
       }
       transactions foreach (transact => {
         val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),

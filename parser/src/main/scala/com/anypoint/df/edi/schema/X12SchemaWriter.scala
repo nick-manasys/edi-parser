@@ -160,6 +160,11 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
         interProps put (ACK_REQUESTED, getAs(acknowledgmentRequested, "1", map))
         interProps put (TEST_INDICATOR, useIndicator)
         writer.init(interProps)
+        if (map.containsKey(interchangeAcksToSend)) {
+          val ta1list = getRequiredMapList(interchangeAcksToSend, map)
+          JavaConversions.asScalaIterator(ta1list iterator).foreach { ta1map => writeSegment(ta1map, X12Acknowledgment.segTA1) }
+          map.remove(interchangeAcksToSend)
+        }
         val groups = interlist.groupBy(transet => {
           val transdef = schema.transactions(transet.ident)
           (transet selfId, transet partnerId, transet agencyCode, transet versionId, transdef group)

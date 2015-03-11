@@ -460,8 +460,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
 
     val map = new ValueMapImpl
     val interAckList = new MapListImpl
-    map put (interchangeAcknowledgments, interAckList)
-    val ta1map = new ValueMapImpl
+    map put (interchangeAcksGenerated, interAckList)
     val funcAckList = new MapListImpl
     map put (functionalAcknowledgments, funcAckList)
     val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
@@ -469,6 +468,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
     map put (transactionsMap, transLists)
 
     def buildTA1(ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode, interchange: ValueMap) = {
+      val ta1map = new ValueMapImpl
       ta1map put (segTA1.components(0) key, interchange get (INTER_CONTROL))
       val calendar = new GregorianCalendar
       ta1map put (segTA1.components(1) key, calendar)
@@ -607,6 +607,12 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
             getRequiredString(SENDER_ID, interchange), getRequiredString(RECEIVER_ID_QUALIFIER, interchange),
             getRequiredString(RECEIVER_ID, interchange))
           if (numval.validateInterchange(interchangeNumber, providerId)) {
+            while (Set("ISB", "ISE", "TA3") contains lexer.token) discardSegment
+            if (lexer.token == "TA1") {
+              val receiveTA1s = new MapListImpl
+              while (lexer.token == "TA1") receiveTA1s add parseSegment(segTA1, None, SegmentPosition(0, ""))
+              map put (interchangeAcksReceived, receiveTA1s)
+            }
             parseInterchange(interchange, providerId) match {
               case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError, interchange)
               case note => buildTA1(AcknowledgedWithErrors, note, interchange)
