@@ -99,8 +99,10 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
 
   /** Group transaction sets into lists for one or more interchanges based on the self and partner identification
     * information. This also verifies that the data for each transaction matches the transaction type of the containing
-    * list, and saves information in the transaction set to refer back to the position in the input data.
+    * list, and saves information in the transaction set to refer back to the position in the input data. Note that the
+    * list of transactions for each interchange is in reverse order relative to the original order of the transactions.
     * @param transMap transaction identifiers to lists of transactions
+    * @return List(((interSelfQual, interSelf, interPartQual, interPart, interUsage), List(transSet))
     */
   def transactionInterchanges(transMap: ValueMap) = {
     def tupleKey(transet: TransactionSet) = try {
@@ -140,7 +142,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
         })
       }
     }
-    result toList
+    result map { case (tupkey, translist ) => (tupkey, translist reverse)} toList
   }
 
   /** Write the output message. */

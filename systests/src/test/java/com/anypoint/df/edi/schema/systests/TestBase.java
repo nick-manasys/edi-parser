@@ -1,5 +1,7 @@
 package com.anypoint.df.edi.schema.systests;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -44,7 +46,12 @@ public abstract class TestBase {
     protected String readAsString(String path) throws IOException {
         InputStream is = TestBase.class.getResourceAsStream(path);
         if (is == null) {
-            throw new IllegalArgumentException("Path " + path + " not found");
+            File file = new File(path);
+            if (file.exists()) {
+                is = new FileInputStream(file);
+            } else {
+                throw new IllegalArgumentException("Path " + path + " not found");
+            }
         }
         InputStreamReader reader = new InputStreamReader(is, "ASCII");
         StringWriter writer = new StringWriter();

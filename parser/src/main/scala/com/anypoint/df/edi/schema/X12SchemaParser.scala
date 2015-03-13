@@ -229,7 +229,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       ak3data put (segAK3 components (1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
       group.foreach(gcomp => ak3data put (segAK3 components (2) key, gcomp ident))
       ak3data put (segAK3 components (3) key, DataErrorsSegment.code.toString)
-      ak3 put (segAK3.name, ak3data)
+      ak3 put (segAK3 ident, ak3data)
       ak3 put (segAK4 ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
       segmentErrors += ak3
       oneOrMoreSegmentsInError = true
@@ -245,7 +245,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       if (config.reportDataErrors) {
         val ak3 = new ValueMapImpl
         val ak3data = new ValueMapImpl
-        ak3 put (segAK3.name, ak3data)
+        ak3 put (segAK3 ident, ak3data)
         ak3data put (segAK3 components (0) key, ident)
         ak3data put (segAK3 components (1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
         group.foreach(ident => ak3data put (segAK3 components (2) key, ident))
@@ -378,14 +378,14 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         transactionNumber = getRequiredString(transactionSetControlKey, setprops)
         val setack = new ValueMapImpl
         val ak2data = new ValueMapImpl
-        setack put (segAK2 name, ak2data)
+        setack put (segAK2 ident, ak2data)
         ak2data put (segAK2.components(0) key, setprops get (transactionSetIdentifierKey))
         ak2data put (segAK2.components(1) key, transactionNumber)
         if (schema.version == "005010" && setprops.containsKey(implementationConventionKey)) {
           ak2data put (segAK2.components(2) key, setprops get (implementationConventionKey))
         }
         val ak5data = new ValueMapImpl
-        setack put (segAK5 name, ak5data)
+        setack put (segAK5 ident, ak5data)
         rejectTransaction = false
         var data: ValueMap = null
         if (numval.validateSet(transactionNumber, providerId, groupSender, groupReceiver)) {
@@ -523,11 +523,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           ackroot put (transactionSummary, new ValueMapImpl)
           ackroot put (transactionGroup, group)
           val stdata = new ValueMapImpl
-          ackhead put (segST name, stdata)
+          ackhead put (segST ident, stdata)
           stdata put (segST.components(0) key, trans997 ident)
           stdata put (segST.components(1) key, ackId toString)
           val ak1data = new ValueMapImpl
-          ackhead put (segAK1 name, ak1data)
+          ackhead put (segAK1 ident, ak1data)
           ak1data put (segAK1.components(0) key, group get (functionalIdentifierKey))
           ak1data put (segAK1.components(1) key, group get (groupControlKey))
           if (schema.version == "005010") ak1data put (segAK1.components(2) key, group get (versionIdentifierKey))
@@ -546,7 +546,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           val countPresent = closeGroup(group)
           val ak9data = new ValueMapImpl
           val error = ackhead.containsKey(segAK2 ident)
-          ackhead put (segAK9 name, ak9data)
+          ackhead put (segAK9 ident, ak9data)
           val result =
             if (groupErrors.nonEmpty) RejectedGroup
             else if (groupTransactionCount == groupAcceptCount) if (error) AcceptedWithErrorsGroup else AcceptedGroup
@@ -559,7 +559,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           val limit = math.min(segAK9.components.length - 5, groupErrors.length)
           (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
           val sedata = new ValueMapImpl
-          ackhead put (segSE name, sedata)
+          ackhead put (segSE ident, sedata)
           sedata put (segSE.components(1) key, ackId toString)
           funcAckList add (ackroot)
           ackId += 1

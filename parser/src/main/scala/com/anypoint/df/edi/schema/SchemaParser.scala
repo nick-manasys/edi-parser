@@ -266,7 +266,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
               case Some(ref: ReferenceComponent) => {
                 // check for repeat of lead segment in loop
                 val segment = ref.segment
-                if (ref.position.position != startPos || !values.containsKey(segment.name)) {
+                if (ref.position.position != startPos || !values.containsKey(ref.key)) {
                   if (ref.usage == UnusedUsage) segmentError(ident, grpid, ComponentErrors.UnusedSegment)
                   val nextpos =
                     if (ref.position.position >= position) ref.position.position
@@ -277,7 +277,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
                   val data =
                     if (ref.count == 1) parseSegment(segment, group, ref.position)
                     else parseRepeatingSegment(segment, ref.count, group, ref.position)
-                  if (ref.usage != UnusedUsage) values put (segment.name, data)
+                  if (ref.usage != UnusedUsage) values put (ref.key, data)
                   parseComponents(nextpos)
                 }
               }

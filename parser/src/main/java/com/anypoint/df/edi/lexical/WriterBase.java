@@ -541,7 +541,7 @@ public abstract class WriterBase
         int minute = remain / MILLIS_PER_MINUTE;
         remain = time % MILLIS_PER_MINUTE;
         appendTwoDigit(minute, builder);
-        if (maxl > 4) {
+        if (maxl > 4 && remain > 0) {
             
             // append optional components
             int second = remain / MILLIS_PER_SECOND;
@@ -559,6 +559,9 @@ public abstract class WriterBase
                 builder.append('0');
             }
             
+        }
+        while (builder.length() < minl) {
+            builder.append('0');
         }
         writeToken(builder.toString());
     }

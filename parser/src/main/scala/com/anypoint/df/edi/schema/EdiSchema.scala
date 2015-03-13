@@ -206,7 +206,7 @@ object EdiSchema {
     * @param cnt
     */
   case class ReferenceComponent(val segment: Segment, pos: SegmentPosition, use: Usage, cnt: Int)
-    extends TransactionComponent(segment.name, pos, use, cnt)
+    extends TransactionComponent(segment.ident, pos, use, cnt)
 
   /** Loop wrapper component.
     * @param open
