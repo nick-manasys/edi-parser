@@ -281,7 +281,7 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     intercept[IllegalArgumentException] { parseTemplate(template, true, stringLines("AA\nAA\n")) }
   }
 
-/*  "readComposites" should "parse complete composite definitions" in {
+  "readComposites" should "parse complete composite definitions" in {
     val ctempl1a = buildTemplate(ctemplate1a)
     val ctempl1b = buildTemplate(ctemplate1b)
     val element1 = Element("3299", "", DataType.ALPHANUMERIC, 0, 3)
@@ -294,22 +294,22 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     val elemap = Map(element1.ident -> element1, element2.ident -> element2, element3.ident -> element3,
       element4.ident -> element4, element5.ident -> element5, element6.ident -> element6, element7.ident -> element7)
     val comp1 = Composite("C817", "ADDRESS USAGE", List(
-      ElementComponent(element1, Some("Address purpose code"), "C81701", 10, ConditionalUsage, 1),
-      ElementComponent(element2, Some("Address type code"), "C81702", 20, ConditionalUsage, 1),
-      ElementComponent(element3, Some("Address status code"), "C81703", 30, ConditionalUsage, 1)), Nil)
+      ElementComponent(element1, Some("Address purpose code"), "C81710", 10, ConditionalUsage, 1),
+      ElementComponent(element2, Some("Address type code"), "C81720", 20, ConditionalUsage, 1),
+      ElementComponent(element3, Some("Address status code"), "C81730", 30, ConditionalUsage, 1)), Nil)
     val separator = "------\n\n"
     readComposites(stringLines(separator + composite1a), ctempl1a, ctempl1b, elemap) should be(List(comp1))
     val comp2 = Composite("C852", "RISK OBJECT SUB-TYPE", List(
-      ElementComponent(element4, Some("Risk object sub-type description identifier"), "C85201", 10, ConditionalUsage, 1),
-      ElementComponent(element5, Some("Code list identification code"), "C85202", 20, ConditionalUsage, 1),
-      ElementComponent(element6, Some("Code list responsible agency code"), "C85203", 30, ConditionalUsage, 1),
-      ElementComponent(element7, Some("Risk object sub-type description"), "C85204", 40, ConditionalUsage, 1)), Nil)
+      ElementComponent(element4, Some("Risk object sub-type description identifier"), "C85210", 10, ConditionalUsage, 1),
+      ElementComponent(element5, Some("Code list identification code"), "C85220", 20, ConditionalUsage, 1),
+      ElementComponent(element6, Some("Code list responsible agency code"), "C85230", 30, ConditionalUsage, 1),
+      ElementComponent(element7, Some("Risk object sub-type description"), "C85240", 40, ConditionalUsage, 1)), Nil)
     readComposites(stringLines(separator + composite1b), ctempl1a, ctempl1b, elemap) should be(List(comp2))
     println(separator + composite1a + "\n\n" + separator + composite1b)
     readComposites(stringLines(separator + composite1a + "\n\n" + separator + composite1b),
         ctempl1a, ctempl1b, elemap) should be(List(comp1, comp2))
   }
-*/
+
 /*  "readSegments" should "parse complete segment definitions" in {
     val stempl1a = buildTemplate(stemplate1a)
     val stempl1b = buildTemplate(stemplate1b)
@@ -325,11 +325,11 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
       element4.ident -> element4, element5.ident -> element5, element6.ident -> element6, element7.ident -> element7,
       element8.ident -> element8)
     val comp1 = Composite("C552", "ALLOWANCE/CHARGE INFORMATION", List(
-      ElementComponent(element2, Some("Allowance or charge identifier"), "C55201", 10, ConditionalUsage, 1),
-      ElementComponent(element3, Some("Allowance or charge identification code"), "C55202", 20, ConditionalUsage, 1)), Nil)
+      ElementComponent(element2, Some("Allowance or charge identifier"), "C55210", 10, ConditionalUsage, 1),
+      ElementComponent(element3, Some("Allowance or charge identification code"), "C55220", 20, ConditionalUsage, 1)), Nil)
     val comp2 = Composite("C786", "STRUCTURE COMPONENT IDENTIFICATION", List(
-      ElementComponent(element7, Some("Structure component identifier"), "C78601", 10, MandatoryUsage, 1),
-      ElementComponent(element8, Some("Object identification code qualifier"), "C78602", 20, ConditionalUsage, 1)), Nil)
+      ElementComponent(element7, Some("Structure component identifier"), "C78610", 10, MandatoryUsage, 1),
+      ElementComponent(element8, Some("Object identification code qualifier"), "C78620", 20, ConditionalUsage, 1)), Nil)
     val compmap = Map(comp1.ident -> comp1, comp2.ident -> comp2)
     val seg1 = Segment("ALC", "ALLOWANCE OR CHARGE", List(
       ElementComponent(element1, Some("ALLOWANCE OR CHARGE CODE QUALIFIER"), "ALC01", 10, MandatoryUsage, 1),
@@ -344,5 +344,5 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     readSegments(stringLines(separator + segment1b), stempl1a, stempl1b, elemap, compmap) should be(List(seg2))
     readSegments(stringLines(separator + segment1a + "\n\n" + separator + segment1b),
       stempl1a, stempl1b, elemap, compmap) should be(List(seg1, seg2))
-  }
-*/}
+  }*/
+}

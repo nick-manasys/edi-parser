@@ -13,6 +13,8 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Map;
 
 /**
@@ -519,6 +521,20 @@ public abstract class WriterBase
         appendTwoDigit(month, builder);
         appendTwoDigit(day, builder);
         writeToken(builder.toString());
+    }
+    
+    /**
+     * Write X12 date value from date.
+     * 
+     * @param date
+     * @param minl
+     * @param maxl
+     * @throws IOException
+     */
+    public void writeDate(Date date, int minl, int maxl) throws IOException {
+        GregorianCalendar calendar = new GregorianCalendar();
+        calendar.setTime(date);
+        writeDate(calendar, minl, maxl);
     }
 
     /**

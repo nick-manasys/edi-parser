@@ -3,6 +3,7 @@ package com.anypoint.df.edi.schema
 import java.io.OutputStream
 import java.math.BigDecimal
 import java.util.Calendar
+import java.util.Date
 
 import scala.collection.JavaConversions
 import scala.util.Try
@@ -34,7 +35,11 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         case ALPHA => writer.writeAlpha(value.asInstanceOf[String], min, max)
         case ALPHANUMERIC => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
         case ID => writer.writeId(value.asInstanceOf[String], min, max)
-        case DATE => writer.writeDate(value.asInstanceOf[Calendar], min, max)
+        case DATE => value match {
+          case calendar: Calendar => writer.writeDate(calendar, min, max)
+          case date: Date => writer.writeDate(date, min, max)
+          case _ => throw new WriteException(s"Date value must be Date or Calendar instance, not ${value.getClass.getName}")
+        }
         case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue, min, max)
         case NUMBER | REAL => writer.writeDecimal(value.asInstanceOf[BigDecimal], min, max)
         case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)
@@ -64,6 +69,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         case _ =>
           if (map.containsKey(comp.key)) {
             val value = map.get(comp.key)
+            if (value == null) throw new WriteException(s"Value cannot be null for key ${comp.key}")
             if (comp.count > 1) {
               if (!value.isInstanceOf[SimpleList]) throw new WriteException(s"expected list of values for property ${comp.name}")
               else {

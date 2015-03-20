@@ -16,7 +16,7 @@ import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants._
 import java.io.BufferedReader
 
-/** Application to generate X12 transaction schemas from table data.
+/** Application to generate EDIFACT transaction schemas from table data.
   */
 object EdifactTablesConverter {
 
@@ -29,18 +29,18 @@ object EdifactTablesConverter {
   val compositeDefsName = "EDCD"
   val segmentDefsName = "EDSD"
   val messagesDirName = "messages"
-  
+
   /** Simple iterator-style access to lines of input. */
   case class LineIterator(is: InputStream, enc: String) {
     val buffer = new BufferedReader(new InputStreamReader(is, enc))
-    
+
     var lastLine = ""
     var nextLine = ""
-    
+
     def hasNext = nextLine != null
-    
+
     def peek = nextLine
-    
+
     def next =
       if (nextLine == null) throw new IllegalStateException("past end of input")
       else {
@@ -48,10 +48,10 @@ object EdifactTablesConverter {
         nextLine = buffer.readLine
         lastLine
       }
-   
+
     next
   }
-  
+
   /** Get input stream for file in directory. */
   def fileInput(dir: File, name: String) = new FileInputStream(new File(dir, name))
 
@@ -79,7 +79,8 @@ object EdifactTablesConverter {
   }
 
   /** Skip lines until a blank line or end of input is found, returning with the iterator positioned after the blank
-   * line or at end. */
+    * line or at end.
+    */
   def skipPastBlankLine(lines: LineIterator) = while (lines.hasNext && lines.next.trim.length > 0) Unit
 
   /** Read input file to build all element schemas.
@@ -124,13 +125,14 @@ object EdifactTablesConverter {
   }
 
   /** Extract trimmed substring from supplied line of text, where the start of the substring must be before the end of
-   *  the line but the expected end of the substring may be beyond the end.
+    * the line but the expected end of the substring may be beyond the end.
     */
-  def safeSubstring(text: String, from: Int, to: Int) ={ println(s"extracting $from to $to from '$text'")
+  def safeSubstring(text: String, from: Int, to: Int) = {
+    println(s"extracting $from to $to from '$text'")
     if (to <= text.length) text.substring(from, to) trim
     else if (from >= text.length) throw new IllegalArgumentException(s"tried substring starting at $from with length ${text.length}")
     else text.substring(from) trim
-}
+  }
   /** Build a list of asterisk positions in the supplied line of text. This is used to define the field start positions
     * within field-structured files. At least two asterisks must be present in the line.
     */
@@ -186,7 +188,7 @@ object EdifactTablesConverter {
           val result = parser(line, None, t.head, t.tail, List(field)).reverse.toArray
           if (result.size < starts.size - 1) throw new IllegalArgumentException("too few values for template (${result.size}, expected ${starts.size})")
           else result
-          } else Array()
+        } else Array()
       }
     } else Array()
   }
@@ -202,33 +204,35 @@ object EdifactTablesConverter {
     * @param bodytmpl field positions for body lines of definition
     * @param elements id to element map
     */
-  def readComposites(lines: LineIterator, headtmpl: List[Int], bodytmpl: List[Int],
-    elements: Map[String, Element]) = {
+  def readComposites(lines: LineIterator, headtmpl: List[Int], bodytmpl: List[Int], elements: Map[String, Element]) = {
     @tailrec
     def buildr(acc: List[Composite]): List[Composite] = {
-      @tailrec
-      def itemr(acc: List[SegmentComponent]): List[SegmentComponent] = {
-        val fields = parseTemplate(bodytmpl, true, lines)
-        if (fields.length == 0) acc reverse
-        else if (fields.length == 5) {
-          val position = fields(0).toInt
-          val id = fields(2)
-          if (!elements.contains(id)) throw new IllegalArgumentException(s"unknown element id $id")
-          val element = elements(id)
-          val usage = convertUsage(fields(4))
-          val next = ElementComponent(element, Some(fields(2)), fields(3), position, usage, 1) :: acc
-          if (lines.hasNext) itemr(next)
-          else next reverse
-        } else throw new IllegalArgumentException(s"wrong number of fields in input (${fields.toList}, expected 5)")
+      def collectItems(cid: String) = {
+        @tailrec
+        def itemr(acc: List[SegmentComponent]): List[SegmentComponent] = {
+          val fields = parseTemplate(bodytmpl, true, lines)
+          if (fields.length == 0) acc reverse
+          else if (fields.length == 5) {
+            val position = fields(0).toInt
+            val id = fields(2)
+            if (!elements.contains(id)) throw new IllegalArgumentException(s"unknown element id $id")
+            val element = elements(id)
+            val usage = convertUsage(fields(4))
+            val next = ElementComponent(element, Some(fields(3)), cid + position, position, usage, 1) :: acc
+            if (lines.hasNext) itemr(next)
+            else next reverse
+          } else throw new IllegalArgumentException(s"wrong number of fields in input (${fields.toList}, expected 5)")
+        }
+        itemr(Nil)
       }
-      
+
       if (skipBreakLine(lines)) {
-    	  skipBlankLine(lines)
-    	  val heads = parseTemplate(headtmpl, false, lines)
-    	  skipBlankLine(lines)
-    	  skipPastBlankLine(lines)
-    	  val items = itemr(Nil)
-    	  buildr(Composite(heads(1), heads(2), items, Nil) :: acc)
+        skipBlankLine(lines)
+        val heads = parseTemplate(headtmpl, false, lines)
+        skipBlankLine(lines)
+        skipPastBlankLine(lines)
+        val items = collectItems(heads(1))
+        buildr(Composite(heads(1), heads(2), items, Nil) :: acc)
       } else acc reverse
     }
 
@@ -252,36 +256,36 @@ object EdifactTablesConverter {
     elements: Map[String, Element], composites: Map[String, Composite]) = {
     @tailrec
     def buildr(acc: List[Segment]): List[Segment] = {
-      
+
       if (skipBreakLine(lines)) {
         skipBlankLine(lines)
         val heads = parseTemplate(headtmpl, false, lines)
         skipBlankLine(lines)
         skipPastBlankLine(lines)
-        
-      @tailrec
-      def itemr(acc: List[SegmentComponent]): List[SegmentComponent] = {
-        def checkNext = {
-          skipPastBlankLine(lines)
-          lines.hasNext && !isBreak(lines.peek)
+
+        @tailrec
+        def itemr(acc: List[SegmentComponent]): List[SegmentComponent] = {
+          def checkNext = {
+            skipPastBlankLine(lines)
+            lines.hasNext && !isBreak(lines.peek)
+          }
+          val fields = parseTemplate(bodytmpl, true, lines)
+          if (fields.length == 0) acc reverse
+          else if (fields.length == 5) {
+            val position = fields(0).toInt
+            val id = fields(2)
+            val usage = convertUsage(fields(4))
+            val key = keyName(heads(1), position)
+            val comp =
+              if (elements.contains(id)) ElementComponent(elements(id), Some(fields(3)), key, position, usage, 1)
+              else if (composites.contains(id)) CompositeComponent(composites(id), Some(fields(3)), key, position, usage, 1)
+              else throw new IllegalArgumentException(s"unknown element or composite id $id")
+            val next = comp :: acc
+            if (checkNext) itemr(next)
+            else next reverse
+          } else throw new IllegalArgumentException(s"wrong number of fields in input (${fields.toList}, expected 5)")
         }
-        val fields = parseTemplate(bodytmpl, true, lines)
-        if (fields.length == 0) acc reverse
-        else if (fields.length == 5) {
-          val position = fields(0).toInt
-          val id = fields(2)
-          val usage = convertUsage(fields(4))
-          val key = keyName(heads(1), position)
-          val comp =
-            if (elements.contains(id)) ElementComponent(elements(id), Some(fields(3)), key, position, usage, 1)
-            else if (composites.contains(id)) CompositeComponent(composites(id), Some(fields(3)), key, position, usage, 1)
-            else throw new IllegalArgumentException(s"unknown element or composite id $id")
-          val next = comp :: acc
-          if (checkNext) itemr(next)
-          else next reverse
-        } else throw new IllegalArgumentException(s"wrong number of fields in input (${fields.toList}, expected 5)")
-      }
-        
+
         val items = itemr(Nil)
         buildr(Segment(heads(1), heads(2), items, Nil) :: acc)
       } else acc reverse
@@ -289,7 +293,7 @@ object EdifactTablesConverter {
 
     buildr(Nil)
   }
-  
+
   /** Builds schemas from EDIFACT table data and outputs the schemas in YAML form. The arguments are 1) path to the
     * directory containing the EDIFACT table data files, and 2) path to the directory for the YAML output files. All
     * existing files are deleted from the output directory before writing any output files. Each transaction is output
