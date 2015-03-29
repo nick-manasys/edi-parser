@@ -310,7 +310,7 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
         ctempl1a, ctempl1b, elemap) should be(List(comp1, comp2))
   }
 
-/*  "readSegments" should "parse complete segment definitions" in {
+  "readSegments" should "parse complete segment definitions" in {
     val stempl1a = buildTemplate(stemplate1a)
     val stempl1b = buildTemplate(stemplate1b)
     val element1 = Element("5463", "", DataType.ALPHANUMERIC, 0, 3)
@@ -339,10 +339,10 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     val separator = "------\n\n"
     readSegments(stringLines(separator + segment1a), stempl1a, stempl1b, elemap, compmap) should be(List(seg1))
     val seg2 = Segment("SCD", "STRUCTURE COMPONENT DEFINITION", List(
-      ElementComponent(element6, Some("STRUCTURE COMPONENT FUNCTION CODE QUALIFIER"), "SDC01", 10, MandatoryUsage, 1),
-      CompositeComponent(comp2, Some("STRUCTURE COMPONENT IDENTIFICATION"), "SDC02", 20, ConditionalUsage, 1)), Nil)
+      ElementComponent(element6, Some("STRUCTURE COMPONENT FUNCTION CODE QUALIFIER"), "SCD01", 10, MandatoryUsage, 1),
+      CompositeComponent(comp2, Some("STRUCTURE COMPONENT IDENTIFICATION"), "SCD02", 20, ConditionalUsage, 1)), Nil)
     readSegments(stringLines(separator + segment1b), stempl1a, stempl1b, elemap, compmap) should be(List(seg2))
     readSegments(stringLines(separator + segment1a + "\n\n" + separator + segment1b),
       stempl1a, stempl1b, elemap, compmap) should be(List(seg1, seg2))
-  }*/
+  }
 }

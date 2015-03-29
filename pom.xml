@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mule.edi</groupId>
   <artifactId>edi</artifactId>
-  <version>1.0-beta-2</version>
+  <version>1.0-beta-3-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Mule EDI Support</name>
 
@@ -12,7 +12,7 @@
     <junit.version>4.9</junit.version>
     <jdk.version>1.7</jdk.version>
     <base.scala.version>2.11</base.scala.version>
-    <scala.version>${base.scala.version}.1</scala.version>
+    <scala.version>${base.scala.version}.5</scala.version>
   </properties>
 
   <modules>
@@ -25,12 +25,12 @@
     <pluginManagement>
       <plugins>
         <plugin>
-           <artifactId>maven-compiler-plugin</artifactId>
-           <version>2.0.2</version>
-           <configuration>
-             <source>${jdk.version}</source>
-             <target>${jdk.version}</target>
-           </configuration>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>2.0.2</version>
+          <configuration>
+            <source>${jdk.version}</source>
+            <target>${jdk.version}</target>
+          </configuration>
         </plugin>
       </plugins>
     </pluginManagement>
@@ -38,15 +38,15 @@
 
   <distributionManagement>
     <repository>
-        <id>studio-orbit</id>
-        <name>EDI Module Beta Release Repository</name>
-        <url>http://studio-repository.mulesoft.org:8081/nexus/content/repositories/edi-module-beta</url>
+      <id>studio-orbit</id>
+      <name>EDI Module Beta Release Repository</name>
+      <url>http://studio-repository.mulesoft.org:8081/nexus/content/repositories/edi-module-beta</url>
     </repository>
     <snapshotRepository>
-        <id>studio-orbit-snapshots</id>
-        <name>EDI Module Beta Snapshot Repository</name>
-        <url>http://studio-repository.mulesoft.org:8081/nexus/content/repositories/edi-module-beta-snapshots</url>
-        <uniqueVersion>false</uniqueVersion>
+      <id>studio-orbit-snapshots</id>
+      <name>EDI Module Beta Snapshot Repository</name>
+      <url>http://studio-repository.mulesoft.org:8081/nexus/content/repositories/edi-module-beta-snapshots</url>
+      <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
 </project>

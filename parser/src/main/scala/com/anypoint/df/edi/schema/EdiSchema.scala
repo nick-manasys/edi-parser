@@ -37,9 +37,6 @@ object EdiSchema {
   case class DependencyNote(val kind: DependencyType, val items: Seq[Int])
   // TODO: add dependency rules to schema representation
 
-  /** Construct data value key name from parent identifier and position value. */
-  def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
-
   /** Element definition.
     * @param ident unique identifier (actually a number)
     * @param name readable name
@@ -149,12 +146,14 @@ object EdiSchema {
     */
   case class Composite(val ident: String, val name: String, val components: List[SegmentComponent],
     val rules: List[OccurrenceRule]) {
-    def rewrite(prefix: String) = Composite(ident, name,
+    def rewrite(prefix: String, form: EdiForm) = Composite(ident, name,
       components.map { comp =>
+        val rekey = form.keyName(prefix, comp.position)
         comp match {
-          case ec: ElementComponent => ElementComponent(ec.element, Some(ec.name), keyName(prefix, ec.position), ec.position, ec.usage, ec.count)
+          case ec: ElementComponent =>
+            ElementComponent(ec.element, Some(ec.name), rekey, ec.position, ec.usage, ec.count)
           case cc: CompositeComponent =>
-            CompositeComponent(cc.composite, Some(cc.name), keyName(prefix, cc.position), cc.position, cc.usage, cc.count)
+            CompositeComponent(cc.composite, Some(cc.name), rekey, cc.position, cc.usage, cc.count)
         }
       },
       rules)
@@ -350,16 +349,25 @@ object EdiSchema {
     def isEnvelopeSegment(ident: String): Boolean
     val loopWrapperStart: String
     val loopWrapperEnd: String
+
+    /** Construct data value key name from parent identifier and position value. */
+    def keyName(parentId: String, position: Int): String
   }
   case object EdiFact extends EdiForm("EDIFACT") {
     def isEnvelopeSegment(ident: String) = Set("UNH", "UNT") contains ident
     val loopWrapperStart = "UGH"
     val loopWrapperEnd = "UGT"
+    def keyName(parentId: String, position: Int) = {
+      val scaled = if (position % 10 == 0) position / 10 else position
+      if (position < 100) parentId + "0" + scaled.toString
+      else parentId + scaled.toString
+    }
   }
   case object X12 extends EdiForm("X12") {
     def isEnvelopeSegment(ident: String) = Set("ISA", "IEA", "GS", "GE", "ST", "SE") contains ident
     val loopWrapperStart = "LS"
     val loopWrapperEnd = "LE"
+    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
   }
   def convertEdiForm(value: String) = value match {
     case EdiFact.text => EdiFact

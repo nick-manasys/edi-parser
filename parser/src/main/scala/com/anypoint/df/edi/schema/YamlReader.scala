@@ -29,7 +29,7 @@ import java.io.InputStream
 class YamlReader extends YamlDefs with SchemaJavaDefs {
 
   import EdiSchema._
-  
+
   val schemaCache = mutable.Map[String, EdiSchema]()
 
   /** Get child list value (error if not found). */
@@ -45,15 +45,16 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     * @param rules list of maps of rules
     * @param elements known elements map
     * @param composites known composites map
+    * @param form EDI form
     * @returns components
     */
   def parseSegmentComponents(parentId: String, list: MapList, elements: Map[String, Element],
-    composites: Map[String, Composite]): List[SegmentComponent] = {
+    composites: Map[String, Composite], form: EdiForm): List[SegmentComponent] = {
     def convertComponent(values: ValueMap, dfltpos: Int) = {
       val id = getRequiredString(idRefKey, values)
       val name = if (values.containsKey(nameKey)) Some(getRequiredString(nameKey, values)) else None
       val position = if (values.containsKey(positionKey)) getRequiredInt(positionKey, values) else dfltpos
-      val key = keyName(parentId, position)
+      val key = form.keyName(parentId, position)
       val use = convertUsage(getRequiredString(usageKey, values))
       val count = values.get(countKey) match {
         case n: Integer => n.toInt
@@ -65,7 +66,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       else if (composites.contains(id)) {
         val composite = composites(id)
         if (count > 1) CompositeComponent(composite, name, key, position, use, count)
-        else CompositeComponent(composite.rewrite(key), name, key, position, use, count)
+        else CompositeComponent(composite.rewrite(key, form), name, key, position, use, count)
       } else throw new IllegalArgumentException(s"No element or composite with id '$id'")
     }
     @tailrec
@@ -297,13 +298,13 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       })
 
   /** Convert composite definitions. */
-  private def convertComposites(input: ValueMap, elements: Map[String, Element], basedefs: Map[String, Composite]) =
+  private def convertComposites(input: ValueMap, form: EdiForm, elements: Map[String, Element], basedefs: Map[String, Composite]) =
     getRequiredMapList(compositesKey, input).asScala.toList.foldLeft(basedefs)(
       (map, compmap) => {
         val ident = getRequiredString(idKey, compmap)
         val name = getRequiredString(nameKey, compmap)
         val list = getRequiredMapList(valuesKey, compmap)
-        val comps = parseSegmentComponents(ident, list, elements, map)
+        val comps = parseSegmentComponents(ident, list, elements, map, form)
         val rules = if (compmap.containsKey(rulesKey)) {
           val data = getRequiredMapList(rulesKey, compmap)
           parseRules(data, comps)
@@ -312,8 +313,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       })
 
   /** Convert segment definitions. */
-  private def convertSegments(input: ValueMap, elements: Map[String, Element], composites: Map[String, Composite],
-    basedefs: Map[String, Segment]) = {
+  private def convertSegments(input: ValueMap, form: EdiForm, elements: Map[String, Element],
+    composites: Map[String, Composite], basedefs: Map[String, Segment]) = {
     def getRules(segmap: ValueMap, comps: List[SegmentComponent]) =
       if (segmap.containsKey(rulesKey)) {
         val data = getRequiredMapList(rulesKey, segmap)
@@ -332,7 +333,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       foldLeft(basedefs)((map, segmap) => if (segmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, segmap)
         val list = getRequiredMapList(valuesKey, segmap)
-        val comps = parseSegmentComponents(ident, list, elements, composites)
+        val comps = parseSegmentComponents(ident, list, elements, composites, form)
         val name = getRequiredString(nameKey, segmap)
         map + (ident -> Segment(ident, name, comps, getRules(segmap, comps)))
       } else if (segmap.containsKey(idRefKey)) {
@@ -414,7 +415,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     */
   def loadYaml(reader: Reader, basePaths: Array[String]) = {
     val snake = new Yaml(new IgnoringConstructor)
-
+    
     /** Read schema from YAML document, recursively reading and building on imported schemas. */
     def loadFully(reader: Reader): EdiSchema = {
       val input = snake.loadAs(reader, classOf[ValueMap]).asInstanceOf[ValueMap];
@@ -426,11 +427,11 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
           schemaCache.get(path) match {
             case Some(schema) => acc.merge(schema)
             case None => {
-                val is = findSchema(path, basePaths)
-                    if (is == null) throw new IllegalArgumentException(s"base schema $path not found")
-                val schema = loadFully(new InputStreamReader(is, "UTF-8"))
-                schemaCache += path -> schema
-                acc.merge(schema)
+              val is = findSchema(path, basePaths)
+              if (is == null) throw new IllegalArgumentException(s"base schema $path not found")
+              val schema = loadFully(new InputStreamReader(is, "UTF-8"))
+              schemaCache += path -> schema
+              acc.merge(schema)
             }
           }
         })
@@ -439,14 +440,15 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         if (input.containsKey(elementsKey)) convertElements(input, baseSchema.elements)
         else baseSchema.elements
       val composites =
-        if (input.containsKey(compositesKey)) convertComposites(input, elements, baseSchema.composites)
+        if (input.containsKey(compositesKey)) convertComposites(input, form, elements, baseSchema.composites)
         else baseSchema.composites
       val segments =
-        if (input.containsKey(segmentsKey)) convertSegments(input, elements, composites, baseSchema.segments)
+        if (input.containsKey(segmentsKey)) convertSegments(input, form, elements, composites, baseSchema.segments)
         else baseSchema.segments
       val transactions =
         if (input.containsKey(transactionsKey)) convertTransactions(input, form, segments, baseSchema.transactions)
         else baseSchema.transactions
+      val count = transactions.size
       EdiSchema(form, version, elements, composites, segments, transactions)
     }
 
