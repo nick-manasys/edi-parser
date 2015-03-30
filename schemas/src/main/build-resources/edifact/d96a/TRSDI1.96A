@@ -1,0 +1,148 @@
+PART 5    UNITED NATIONS DIRECTORIES FOR ELECTRONIC DATA INTERCHANGE
+          FOR ADMINISTRATION, COMMERCE AND TRANSPORT
+
+CHAPTER 4 Segment directory (TRSD)
+
+1.   Indexes
+
+1.1  Index of segments by tag
+
+     Change indicators
+
+     a plus sign (+)    for an addition
+     an asterisk (*)    for an amendment to structure
+     a hash sign (#)    for changes to names
+     a vertical bar (|) for changes to text for descriptions,
+                        notes and functions
+     a minus sign (-)   for a deletion
+     a X sign (X)       for marked for deletion
+
+   Tag   Name
+
+   ADR   Address
+   AGR   Agreement identification
+   AJT   Adjustment details
+   ALC   Allowance or charge
+   ALI   Additional information
+   APR   Additional price information
+   ARD   Amounts relationship details
+   ARR   Array information
+   ASI   Array structure identification
+   ATT   Attribute
+   AUT   Authentication result
+   BGM   Beginning of message
+   BII   Structure identification
+   BUS   Business function
+   CAV   Characteristic value
+   CCD   Credit cover details
+   CCI   Characteristic/class id
++  CDI   Physical or logical state
+   CDS   Code set identification
+   CDV   Code value definition
+   CED   Computer environment details
+   CMP   Composite data element identification
+   CNI   Consignment information
+   CNT   Control total
+   COD   Component details
+   COM   Communication contact
+   COT   Contribution details
+   CPI   Charge payment instructions
+   CPS   Consignment packing sequence
+   CST   Customs status of goods
+   CTA   Contact information
+   CUX   Currencies
+   DAM   Damage
+   DGS   Dangerous goods
+   DII   Directory identification
+   DIM   Dimensions
+   DLI   Document line identification
+   DLM   Delivery limitations
+   DMS   Document/message summary
+   DOC   Document/message details
+   DSI   Data set identification
+   DTM   Date/time/period
+   EFI   External file link identification
+   ELM   Simple data element details
+   ELU   Data element usage details
+   EMP   Employment details
+   EQA   Attached equipment
+   EQD   Equipment details
+   EQN   Number of units
+   ERC   Application error information
+   ERP   Error point details
+   FCA   Financial charges allocation
+   FII   Financial institution information
+   FNS   Footnote set
+   FNT   Footnote
+   FTX   Free text
+   GDS   Nature of cargo
+   GID   Goods item details
+   GIN   Goods identity number
+   GIR   Related identification numbers
+   GIS   General indicator
+   GOR   Governmental requirements
+   GRU   Segment group usage details
+   HAN   Handling instructions
+   ICD   Insurance cover description
+   IDE   Identity
+   IHC   Person characteristic
+   IMD   Item description
+   IND   Index details
+   INP   Parties to instruction
+   INV   Inventory management related details
+   IRQ   Information required
+   LAN   Language
+   LIN   Line item
+   LOC   Place/location identification
+   MEA   Measurements
+   MEM   Membership details
+   MKS   Market/sales channel information
+   MOA   Monetary amount
+   MSG   Message type identification
+   NAD   Name and address
+   NAT   Nationality
+   PAC   Package
+   PAI   Payment instructions
+   PAT   Payment terms basis
+   PCD   Percentage details
+   PCI   Package identification
+   PDI   Person demographic information
+   PGI   Product group information
+   PIA   Additional product id
+X  PIT   Price item line
+   PNA   Party name
+   PRC   Process identification
+   PRI   Price details
+*  PSD   Physical sample description
+   PTY   Priority
+   QTY   Quantity
+   QVR   Quantity variances
+   RCS   Requirements and conditions
+   REL   Relationship
+   RFF   Reference
+   RNG   Range details
+   RTE   Rate details
+   SAL   Remuneration type identification
+   SCC   Scheduling conditions
+   SCD   Structure component definition
+   SEG   Segment identification
+   SEL   Seal number
+   SEQ   Sequence details
+   SFI   Safety information
+   SGP   Split goods placement
+   SGU   Segment usage details
+   SPS   Sampling parameters for summary statistics
+   STA   Statistics
+   STC   Statistical concept
+   STG   Stages
+   STS   Status
+   TAX   Duty/tax/fee details
+   TCC   Transport charge/rate calculations
+   TDT   Details of transport
+   TEM   Test method
+|  TMD   Transport movement details
+   TMP   Temperature
+   TOD   Terms of delivery or transport
+   TPL   Transport placement
+   TSR   Transport service requirements
+   VLI   Value list identification

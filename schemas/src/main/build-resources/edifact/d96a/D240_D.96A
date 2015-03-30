@@ -1,0 +1,1684 @@
+UNITED
+NATIONS
+
+
+
+                                                        Distr.
+                                                        RESTRICTED
+
+                                                        TRADE/WP.4/R.1133/Rev.1
+                                                        23 June 1995
+
+ORIGINAL: ENGLISH
+
+
+
+
+ECONOMIC COMMISSION FOR EUROPE
+
+COMMITTEE ON THE DEVELOPMENT OF TRADE
+Working Party on the Facilitation of
+International Trade Procedures
+
+(Item 12 of the provisional agenda
+of the Meeting of Experts on Data
+Elements and Automatic Data Interchange 
+(GE.1) Fifty-second session, 18-19 September 1995 
+and item 6 of the provisional agenda
+of the Meeting of Experts on Procedures
+and Documentation (GE.2)
+Fifty-second session, 20 September 1995
+
+
+
+UN/ECE RECOMMENDATION No.26
+
+THE COMMERCIAL USE OF INTERCHANGE AGREEMENTS
+FOR ELECTRONIC DATA INTERCHANGE
+
+* * *
+
+Submitted by the Rapporteurs on Legal Questions *
+
+
+
+
+
+
+
+
+
+
+
+*  The text of the Recommendation has been approved for publication at
+   the forty-first session of the Working Party in March 1995.
+
+GE.95-
+
+
+
+
+                             UNITED NATIONS
+                     ECONOMIC COMMISSION FOR EUROPE
+
+
+
+
+
+
+
+            THE COMMERCIAL USE OF INTERCHANGE AGREEMENTS
+                  FOR ELECTRONIC DATA INTERCHANGE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+RECOMMENDATION No.26, adopted by the Working Party on Facilitation of
+International Trade Procedures
+Geneva, March 1995
+
+PREAMBLE
+
+1.      At its thirty-third session in March 1991 the Working Party on
+        Facilitation of International Trade Procedures (WP.4) adopted
+        the Programme of work relating to legal issues.  Among six
+        projects, this programme contained the specific project on
+        ensuring reasonable harmonisation of interchange agreements and
+        the development of an internationally accepted version for
+        optional use.
+
+2.      The Working Party pointed out that any method of communication
+        requires discipline in order to be effective.  Such discipline
+        is normally achieved by applying generally acceptable rules of
+        conduct. In the EDI context, such rules have been developed as
+        interchange agreements within a number of user groups, national
+        organisations and regionally. These agreements generally apply
+        only to the interchange of data and not to the underlying
+        commercial contracts between the parties. They present in many
+        instances different solutions with respect to the topics
+        addressed and, as a result, by virtue of the number of
+        agreements and the diversity of their terms, there is a possible
+        barrier to international trade arising from the absence of an
+        internationally acceptable form of agreement which may be
+        adopted for use in commercial practice.
+
+3.      At its forty-first session in March 1995 the Working Party, on
+        the basis of the report of the joint session of the Meetings of
+        Experts on Data Elements and Data Interchange (GE.1) and on
+        Procedures and Documentation (GE.2), agreed to approve the draft
+        Recommendation containing the Model Interchange Agreement for
+        the International Commercial Use of Electronic Data Interchange
+        submitted by the WP.4/Legal Rapporteurs Team.
+
+RECOMMENDATION
+
+The Working Party on Facilitation of International Trade Procedures 
+agreed to recommend that:
+
+        1.  The international community of EDI users, including
+        commercial parties deciding to use Electronic Data Interchange
+        in connection with international trade transactions, apply  the
+        Model Interchange Agreement for the International Commercial Use
+        of Electronic Data Interchange as set out below in order to
+        increase the legal security of their trading relationship.
+
+        2.  United Nations member countries take into account the terms
+        and provisions of the Model Interchange Agreement when introducing
+        legislative and regulatory reforms, in order for these reforms to
+        be consistent with the intentions and business practices which
+        are the substance of the Model Interchange Agreement.
+
+PARTICIPATION IN THE FORTY-FIRST SESSION OF THE WORKING PARTY
+
+At the session representatives attended from:
+
+Austria, Belarus, Belgium, Bulgaria, Canada, Croatia, Czech Republic, 
+Denmark, Finland, France, Germany, Hungary, Iceland, Ireland, Israel, 
+Italy, Luxembourg, Malta, the Netherlands, Norway, Poland, Romania, 
+Russian Federation, Slovak Republic, Slovenia, Spain, Sweden, 
+Switzerland, Turkey, Ukraine, United Kingdom of Great Britain and 
+Northern Ireland and the United States of America.   Representatives
+from Australia, Brazil, Gabon, Japan, Korea, Senegal and South Africa
+participated under Article 11 of the Commission's terms of reference.
+
+The session was also attended by representatives of the secretariat of 
+the United Nations Conference on Trade and Development (UNCTAD), the 
+United Nations Commission on International Trade Law (UNCITRAL), and the 
+International Trade Centre UNCTAD/GATT (ITC), as well as by 
+representatives of the following intergovernmental and non-governmental 
+organizations:  European Free Trade Association (EFTA), Central Office 
+for International Railway Transport (OCTI), the World Customs 
+Organization (WCO),International Air Transport Association (IATA),  
+International Article Numbering Association (EAN), International Chamber 
+of Commerce (ICC),  International Chamber of Shipping (ICS),
+International Express Carriers' Conference (IECC),  International
+Organization for Standardization (ISO), International Union of Railways
+(UIC).
+
+1. This Recommendation has been developed under Project 4.1 of the
+Action Programme on the Commercial and Legal Aspects of Trade
+Facilitation adopted by the Working Party on Facilitation of
+International Trade Procedures, as set forth in TRADE/WP.4/R.697 and
+includes the Model Interchange Agreement for the International
+Commercial Use of Electronic Data Interchange set forth in Annex A. 
+
+I.  Background.
+
+2. In 1987, working in cooperation with the Working Party, the
+International Chamber of Commerce developed and produced the Uniform 
+Rules of Conduct for Interchange of Trade Data by Teletransmission (the 
+UNCID Rules; ICC Publication no. 452).  The UNCID Rules were aimed at
+facilitating the interchange of trade data effected by teletransmission,
+through the establishment of agreed rules of conduct between parties
+engaged in such transmission.
+
+3. The publication of the UNCID Rules confirmed the importance to
+international trade of having certain agreements in place among
+commercial parties regarding the use of automated data processing
+techniques.
+
+4. The UNCID Rules expressly provided that their provisions, if relied
+upon, were to be incorporated into definitive agreements among the
+commercial trading partners.  As a result, national organisations,
+associations and public administrative bodies have developed a
+multiplicity of model interchange agreements.
+
+5. Originating within different cultural and legal environments, these
+existing model agreements often introduced different topics and 
+different approaches to similar topics.  The diversity of these 
+interchange agreements, though they may address national or local
+business requirements, does not address an international focus, which is
+required by EDI users exchanging messages across boundaries.
+
+6. Efforts have started to produce more standardised interchange
+agreements, such as the recent recommendation by the European Commission
+for use of a European Model EDI Agreement.  The development of a truly
+international model interchange agreement was provided as one of the
+main objectives of the Action Programme referred to above.
+
+7. Recent work by the United Nations Commission on International Trade
+Law to develop model statutory provisions on the use of EDI in 
+international trade, which will be submitted to the Commission for
+review in July 1995, expressly contemplate that commercial parties may
+indeed wish to vary the effect of such provisions by agreement.
+
+8. As well, the progress of the Working Party in defining and
+understanding the international trade transaction (as reflected by
+TRADE/WP.4/R.971 and related documents) has emphasized the number of
+commercial relationships in which EDI can be employed, and, therefore,
+the circumstances in which an interchange agreement may be appropriate.
+
+II.  Preparation of the Model Agreement
+
+9. This recommendation has been produced with the input and cooperation
+of the Legal Rapporteurs Team in accordance with the Internal 
+Organisation and Operating Procedures established for that organisation 
+set forth in TRADE/WP.4/R.1071.  International organisations, such as
+the ICC and UNCITRAL have been represented in the meetings during which
+the drafts of the Model Agreement were developed and circulated.
+
+10. More than 20 different existing model interchange agreements which
+have been developed were considered in the course of the preparation of
+the Model Agreement and close collaboration has been ensured with the
+technical experts associated with the development of UN/EDIFACT.
+
+11. Earlier Recommendations of the Working Party, as well as the
+recommendations or similar actions of other international organizations 
+relating to the simplification and harmonization of international trade 
+procedures, have been considered in order to ensure the consistency of
+this Recommendation with previous work.  In submitting this
+Recommendation for approval, the Rapporteurs on Legal Questions believe
+it is consistent with, and furthers the objectives of, prior
+recommendations in the field.
+
+12. By offering to commercial parties engaged in international trade a
+model form of interchange agreement for global use in connection with 
+the UN/EDIFACT standards, the Working Party advances the goals of 
+harmonization, simplification and rationalisation with respect to the 
+most essential procedure of international trade - the communications of 
+the trading partners. However, though recommended, the terms of the
+model interchange agreement are not mandatory; trading parties are free
+to modify the terms of any interchange agreement to their mutual
+satisfaction, or to not enter into interchange agreements at all.
+
+
+III.  Scope
+
+13. This Recommendation promotes the use of interchange agreements
+between commercial parties using Electronic Data Interchange in
+connection with international commercial transactions.
+
+
+IV. Field of Application
+
+14. This Recommendation focuses upon commercial parties using Electronic
+Data Interchange in connection with international commercial 
+transactions.  It may also be relevant to administrative authorities,
+including for example statistics' offices, or trade facilitation bodies
+in their efforts to rationalise and harmonise electronic processes and
+procedures.
+
+15. Though designed for bi-lateral agreements between two trading
+partners, the Model Interchange Agreement, with adjustments, can easily
+be implemented in multi-lateral relationships such as in a trade
+community or association.
+
+V.  Recommendation
+
+16. Based on the preceding considerations, the United Nations Economic
+Commission for Europe recommends that:
+
+1.  The international community of EDI users, including commercial 
+ parties deciding to use Electronic Data Interchange in connection with
+ international trade transactions, use interchange agreements in order
+ to increase the legal security of their trading relationships and their
+ use of EDI.
+
+2.  In negotiating and entering into interchange agreements, the use of
+ the Model Interchange Agreement for the International Commercial Use of
+ Electronic Data Interchange is endorsed.
+
+3.  The Model Interchange Agreement for the International Commercial Use 
+ of Electronic Data Interchange, be incorporated into Part 3 of the
+ United Nations Trade Data Interchange Directory (UN/TDID) and be part
+ of the recommendations relating to UN/EDIFACT.
+
+4.  United Nations member countries take into account the terms and 
+ provisions of the Model Interchange Agreement when introducing
+ legislative and regulatory reforms, in order for these reforms to be
+ consistent with the intentions and business practices which are the
+ substance of the Model Interchange Agreement.
+
+5.  United Nations member countries could contribute significantly to 
+ increasing the legal security of using EDI by promoting, through
+ awareness programs, educational resources and related means, the
+ availability and usefulness of the Model Interchange Agreement as well
+ as commercial business practices relating to international trade which
+ are consistent with the preceding recommendations.
+
+6.  When designing and implementing the use of EDI for administrative 
+ functions relating to international trade transactions, administrative
+ bodies and organisations, though having distinctive requirements to be
+ considered, should evaluate and give consideration to the expanding
+ commercial use of interchange agreements as well as the terms and
+ business practices which are contained in the Model Interchange
+ Agreement.
+
+
+
+                                 ANNEX
+                           THE UNITED NATIONS
+                     ECONOMIC COMMISSION FOR EUROPE
+   
+                      MODEL INTERCHANGE AGREEMENT
+                         FOR THE INTERNATIONAL
+                             COMMERCIAL USE
+                     OF ELECTRONIC DATA INTERCHANGE
+   
+                           TABLE OF CONTENTS
+
+Preface
+An Introduction to Interchange Agreements
+The Model Interchange Agreement
+The Commentary
+Technical Annex Checklist
+Additional United Nations Publications 
+       
+
+
+PREFACE
+
+        The Model Interchange Agreement for the International
+Commercial Use of Electronic Data Interchange has been developed as a
+part of a project under the Action Programme on the Legal and Commercial
+Aspects of Electronic Data Interchange adopted by the United Nations
+Economic Commission for Europe Working Party on Facilitation of
+International Trade Procedures ("WP.4") in 1991.  That Programme is set
+forth in United Nations Document No. TRADE/WP.4/R.697. The Programme
+emphasizes legal issues which can be readily defined and aims at
+developing guidance on those legal issues, and recommending appropriate
+solutions in the form of legal instruments or tools or changes in
+commercial practices.
+
+         The Model Interchange Agreement is a product of one of the main
+projects of the Programme.  Objectives of that project are to ensure the
+reasonable harmonisation of interchange agreements used in international 
+trade and to develop an internationally accepted version for optional 
+use.  Under the operating procedures of WP.4, the Model Interchange
+Agreement is recommended for consideration by all commercial trading
+partners wishing to use Electronic Data Interchange in international
+trade.
+
+        The Model Interchange Agreement has been prepared by a group of
+international practitioners in law or related matters with knowledge and 
+expertise in EDI and international trade.  These practitioners, 
+representing a number of countries all over the world, are convened 
+regularly under the auspices of WP.4 through the Legal Rapporteurs Team, 
+which is organised by two Rapporteurs on Legal Questions elected by the 
+members of WP.4.  This work, achieved also in close collaboration with
+other teams of experts on EDI, reflects a multidisciplinary approach,
+the relevance of which is essential in the area of EDI.  It also takes
+into account the similarities and differences among the various legal
+systems.  [March, 1995] 
+
+
+               AN INTRODUCTION TO INTERCHANGE AGREEMENTS
+
+What is an interchange agreement?
+
+        An interchange agreement is made between trading partners
+setting out the rules they will adopt for using Electronic Data
+Interchange (EDI). Electronic Data Interchange is the electronic
+transfer from computer to computer of commercial or administrative
+transactions using an agreed standard to structure the transaction or
+message data.  The agreement also details the individual roles and legal
+responsibilities of the trading partners for transmitting, receiving and
+storing electronic messages. Because of differences which are involved
+with the use of EDI in commerce, addressing these topics as they relate
+to a new electronic trading environment reduces the legal uncertainty
+that electronic trading might raise and enhances the confidence with
+which the technology is employed.
+
+Why are Interchange Agreements developed and used?
+
+        EDI is developing rapidly as an effective business tool for
+international trade. The use of EDI for business and administration
+purposes is already well established within several major industries in
+Europe, North America, Australia/New Zealand and Asia.
+
+        The increasing use of EDI is fundamentally changing
+international trading practices by replacing traditional paper based
+trading with electronic alternatives.  Instead of sending and receiving
+original written documents with handwritten signatures, traders transfer
+structured business data from one computer system to another by
+electronic means, including the increasing use of electronic signatures.
+
+        However, the extent to which national and international law
+accepts that an electronic message can perform the same function as a
+paper document differs considerably.  Many of the conventions and
+agreements relating to international trade do not anticipate the
+possible use of EDI.  This is largely because EDI simply did not exist
+when these international conventions and agreements were drafted and the
+necessary modifications to them have yet to be carried out.  Many
+national laws also introduce uncertainty regarding the legal validity of
+EDI based transactions or are inconsistent in their treatment of the new
+technologies.  As well, few courts have had the opportunity to rule on
+the validity of electronic documents, messages or signatures.
+
+        From early in the use of EDI, these types of legally focused
+agreements have been employed by businesses in different industries, in
+different economic or geographic regions and for different levels of
+technology sophistication.
+
+Why should a company use an interchange agreement?
+
+        In the absence of clear governing legal rules and principles, an
+interchange agreement provides a company with a readily available
+solution for formalising the EDI relationship between it and its
+trading partners.
+
+For example, the Model Agreement, when properly relied upon, seeks to 
+provide EDI messages with a legal binding effect across different 
+national legal systems.  This goal is pursued by addressing all of the 
+basic legal issues needing to be covered before a company uses EDI to 
+communicate with its national or international trading partners. Thus, 
+once a company decides it will use EDI, it will require agreement with
+its trading partners on at least the following issues, the priorities
+of which will vary based upon the specific needs of that company:
+
+a)      selection of EDI messages, message standards and methods of
+        communication;
+
+b)      responsibilities for ensuring that the equipment, software and
+        services are operated and maintained effectively;
+
+c)      procedures for making any systems changes which may impair the
+        ability of the trading partners to communicate;
+
+d)      security procedures and services;
+
+e)      the points at which EDI messages have legal effect;
+
+f)      the roles and contracts of any third party service providers;
+
+g)      procedures for dealing with technical errors;
+
+h)      the needs (if any) for confidentiality;
+
+i)      liabilities in the event of any delay or failure to meet agreed
+        EDI communications requirements;
+
+j)      the laws governing the interchange of EDI messages and the
+        arrangements of the parties; and
+
+k)      methods for resolving any possible disputes.
+
+        Interchange agreements between trading partners are an entirely
+voluntary arrangement. However, as the fairly extensive list above
+indicates, a company will need to consider a number of very
+important issues before starting to use EDI to communicate with
+trading partners. An interchange agreement gives a structured framework
+for considering and formalising these basic issues.
+
+        The failure to gain a reliable and binding agreement on the
+rules governing a business' EDI communications presents the risk for
+unnecessary and costly disputes among trading partners, and, in the
+worst case, may result in litigation.
+
+What model interchange agreements exist?
+
+        A number of model interchange agreements have been developed for
+both national and regional use.  These include interchange agreements 
+published by national EDI organisations, professional bar associations
+and public administrations.  However, at the time of this publication,
+no global model exists other than the Model Interchange Agreement.
+
+        In the absence of an existing model for international commercial
+trade transactions, conflicts among the existing national or regional
+models were also believed to inhibit the deployment of EDI in
+international trade.  The various models consulted by the  Legal
+Rapporteur Team varied widely in length, substance and content; the
+Model Interchange Agreement seeks to reconcile and find common ground in
+order to enhance the ease of international trade use of EDI.
+
+How does this Model Interchange Agreement differ from other model
+agreements?
+
+This Model Interchange Agreement is particularly suitable for 
+international trade.  It has been developed taking into account the 
+differing national legal systems and offers practical solutions for 
+overcoming any difficulties these might cause. It is intended to be 
+sufficiently flexible to meet the requirements of all of the business
+sectors involved in international trade. Users may also find it useful
+for preparing interchange agreements relating to purely national or
+regional EDI commercial activity.
+
+If a company decides to use the international model set out in this
+Model Interchange Agreement as a basis for deciding the rules governing
+the use of EDI between it and its trading partners, one can be
+reasonably confident that a tool has been selected which:
+
+-       addresses the recognized legal issues arising from the
+        commercial use of EDI in international trade; and,
+
+-       provides a strong legal and practical framework for considering
+        and recording the necessary business decisions.
+
+ 
+
+                    THE MODEL INTERCHANGE AGREEMENT
+                  FOR THE INTERNATIONAL COMMERCIAL USE
+                     OF ELECTRONIC DATA INTERCHANGE
+ 
+
+This Model Interchange Agreement publication consists of three parts:
+
+                THE MODEL INTERCHANGE AGREEMENT.
+
+                THE COMMENTARY, WHICH PROVIDES CERTAIN EXPLANATIONS AND
+                ADDITIONAL GUIDANCE.
+
+                A CHECKLIST FOR TECHNICAL ANNEX, SUMMARIZING CERTAIN
+                CONTENT REQUIREMENTS FOR A TECHNICAL ANNEX TO BE
+                ATTACHED TO ANY ACTUAL AGREEMENT.
+     
+The Model Interchange Agreement has been prepared for use among
+commercial trading partners.  In order to be used with administrative
+or official agencies or for consumer transactions, appropriate
+revisions will be required.
+
+  
+MODEL INTERCHANGE AGREEMENT
+
+This Interchange Agreement (the "Agreement") is concluded by and among 
+{insert names and addresses of the parties} (hereinafter referred to as
+"the parties") as of _______, 19__.   By this agreement, the parties,
+intending to be legally bound, hereby agree as follows:
+
+SECTION 1:  SCOPE AND STRUCTURE
+
+1.1. Scope. 
+This Agreement governs any electronic transfer of Messages between the 
+parties. Except as expressly provided, this Agreement does not govern 
+any other relationships, contractual or not, in the context of which
+Messages are communicated. A Message means data structured in
+accordance with the UN/EDIFACT Standards as provided in Section 2.
+
+1.2. Technical Annex.
+The attached Technical Annex sets forth the specifications agreed upon 
+by the parties for certain technical and procedural requirements. In
+the event of a conflict between the terms of this Agreement and the
+Technical Annex, the terms of this Agreement shall prevail.
+
+SECTION 2: COMMUNICATIONS AND OPERATIONS 
+
+The parties shall communicate Messages in accordance with the following : 
+
+2.1. Standards. 
+The "UN/EDIFACT Standards" are those standards established for 
+Electronic Data Interchange (together with related recommendations), as 
+approved and published in the United Nations Trade Data Interchange
+Directory (UN/TDID). The parties shall use those versions of the
+UN/EDIFACT Standards identified in the Technical Annex.
+
+2.2. System Operations.
+Each party shall test and maintain their respective equipment,
+software, and services necessary to effectively and reliably transmit
+and receive Messages.
+
+2.3. System Changes.
+No party shall make any changes in systems operations which impair the
+mutual capabilities of the parties to communicate as contemplated by
+this Agreement without providing prior notice of the intended change.
+
+2.4.  Communications.
+The parties shall specify in the Technical Annex the methods of
+communication, including the requirements for telecommunication or the
+use of third party providers.
+
+2.5.  Security Procedures and Services.
+Each party shall implement and maintain security procedures and
+services, including any specified in the Technical Annex, to protect
+Messages and their records against untoward events or misuse including
+improper access, alteration or loss.
+
+2.6.  Record Storage.
+The parties shall store and retain records and the Messages
+communicated under this Agreement as may be specified in the Technical
+Annex.
+
+SECTION 3: MESSAGE PROCESSING
+
+3.1. Receipt.
+Any Message transmitted in compliance with this Agreement shall be 
+deemed received when accessible to the receiving party in the manner 
+designated in the Technical Annex. Until so received, no transmitted
+Message shall have any legal effect unless applicable law mandates
+legal effect to such Message upon transmission, whether or not received.
+
+3.2.  Acknowledgement.
+
+3.2.1. Unless otherwise designated in the Technical Annex, the receipt
+of a Message need not be acknowledged by the receiving party. A 
+requirement for acknowledgement in the Technical Annex shall include
+the methods and types of acknowledgements (including any Messages or
+procedures) and the time periods, if any, in which acknowledgement must
+be received.
+
+3.2.2. An acknowledgement will be prima facie evidence that the related 
+Message was received. A party receiving a Message requiring 
+acknowledgement shall not act upon that Message until the 
+acknowledgement is sent. If a receiving party is not able to send the 
+acknowledgement, it shall not act upon the Message without further
+instructions from the sender of the Message.The failure of a receiving
+party to acknowledge a Message will not deprive the Message of its
+legal effect, except when the originating party is not identifiable
+from the Message.
+
+3.2.3. In the event that the originating party has not received, for a 
+properly transmitted Message, a required acknowledgement and no further
+instructions have been provided, the originating party may declare the
+Message null and void by so notifying the receiving party.
+
+3.3. Technical Errors. A receiving party must give notice to the
+originating party of circumstances, including technical errors in a
+received transmission, which prevent the further processing of a
+Message.
+
+SECTION 4: VALIDITY AND ENFORCEABILITY
+
+4.1. Validity. 
+The parties agree that valid and enforceable obligations may be created 
+by the communication of Messages in compliance with this Agreement. The 
+parties expressly waive any rights to object to the validity of a
+transaction solely on the ground that communication between the parties
+occurred through the use of Electronic Data Interchange.
+
+4.2. Evidence. 
+Without regard to the absence of any writings and written signatures,
+to the extent permitted by law, the records of Messages maintained by
+the parties shall be admissible and may be used as evidence of the
+information contained therein.
+
+4.3. Contract Formation.
+A contract concluded through the use of Electronic Data Interchange
+under this Agreement shall be deemed to be formed when the Message sent
+as acceptance of an offer has been received in accordance with Section
+3.1.
+
+SECTION 5: DATA CONTENT REQUIREMENTS
+
+5.1. Confidential Status. 
+No information contained in any Message communicated under this
+Agreement shall be considered confidential unless by operation of law
+or by designation in the Technical Annex or the Message.
+ 
+5.2. Legal Compliance.
+
+5.2.1.  Each party shall ensure that the content of any Message is
+transmitted, received or stored in compliance with all legal
+requirements to such party.
+
+5.2.2.  In the event that the receipt or the storage of any element of a
+Message would constitute a contravention of the applicable law, the
+receiver shall without undue delay give notice of such non-compliance.
+
+5.2.3.  Until the receiver is aware of non-compliance of the Message,
+its rights and obligations under this Agreement shall not be affected.
+
+5.2.4.  Upon giving notice of non-compliance to the sender, the receiver
+shall be under no obligation to respond to any further non-complying
+Message. Upon receipt of the notice the sender shall refrain from
+transmitting any further non-complying Message.
+
+SECTION 6: LIABILITY
+
+6.1. Force Majeure.
+No party shall be liable for any delay or other failure in performing 
+its obligations under this Agreement where such delay or failure is 
+caused by any event beyond the party's control (a) which could not be
+reasonably expected to have been taken into account at the time this
+Agreement was signed or (b) the consequences of which could not be
+avoided or overcome.
+
+6.2. Excluded Damages.
+No party shall be liable for any special, consequential, indirect or
+exemplary damages arising from any breach of this Agreement.
+
+6.3.  Provider Liability.
+
+6.3.1.  A party using the services of a third party provider in the
+communication or processing of Messages shall be responsible under this
+Agreement for any acts, failures or omissions of that provider in the
+provision of said services.
+
+6.3.2.  Any party instructing any other party to use a specified third
+party provider shall be responsible for any acts, failures or omissions
+of the provider.
+
+SECTION 7: GENERAL PROVISIONS
+
+7.1.  Governing Law.
+This Agreement shall be governed by the national laws of _______. In
+the event of a conflict in law between the laws governing a transaction
+and the laws governing this Agreement, the laws governing this
+Agreement shall prevail.
+
+7.2.  Severability. 
+Should any provision of this Agreement be invalid or unenforceable for
+any reason, all other provisions of the Agreement shall remain in full
+force and effect.
+
+7.3.  Termination.
+Any party may terminate this Agreement upon not less than [30] days 
+prior written notice of the termination. No termination shall affect any 
+communications occurring prior to the termination, or the performance
+of any related transactions. The provisions of Sections 2.5, 2.6, 4,
+5.1, 6, 7.1 and 7.5 shall expressly survive any termination and remain
+binding upon the parties.
+
+7.4. Entire Agreement. 
+This Agreement, including the Technical Annex, constitutes the complete 
+agreement of the parties on the subject matters of this Agreement and 
+becomes effective when signed by the parties. The Technical Annex may be 
+amended by the parties or by a person authorised by a party to sign on 
+its behalf. Each party shall provide to the other a written and signed
+record of every amendment agreed. Each amendment shall enter into force
+upon exchange of the written and signed records. The Technical Annex
+and each amendment then in force shall constitute the agreement between
+the parties.
+
+7.5.  Headings and Sub-headings.
+The headings and sub-headings of this Agreement shall be read as part
+of the clause or sub clause in which it appears.
+
+7.6.  Notice.
+Excluding acknowledgements and notices under Section 3, every notice 
+required to be given under this Agreement or under the Technical Annex 
+shall be treated as properly given if provided to the other party in 
+writing and signed by an authorised person for the party giving notice 
+or an electronic equivalent of which a record can be produced. Each
+notice shall have effect from the day following that upon which it is
+received to the above mentioned address of the other party.
+
+7.7. Dispute Resolution.
+
+Alternative 1:  Arbitration Clause
+
+Any dispute arising out of or in connection with this Agreement, 
+including any question regarding its existence, validity or termination,
+shall be referred to and finally resolved by the arbitration of a {or
+three} person[s] to be agreed by the parties, or failing agreement, to
+be nominated by _______ in accordance with and subject to the rules of
+procedure of _______.
+
+Alternative 2:  Jurisdiction Clause
+
+Any dispute arising out of or in conjunction with this Agreement shall
+be referred to the courts of ______, which shall have sole jurisdiction.
+
+
+The parties have signed this Agreement as of the date first above
+written.
+Name of Party :
+
+Authorized Officer :
+
+Signature :
+
+
+
+Name of Party :
+
+Authorized Officer :
+
+Signature :
+
+  
+
+
+THE COMMENTARY TO THE MODEL INTERCHANGE AGREEMENT
+
+This Commentary is the second part of a United Nations recommendation
+relating to the Model Interchange Agreement for the International 
+Commercial Use of Electronic Data Interchange (the "Model Agreement").  
+The Commentary is intended to be used with the Model Agreement in the 
+preparation of actual commercial agreements; the Commentary provides an 
+explanation of the specific sections of the Model Agreement and
+guidance on how actual agreements should be prepared.  Capitalized
+terms used in the Commentary have the same meanings provided in the
+Model Agreement.
+
+I. General Presentation
+
+The Interchange Agreement is comprised of seven sections:
+
+        Section 1. Scope and Structure
+        Section 2. Communications and Operations
+        Section 3. Message Processing
+        Section 4. Validity and Enforceability
+        Section 5. Data Content Requirements
+        Section 6. Liability
+        Section 7. General Provisions
+     
+In addition, the Agreement needs to be completed by a Technical Annex, 
+which is to be attached to, and is considered an integral part of the
+Agreement.   Following the Commentary is a Technical Annex Checklist,
+which can be used in preparing a Technical Annex between the trading
+partners.
+
+The Model Agreement contains a clear and unambiguous statement that it
+is the intention of the parties to be bound by the Agreement; this 
+emphasizes that the trading partners desire to operate with, and not 
+outside, a legal framework with respect to their use of Electronic Data 
+Interchange.  The Agreement is intended to provide a strong legal
+framework for ensuring that EDI communications will have a legally
+binding effect, subject to national laws or regulations which may be
+effective (see Section 7.1).
+
+Though designed for use by two commercial trading partners, the Model 
+Agreement may be readily adapted for a multi-lateral use among multiple 
+commercial trading partners or in situations in which a trading 
+community or association of EDI users decides upon or encourages the use 
+of the same interchange agreement; the Model Agreement may be adapted
+for those purposes as well, with appropriate changes for establishing
+how multiple parties will become bound by the Agreement.
+
+
+II.  Specific Sections
+
+Section 1. SCOPE AND STRUCTURE
+
+Section 1.1  Scope.
+
+The Agreement establishes certain governing rules with regard to the 
+electronic communication between the parties of EDI messages in 
+accordance with the UN/EDIFACT structures and standards ("Messages").  
+Section 2.1 (and the Commentary) provides further discussion of this 
+aspect of the Agreement.  The Agreement does not apply to other forms
+of electronic communications, such as facsimile transmissions, nor to
+electronic text transmissions (such as electronic mail) which are not
+structured and standardized messages.
+
+It is important to emphasize the Agreement does not set forth rules 
+governing the related commercial transactions for which EDI might be 
+employed since those transactions involve their own bodies of
+applicable legal rules: for example, sales transactions, shipping
+contracts, insurance contracts, storage arrangements and similar
+relationships.
+
+Section 1.2  Technical Annex.
+
+The Technical Annex represents an integral part of the agreement among 
+the trading partners (see Section 7.4); its terms are legally binding.  
+The Technical Annex describes the detailed technical procedures which 
+the parties will use in their EDI communications.  The Interchange 
+Agreement contemplates that certain topics will be addressed in the 
+Technical Annex; those topics are listed in the Technical Annex 
+Checklist at the end of this Commentary.  Additional topics may be
+required according to the specific needs of trading partners; trading
+partners are encouraged to consult appropriate technical advisors as to
+those topics.
+
+Although the Interchange Agreement and the Technical Annex represent the 
+full agreement between the parties, technicians and legal counsel are 
+encouraged to be aware of each other's requirements.   Section 1.2 of
+the Agreement provides a rule that the provisions of the Agreement will
+control in the event a conflict does arise between the Agreement and
+the Technical Annex.
+
+Section 2  COMMUNICATIONS AND OPERATIONS
+
+This Section sets forth the rules governing the communications between 
+the trading partners and the required methods of operations which each 
+is to use in sending and receiving Messages.  By doing so, the necessary 
+agreements reached between the parties are given legal binding effect.
+Additional contracts with other participants (such as third party
+service providers; see Section 2.4) may be required and users are
+encouraged to have valid agreements with those participants.
+
+Section 2.1.  Standards.
+
+Consistent with its international scope, the Model Interchange Agreement 
+was prepared to be used on the basis of the UN/EDIFACT standards and
+recommendations developed within the United Nations Economic Commission 
+for Europe and approved for international use by the International 
+Standards Organization (ISO). These standards include recommendations 
+regarding message formats, syntax, directories of codes, data elements 
+and segments.  They are included in the United Nations Trade Data
+Interchange Directory (UN/TDID) referred to in the Agreement.  The
+Technical Annex Checklist also references certain security services for
+which standards exist.
+
+The Model Agreement is one of the recommendations included in the 
+UN/TDID and users are strongly encouraged to consult UN/TDID and related 
+United Nations publications in connection with their use of the Model
+Agreement.  A selection of these publications (and information on how
+to obtain them) is included at the end of this Commentary.
+
+Section 2.2  System Operations.
+
+Consistent with prevailing commercial practices, Section 2.2 requires 
+each trading partner to be individually responsible for testing and 
+maintaining their respective systems, and for the related costs.  By 
+agreement, the parties can allocate their respective costs differently.
+The Agreement requires that the parties must assure that they will be
+able to communicate both effectively and reliably.
+
+Section 2.3  System Changes.
+     
+Many changes in operating systems can impair the end-to-end ability to 
+communicate which is desired between the parties, even when not directly 
+involved with an EDI program or file; parties are encouraged to 
+collaborate with trading partners whenever practicable to assure no 
+disruption in communication occurs.  The Section is intended to require
+trading partners to give notice of any proposed changes in the version
+release of selected standards to be employed.
+
+Section 7.6 of the Agreement specifies the manner in which any notice of 
+proposed changes under this Section 2.3 shall be given by the trading 
+partners.  The time period in advance of the proposed change during 
+which notice must be given is not specified; trading partners are
+encouraged to anticipate the need for appropriate dialogue, testing and
+verification among technical experts before implementing any subject
+changes.
+ 
+Section 2.4 Communications.
+
+EDI business practices require the parties to determine and agree upon 
+the methods by which the Messages will be communicated.  These methods 
+can vary; Messages are communicated (both sent and received) by 
+telecommunications, through the delivery of magnetic tapes or diskettes, 
+or the use of hard copy media.  By stipulating these requirements should 
+be specified, Section 2.4 assures compatibility in the respective
+operations of the trading partners.  Technical aspects which might be
+specified are noted in the checklist for the Technical Annex at the end
+of this Commentary.
+
+Trading partners are encouraged to specify in the Technical Annex not 
+merely the requirements for end-to-end communications, but to also give
+regard to the other contractual relationships through which the EDI
+activities may be conducted.  Section 6.3 also considers those
+relationships.
+
+Section 2.5  Security Procedures and Services.
+
+Establishing and maintaining an effectively secure environment for the 
+use of EDI is an important business objective.  As well, the management
+of security procedures and services can be decisive in determining the
+legal treatment of the records of Messages and their legal validity.
+
+Trading partners should attempt to achieve the most acceptable 
+end-to-end security, taking into account the nature of their messages, 
+their relative sophistication, costs, available resources and changing 
+technologies.  Procedures and services may be used which confirm the
+authenticity of Messages sent and received and improve the continuing 
+control parties may maintain on the integrity of their communications.  
+The Technical Annex identifies, in summary form, the alternatives
+available for security services between trading partners and factors to
+be considered in establishing internal security procedures.
+
+Section 2.6.  Record Storage.
+
+To ensure the validity and enforceability of transactions completed 
+through the use of EDI, Section 2.6 requires trading partners to store 
+and retain (a) the Messages communicated (both sent and received) and
+(b) records relating to those Messages.  Those records may include
+histories or logs of the communications as well as databases containing
+extracts of certain portions of the Messages.
+
+The record storage requirements which may be specified in the Technical 
+Annex should be developed based upon the commercial or legal
+requirements under which each party conducts its affairs.  The objective 
+is to provide the necessary requirements which can best assure each 
+trading partner that both required and desired records will exist when
+needed.  National laws and regulations may differ considerably
+regarding the readability, durability or integrity of electronic
+records.
+
+No specific time requirements or storage formats are indicated; however, 
+trading partners are encouraged to specify details regarding both 
+matters, in order that the appropriate records can be recovered for 
+review in the event of any future disagreements or disputes.
+Otherwise, the Agreement imposes no restrictions on the internal
+procedures used by a party to comply with the requirements of Section
+2.6.
+
+Section 3.  MESSAGE PROCESSING
+
+Section 3.1.  Receipt.
+
+Under different national and international legal texts and instruments, 
+the legal effect of a communication can be realized either when it is 
+transmitted, when it is received or when it should have been reasonably 
+received.  The Agreement provides a structure for specifying when 
+Messages which are communicated are to be considered received and when
+they are to be given legal effect.  The structure is important for
+understanding the outcomes of certain communications.
+
+Specifically, under Section 3.1 of the Agreement, a Message will have no 
+legal effect until it becomes accessible to the receiving party as 
+provided in the Technical Annex.  This permits parties to designate at 
+which step of the communication process a Message is received, whether 
+in an electronic mailbox, transaction log, a specific machine or
+receipt by specific individuals or officers of the company.  It is not
+required that a Message be actually accessed or reviewed; it must only
+be accessible.
+
+The Agreement contemplates an important exception:  under certain 
+national commercial or administrative laws, the sending of a 
+communication, whether or not in electronic form, is given certain legal 
+effect, whether or not received in fact by the intended recipient.
+For example, a buyer sending a notice of defective goods preserves its
+rights, even if the seller does not receive the communication.
+
+Section 3.2.  Acknowledgement.
+
+The UN/EDIFACT structures anticipate that, for both control and security 
+purposes, trading partners may desire that the receipt of any Message be 
+acknowledged by the receiving party.  Specific Messages are available 
+for that purpose; those Messages may confirm both the receipt event and 
+that no errors have occurred in the syntax of the Message.  Whether a 
+particular type of Message is appropriate for acknowledgement is a 
+decision solely within the control of the trading partners; trading
+partners may determine that there exists no need to acknowledge each
+Message transmitted.  The cost of providing acknowledgements is often
+considered in making these decisions.
+
+Section 3.2.1 requires parties to designate in the Technical Annex when 
+a Message should be acknowledged.  Since a transmitting party should be 
+afforded the opportunity to determine a Message has been effectively 
+received, the Technical Annex should be prepared with two situations in 
+mind:  (a) when acknowledgement is to be required in the ordinary course
+and (b) when acknowledgement is requested specifically in the Message 
+which has been transmitted.  As stated in Section 3.2.1, matters to be
+addressed include the methods and types of acknowledgements and the
+time periods, if any, in which acknowledgement must be received.
+
+Section 3.2.2 permits an acknowledgement to be considered as prima facie
+evidence that a related Message has been received; under this rule, 
+there would be an opportunity for contrary evidence to be submitted.
+Trading partners are cautioned that certain local rules of evidence may
+not recognize their efforts to control the acceptability of certain
+evidence into judicial proceedings.
+
+When acknowledgements are required, Section 3.2.2 also defines 
+additional responsibilities.  First, the receiving party is not to act 
+upon the Message until sending the acknowledgement.  If acknowledgement 
+cannot be transmitted, the receiving party will either so notify the 
+sender of the subject Message or request further instructions.  Until 
+receiving further instructions from the originating party, the receiving 
+party is not to act upon the Message pursuant to Section 3.2.2.  
+Therefore, the parties remain, in most circumstances, in a neutral
+position until they have had an opportunity to communicate.  The
+instructions might be given by phone, facsimile transmission or
+delivered paper documents.
+
+Second, for the originating party, who expects a required 
+acknowledgement, in the absence of the acknowledgement and having given 
+no further instructions, the originating party may declare the Message 
+to be null and void by giving notice.  Such notice must comply with the
+requirements of Section 7.6. This right only arises for Messages which
+have been "properly transmitted" in the first instance.
+
+Since certain types of Messages may have legal effects not favourable to 
+a receiving party (for example, a notice of defective goods sent to a
+seller), Section 3.2.2 does not permit the receiving party to deprive a
+Message, when received, from having legal effect by failing to send a
+required acknowledgement.
+
+Under Section 3.2.3, the receiving party is only excused from sending a 
+required acknowledgement when the identity of the intended recipient
+cannot be determined from the original Message; to determine that
+identity, all of the components of a Message should be examined, but no
+further diligence is required.  
+
+Section 3.3.  Technical Errors.
+
+In the event circumstances exist which prevent the further processing of 
+a Message, Section 3.3 requires a receiving party to give notice to the 
+originating party.  These circumstances may include system malfunctions, 
+but also include technical errors in the received transmission.  The
+obligation to notify an originating party under those circumstances
+exists even for Messages as to which acknowledgement has not been
+required.
+
+
+Section 4. VALIDITY AND ENFORCEABILITY.
+
+Section 4 declares that the trading partners signing the Agreement
+intend for valid and enforceable obligations to result from their EDI
+communications.  It addresses the critical legal aspects of using EDI
+in international trade.
+
+Section 4.1.  Validity.
+
+Certain national laws may permit a trading partner to object to the 
+validity of certain communications on the basis that a writing or signed 
+writing is otherwise required. Section 4.1 of the Agreement makes clear 
+that the validity of a transaction may not be challenged by either party 
+because it was EDI in nature.  This provision may not always be
+enforceable under some legal systems; the choice of governing national
+law under Section 7.1 may be influenced by this consideration.
+
+In considering that the use of EDI results in the elimination of written 
+signatures, parties are encouraged to evaluate the security procedures 
+and services which may be selected and used between the trading 
+partners.  Though electronic signatures may be acceptable between the 
+parties and specified in the Technical Annex, no assurance can be given
+that all electronic signature services will perform all of the same
+functions (including legal functions) as traditional signatures used in
+similar contexts.
+
+Section 4.2.  Evidence.
+
+Section 4.2 specifies the intent of the parties that the records of 
+Messages maintained by the parties shall be admissible and may be used 
+as evidence.  The Agreement acknowledges that national laws may differ,
+however, as to the extent to which parties may specify for judicial
+proceedings the acceptability of certain types of evidence.
+
+Section 4.3.  Contract Formation.
+
+Section 4.3 defines when a contract to be concluded through the use of 
+EDI shall be deemed to be formed.  Determining the time of formation is 
+often important for legal purposes.  Although rules have been generally 
+defined for contracts concluded by mail or telephone, uncertainty
+exists as to contracts concluded through the use of EDI.  The rule
+established by the Agreement ensures the predictability and
+expectations of the trading partners.
+
+Under Section 4.3, and consistent with Section 3.1, the Message sent as 
+an acceptance of an offer forms the contract when received.  This
+"reception rule" is consistent with the provisions of various national
+and regional model agreements in use and prevailing EDI commercial
+practices.
+
+Section 5.  DATA CONTENT REQUIREMENTS.
+
+Section 5.1.  Confidential Status.
+
+The exchange of information in commercial transactions often requires 
+the communication of confidential data relating to the business of 
+trading partners.  The underlying agreements will usually define the 
+obligations of the parties with respect to how that data will be 
+handled.  The applicable national laws may also define certain 
+responsibilities regarding the confidential treatment of information.  
+Parties are encouraged to assure that their treatment of the
+confidentiality of information in electronic form is equivalent to the
+same information communicated pursuant to other media.
+
+Under this Section, the content of Messages will not be considered as 
+confidential in the absence of a different designation.  The trading
+partners can identify the confidentiality of information included in
+their Messages through the Technical Annex or in a specific Message.
+
+Section 5.2.  Legal Compliance.
+
+This Section provides guidance to the parties regarding how the parties 
+should conduct their affairs in order to assure their compliance with 
+national laws which may define or restrict the content of any Message.
+In addition, certain laws (such as data protection laws) restrict the
+communication of certain information across national boundaries.
+
+Section 5.2.1 requires each party to ensure compliance by the content of
+a Message with all legal requirements relating to that party.  The term
+"storage" relates to storage of the data contained in any Message, not
+the manner in which Messages may be stored.
+
+The Section does not require one trading partner to assure compliance by 
+its Messages with the laws regulating the other.  However, the
+remaining sub-sections outline how the parties will conduct themselves
+if the Message from one trading partner, when received or stored, might
+cause the other to violate an applicable law.
+
+Notice is required (as provided in Section 7.6) and then the originating 
+party must refrain from recurring conduct which relates to the
+violation.  An example might involve the sending of a message including
+personal data from a country with no data protection laws into a
+country with those laws in effect.
+
+Section 6.  LIABILITY
+
+Section 6.1  Force Majeure.
+
+This Section reinforces the mutual intentions of the parties to give 
+effect to their electronic communications by removing the risk of 
+unexpected liabilities that might arise in conducting that activity.  
+Section 6.1 includes language customary to many commercial agreements
+which permits the parties to be excused for liability when a delay or
+failure to perform is caused by certain events beyond their respective
+control.
+
+Of course, the parties may specify with greater detail events that they 
+will consider as "force majeure" which are outside the party's control.  
+Should certain events occur, such as a natural disaster, which can be
+contemplated, liability is still not imposed if the consequences of
+such a non-controllable event can not be avoided or overcome.
+
+Section 6.2  Excluded Damages.
+
+This Section states the mutual intent of the parties that their use of 
+EDI under this Agreement does not expose them to the possibility of 
+being liable for the types of damages which are specified.  Different 
+national legal structures may entitle commercial parties to collect 
+damages (including, where applicable, special, consequential, indirect 
+or exemplary damages) in the event a contractual obligation is
+breached.  These types of damages are often awarded to compensate for
+lost profits or to sanction particularly inappropriate conduct.
+
+The Section does not govern whether the specified kinds of damages
+might be imposed under the terms and conditions of other contractual
+obligations between the parties.  Certain national laws may limit the
+enforceability of the Section.
+
+Section 6.3  Provider Liability.
+
+Many companies using EDI also obtain the services of a third party 
+provider (often known as a value-added network) to assist in performing
+required communication or related functions (for example, maintaining
+an electronic mailbox to which Messages can be sent or the off-site
+storage of records relating to Messages).
+
+The choice of which third party provider to engage, and the terms of the 
+contract between a trading partner and its third party provider, are not 
+within the control of the other trading partner. Accordingly, Section 
+6.3.1 requires a trading partner to be responsible for the acts, 
+failures or omissions of its provider.  (Section 6.3.1 applies both in
+the event that the trading partners engage different third party
+providers or voluntarily elect to use the same provider.)
+
+In certain cases, one trading partner will require the use of a
+particular third party provider by its trading partner. Section 6.3.2,
+under those circumstances, shifts responsibility for the provider's
+conduct to the instructing trading partner.
+
+Section 7.  GENERAL PROVISIONS
+
+Section 7 includes terms often found in many types of commercial
+agreements. These provisions are not an exclusive listing of general
+provisions, and the custom and practice in a particular industry or
+region may include other similar general provisions.
+
+Section 7.1.  Governing Law.
+
+The Agreement is prepared, in the absence of applicable statutes or 
+regulations governing the use of EDI, to best assure the parties of the 
+validity and enforceability of their EDI communications.  This result is 
+intended to be possible under a variety of legal systems.  Trading 
+partners are encouraged to specify the national laws under which the 
+Agreement will be governed.  Their choice may be affected by differences 
+in national laws relating to computer privacy, data protection,
+transborder data movements or similar issues.  However, under most
+legal systems, the choice must bear some relationship to the parties.
+
+Since certain legal rules may conflict in seeking to resolve disputes
+arising on transactions based on the use of EDI under the Agreement,
+the Agreement specifies how those conflicts are to be resolved.
+
+The reference to national laws may not appropriately specify certain
+regional agreements or regulations which parties may desire to apply to
+the Agreement.  In that case, parties are encouraged to add appropriate
+wording.
+
+Section 7.2.  Severability.
+
+Section 7.2 reinforces the intentions of trading partners to give full 
+force and effect to their obligations.  Since, for a particular legal
+reason, one or more portions of the Agreement may be held invalid or
+unenforceable, this Section assures that the entire contract is not set
+aside under those circumstances.
+
+Section 7.3.  Termination.
+
+The Agreement only controls when Messages are being communicated between 
+the parties; it does not require the use of EDI at all times or for all 
+business communications.  Section 7.3 assures trading partners the 
+freedom of contract, permitting a trading partner to end the Agreement's 
+applicability at any time.  The non-terminating party is assured an 
+appropriate time period to establish alternative procedures for
+communication.  The 30 day period reflects prevailing commercial
+practice; however, it may be adjusted based on the agreement of the
+parties.  The required notice must be given in writing, despite the
+language of Section 7.6.
+
+Termination will not permit a trading partner to avoid the binding 
+effect of certain sections, notably Sections 2.5 (Security Procedures
+and Services), 2.6 (Record Storage), 4 (Validity and Enforceability),
+5.1 (Confidential Status), 6 (Liability) and 7.1 (Governing Law).
+
+Section 7.4.  Entire Agreement.
+
+This Section provides that the Technical Annex is expressly included as 
+a part of the Agreement.  Of course, in the event of a dispute, certain
+national laws will permit other aspects of the relationship of the
+parties to be considered in interpreting the Agreement.
+
+In addition, Section 7.4 emphasizes that amendments must be signed and 
+in writing; electronic messages will not be sufficient.  Since
+amendments to the Technical Annex may most likely be considered by
+those with technical expertise, a party is allowed to authorize such
+persons to sign those amendments on its behalf.
+
+Section 7.5.  Headings and Sub-headings.
+
+This Section provides a customary rule of interpretation regarding how 
+the Agreement is to be construed, permitting the full content of the
+Agreement to be considered.  Parties may also, as appropriate, exclude
+the headings from being read as part of the Agreement.
+
+Section 7.6.  Notice.
+
+Section 7.6 provides the flexibility for trading partners to employ 
+electronic equivalents of writings for the required notices, provided a
+record can be produced which is equivalent to the required signed
+writing.  Certain technological solutions exist which will permit this
+result.
+
+However, many national legal systems fail to explicitly recognize 
+electronic communications as "writings"; trading partners should use
+care in employing electronic notices and are encouraged, as well, to
+remain aware of new developments in the related laws.
+
+Parties are advised that the provisions of Section 7.6 do not relate to
+communications under Section 3.2, Acknowledgements.
+
+
+Section 7.7.  Dispute Resolution.  
+
+Since those seeking to use electronic communications are most likely 
+attracted to the benefits of speed and efficiency which the technology 
+provides, they may also favour adopting a similar method of dispute 
+resolution, i.e. arbitration (Alternative 1).  This Alternative requires 
+additional decisions by the parties with regard to the procedures to be
+employed, such as the location of the procedure, the panel of
+arbitrators, the method for their selection and applicable governing
+rules.
+
+For those desiring a more traditional forum, Alternative 2 permits the
+parties to specify the court to have jurisdiction over any possible
+dispute.  Since certainty on this matter is strongly favoured, the
+Agreement provides for exclusive jurisdiction.
+
+In addition, trading partners may wish to consider specifying the use
+of alternative dispute resolution facilities which are emerging in
+various markets or industries.
+
+                       TECHNICAL ANNEX CHECKLIST
+
+The following checklist is provided as a part of the Model Interchange
+Agreement to indicate a list of items for which details and
+specifications are recommended to be developed by the parties to an
+Interchange Agreement.
+
+The list is not intended to be a complete list of all possible topics 
+which might be addressed in a Technical Annex.  The items included 
+result directly from references in the Model Interchange Agreement to
+the Technical Annex; those items may be completed as required by the
+trading partners, with the level of detail which they determine to be
+necessary.
+
+Users are strongly encouraged to consider and address other items which 
+they believe relevant to assuring a full understanding exists between
+trading partners on the technical and procedural requirements which
+relate to implementing EDI. As noted in Section 1.2 of the Model
+Interchange Agreement:
+
+   "The attached Technical Annex sets forth the specifications
+   agreed upon by the parties for certain technical and procedural
+   requirements."
+
+   For ease of use, the following checklist presents the text of the
+   relevant sections of the Model Interchange Agreement:
+
+   Section 2.  Communications and Operations
+   2.1  Standards.
+
+   "The parties shall use those versions of the UN/EDIFACT Standards
+    identified in the Technical Annex."
+
+   The parties should agree upon the version release of the UN/EDIFACT
+   standards which they intend to use.  Parties may also wish to
+   specify the manner in which they will consider for use new version releases of the UN/EDIFACT standards.
+
+   The parties should also designate in practical detail the necessary
+   related technical specifications and details.  Items which should be
+   considered include identifying directories, code lists, message implementation guidelines and other items directly connection with specified standards and the related versions.
+
+   2.2  System Operations.
+
+   "Each party shall test and maintain their respective equipment,
+   software and services necessary to effectively and reliably transmit
+   and receive Messages."
+
+   The parties should describe the methods and procedures for testing
+   their system operations, the effectiveness and the reliability of the
+   message interchange processes, the times when such testing should
+   occur and the intended results that need to be obtained. The parties
+   should adopt a method for clearly indicating the availability of
+   their EDI systems for transmitting and receiving Messages.
+
+   2.4  Communications.
+
+   "The parties shall specify in the Technical Annex the methods of
+   communication, including the requirements for telecommunication or
+   the use of third party providers."
+
+   The details and specifications with regard to the method of
+   communication should describe:
+
+   - the chosen communication method(s);
+
+   - the applicable communication protocols which the parties will use,
+   in addition to the UN/EDIFACT standards (such as X.25 or X.400,
+   etc.);
+
+   - where required, the information details relating to third
+   party(ies) provider(s) to be used, including the appropriate address
+   and contact information and other related details.
+
+   Parties may also consider specifying recovery procedures to either
+   retrieve Messages in case of loss or failure or to provide alternate routing and procedures in case of a failure of the selected method of communication.
+ 
+   2.5  Security Procedures and Services.
+
+   "Each party shall implement and maintain security procedures and
+    services, including any specified in the Technical Annex, to protect
+    Messages and their records against untoward events or misuse
+    including improper access, alteration or loss."
+
+   Parties may elect to specify in detail the security procedures and
+   services which they may require to be implemented in connection with
+   their use of EDI.  Different means exist for improving the
+   reliability of EDI interchanges between business partners; the
+   general objective is to get as many messages effectively and
+   correctly transmitted and processed as possible, without increasing
+   the cost to an unreasonable level.
+
+   The selection and use of safety/security measures are typically based
+   on an evaluation of the threats and - not the least - legal
+   implications. This may result in the implementation of various safety
+   measures, which are  all independent of the UN/EDIFACT message
+   structure, but nevertheless  may contribute to the legal confidence
+   arising from the records.
+
+   Trading partners utilizing UN/EDIFACT may select among a variety of
+   security procedures and services, some of which are available within
+   UN/EDIFACT and others which are generally available.
+
+   Security Services in UN/EDIFACT.  Trading partners may elect security
+   services which consist of some of the security services available
+   within UN/EDIFACT, as listed below, in order to meet the legal
+   requirements or thwart the identified threats. Each of these security
+   services requires the use of cryptographic techniques. Thus any
+   message (which is nothing but a sequence of digits) transferred from
+   one computer to another can be protected by calculating digital
+   mathematical functions (known as cryptographic techniques) on the
+   message, before and after the transmission. This provides the tools
+   to detect any unintended change not only during transit, but also
+   during storage at either end, thus achieving the desired security
+   service.
+
+   The UN/EDIFACT documents identified in the listing following this
+   Technical Annex Checklist include specific materials explaining the
+   security services and key management techniques mentioned below in
+   detail, and should be consulted by a user searching for information.
+
+   Message content integrity protects against the modification of data
+   in a message of any kind. This may further be extended to message
+   sequence integrity, which establishes the order in which the messages
+   appeared. Message integrity in itself is typically not achieved
+   unless some key is involved to generate what is known as a Message
+   Authentication Code (MAC). This is a cryptographic fingerprint of the
+   message, which is created by means of a secret key. Normally, anyone
+   in possession of that secret key may generate the MAC-value, unless
+   specially protected hardware is used.
+
+   If there is a further need to distinguish between the sender of the
+   message and the recipient (e.g. for legal purposes), the correct
+   security service to apply is non-repudiation of origin, which
+   requires appending time stamps for timeliness and subsequently the
+   calculation of digital signatures based on public key algorithms.
+
+   Thus non-repudiation of origin implies message authentication, which
+   in turn implies message integrity.
+
+   Corresponding to non-repudiation of origin, the recipient may return
+   a message, secured by a digital signature, which provides
+   non-repudiation of receipt.  Of a different nature is the service
+   confidentiality, which protects against disclosure of the content of
+   a message during transit over some network.
+
+   UN/EDIFACT security is concerned with the protection of the EDIFACT
+   messages only, and not the internal security related to the end-user
+   applications, where the messages are being generated or processed.
+   In conclusion, the use of security in UN/EDIFACT requires the use of
+   cryptographic techniques, which in turn require the use of
+   cryptographic keys. Thus key management is implied by the use of
+   security in UN/EDIFACT.
+
+   For all security purposes, keys (which in fact are large numbers)
+   must be treated with care. Algorithms are in general public
+   knowledge, and only give the desired security if combined with keys.
+   The users may have a common key which is used for cryptographic
+   purposes, or they may each have a pair of matching keys (one private
+   and one public key).  Common to all systems are that keys must be
+   distributed in a secure manner.  This may either be handled on a
+   bilateral basis, or by involving a third party. The third party is
+   trusted to handle certain procedures regarding
+   registration, certification and distribution of keys. These third
+   parties are often called Trusted Third Parties (TTPs).  Under all
+   circumstances there must be agreed rules and procedures for key
+   management between the involved parties.
+
+   Additional Security Procedures and Services.  To respond fully to the
+   various risks associated with electronic data interchange, parties
+   may wish to consider, as to some of the following risks,
+   implementing some of the following procedures and services, which
+   are independent of the UN/EDIFACT structure:
+
+   -  the use of additional identification codes, unique sequence codes
+   or similar non-encrypted tracing and labelling schemes;
+
+   -  employing value-added third party service providers to record
+   message transaction logs or similarly archive or verify transaction
+   activity;
+
+   -  using protected automatic storage on local work stations within a
+   company's computer network; and
+
+   - monitoring the availability and integrity of communication
+   facilities.
+
+
+   2.6  Record Storage.
+
+   "The parties shall store and retain records and the Messages
+   communicated under this Agreement as may be specified in the
+   Technical Annex."
+
+   Relevant details and specifications regarding the storage and
+   retention of records and the Messages might include:
+
+   - the range of records to be maintained
+
+   - the format(s) in which storage is to made
+
+   - time periods for which records are to be retained
+
+   - the media to be used for the storage and retention
+
+   - the rights of access to the records to be provided
+
+   - the manner in which storage will be maintained (including testing,
+   environmental conditions and the like)
+
+   - requirements for integrity and irreversibility of the records
+
+   - the rules relating to the availability of the records.
+
+   Parties are encouraged to consider, in responding to this item, the
+   details specified in response to Section 2.5, Security Procedures
+   and Services.
+
+   Section 3:  Message Processing.
+
+   3.1  Receipt.
+
+   "Any Message transmitted in compliance with this Agreement shall be
+   deemed received when accessible to the receiving party in the manner
+   designated in the Technical Annex."
+
+   Designation of the manner of accessibility could include:
+
+   - accessibility through a service provider acting on behalf of the
+   receiver
+
+   - accessibility by the receiver to the Message as stored by a service
+   provider (in an electronic mailbox, for example)
+
+   - accessibility through the internal computer system of the receiver.
+
+   3.2.1  Acknowledgement
+
+   "Unless otherwise designated in the Technical Annex, the receipt of a
+   Message need not be acknowledged by the receiving party.  A
+   requirement for acknowledgement in the Technical Annex shall include
+   the methods and types of acknowledgements (including any Messages or
+   procedures) and the time periods, if any, in which acknowledgement
+   must be received."
+
+   Parties may designate when acknowledgement is to be required in more
+   than one manner.  Messages to be acknowledged may be specified by
+   message type (for example, by using the UN/EDIFACT Message names) or
+   by specifying the circumstances in which transmitted Messages require
+   acknowledgement.  Parties may wish to specify that acknowledgement
+   is required when requested in the Message that has been transmitted.
+
+   When acknowledgement is to be required, the parties should also
+   specify the details regarding how the acknowledgement is to be
+   provided, including:
+
+   - the method of acknowledgement (re-sending the Message received;
+   sending another Message, such as a CONTRL Message; the use of other
+   media, such as facsimile transmissions)
+
+   - the time periods during which an acknowledgement must be received
+
+   - the relevant security procedures and services to be used (such as
+   the AUTACK Message).
+
+
+   Section 5:  Data Content Requirements
+
+   5.1  Confidential Status
+
+   "No information contained in any Message communicated under this
+   Agreement shall be considered confidential unless by operation of
+   law or by designation in the Technical Annex or the Message."
+
+   Parties may wish to designate in the Technical Annex that particular
+   types of Messages (e.g. PAXLST, used to communicate passenger lists)
+   or specific information contained in Messages (such as price lists or personal data) are to be considered confidential.
+
+   In addition, parties may wish to specify the details regarding the
+   manner in which, within any Message, the transmitting party may
+   request the confidentiality of the Message or specific information
+   contained in that Message.
+
+   In any event when confidentiality is required, parties are encouraged
+   to assure that the Technical Annex or the related commercial
+   agreements specify the respective obligations regarding how
+   confidentiality is to be maintained.
+
+
+   Section 7:  General Provisions
+
+   7.6  Notice
+
+   "Excluding acknowledgements and notices under Section 3, every
+   notice required to be given under this Agreement or under the
+   Technical Annex shall be treated as properly given if provided to the
+   other party in writing and signed by an authorized person for the
+   party giving notice or an electronic equivalent of which a record can
+   be produced.  Each notice shall have effect from the day following
+   that upon which it is received to the above mentioned address of the
+   other party."
+
+   In addition to notices that may be appropriate under preceding
+   sections of the Technical Annex, parties may wish to specify other
+   circumstances in which notices should be given in connection with
+   their use of Electronic Data Interchange.  For example, Section 2.3
+   requires notice of changes in systems operations; parties may wish
+   to specify in the Technical Annex any special requirements for such
+   a notice.

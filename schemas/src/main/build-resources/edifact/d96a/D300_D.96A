@@ -1,0 +1,674 @@
+                                                  
+UN/EDIFACT DRAFT DIRECTORY
+
+PART 3  TERMINOLOGY
+
+
+GLOSSARY
+
+
+Note:
+----
+These definitions are to explain terms as they relate to their use in 
+the UN/EDIFACT documentation.  This glossary is a draft and has not been
+been approved. It will be finalized by the Rapporteur on
+Multilingualism and Terminology for the Group of Experts on Data
+Elements and Automatic Data Interchange (GE.1). 
+
+
+-A-
+
+Application: a specific function or data processing program.
+
+ASC X12: Standards Committee X12 accredited by the American National
+     Standards Institute (ANSI) and comprised of government and
+     industry members meeting for the purpose of creating national EDI
+     standards for submission to ANSI for subsequent approval and
+     dissemination; and/or for the submission to the UN/ECE for
+     approval and submission of UN/EDIFACT international standards.
+
+ASCII: American Standard Code for Information Interchange.  ASCII is a
+     seven bit code with an eighth bit used for parity.  The term is
+     used to describe the format for transmission and for storage.
+
+AS/EB: Asian EDIFACT Board 
+
+AZ/EB: Australian/New Zealand EDIFACT Board.
+
+
+-B-
+
+Bureau (WP.4): Office bearers (Chairman and Vice Chairman) of
+     UN/ECE/WP.4 and its Meeting of Experts on Data Elements and
+     Automatic Data Interchange (GE.1) and Meeting of Experts on
+     Procedures and Documentation (GE.2), and WP.4 Secretariat.
+     [UN/EDIFACT Procedures]
+
+
+-C-
+
+CCITT: Comite consultatif international telegraphique et
+     telephonique (International Telegraph and Telephone Consultative
+     Committee).  Now called the ITU Telecommunication Standardi-
+     zation Sector(ITU-T), a group responsible for the establishment
+     of international telecommunications standards.
+
+CEC: Commission of the European Economic Communities.  Governing
+     body of the European Community.
+
+CE/EB: Central and Eastern European EDIFACT Board.
+
+CEN: European Committee for Standardisation, standardisation
+     committee for the European Community.
+
+Character set: a finite set of different characters that is
+     considered complete for a given purpose.  [ISO 9735]
+
+Code: (a) a character string used as an abbreviated means of recording
+          or identifying information.
+      (b) to represent or identify information using a specific
+          symbolic form that can be recognised by a computer.
+          [ISO TC154/SC1]
+
+Component data element: a simple data element which is a
+     subordinate portion of a composite data element and an
+     interchange identified by its position within the composite
+     data element.  [ISO 9735]
+
+Component data element separator: a character used to separate
+     component data elements in a composite data element.  [ISO 9735]
+
+Composite data element: a data element containing two or more
+     component data elements.  [ISO 9735]
+
+Conditional: a statement in a segment or message directory of a
+     condition for the use of a segment, a data element, a composite
+     data element, or a component data element (cf. mandatory).
+     [ISO 9735]
+
+
+-D-
+
+Data: a representation of facts, concepts or instructions in a
+     formalized manner suitable for communication, interpretation
+     or processing by human beings or by automatic means.
+     [ISO 9735]
+
+Data element: a unit of data which, in a certain context, is
+     considered indivisible.  [ISO 2382/4]  UN/EDIFACT: a unit
+     of data for which the identification, description and value
+     representation have been specified.  [ISO 9735]
+
+Data element attribute: a defined characteristic of a data element.
+
+Data element directory: a listing of identified, named and described
+     data element attributes, with specifications as to how the
+     corresponding data element values shall be represented.
+     [ISO 9735]
+
+Data element name: one or more words in a natural language identifying
+     a data element concept.  [ISO 9735]
+
+Data element reference number: see data element tag.
+
+Data element requirement designator: see requirement designator.
+
+Data element separator: a character used to separate data elements in
+     a segment.  [ISO 9735]
+
+Data element tag: a unique identifier for a data element in a data
+     element directory.  [ISO 9735]
+
+Data element value: the specific entry of an identified data
+     element represented as specified in a data element directory.
+
+Data element representation: the format (e.g. numeric, alphabetic,
+     variable length etc.) of a data item.
+
+Data unit: a segment, segment group, composite data element, data
+     element as defined in a directory and its message type
+     specifications.
+
+Directory version: an indication of the issue of a Directory. It
+     includes the last two figures of the year of agreement and a
+     third figure insicating wether it contains UNSMs or TRIAL
+     message types with resp. supporting material.
+
+DISA: Data Interchange Standards Association.  Secretariat of
+     the ASC X12 Committee.  Also serves as the secretariat for
+     the Pan American EDIFACT Board.
+
+Document: a data carrier and the data recorded on it, that is
+     generally permanent and that can be read by man or machine.
+     [ISO 2382/4]
+
+
+-E-
+
+EB: See EDIFACT Board.
+
+EU: European Union, the fifteen member states of the European
+     Union.
+
+ECE: Economic Commission for Europe.  See UN/ECE.
+
+EDCD: directory of composite data elements included in UNTDID.
+     [UN/EDIFACT Procedures]
+
+EDCL: directory of code sets associated with coded data elements.
+
+EDED: directory of data elements included in the UNTDID (a subset of
+     the UNTDED).
+
+EDI: see Electronic Data Interchange.
+
+EDIFACT: Electronic Data Interchange for Administration, Commerce and
+     Transport.  See UN/EDIFACT.
+
+EDIFACT Board: the advisory and support team for a UN/EDIFACT
+     Rapporteur.  See rapporteur advisory and support team.
+
+EDMD: directory of messages included in UNTDID.  [UN/EDIFACT
+     Procedures]
+
+EDSD: directory of segments included in the UNTDID.
+
+EFTA: European Free Trade Association, composed of Iceland, Norway, 
+      Switzerland and Liechtenstein.
+
+Electronic Data Interchange: the computer-to-computer transmission of
+     (business) data in a standard format.
+
+Explicit representation: the technique used to give an absolute
+     identification of the location of a data segment within a
+     message.
+
+
+-F-
+
+Formal trial: a (Status 1) Draft Recommendation phase in UNSM
+     development, agreed by WP.4, before a draft UNSM reaches the
+     status of Recommendation (Status 2).  N.B. This does not
+     preclude prior testing.   [UN/EDIFACT Procedures]
+
+Framework (message framework): a template containing a sequenced
+     set of all groups/segments which relate to a functional
+     business area (or multi-functional business area) and
+     applying to all messages defined for that area (or areas).
+     [TRADE/WP.4/R.633]
+
+Functional group: one or more messages of the same type headed
+     by a functional group header service segment and ending with
+     a functional group trailer service segment.  [UN/EDIFACT
+     Procedures]
+
+Functional group header: the service segment heading and identifying
+     the functional group.  [ISO 9735]
+
+Functional group trailer: the service segment ending a functional
+     group.  [ISO 9735]
+
+Functional requirement: identification of the business or
+     administrative needs to be met.  [UN/EDIFACT Procedures]
+
+
+-G-
+
+GE.1: UN/ECE WP.4 Experts on Data Elements and Automatic Data
+     Interchange, meeting in the framework of WP.4.
+
+GE.2: UN/ECE WP.4 Experts on Procedures and Documentation, meeting
+     in the framework of WP.4.
+
+Generic data element: see qualified data element.
+
+Group of segments: identified, usually repeatable, grouping of
+     segments.
+
+
+-H-
+
+Header section: the portion of the message which precedes the
+     actual body and trailer of the business transaction, and
+     which contains information which relates to the entire
+     message.  Synonymous with header area.
+
+
+-I-
+
+Identifier: a character or group of characters used to identify
+     or name an item of data and possibly to indicate certain
+     properties of that data.  [ISO 9735]
+
+Implicit representation: the technique whereby the location of a
+     data segment is implied from its relative position within
+     the message.
+
+Interchange: communication between partners in the form of a
+     structured set of messages and service segments starting
+     with an interchange control header and ending with an
+     interchange control trailer.  [ISO 9735]
+
+Interchange agreement: document, usually in the form of a user
+     manual, which describes, e.g., level of syntax, messages,
+     legal and security requirements, etc.
+
+ISO: International Organisation for Standardisation, based in
+     Geneva.  It is a federation of national standards
+     organisations.
+
+ISO 7372: ISO Trade Data Elements Directory, identical to sections 1,
+     2, 3, 4 and 9 of UNTDED.
+
+ISO 9735: International Standard issued by ISO which reproduces
+     the UN/EDIFACT Syntax Rules as agreed by WP.4.
+
+ISO 2382: ISO Data Processing Vocabulary.
+
+
+-J-
+
+JTC/EDI: the Standards Council of Canada Joint Technical Committee
+     on EDI (JTC/EDI) and serves as Canada's representative to ISO.
+
+JRT: Joint Rapporteur Team.  Joint meeting of all rapporteur and
+     advisory support teams.
+
+
+-K-
+
+
+-L-
+
+Level: relative hierarchial position of a data segment within a
+     message.
+
+
+-M-
+
+Mandatory: a statement in a segment or message directory which
+     specifies that a segment, a data element, a composite data
+     element or a component data element must be used.
+     [ISO 9735]
+
+Maximum use: specifies the maximum number of occurrences allowed
+     for a data element, composite data element, segment or a loop
+     which maybe repeated.
+
+Message: an ordered series of characters intended to convey
+     information.  [ISO 2382/16]  UN/EDIFACT: a set of segments
+     in the order specified in a message directory starting with
+     the message header and ending with the message trailer.
+     [ISO 9735]  Equivalent to a transaction set.
+
+Message code: a unique six character alphabetic reference
+     identifying a message type.
+
+Message diagram: a graphic representation of the sequence of
+     segments within a message.
+
+Message directory: a listing of identified, named, described and
+     specified message types. (EDMD, TRMD)
+
+Message header: the service segment starting and uniquely
+     identifying a message.  [ISO 9735]
+
+Message trailer: the service segment ending a message.  [ISO 9735]
+
+Message type: an identified and structured set of data elements
+     covering the requirements for a specified type of
+     transaction, e.g. invoice.  [ISO 9735]
+
+
+-N-
+
+National standards body: an organisation within a country charged
+     with developing national standards and contributing to interna-
+     tional standardisation through ISO.  [UN/EDIFACT Procedures]
+
+Nested segment: a segment which directly relates to another segment
+     in an identified and structured group of segments covering the
+     requirements for a specific message type.  [ISO 9735]
+
+
+-O-
+
+Omission: exclusion in an actual message of one or more units of
+     data which are defined as conditional in a message type
+     specification.  [ISO 9735]
+
+
+-P-
+
+PA/EB: Pan American EDIFACT Board.  Support and advisory team for the
+     Pan American Rapporteur.
+
+Progressive data transfer: a technique allowing a sender to transfer
+     a series of messages as more data becomes available.  The
+     recipient creates, for this purpose, a business file for the
+     eventual linking of all the data.  The messages are linked by
+     common referencing.
+
+
+-Q-
+
+Qualified data element: a data element whose precise meaning is
+     conveyed by an associated qualifier.
+
+Qualified data segment: a data segment whose precise meaning is
+     conveyed by an associated qualifier.
+
+Qualifier: a data element whose value shall be expressed as a
+     code that gives specific meaning to the function of another
+     data element or a segment.  [ISO 9735]
+
+
+-R-
+
+Rapporteur (UN/EDIFACT rapporteur): person nominated by his/her
+     government and appointed by UN/ECE/WP.4 to initiate and co-
+     ordinate UN/EDIFACT development work in his/her geographical
+     area of jurisdiction.  The nomination must be endorsed by
+     the countries in that area of jurisdiction.  [UN/EDIFACT
+     Procedures]
+
+Rapporteur advisory and support team: a body of experts
+     organised in committees providing co-ordinated input and
+     support to the rapporteurs.  Their tasks include conformance
+     analysis, message design, maintenance, documentation and
+     promotion.  [UN/EDIFACT Procedures]
+
+Receiving Secretariat:  the receiving secretariat is the RT
+     secretariat which has received a new message request, change
+     request or code request and which fulfills secretariat
+     duties until a supporting secretariat is assigned by the
+     working group (see supporting secretariat).
+
+Release: a unique sub-issue of a Directory Set within a Version.
+     Releases are used to further define Version publications of
+     the UN/EDIFACT standards. See Version/Release.
+
+Release character: a character used to restore to its original
+     meaning any character used as a syntactical separator.
+     [ISO 9735]
+
+Repeating segment: a segment which may repeat in a message as
+     specified in the relevant message type specification.
+     [ISO 9735]
+
+Requirement designator: specifies whether an element or segment
+     is mandatory or conditional. Also referred to as status.
+
+RT: Rapporteur Team.  See rapporteur advisory and support team.
+
+
+-S-
+
+Section control segment: a service segment used to separate
+     header, detail and summary sections of a message where
+     necessary to avoid ambiguities in the message segment
+     content.
+
+Segment: a predefined and identified set of functionally related
+     data elements values which are identified by their
+     sequential positions within the set.  A segment starts with
+     a segment tag and ends with a segment terminator.  It can
+     be a service segment or a user data segment.
+
+Segment code: a code which uniquely identifies each segment as
+     specified in a segment directory.  [ISO 9735]
+
+Segment directory: a listing of identified, named, described and
+     specified segments.  [ISO 9735]  See EDSD.
+
+Segment name: one or more words in a natural language
+     identifying a data segment concept.
+
+Segment qualifier: see qualifier.
+
+Segment table: a table showing the sequential order of segments,
+     their arrangements in segment groups and the status and
+     allowed repetitions of the segments and groups in a message.
+
+Segment tag: a composite data element in which the first
+     component data element contains a code which uniquely
+     identifies a segment as specified in the relevant segment
+     directory.  Additional component data elements can be
+     conditionally used to indicate the hierarchical level and
+     nesting relation in a message and the incidence of
+     repetition of the segment.  [ISO 9735]
+
+Segment terminator: a syntax character indicating the end of a
+     segment.  [ISO 9735]
+
+Separator character: a character used for syntactical separation
+     of data.  [ISO 9735]  Also known as a delimiter.
+
+Service data element: a data element used in service segments.
+     [ISO 9735]
+
+Service segment: a segment required to service the interchange
+     of user data.  [ISO 9735]
+
+Service string advice: a character string at the beginning of an
+     interchange defining syntactically delimiting characters and
+     indicators used in the interchange.  [ISO 9735]
+
+Simple data element: a data element containing a single value.
+     [ISO 9735]
+
+Simple segment: a segment which requires no qualification, i.e.
+     whose meaning is fixed and explicit.
+
+Status (1): UN/EDIFACT documents/messages bear an indicator of their
+     development level.  They can have the following status:
+     Draft Document           Status 0 (zero)
+     Draft Recommendation     Status 1
+     Recommendation           Status 2
+
+Status (2): indication whether a segment group, segment, composite
+     data element or data elementitem is mandatory (M) or conditional
+     (C) in the application concerned.
+
+Sub-set: an extract of a message type for use within an industry
+     or application.  The extract shall follow the rules for omission
+     of data units and the subset usually indicates only those units
+     needed by the industry or application. See UNSM sub-set.
+
+Summary section: the portion of the message which follows the
+     body of the message and which contains summary information
+     relating to the entire message.  Synonymous with summary
+     area.
+
+Supporting Secretariat: the supporting secretariat is the secretariat
+     assigned by an RT to support its working groups activities which
+     includes responsibility for submission of their documentation.
+
+Syntax rules: rules governing the structure of an interchange
+     and its functional groups, messages, segments and data
+     elements.  [ISO 9735]
+
+
+-T-
+
+Tag: a unique identifier for a segment or data element.
+     [ISO 9735]
+
+TC154: ISO Technical Committee 154 for Documents and Data Elements
+     in Administration, Commerce and Industry.
+
+TDED: See UNTDED.
+
+TDID: See UNTDID.
+
+Technical assessment: the process by which UN/EDIFACT Messages
+     and supporting Directories are evaluated for conformance to
+     syntax, message design and syntax implementation rules.
+     Technical Assessment is performed within the Rapporteur's
+     Teams as part of the agreed UN/EDIFACT Procedures.
+
+Trade Facilitation Organisation: a national body co-ordinating
+     or monitoring trade facilitation developments at national
+     level, providing input to UN/ECE/WP.4 and disseminating
+     information on trade facilitation developments, including
+     UN/EDIFACT.  [UN/EDIFACT Procedures]
+
+TRADE/WP.4/R....: a document issued by the UN/ECE/WP.4
+     Secretariat in conjunction with the meetings of UN/ECE/WP.4.
+     Such documents can be obtained from the national Trade
+     Facilitation Organisation, or equivalent organisation, or
+     the UN/ECE secretariat.  [UN/EDIFACT Procedures]
+
+Trade data interchange application protocol (TD-AP): an accepted
+     method for interchange of trade data messages, based on
+     international standards for the presentation and structuring
+     of trade data transfers conveyed by teletransmission.
+
+Trade data log: a collection of trade data transfers that provides
+     a complete historical record of trade data interchanged.
+
+Trade data message: trade data exchanged between parties concerned
+     with the conclusion or performance of a trade transaction.
+
+Trade data transfer: (also referred to as "transfer"); one or more
+     trade data messages sent together as one unit of dispatch which
+     includes heading and terminating data.
+
+Trade transaction: a specific contract for the purchase and sale
+     or supply of goods and/or services and/or other performances
+     between the parties concerned, identified as the transaction
+     to which a trade data message refers.
+
+Trading partners: the sending and/or receiving parties involved
+     in exchanging electronic business messages.
+
+TRIAL Directory: See UN/EDIFACT TRIAL Directory
+
+
+-U-
+
+UNCID: Uniform Rules of Conduct for the Interchange of Trade Data by
+     Teletransmission, developed by the International Chamber
+     of Commerce.  [UN/EDIFACT Procedures]
+
+UN/ECE: United Nations Economic Commission of Europe, one of the
+     five regional commissions of the United Nations.  It is
+     comprised of North America, Western Europe and Eastern
+     Europe.  Headquarters are in Geneva.  [UN/EDIFACT Procedures]
+
+UN/ECE WP.4: Working Party on Facilitation of International
+     Trade Procedures, a subsidiary body of UN/ECE Committee on
+     the Development of Trade.  WP.4 includes national
+     delegations appointed by governments and international
+     organisations having consultative status with UN or invited
+     by the Secretariat.  It is comprised of experts on data
+     elements and automatic data interchange (GE.1) and experts
+     on procedures and documentation (GE.2) which are appointed
+     by their governments or by organisations recognized by UN/ECE.
+
+UN/EDIFACT: United Nations rules for Electronic Data Interchange
+     for Administration, Commerce and Transport.  They comprise a
+     set of standards, directories and guidelines for the
+     electronic interchange of structured data, and in particular
+     that related to trade in goods or services, between
+     independent computerized information systems.  Recommended
+     within the framework of the United Nations, the rules are
+     approved and published by the UN/ECE in the United Nations
+     Trade Data Interchange Directory (UNTDID) and are maintained
+     under agreed procedures.  UNTDID includes:
+      * UN/EDIFACT Application Level Syntax Rules (ISO 9735);
+      * UN/EDIFACT Message Design Guidelines (MDG);
+      * UN/EDIFACT Syntax Implementation Guidelines (SIG);
+      * UN/EDIFACT Data Element Directory, EDED (a subset
+           of UNTDED);
+      * UN/EDIFACT Code List, EDCL;
+      * UN/EDIFACT Composite Data Element Directory, EDCD;
+      * UN/EDIFACT Segment Directory, EDSD;
+      * UN/EDIFACT United Nations Standard Message Directory
+           (UNSM), EDMD;
+      * Uniform Rules of Conduct for the Interchange of Trade Data
+           by Teletransmission (UNCID);
+      * Explanatory material.
+
+UN/EDIFACT TRIAL Directory: a directory including message types and
+      their supporting segments, composite data elements, data
+      elements and codes agreed by WP.4 to be issued for trial.
+
+UN Layout Key (UNLK): A pro-forma document used for indicating spaces
+     reserved for certain statements appearing in international
+     trade documents in an integrated system. [ECE; ISO DP 6422]
+
+UNSM: United Nations Standard Message, an EDIFACT message type
+     approved for international use.  A UNSM is a message which:
+     I.   has been registered, published and which is maintained
+          by the United Nations Economic Commission for Europe;
+     II.  has the values contained in the Controlling Agency,
+          Message Type, Message Version Number and Message
+          Release Number fields (the requirements for the use of
+          which are specified in ISO 9735), allocated and
+          controlled by the UN/ECE;
+     III. always has the code value "UN" in the Controlling
+          Agency field.  [UN/EDIFACT Procedures]
+
+UNSM Sub-set: a sub-set of a UNSM is a message which is directly
+     derived from an approved UNSM, has the same function as the
+     UNSM from which it is derived, and which:
+     I.   contains all of the groups and segments defined as
+          having a mandatory status within the message, and the
+          mandatory data elements within them.  There shall be no
+          change to the status, order or content of the groups,
+          segments and composite data elements and data elements
+          contained within the segments.  (It should be noted,
+          however, that although many UNSMs contain Conditional
+          Groups of segments which may contain one or more
+          mandatory segments, providing the complete conditional
+          group is omitted from the sub-set, this does not break
+          the rule regarding the inclusion of mandatory
+          segments);
+     II.  does not change the status, order or content of the
+          segments, composite data elements and data elements in
+          the conditional segments chosen for use from the UNSM.
+     III. does not add any segments, composite data elements or
+          data elements to the message;
+     IV.  contains the identical values specified for use in the
+          Message Type, Controlling Agency, Message Version
+          Number and Message Release Number fields, as are specified
+          for the UNSM from which the sub-set is derived.
+          [UN/EDIFACT Procedures]
+
+UNTDED: United Nations Trade Data Elements Directory, part of which
+     constitutes ISO 7372.  It includes the standard data elements and
+     associated codes.  UNTDED is jointly maintained by the UN
+     Secretariat and ISO.  [UN/EDIFACT Procedures]
+
+UNTDID: United Nations Trade Data Interchange Directory.  See
+     UN/EDIFACT for documents included in the UNTDID.
+     [UN/EDIFACT Procedures]
+
+User data segment: a segment containing application data.  [ISO 9735]
+
+-V-
+
+Version number: a number identifying the status of a message type.
+      See Version/release.
+
+Version/release: indication of the periodic issue of a UNTDID or a
+     UN/EDIFACT TRIAL Directory and of their respective sets of
+     message types and their supporting material.
+
+-W-
+
+WE/EB: Western European EDIFACT Board.
+
+WP.4: Working Party 4.  See UN/ECE/WP.4.
+
+
+-X-
+
+X12: See ASC X12.
+
+
+-Y-
+
+
+-Z-

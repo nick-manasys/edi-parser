@@ -1,0 +1,320 @@
+  
+                                           
+                                           RESTRICTED
+ 
+                                           TRADE/WP.4/R.982
+                                           9 August 1993
+                                           
+                                           ENGLISH ONLY
+ 
+ COMMITTEE ON THE DEVELOPMENT OF TRADE
+ 
+ Meeting of Experts on Data Elements
+ and Automatic Data Interchange (GE.1)
+ (Forty-eighth session, 21-22 September 1993
+ Item 4 of the provisional Agenda)
+ 
+ 
+ 
+ UN/EDIFACT
+              
+                    DIRECTORY VERSION/RELEASE PROCEDURES
+ 
+                     
+ 
+ * * *
+                                     
+ Transmitted by the Directory Reference Group (DRG),
+ the Team of Technical Advisors (TTA) and the Syntax Developpment Group (SDG) *
+                     
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ *     The present document is reproduced in the form in which is was received by
+  the secretariat.
+           
+                     
+                                         
+
+
+
+
+         
+              
+              DIRECTORY VERSION/RELEASE PROCEDURES
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ SOURCE: DRG; TTA; SDG
+ 
+ STATUS: COMMITTEE DRAFT
+ 
+ ACTION: FOR APPROVAL at the GE.1 meeting, 1993-09-21/22, agenda item **
+ 
+ 1.   As a result of the approval at the March 1993 session of WP.4 of
+      the new directory issue cycles (see TRADE/WP.4/GE.1/91, paragraph
+      43.4) and, in particular, the adoption of the concept of Working
+      and Standard Directories, there has been an impact on version and
+      release procedures.
+ 
+ 2.   This paper suggests how, within a message, the 'version and release
+      data elements' within UNH can be directly used to identify the type
+      of directory in which the message was published in addition to the
+      directory issue.
+ 
+ 3.   Up until now, in the UNH segment data element 0052 has been used to
+      identify the status of the message type and data element 0054 to
+      indicate the directory type and issue. This system, which posed
+      problems in the past, is even less adequate under the new directory
+      issue criteria.
+ 
+      With this in mind, the Syntax Development Group (SDG) is in the
+      process of revising the UNH service segment fully to meet the
+      requirements of the user community. However, it is not likely that
+      the results of this work will be approved before 1995, thus an
+      interim solution is needed to solve the immediate problem.
+ 
+ 4.   It is expected that the SDG solution will provide a means for
+      separate identification of code list directories. However, until
+      the syntax is able to accommodate this, we would propose the
+      incorporation of the most recent Consolidated Code List (CCL), at
+      the time of publication, into both the Working and Standards
+      directories as the code directory.
+ 
+ 5.   The report of the 47th session of GE.1 (TRADE/WP.4/GE.1/91)
+      identified in paragraph 43.4 ii. for recommendation to WP.4 that
+      "From April 1993, the concept and philosophy put forward in the ESD
+      report of a Working directory and of a Standards directory should
+      be adopted;"  This was reflected in the report of the 37th session
+      of WP.4 (TRADE/WP.4/183) in paragraph 31. as the need "To agree on
+      the terminology of Standards and Working directories to replace the
+      current terminology of Status 2 and Status 1 (trial) directories;".
+ 
+ 6.   In reviewing the terminology to be adopted, it becomes 
+      apparent that:
+ 
+      i)   the directory containing "Recommendations" (i.e. United
+           Nations Standard Messages also referred to as Status 2
+           messages) should be referred to as the "Standards" directory;
+ 
+      ii)  the directory containing "Draft recommendations" (i.e. Status
+           1 messages for trial and all Status 2 messages in their latest
+           form) should be referred to as the "Draft" directory, as this     
+           corresponds best to its actual contents and current, understood,  
+           practice in most standard organisations; and
+ 
+       iii) the day to day work-in-progress is applied to the Maintenance
+           Database, which comprises the Standards and Draft directories,
+           plus messages under development (i.e. Status 0 messages), plus
+           all related Data Maintenance Requests (DMRs). In the past, it
+           was from this maintenance database that "Work Books" were
+           derived. It would therefore, be misleading to call any directory  
+           except the one held in the Maintenance database (which is never   
+           published except in "Workbooks") a Working Directory.
+ 
+ 7.   The key Version and Release issue is how to indicate the
+      publication of multiple directories of the same type within one
+      year. Such identification can only, within the current UNH segment,
+      utilise two fields - the above mentioned 0052 and 0054. It is
+      therefore proposed that data element 0052 be used to show the
+      directory type and data element 0054 be used to indicate the
+      directory issue. The data to be used in these data elements would
+      be as follows:
+ 
+ 
+         Directory Type      0052      0054
+ 
+         Status    0         0         Document Revision Number
+         Draft     D         YYA
+         Standard  S         YYA
+ 
+ YY = Year
+ A  = Directory issue within the year shown by an alphabetic
+      sequential indicator commencing with A for the first
+      issue of a directory type within a year.
+ 
+             Notes:
+            
+             a)  with regard to data element 0052 this is a significant
+                 departure from current usage where 0052 used to contain
+                 the MESSAGE's STATUS and NOT the DIRECTORY TYPE.
+ 
+             b)  Status 0 messages are not in a directory, however, this
+                 is the information to be shown in the areas on the
+                 boilerplate cover page correspondng to the above
+                 version/release information.
+ 
+ 8.   Using the proposed solution, the data elements 0052 and 0054 in the
+      UNH segment are envisaged to be used as shown in the following
+      example:
+                                              Message  DE   DE
+      Directory                      Acronym  Type     0052 0054
+ 
+      1st standards directory, 1993  S.93A    CREADV   S    93A
+      1st draft directory, 1993      D.93A    CREADV   D    93A
+      1st draft directory, 1994      D.94A    CREADV   D    94A
+      2nd draft directory, 1994      D.94B    CREADV   D    94B
+      1st standards directory, 1994  S.94A    CREADV   S    94A
+ 
+      (Note that the suggested acronym is a shorthand means of
+      referring to the directory in question. The acronym
+      concatenates the data in elements 0052 and 0054.)
+ 
+ 9.   The proposed solution allows for the identification of a directory
+      within which the message being transmitted is found. Once the
+      directory is known, all of the information required for the
+      processing of that message, for example the segment structures etc,
+      can be determined. However, the proposed solution does not allow
+      the possibility, in the case of a message within a draft directory,
+      to determine whether that message has attained status 2.
+ 
+ 10.  To provide the information regarding message status, it is proposed
+      that the message indexes found in the directory set be extended to
+      include a message status column to indicate whether a message is
+      status 1 or 2.
+ 
+ 11.  In addition, it is proposed that a message revision number be shown
+      as part of the message index, to indicate changes in the message
+      boilerplate (including the structure). When a change occurs in a
+      message's boilerplate or structure between directory publications,
+      the revision number would increment by one. This would allow
+      message implementors to immediately identify changes which could
+      affect their applications.
+ 
+ 12.  This means that a message appearing in both the Draft Directory and
+      the Standards Directory will share a sequential message revision
+      number, which will only change when there has been a change to the
+      message in question.
+ 
+ 13.  The following is an example of message index layout for the index
+      by message type code, using a sample of entries from the 92.1
+      directory set.  The index will be a separate file in the
+      directories circulated by the UN/ECE, and the example index shown
+      would be that for a Draft Directory:
+                
+        Code   Name                                Status    Revision
+ 
+      + BANSTA Banking Status Message               1         1
+        BAPLIE Bayplan - occupied and empty         1         3
+        BAPLTE Bayplan/Stowage Plan Total Numbers   1         3
+      + CONDPV Direct Payment Valuation Message     1         1
+      * CREADV Credit Advice Message                2         5
+      * INVOIC Invoice Message                      2         7
+ 
+       NOTES:
+ 
+        "+" indicates that the message is appearing for the first time in
+            the directory;
+ 
+        "*" indicates that the message has changed from its previous
+            form;
+ 
+ 
+            Where no symbol is shown in front of the message type
+            identifier, the message is unchanged from its previous form;
+ 
+            The "Status" and "Revision" columns show not only what will
+            appear in the index for the directory, but also what will be
+            shown on a paper copy of the message.
+ 
+            The example uses fictitious revision numbers which are shown
+            as a guide only.  The actual revision numbers for each of the
+            messages will have to be determined in consultation with the
+            message design groups.
+ 
+            An important point which will need to be considered by
+            message design groups, is what constitutes a "change" to a
+            message which would result in the revision number being
+            incremented by one?
+ 
+            This document suggests that there only two types of change
+            which fall into this category:
+ 
+            i)   where a message has its structure changed as a result of
+                 a "Message Structure" Data Maintenance Request being
+                 approved under the procedures;
+ 
+            ii)  when a message design group decides to take advantage of
+                 a change to a segment used by one of its messages, by
+                 amending the boilerplate for the message to reflect the
+                 change.
+ 
+ 14.  As the above example shows, the concept of Status 1 and Status 2
+      messages WILL continue under the new system of Draft and Standards
+      Directories. Message progression should, therefore, continue as
+      previously: from Status 0 to Status 1 and, ultimately, to Status 2.
+      In essence, Draft Directories may contain Status 1 messages and
+      Status 2 messages, whereas Standards directories shall only contain
+      messages which have progressed to United Nations Standards Messages
+      (Status 2). (Refer to DRG document on Directories Progression.)
+ 
+ 
+ 
+ 
+     Issues List
+                                       
+ 
+ 
+ Issue 1:        Impact on DIRDEF
+ 
+ Description:    The DIRDEF message, which is due for presentation at the
+                 September 1994 Session of GE.1, has not been designed to
+                 take into consideration the need for transmitting
+                 Message Revision Numbers as shown above. If the proposal
+                 for Message Revision numbers is adopted then the DIRDEF
+                 message will require minor modification. The addition of
+                 the Message Status column to the index may also impact
+                 DIRDEF.
+ 
+ Keywords:       DIRDEF modification,
+                 Message Revision Number,
+                 Message Status Column,
+                 WP.4/GE.1,
+                 Directory Type
+ 
+ Originator:     Directories Reference Group (DRG); Team of Technical
+                 Advisers (TTA); Syntax Development Group (SDG).
+ 
+ 
+ 
+ 
+ 
+ 
+ 

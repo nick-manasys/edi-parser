@@ -1,12 +1,13 @@
 package com.anypoint.df.edi.schema.convert
 
+import scala.collection.breakOut
 import scala.io.Source
 import java.io.File
 import java.io.InputStream
 import scala.annotation.tailrec
-import com.anypoint.df.edi.schema.EdiSchema._
 import java.io.FileInputStream
 import com.anypoint.df.edi.schema.EdiSchema
+import com.anypoint.df.edi.schema.EdiSchema._
 import java.io.FileOutputStream
 import com.anypoint.df.edi.schema.YamlWriter
 import java.io.OutputStreamWriter
@@ -85,15 +86,15 @@ object EdifactTablesConverter {
 
   /** Read input file to build all element schemas.
     */
-  def readElements(in: InputStream) = {
-    val lines = LineIterator(in, "ISO-8859-1")
+  def readElements(lines: LineIterator) = {
     @tailrec
     def merger(acc: String): String = {
       val line = lines.next.trim
       if (line.length > 0) merger(acc + " " + line)
       else acc
     }
-    def nextBlob: String = merger(lines.next.trim)
+    /** Get next trimmed line of text, ignoring first character position of line (change indicator). */
+    def nextBlob: String = merger(lines.next.substring(1).trim)
     @tailrec
     def buildr(acc: List[Element]): List[Element] =
       if (skipBreakLine(lines)) {
@@ -101,14 +102,20 @@ object EdifactTablesConverter {
         val nametext = splitLead(nextBlob)
         val desctext = splitLead(nextBlob)
         val reprtext = splitLead(nextBlob)
-        if (desctext._1 != "Desc:" || reprtext._1 != "Repr:") throw new IllegalStateException("Error parsing element definition")
+        if (desctext._1 != "Desc:" || reprtext._1 != "Repr:") {
+          throw new IllegalStateException("Error parsing element definition")
+        }
         if (!nametext._2.endsWith("[I]")) {
           val typsplit = reprtext._2 span (c => c.isLetter)
           val typ = EdiConstants.toEdifactType(typsplit._1.toString.toUpperCase)
           val sizesplit = typsplit._2 span (c => c == '.')
           val maxsize = sizesplit._2.toString.toInt
           val minsize = if (sizesplit._1.isEmpty) maxsize else 0
-          buildr(Element(nametext._1, nametext._2, typ, minsize, maxsize) :: acc)
+          val rawname = nametext._2
+          val splitat = rawname.indexOf('[')
+          if (splitat <= 0 || !rawname.endsWith("]")) throw new IllegalStateException("Invalid element name format, expected type in [X] form")
+          val name = rawname.substring(0, splitat).trim
+          buildr(Element(nametext._1, name, typ, minsize, maxsize) :: acc)
         } else buildr(acc)
       } else acc
 
@@ -133,6 +140,7 @@ object EdifactTablesConverter {
     else if (from >= text.length) throw new IllegalArgumentException(s"tried substring starting at $from with length ${text.length}")
     else text.substring(from) trim
   }
+
   /** Build a list of asterisk positions in the supplied line of text. This is used to define the field start positions
     * within field-structured files. At least two asterisks must be present in the line.
     */
@@ -158,7 +166,7 @@ object EdifactTablesConverter {
     * @param lines input iterator
     */
   def parseTemplate(starts: List[Int], require: Boolean, lines: LineIterator): Array[String] = {
-    /** Parse a single field, continuing partial fields to next line. */
+    /** Parse a line, continuing partial fields to next line. */
     @tailrec
     def parser(line: String, partial: Option[String], start: Int, rem: List[Int], acc: List[String]): List[String] =
       rem match {
@@ -186,7 +194,7 @@ object EdifactTablesConverter {
         val field = safeSubstring(line, h, t.head)
         if (!require || field.length > 0) {
           val result = parser(line, None, t.head, t.tail, List(field)).reverse.toArray
-          if (result.size < starts.size - 1) throw new IllegalArgumentException("too few values for template (${result.size}, expected ${starts.size})")
+          if (result.size < starts.size - 1) throw new IllegalArgumentException(s"too few values for template (${result.size}, expected ${starts.size - 1})")
           else result
         } else Array()
       }
@@ -271,19 +279,20 @@ object EdifactTablesConverter {
           }
           val fields = parseTemplate(bodytmpl, true, lines)
           if (fields.length == 0) acc reverse
-          else if (fields.length == 5) {
+          else if (fields.length == 5 || fields.length == 6) {
             val position = fields(0).toInt
             val id = fields(2)
             val usage = convertUsage(fields(4))
             val key = EdiFact.keyName(heads(1), position)
+            val count = if (fields.length == 6) fields(5).toInt else 1
             val comp =
-              if (elements.contains(id)) ElementComponent(elements(id), Some(fields(3)), key, position, usage, 1)
-              else if (composites.contains(id)) CompositeComponent(composites(id), Some(fields(3)), key, position, usage, 1)
+              if (elements.contains(id)) ElementComponent(elements(id), Some(fields(3)), key, position, usage, count)
+              else if (composites.contains(id)) CompositeComponent(composites(id), Some(fields(3)), key, position, usage, count)
               else throw new IllegalArgumentException(s"unknown element or composite id $id")
             val next = comp :: acc
             if (checkNext) itemr(next)
             else next reverse
-          } else throw new IllegalArgumentException(s"wrong number of fields in input (${fields.toList}, expected 5)")
+          } else throw new IllegalArgumentException(s"wrong number of fields in input (${fields.toList}, expected 6)")
         }
 
         val items = itemr(Nil)
@@ -302,12 +311,28 @@ object EdifactTablesConverter {
     */
   def main(args: Array[String]): Unit = {
     val edifactdir = new File(args(0))
+
+    /** Process file from input directory using line iterator with safe close. */
+    def processFile[T](name: String)(op: LineIterator => T) = {
+      val file = new File(edifactdir, name)
+      val stream = new FileInputStream(file)
+      try { op(LineIterator(stream, "ISO-8859-1")) } finally { stream close }
+    }
+    
+    /** Build map from extracted key to object for all items in list. */
+    def buildMap[T](list: List[T], key: T => String) =
+      list.foldLeft(Map[String, T]()){ (acc, t) => acc + (key(t) -> t) }
+    
     val yamldir = new File(args(2))
     if (yamldir.exists) yamldir.listFiles.foreach { f => f.delete }
     else yamldir.mkdirs
-    val elemfile = new File(edifactdir, elementDefsName + "." + args(1))
-    val elemstream = new FileInputStream(elemfile)
-    val elements = readElements(elemstream)
-    elemstream close
+    val elements = processFile(elementDefsName + "." + args(1))(readElements(_))
+    val elemmap = buildMap[Element](elements, (e: Element) => e.ident)
+    val composites = processFile(compositeDefsName + "." + args(1))(iter =>
+      readComposites(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemmap))
+    val compmap = buildMap[Composite](composites, (c: Composite) => c.ident)
+    val segments = processFile(segmentDefsName + "." + args(1))(iter =>
+      readSegments(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemmap, compmap))
+    println(s"read ${segments.size} segments")
   }
 }

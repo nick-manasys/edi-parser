@@ -90,17 +90,17 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     intercept[IllegalStateException] { skipBlankLine(lines) }
   }
 
-/*  "readElements" should "read element definitions" in {
-    val elems1 = readElements(stringStream(input1))
+  "readElements" should "read element definitions" in {
+    val elems1 = readElements(LineIterator(stringStream(input1), "ISO-8859-1"))
     elems1.size should be(2)
     elems1.head should be(Element("1000", "Document name", DataType.ALPHANUMERIC, 0, 35))
     elems1.tail.head should be(Element("1001", "Document name code", DataType.NUMBER, 0, 3))
-    val elems2 = readElements(stringStream(input2))
+    val elems2 = readElements(LineIterator(stringStream(input2), "ISO-8859-1"))
     elems2.size should be(2)
     elems2.head should be(Element("1000", "Document/message name", DataType.ALPHANUMERIC, 0, 35))
     elems2.tail.head should be(Element("1001", "Document/message name, coded", DataType.NUMBER, 0, 3))
   }
-*/
+
   "trimTrailing" should "trim only trailing spaces from line" in {
     val lines = stringLines("\nabc\n   \n def   \n  ghi   ")
     trimTrailing(lines.next) should be("")
@@ -123,7 +123,7 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
   }
 
   val ctemplate1a = "*      *    *                                          *"
-  val ctemplate1b = "*  *   *    *                                          *    *"
+  val ctemplate1b = "*  *   *     *                                         *      *"
   val composite1a = """       C817 ADDRESS USAGE
 
        Desc: To describe the usage of an address.
@@ -142,7 +142,7 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
 030   3055  Code list responsible agency, coded            C  an..3
 040   3292  Nationality                                    C  a..35"""
   val stemplate1a = "*      *    *                                          *"
-  val stemplate1b = "*  *   *    *                                          *    *"
+  val stemplate1b = "*  *   *    *                                          **    *"
   val segment1a = """       ALC  ALLOWANCE OR CHARGE
 
        Function: To identify allowance or charge details.
@@ -204,15 +204,9 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     parseTemplate(stempl1a, false, slines1) should be(Array("", "ALC", "ALLOWANCE OR CHARGE"))
     skipBlankLine(slines1)
     skipPastBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("010", "", "5463", "ALLOWANCE OR CHARGE CODE QUALIFIER", "M"))
+    parseTemplate(stempl1b, true, slines1) should be(Array("010", "", "5463", "ALLOWANCE OR CHARGE CODE QUALIFIER", "M", "1"))
     skipBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("020", "", "C552", "ALLOWANCE/CHARGE INFORMATION", "C"))
-    parseTemplate(stempl1b, false, slines1) should be(Array("", "", "1230", "Allowance or charge identifier", "C"))
-    parseTemplate(stempl1b, false, slines1) should be(Array("", "", "5189", "Allowance or charge identification code", "C"))
-    skipBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("030", "", "4471", "SETTLEMENT MEANS CODE", "C"))
-    skipBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("040", "", "1227", "CALCULATION SEQUENCE CODE", "C"))
+    parseTemplate(stempl1b, true, slines1) should be(Array("020", "", "C552", "ALLOWANCE/CHARGE INFORMATION", "C", "1"))
     val stempl2a = buildTemplate(stemplate2a)
     val stempl2b = buildTemplate(stemplate2b)
     val slines2 = stringLines(segment2)
@@ -267,11 +261,9 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     parseTemplate(stempl1a, false, slines1) should be(Array("", "SCD", "STRUCTURE COMPONENT DEFINITION"))
     skipBlankLine(slines1)
     skipPastBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("010", "", "7497", "STRUCTURE COMPONENT FUNCTION CODE QUALIFIER", "M"))
+    parseTemplate(stempl1b, true, slines1) should be(Array("010", "", "7497", "STRUCTURE COMPONENT FUNCTION CODE QUALIFIER", "M", "1"))
     skipBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("020", "", "C786", "STRUCTURE COMPONENT IDENTIFICATION", "C"))
-    parseTemplate(stempl1b, false, slines1) should be(Array("", "", "7512", "Structure component identifier", "M"))
-    parseTemplate(stempl1b, false, slines1) should be(Array("", "", "7405", "Object identification code qualifier", "C"))
+    parseTemplate(stempl1b, true, slines1) should be(Array("020", "", "C786", "STRUCTURE COMPONENT IDENTIFICATION", "C", "1"))
   }
 
   it should "throw an exception when fields are missing at end" in {

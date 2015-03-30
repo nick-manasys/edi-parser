@@ -1,0 +1,91 @@
+
+
+
+               Audit Statement for Draft Directory
+
+This directory set is the official approved version of UN/EDIFACT
+Draft Directory D.96A.
+
+Following the preparation of the directory by the Directory
+Production Team, it was examined by the Directory Audit Team,
+(DAT) which has confirmed in a report to the EDIFACT Steering
+Group (ESG) that the content was prepared in accordance with
+approved procedures and is considered satisfactory for trial
+implementation.  (However, see the DAT comment in the Annex to
+this Audit Statement, with respect to messages in the D.96A Draft
+Directory which are shown having a Status of 2 for the first
+time, as compared to earlier directory publications).
+
+A copy of the full audit report submitted to ESG is available
+from the UN/ECE secretariat.
+
+The directory is the final version of the D.96A for user
+implementation.  Under no circumstances will any corrigenda,
+addenda or revisions be issued.
+
+If during implementation a user identifies what is considered to
+be an error, this should be notified in a Data Maintenance
+Request (DMR) to allow possible amendments in a subsequent Draft
+Directory.
+
+A DMR form can be obtained from the regional EDIFACT Board
+secretariat, who will advise of the process to be followed for
+its submission and may assist in the completion of the form.  The
+text section of the "Business Needs" section, of this DMR, should
+read "Possible Draft Directory Error".
+
+ ---------------------------------------------------------------
+                 -------------------------------
+
+                                                       Annex
+
+
+      Audit Statement for the Draft Directory D.96A - Annex
+
+In the report of the forty-second session of WP.4 (TRADE/WP.4/193
+of 7 November 1995) the following decision was reported in
+paragraph 42.:
+
+"It was further noted that GE.1 had agreed that the financial
+messages, as reflected in Annex B to the GE.1 Report
+(TRADE/WP.4/GE.1/101), had now completed all of the procedures
+necessary for Status 2 and were now effectively at Status 2 in
+the D.95B directory and that this would be reflected in the D.96A
+directory."
+
+The list of financial messages shown in Annex B to the GE.1
+Report were as follows:
+
+AUTHOR;  BANSTA;  COMDIS;  CREADV;  CREEXT;  CREMUL;  DEBADV;
+DEBMUL;  DIRDEB;  DOCADV;  DOCAMA;  DOCAMI;  DOCAMR;  DOCAPP;
+DOCARE;  DOCINF;  FINCAN;  FINSTA;  PAYEXT;  PAYMUL;  PAYORD;
+RECECO.
+
+Arising from the above decision, implementors should note that
+with the exception of CREADV;  CREEXT;  DEBADV;  PAYEXT  & PAYORD,
+none of the messages listed above were shown as having a Status
+of 2 in the D.95B Draft Directory.
+
+In the case of the five messages listed above, they also exist at
+Status 2 in the S.93A Directory Set (with their versions shown in
+D.95B also existing at Status 2).
+
+It should be noted that the first time the remaining 17 messages
+shown in the full list above have been shown as having a Status
+of 2, is in the D.96A Directory Set, BUT that it is their message
+content/structure, and the segment, composite data element, data
+element and code set directories published in the D.95B Directory
+Set which should be used to implement the messages at Status 2.
+
+Further, it should be noted that ALL other messages NOT listed in
+Annex B of the GE.1 Report, which are shown as having achieved a
+Status of 2 (at some time in the past) in both the Draft D.95B
+and D.96A Directory Sets, continue to be supported only by
+the full and complete S.93A Directory Set (i.e. including their
+message segment table structures), for implementation as Status 2
+messages.
+                     _______________________
+                          _____________
+
+
+

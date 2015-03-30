@@ -1,0 +1,442 @@
+ 
+UN/EDIFACT DRAFT DIRECTORY
+
+PART 4  UNITED NATIONS RULES FOR ELECTRONIC DATA INTERCHANGE
+        FOR ADMINISTRATION, COMMERCE AND TRANSPORT
+
+
+CHAPTER 2.6 - General Introduction to UNSM Descriptions
+
+
+CONTENTS
+
+0.  FOREWORD
+
+1.  REFERENCES
+
+2.  TERMS AND DEFINITIONS
+2.1   Message
+2.2   Segment
+2.3   Segment Status (Requirement designator)
+2.4   Segment Sequence
+2.5   Maximum Use of Segments
+2.6   Group of Segments (Loops)
+2.7   Data Elements
+2.8   Qualifiers
+2.9   Data Element Format Notation
+2.10  Numeric Data Elements
+
+3.  MESSAGE STRUCTURE
+
+4.  INTERCHANGE STRUCTURE
+
+
+0.  FOREWARD
+
+The United Nations Standard Message types, UNSMs, are intended  for
+both national and international electronic data interchange
+applications.  The development work is undertaken by the UN/EDIFACT
+Rapporteur teams with representation from interested UN/ECE Working
+Party No. 4 (WP.4) members.  Known Electronic Data Interchange (EDI)
+messages that are in operation or in development are taken into
+consideration. The term Message is also known in other standards as a
+Transaction Set.
+
+The UN/ECE Working Party No. 4 on Facilitation of International Trade
+Procedures, UN/ECE/TRADE/WP.4 is responsible for the registration and
+maintenance of UNSMs and their supporting material.
+
+Rapporteurs are appointed by WP.4 and function under WP.4/GE.1
+(Meeting of Experts on Data Elements and Automatic Data Interchange).
+They are responsible for the development and maintenance of UNSMs and
+the material submitted to GE.1 for approval.
+
+The basis for all messages is a set of interdependent documents which
+are required in order to interpret, understand and use UNSMs. These
+documents are listed and briefly defined in Section 1 - "References"
+of this chapter. More information about the UN/ECE/WP.4 and the
+development structure can be found in the "UN/EDIFACT How and Why
+Handbook" which is available from the UN/ECE Secretariat (Palais des
+Nations, CH-1211 Geneva 10, Switzerland) or from Regional UN/EDIFACT
+Board secretariats.
+
+
+1. REFERENCES
+
+   The following interdependent documents, which are included in 
+   the "United Nations Trade Data Interchange Directory (UNTDID) 
+   or STANDARD directories, as well as in the DRAFT directories are 
+   required in order to interpret, understand and use UN/EDIFACT
+   messages.
+
+   - UN/EDIFACT Data Elements Directory (EDED), a subset of the United
+     Nations Trade Data Elements Directory (UNTDED) (ISO 7372) (Part
+     5, chapter 5)
+
+   - UN/EDIFACT Consolidated Code List (UNCL), a list of all code sets 
+     associated with coded data elements (Part 5, chapter 6)
+
+   - UN/EDIFACT Composite Data Elements Directory (EDCD), with their
+     component data elements (Part 5, chapter 4)
+
+   - UN/EDIFACT Standard Segments Directory (EDSD), which contains a
+     full description of all standard segments used in UNSMs (Part 5,
+     Chapter 3)
+
+   - UN/EDIFACT Directory of UNSMs (EDMD), which contains a full
+     description of all United Nations Standard Message Types (Part 5,
+     chapter 2)
+
+   - UN/EDIFACT Syntax Rules (ISO 9735), which define in concise form
+     the standard for formatting data elements and segments into
+     messages (Part 4, chapter 2.2)
+
+   - UN/EDIFACT Syntax Implementation Guidelines, which expand on some
+     of the details of the syntax rules (Part 4, chapter 2.3)
+
+   - UN/EDIFACT Message Design Guidelines, intended for message
+     designers (Part 4, chapter 2.4)
+
+   - The Internal Organization of the Work of the UN/EDIFACT
+     Rapporteurs (TRADE/WP.4/R.785), which includes in Appendix 1 the
+     procedures for modifying UNSMs
+
+
+2. TERMS AND DEFINITIONS
+
+   The formal definitions relating to the syntax rules are found in
+   the UN/EDIFACT Syntax Rules (ISO 9735).  The following clarifica-
+   tions are consistent with the formal definitions, and are provided
+   to aid in the understanding of the message.
+
+
+2.1 Message
+
+    A UNSM is a collection of information, that is exchanged to convey
+    information related to a specific transaction between the partners
+    engaged in EDI.  Messages are composed of logically grouped seg-
+    ments required for the type of message transaction covered.
+
+
+2.2 Segment
+
+    A segment is the intermediate unit of information in a message. A
+    segment consists of a pre-defined set of functionally related data
+    elements which are identified by their sequential positions within
+    the set.  A segment begins with a segment identifier, a unique
+    three alphabetic upper case code which uniquely identifies each
+    segment, and ends with a segment terminator.
+
+
+2.3 Segment Status (Requirement Designator)
+
+    The status of a segment in a specific message type may be:
+
+    - Mandatory (M) - This segment must be used in the message
+
+    - Conditional (C) - This segment will be used in the message
+      dependent on certain conditions.  The relevant conditions for
+      required occurrence of the segment must be given as part of the
+      message definition.  If no conditions are specified then the
+      segment may be used subject to agreement between trading
+      partners, or at the option of the message originator.
+
+
+2.4 Segment Sequence
+
+    Segments have specific places in a message and the same segment
+    type may occur more than once in a message.  Segments may occur
+    in any of the following three sections of the message:
+
+    Header Section - A segment occurring in this section relates to
+    the entire message.
+
+    Detail Section - A segment occurring in this section relates to
+    the detail information only and will override any similar speci-
+    fication in the header section.
+
+    Summary Section - Only segments containing totals or control
+    information may occur in the summary section, e.g. invoice totals,
+    overall discount, etc.
+
+
+2.5 Maximum Use of Segments
+
+    Some segments may be repeated a number of times at their specific
+    locations in the message structure.
+
+    The status (requirement designator) and maximum number of repeti-
+    tions of a type of segment are indicated in the Segment Table and
+    in the Branching Diagram.
+
+
+2.6 Group of Segments (Loops)
+
+    Within a message, specific groups of functionally related segments
+    may be repeated; these segment groups are referred to as loops.
+    The maximum number of repetitions of a particular loop at a
+    specific location is indicated in the message Segment Table and in
+    the Branching Diagram.
+
+    A group of repeating segments (a loop) may be nested within other
+    loops, provided that the inner loop terminates before any outer
+    loop terminates.
+
+
+2.7 Data Elements
+
+    A Data Element is the smallest unit of information in a segment.
+    Their descriptions and usage are defined in the UN/EDIFACT Data
+    Element Directory (EDED).
+
+    Two or more data elements may be grouped together to form a com-
+    posite data element.  The data elements forming a composite data
+    element are data elements in their own right and are included in
+    UNTDED. They are referred to as components in the Composite Data
+    Elements Directory (EDCD).
+
+    The use of data elements in a segment is defined in the UN/EDIFACT
+    Data Segment Directory (EDSD).
+
+    The status of a data element in a segment may be:
+
+    - Mandatory - This data element must be used in the segment.
+
+    - Conditional - This data element will be used in the segment
+      dependent on certain conditions.  The relevant conditions
+      for required occurrence of the data element may be given as
+      part of the segment definition.  If no conditions are
+      specified then the data element may be used subject to
+      agreement between trading partners, or at the option of the
+      message originator.
+
+    The segments in the Segment Directory are designed for use in a
+    wide range of message types.  This means that in some message
+    types one or more conditional data elements or composite data
+    elements in a segment may not be used.
+
+
+2.8 Qualifiers
+
+    A data element whose function is to give a more precise meaning to
+    another data element is referred to as a qualifier.  The data
+    value of a qualifier is a code taken from it's associated code
+    set.  The code sets are part of the UN/EDIFACT Code Lists (EDCL).
+
+
+2.9 Data Element Format Notation
+
+    The UNTDED notation is used to indicate the data type and length
+    of each data element.
+
+      a3        3 alphabetic characters, fixed length
+      n6        numeric characters (numbers), fixed length
+      an5       5 alphanumeric characters, fixed length
+      a..6      up to 6 alphabetic characters
+      an..35    up to 35 alphanumeric characters
+      n..9      up to 9 numeric characters (number)
+
+    In addition, the following notation is used:
+      Datatype: a  alphabetic
+                n  numeric
+               an  alphanumeric
+               id  alphabetic, numeric or alphanumeric identifier
+
+
+2.10 Numeric Data Elements
+
+    Data element values shall be regarded as positive. Although
+    conceptually a deduction is negative, it shall be represented as a
+    positive value and such cases shall be indicated in the data
+    element directory.
+
+    If a data element is to be indicated to be negative (in relation
+    to it's concept), it shall in the message be preceded by a minus
+    sign e.g. -112.  The minus sign and the decimal mark (comma or
+    point) are not counted in the number of characters of the data
+    element format.
+
+    The representation of numeric data elements specifies maximum
+    lengths without specifying the position of any appropriate decimal
+    mark.
+
+    To assist in-house file designers and data interchange partners
+    who prefer to specify a precise number of decimals, the following
+    lengths may be used as a guideline.
+
+          Numeric        Repr:          Integer        Decimals
+          Class          Digits         Digits
+
+          Weights        n..15          12             3
+          Cubes          n..9            5             4
+          Quantities     n..15          12             3
+          Unit prices    n..15          11             4
+          Amounts        n..18          15             3 
+          Currency rates n..12           6             6
+          Percentages    n..7            3             4
+          Tax rates      n..7            3             4
+
+
+3.  MESSAGE STRUCTURE
+
+    The message structure section is provided for each UNSM to clarify
+    and further explain the usage of the segments within the message
+    structure.
+
+    Segments are functionally defined to be applicable over a wide
+    range of messages.  However, restrictions may apply according to
+    the function of the segment within the structure.
+
+    A UNSM is designed to be used in and across different industries
+    and applications for both national and international exchange.
+    To meet these requirements several segments and segment groups are
+    defined as conditional.  It is important, therefore, that users
+    intending to use the message first study each conditional segment
+    and segment group to decide which are necessary for their particu-
+    lar application.
+
+    To illustrate message structure there will be both a branching
+    diagram and a segment table, with loops showing the segments in
+    the message type, their sequence, status, repetitions allowed,
+    nestings and groupings.
+
+    In the branching diagram, the sequence of the segments is
+    top-to-bottom and left-to-right.  A segment is indicated by its
+    three-letter tag and underneath its status, Mandatory (M) or
+    Conditional (C), and allowed number of occurrences.  Groups of
+    segments are represented by boxes showing a unique group number,
+    its status and the maximum number of allowed occurrences of the
+    group.  All segments and groups within a group box, belong to
+    that group.
+
+    In the segment table, the segments are listed in the order of
+    occurrence in the message .  They are identified by their tags and
+    names. In addition the status Mandatory (M) or Conditional (C) is
+    stated together with the number of times each may be repeated at
+    that occurrence. A mandatory segment must appear at least once.
+    Each segment group has a number and an indication of M or C toge-
+    ther with a number indicating the number of times the group may
+    appear within the message or within another group. In the segment
+    table loop lines indicate the segments within the group, its
+    beginning and its end. A segment group must contain at least one
+    mandatory segment which must be the first segment in the segment
+    group.
+
+
+    Segment Group Example:
+
+    --Segment Group 1 ------- M 5 ---------!
+    AAA Segment Name  M 1                  !
+                                           !
+    --Segment Group 2 ------- C 10 ----!   !
+    CCC Segment Name  M 1              !   !
+    DDD Segment Name  C 5 -------------!---!
+
+                           Group 1
+                               which must occur at least once
+                               and may occur up to 5
+                               times and contains:
+                               AAA which must occur at least once
+                                   for each Group 1 occurrence, and
+                                   BBB which may occur up to 5 times
+                                   for each Group 1 occurrence, and
+                                   Group 2 which is nested in Group 1
+                                   and which may occur up to 10
+                                   times for each Group 1 occur-
+                                   rence and contains
+                               CCC which must occur at least once
+                                   for each Group 2 occurrence, and
+                               DDD which may occur up to 5 times
+                                   for each Group 2 occurrence.
+
+
+4.  INTERCHANGE STRUCTURE
+
+In an interchange the Service String Advice, UNA, and the service
+segments UNB to UNZ shall appear in the following order:
+
+   Service String Advice         UNA       Conditional
+   Interchange Header            UNB       Mandatory
+   Functional Group Header       UNG       Conditional
+   Message Header                UNH       Mandatory
+   User Data Segments                      As required
+   Message Trailer               UNT       Mandatory
+   Functional Group Trailer      UNE       Conditional
+   Interchange Trailer           UNZ       Mandatory
+
+In addition to the above service segments, the service segment UNS
+can, when required, be used to divide a message into sections.
+
+There may be several functional groups or messages within an
+interchange and several messages within a functional group.
+
+
+-----------------------------------------
+|Establishment |CONNECTION| Termination |  A CONNECTION contains one
+--------------------|--------------------  or more interchanges. The
+                    |                      technical protocols for
+                    |                      for establishment
+                    |                      maintenance and
+                    |                      termination etc.are not
++-------------------+-------------------+  part of this standard.
+|                                       |
+-----------------------------------------
+|Interchange |INTERCHANGE |Interchange  |  An INTERCHANGE contains:
+-------------------|---------------------  - UNA, Service string
+                   |                              advice, if used
+                   |                       - UNB, Interchange header
+                   |                       - Either only Functional
+                   |                         groups, if used, or
+                   |                         only Messages
+                   |
+.....--------------+--------------------+  - UNZ, Interchange trailer
+.   |                                   |
+-----------------------------------------
+|UNA|UNB|'|    Either   |or only  |UNZ|'| A FUNCTIONAL GROUP contains
+|   |   | |FUNCTION.GRPS|MESSAGES |   | |  - UNG, Functional group
+-----------------|----------.------------    header
+                 |          .              - Messages of the same
+                 |          .                type
++----------------+----------.-----------+  - UNE, Functional group
+|               +........+..+           |    trailer
+|               .        .              |
+-----------------------------------------
+|UNG |'|Message |MESSAGE |Message |UNE|'|  A MESSAGE contains:
+--------------------|--------------------  - UNH, Message header
+                    |                      - Data segments
++-------------------+-------------------+  - UNT, Message trailer
+|                                       |
+-----------------------------------------
+|UNH |'|Data    |DATA    |Data    |UNT|'|  A SEGMENT contains:
+|    | |segment |SEGMENT |segment |   | |  - A Segment TAG
+-------------------|---------------------  - Simple data elements or
+                   |                       - Composite data elements
++------------------+-------------------+     or both as applicable
+|                                      |
+----------------------------------------
+|TAG |+|SIMPLE       |+|COMPOSITE    |'|   A SEGMENT TAG contains:
+|    | |DATA ELEMENT | |DATA ELEMENT | |   - A segment code and,
+---|--------------|----------|-----|----     if explicit indication,
+   |              |          |     |         repeating and nesting
+   |              |          |     |         value(s). See 8.1 and 9.
+   |              |          |     |
+   |              |          |     |   A SIMPLE DATA ELEMENT contains
+--------------   -------   -------------   - A single data element
+|Code|:|Value|   |Value|   |COMP|:|COMP|     value
+--------------   -------   |D/E | |D/E |   A COMPOSITE DATA ELEMENT
+                           |    | |    |   contains:
+                           --|------|---   - Component data elements
+                             |      |
+                         ------- -------  A COMPONENT DATA ELEMENT
+                         |     | |     |  contains:
+                         |Value| |Value|  - A single data element
+                         ------- -------    value
+
+  --.--                  --|--
+    . means alternative to |
+
+      Figure 1 - Hierarchical structure of an interchange
+
+UNA, UNB, UNZ, UNG, UNE, UNH and UNT are Service segmnets, see 6.1
+and Annex B. In the diagram, the level A separators/terminators have
+been used (see EDIFACT Syntax rules, ISO 9735 section 5.1).

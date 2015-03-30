@@ -1,0 +1,116 @@
+                                                  
+UN/EDIFACT STANDARD DIRECTORY
+
+PART 4  UNITED NATIONS RULES FOR ELECTRONIC DATA INTERCHANGE
+        FOR ADMINISTRATION, COMMERCE AND TRANSPORT
+
+
+CHAPTER 2.1 - Establishment of United Nations Standard Message
+              types (UNSMs)
+
+
+* The United Nations Economic Commission for Europe (UN/ECE) embraces
+Western, Eastern and Central Europe as well as Canada and the United
+States.  It comprises 55 member states; in addition, any member
+country of the United Nations may participate in UN/ECE meetings on
+a subject in which they have an interest (Article 11 of the ECE
+terms of reference). Approved inter-governmental and
+non-governmental organizations may participate in certain
+committees.
+
+The UN/ECE Working Party on Facilitation of International Trade
+Procedures (WP.4) is a subsidiary body of the Committee on the
+development of trade (TRADE). It is comprised of experts on data
+elements and automatic data interchange (GE.1) and experts on
+procedures and documentation (GE.2) which are appointed by their
+governments or by organizations recognized by UN/ECE.
+
+UN/EDIFACT Rapporteurs are nominated by a government and appointed
+by WP.4. They are requested to implement an agreed common mandate:
+
+(i)   to set up a consultative machinery,
+
+(ii)  to establish the facilities required to develop, maintain and
+      implement the UN/ECE Recommendations on standards as they relate
+      to syntax, data elements, segments, message design guidelines
+      and message types.
+
+(iii) to develop and offer technical assessment facilities where
+      appropriate
+
+(iv)  to develop any other appropriate documentation and procedures to
+      assist in the implementation of the UN/ECE Recommendations on
+      EDI.
+
+(v)   to provide co-ordination facilities between the Rapporteurs and
+      the WP.4 Secretariat.
+
+A Rapporteur has the agreed mandate for an area of jurisdiction and
+establishes a supporting Rapporteur's Team (RT) with Working Groups
+(WG) for specific areas.
+
+Normally, items of work in the UN/EDIFACT programme are joint RT
+activities but in some cases an item can be studied by one RT only.
+For joint RT activities, Joint Working Groups (JWG) must be
+established. The RT through which an item is first approved for
+development is referred to as the originating RT.
+
+The following procedures have been agreed for the development of UN
+Standard Message types (UNSMs) and related documentation. For more
+detailed information see document UN/ECE/TRADE/WP.4/R.785.
+
+Requests for a new UNSM or for changes to an existing UNSM.
+
+   Requests for a new UNSM or for changes to existing UNSMs and
+   for those in formal trial, including their supporting material
+   may originate from any national or international organization
+   or association or from an RT or its WG and should be based on
+   identified, common business requirements. Such requests should
+   be submitted to the secretariat of the relevant RT or to the
+   UN/ECE/TRADE/WP.4 secretariat.
+
+Message in development
+
+   When a RT or JWG has processed a request for a new message type
+   and has prepared a draft according to its procedures which must
+   include technical assessment, the originating RT can give it
+   status Message in development and submit it to WP.4 as soon 
+   as possible for information only.
+
+Standard message 
+
+   When all RTs formally agree that a Message in development has 
+   reached a level of stability such that it can be considered by 
+   WP.4 as a Standard message, the Rapporteurs will submit a 
+   proposal to WP.4 for approval as a UNSM.
+
+Within each document Message in development and Standard message
+there may be revisions. In order to ensure precise identification, 
+the type, version, release, controlling agency and date are indicated 
+on the cover sheet for each message type and correspondingly in the 
+message header segment (UNH), the type, version, release and 
+controlling agency.
+
+Message types and their supporting material are published as follows:
+
+  Message in development as WP.4 information documents
+  Standard message (UNSM) in Trade Data Interchange Directories (UNTDID)
+           also known as STANDARD directories. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                   
+

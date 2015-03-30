@@ -1,0 +1,1905 @@
+
+UN/EDIFACT DRAFT DIRECTORY           
+
+PART 4  UNITED NATIONS RULES FOR ELECTRONIC DATA INTERCHANGE
+	FOR ADMINISTRATION, COMMERCE AND TRANSPORT
+
+
+CHAPTER 2.4 - UN/EDIFACT Message Design Guidelines
+
+
+Note: 
+----
+The following UN/EDIFACT Message Design Guidelines were approved for
+publication as document TRADE/WP.4/R.840/Rev.2 by the UN/ECE's WP.4
+at its September 1993 session.
+
+In case of any doubts in the understanding and implementation of these
+guidelines, the chair of the Technical assessment group in the
+respective Rapporteur's team (UN/EDIFACT region) should be contacted.
+
+
+		     DESIGN OF UN/EDIFACT MESSAGES
+
+			  GUIDELINES AND RULES
+
+				CONTENTS
+
+1.  INTRODUCTION
+1.1   Guidelines & Rules                                        
+1.2   Terms and Definitions                                     
+1.3   Related Documentation                                        
+1.4   Status pf UN/EDIFACT Messages and Directories            
+1.5   UN/EDIFACT Standard Message Definition                   
+1.6   Overview                                                 
+
+2.  GENERAL GUIDELINES FOR MESSAGE DESIGN
+2.1   The Building Blocks of Messages                          
+2.2   Design of New UN/EDIFACT Messages - UNSMS                
+2.3   Requests for New UNSMs or for Changes TO EXISTING UNSMs
+2.4   Before Designing a New Message                           
+
+3.  DESIGN OF THE COMPONENT PARTS OF A MESSAGE
+3.1   Interchange Structure & Directory RELATIONSHIPS          
+3.2   Design of Data Elements                                  
+3.2.1 Guidelines for data element design
+3.2.2 Data element types and categories
+3.2.3 Rules for the design of new data elements
+3.2.4 Coded data elements
+3.2.5 Rules associated with the design of coded data elements
+
+3.3   Design of Composite Data Elements                        
+3.3.1 Guidelines for composite data element design
+3.3.2 Guidelines for the design of non-qualified
+      and qualified composites
+3.3.3 Rules for the design of composite data elements
+3.3.4 Rules for UN/EDIFACT composite data element maintenance
+
+3.4   Design of Segments                                       
+3.4.1 Guidelines for segment design
+3.4.2 Non-qualified and qualified segments
+3.4.3 Implicit & explicit representation of segments
+      in messages
+3.4.4 Rules for the design of new segments
+3.4.5 Rules for UN/EDIFACT segment maintenance
+
+4.  DESIGN OF MESSAGE STRUCTURE
+4.1   Guidelines for Message Documentation                     
+4.2   Guidelines for the Design of Segment Groups              
+4.3   Rules for Segment Groups Design                          
+4.4   Guidelines for the Design of Messages                    
+4.5   Rules for Message Design                                 
+4.6   Rules for the Design of Message Types                    
+4.7   Rules for the Use Of UNS Segments                        
+
+5.  RESOLUTION OF THE MEANING OF THE MESSAGE DESIGN GUIDELINES & RULES
+
+ANNEXES
+   
+  A Usage of data elements 1131/3055                         
+  
+  B Rapporteur Advisory & Support Teams (RTs)                
+  
+  C Hierarchical structure of a message                      
+
+
+TABLE OF RULES
+
+Rules for the design of new data elements
+  RULE 1 .........                                             
+  RULE 2 .........                                             
+
+Rules associated with the design of coded data elements
+  RULE 3 ..................                                    
+  RULE 4 ...................                                   
+
+Rules for the design of composite data elements
+  RULE 5 .........                                             
+  RULE 6 .........                                             
+  RULE 7 .........                                             
+  RULE 8 .........                                             
+  RULE 9 .........                                             
+  RULE 10 ........                                               
+  RULE 11 ........                                               
+  RULE 12 ........                                               
+  RULE 13 ........                                               
+  RULE 14 ........                                               
+  RULE 15 ........                                               
+
+Rules for UN/EDIFACT composite data element maintenance
+  RULE 16 ........                                               
+  RULE 17 ........                                               
+  RULE 18 ........                                               
+
+Rules for the design of new segments
+  RULE 19 ........                                               
+  RULE 20 ........                                               
+  RULE 21 ........                                               
+  RULE 22 ........                                               
+  RULE 23 ........                                               
+  RULE 24 ........                                               
+  RULE 25 ........                                               
+  RULE 26 ........                                               
+  RULE 27 ........                                               
+
+Rules for UN/EDIFACT segment maintenance
+   RULE 28.......                                               
+   RULE 29.......                                               
+
+Rules for segment groups design
+   RULE 30.......                                               
+   RULE 31.......                                               
+
+Rules for message design
+   RULE 32.......                                               
+   RULE 33.......                                               
+   RULE 34.......                                               
+   RULE 35.......                                               
+   RULE 36.......                                               
+   RULE 37.......                                               
+
+Rules for the design of message types
+   RULE 38.......                                               
+
+Rules for the use of UNS segments
+   RULE 39.......                                               
+   RULE 40.......                                              
+
+
+ 
+			 SECTION 1
+
+
+		      INTRODUCTION
+
+
+1.  INTRODUCTION
+
+1.1   Guidelines & Rules
+
+1.1.1 One of the key requirements before organisations can exchange
+      administrative, commercial and transport information between
+      their computer applications, without manual intervention, is
+      agreement on the content and structure of the information to be
+      transmitted.
+
+1.1.2 In UN/EDIFACT, this is achieved by developing United Nations
+      Standard Messages (UNSMs), for both national and international
+      use.
+
+1.1.3 The guidelines and rules relate to work carried out by the
+      United Nations Economic Commission for Europe, Working Party
+      Number 4 (UN/ECE/WP.4) and the International  Organisation for
+      Standardisation (ISO), known as EDIFACT (Electronic Data
+      Interchange for Administration, Commerce and Transport).
+
+1.1.4 At the regional level, the work of the UN/ECE is supported by
+      UN/EDIFACT Rapporteur's Advisory and Support Teams (RTs).
+      The RTs provide a range of support and advisory services for
+      their region, and the full addresses and contact numbers for
+      each of the current RTs are given in Informative Annex B.
+
+1.1.5 Most UN/EDIFACT RTs will have available (or will have access to)
+      a database (known as a UN/EDIFACTdatabase) which will normally
+      contain both the current UN/EDIFACT Draft Directory, and the
+      UNTDED directory (United Nations Trade Data Element Directory -
+      ISO 7372).  Any user requiring information regarding UN/EDIFACT
+      directories should contact their regional EDIFACT Secretariat
+      (see Informative Annex B).
+
+1.1.6 These guidelines and rules are intended for:
+
+      a) those who want to submit a draft message for registration as
+	 a new UNSM.  To achieve this status:
+
+	 -the proposed draft message and its contents shall be
+	  designed for International use;
+
+	 -there must be no existing  UNSM having a function
+	  identical to, nor one encompassing the function of, the
+	  proposed draft, and
+
+	 -the proposer(s) of the draft message need to accept that
+	  the message may be the subject of joint development, if
+	  other sectors and/or Rapporteurs' teams indicate interest
+	  in participating in the development of the message.
+
+     b) those who wish to propose an amendment to an existing UNSM
+	by means of a "Change Request"; and
+
+     c) use by RTs for future technical assessment.
+
+1.1.7 Many sections of this document are divided into sub-sections
+      identifying "Guidelines" and "Rules".  The sub-sections under
+      the heading of "Rules" must be observed by message designers.
+      Correct application of the rules will be verified during the
+      course of the technical assessment of messages submitted for
+      consideration as UNSMs.
+
+1.1.8 The sub-sections under the heading of "Guidelines" are provided
+      as further clarification to the UNSM  message design process,
+      and may detail additional message design concepts which may be
+      applied at the discretion of message designers.  The guideline
+      sub-sections contents' will not be the subject of any technical
+      assessment considerations.
+
+1.1.9 It is essential that newcomers to the UN/EDIFACT process should
+      be familiar with the available supporting documentation (see 1.3
+      below), and in particular with the rules for Syntax specified in
+      ISO 9735.
+
+1.1.10 Rules shown in this document shall be followed, whereas the
+       guidelines shown are intended as an aid to message designers.
+
+
+1.2   Terms and Definitions
+
+1.2.1 The general terms used in these guidelines are those specified
+      in ISO 9735.
+
+Code Set:  A set of code values related to a specific coded data
+	   element and specified in a Code List Directory.
+
+Component Data Element: A simple data element which is a subordinate
+	   portion of a composite data element and in an interchange
+	   is identified by its position within the composite data
+	   element. (ISO 9735)
+
+Composite Data Element: A data element containing two or more
+	   component data elements. (ISO 9735)
+
+Data: A representation of facts, concepts or instructions
+	   in a formalised manner suitable for communication,
+	   interpretation or processing by human beings or by
+	   automatic means.  (ISO 2382)
+
+Data Element: A unit of data which in a certain  context is considered
+	   indivisible (ISO  2382). A unit of data for which the
+	   identification, description and value representation have
+	   been specified. (ISO 9735)
+
+Electronic Data Interchange: The exchange, between organisational
+	   entities, of computer  processable data in a standard
+	   format. (ISO/IEC JTC 1/WG3/N106)
+
+Externally Maintained Code List: A list of code values, not included
+	   in a UN/EDIFACT Code List Directory, that is maintained
+	   and published by a recognised Maintenance Agency.
+
+Interchange: Communication between partners in the form of a struc-
+	   tured set of messages and service segments starting with
+	   an interchange control header and ending with an inter-
+	   change control trailer. (ISO 9735)
+
+Message: An ordered series of characters intended to convey infor-
+	   mation (ISO 2382). A set of segments in the order specified
+	   in a message directory starting with the message header and
+	   ending with the message trailer. (ISO 9735)
+
+Message Type: An identified and structured set of data elements
+	   covering the requirements for a specified type of trans-
+	   action, e.g. invoice. (ISO 9735)
+
+Open-EDI: Automated electronic data interchange performed by multiple
+	   participants capable of multiple, simultaneous transactions
+	   using public standards and pre-defined, structured data to
+	   accomplish an explicit shared business goal.
+	   (ISO/IEC JTC 1/WG3/N106)
+
+Qualifier: A data element whose value shall be expressed as a code
+	   that gives specific meaning to the function of another
+	   data element, composite data element or segment. (ISO 9735)
+
+Segment Group: A segment may depend on a segment on a higher hierar-
+	   chical level in a message structure and consequently be
+	   nested in that segment. (ISO 9735)
+
+Segment: An identified hierachical set of segments and/or segment
+	   groups within a message
+
+Separator Character: A character used for syntactical separation of
+	   data. (ISO 9735)
+
+Simple Data Element: A data element containing a single value.
+	   (ISO 9735)
+
+Syntax Rules: Rules governing the structure of an interchange and its
+	   functional groups, messages, segments and data elements.
+	   (ISO 9735)
+
+Tag: A unique code for the identification of a message type, segment,
+	   composite data element or data element.
+
+Trigger Segment: The first segment in a segment group.  No repetition
+	   is allowed for this segment and it is mandatory within the
+	   segment group.
+
+UNSM: A message may be referred to as a UN/EDIFACT standardised message
+	   only if it complies with the rules and directories in the
+	   United Nations Trade Data Interchange Directory (UNTDID),
+	   and if it has been approved by the United Nations Economic
+	   Commission for Europe (UN/ECE) as a Status 2 message.
+
+
+1.3   Related Documentation
+
+1.3.1 UN/EDIFACT documentation is published and maintained by the
+      United Nations Economic Commission for Europe, Working Party
+      Number 4 (UN/ECE/WP.4) and the International Organisation for
+      Standardization (ISO).
+
+1.3.2 This documentation forms a set of internationally agreed stan-
+      dards, directories and guidelines for the electronic interchange
+      of structured data, and in particular, that related to trade in
+      goods and services, between independent computerised information
+      systems.
+
+      Within the context of UN/EDIFACT, the major relevant documents
+      are:
+
+
+      Guidelines & Rules
+
+	- ISO 9735 EDIFACT Syntax Rules
+
+	- The UN/EDIFACT Syntax Implementation Guidelines
+
+	- The UN/EDIFACT Message Design Guidelines
+
+	- The UN/EDIFACT Rapporteur's Procedures & Message
+	  documentation rules
+
+
+      Directories
+
+	 - UNTDID : The United Nations Trade Data Interchange
+	   Directory (which is the current UN/EDIFACT 
+	   Standards Directory Set),
+
+	   which comprises:
+
+	   EDMD - the EDIFACT messages directory
+
+	   EDSD - the EDIFACT segments directory
+
+	   EDCD - the EDIFACT composite data elements directory
+
+	   EDED - the EDIFACT data elements directory
+
+		 (part of the UNTDED, United Nations Trade Data
+		  Element Directory, also released as ISO 7372)
+
+	   EDCL - the EDIFACT codes list directory
+
+
+	 - UN/EDIFACT Draft Directory Set which includes:
+
+	   TRMD - Trial Messages Directory
+
+	   TRSD - Trial Segments Directory
+
+	   TRCD - Trial Composite Data Elements Directory
+
+	   TRED - Trial Data Elements Directory
+
+
+
+1.3.3 Should message designers not be familiar with these publi-
+      cations, they should consult their national committee/
+      organisation for the Facilitation of International Trade
+      Procedures, or the relevant standardization organisation in
+      their country responsible for the dissemination of UN/EDIFACT
+      standards, or their regional RT (see Informative Annex B for
+      regional RT details).
+
+1.3.4 All of the documents in the above list are important to message
+      designers, with the ISO 9735 EDIFACT Syntax Rules being the
+      international standard for formatting data elements and segments
+      into messages.  These guidelines and rules for message design
+      are in accordance with this standard.
+
+1.3.5 The ISO 9735 EDIFACT Syntax Rules define the rules for the
+      structuring of message data and the use of the service segments.
+      The UN/EDIFACT Syntax Implementation Guidelines expands some of
+      the detail and contains more examples. Therefore, if required,
+      this document should also be studied, and can be obtained from
+      regional RTs.
+
+
+1.4   Status of UN/EDIFACT Messages and Directories
+
+1.4.1 Once approved within the UN/ECE WP.4, both messages and
+      directories are accorded a certain status, the meaning of which
+      follows.
+
+1.4.2 Messages can have one of three status levels as follows:
+	 Status 0  -  UN/EDIFACT message under development
+	 Status 1  -  UN/EDIFACT Draft Recommendation
+	 Status 2  -  UNSM Recommendation (available for
+		      operational use)
+
+1.4.3 Published UN/EDIFACT directories have one of two designations.
+      Status "S" represents a Standards Directory and Status "W"
+      represents a UN/EDIFACT Draft Directory.
+
+1.4.4 UN/EDIFACT directories are published regularly.  Full details
+      can be obtained via regional RT Secretariats, or directly from
+      the UN/ECE WP.4 Secretariat.
+
+1.4.5 The documentation for Status 0 messages is self supporting and
+      is not included in any directory.  The documentation refers to
+      a specific UN/EDIFACT Draft Directory and, when relevant, includes any
+      new segment or amended/data  element, as well as new values for
+      coded data elements.
+
+
+1.5   UN/EDIFACT Standard Message Definition
+
+1.5.1 A UN/EDIFACT standard message (known as a UNSM) is one which has
+      been approved, published, and which is maintained by the UN/ECE.
+      In this case, the Message Type, Version Number, the Release
+      Number and the Controlling Agency used in all UNSM Message
+      Headers are allocated and controlled only by the UN/ECE. In this
+      documentation the term message(s) can refer to a message at to
+      any status.
+
+
+1.6   Overview
+
+1.6.1 As with many activities, there is little point in re-inventing
+      "wheels" which have already been designed.  Message development
+      needs to be undertaken in a coordinated, progressive and struc-
+      tured way if the general aim of the UN/EDIFACT initiative to
+      develop an integrated series of messages, is to be achieved.
+
+1.6.2 Message designers are urged to consult with their relevant
+      organisation responsible for the dissemination of UN/EDIFACT
+      standards in their country, or with the UN/EDIFACT Rapporteur
+      responsible for coordination in their area, before starting any
+      new message design.  In some cases the required message may
+      already exist (or an existing message may be capable of amend-
+      ment to meet the required function), or alternatively, work may
+      have already started on an identical or similar message.
+      Guidance on message development processes is given in later
+      sections of this document.
+
+1.6.3 A MESSAGE is the term used to describe the structuring of data
+      to perform a specific business or administrative function in
+      such a way as to allow for their optimal transfer and handling
+      by ELECTRONIC means.
+
+1.6.4 A message designed for electronic data interchange (EDI) must
+      have a clearly defined business function. It should be borne in
+      mind however, that the order of presentation and the content of
+      data in an EDI message need not (and indeed, often does not)
+      necessarily follow the order and content of data carried on
+      documents.
+
+1.6.5 Although the function of a message may be the equivalent to
+      a business document, message designers should not infer from
+      this that the data element content of such messages will
+      necessarily be identical to that contained in the equivalent
+      document.  Further, when designing a UNSM, the opportunity
+      should be taken to analyse the traditional functionality, since
+      it may be more effective to take a new approach, rather than to
+      simply emulate the original.  In some cases, the functions of
+      messages may be the equivalent to the more traditional documents
+      or business processes.  In other cases, a single message may
+      be equivalent to the functionality covered by a series of
+      documents, or it may represent the direct replacement of all
+      or part of a paper-based document or business process.
+      Business and information modelling techniques provides a struc-
+      tured approach to help with task.
+
+1.6.6 More importantly, designers should not infer that the order of
+      data in a message needs to be the same as that found in the
+      equivalent existing paper document or business process.  However
+      during the initial message design stage, it may be more prac-
+      tical to order the segments and segment groups in a sequence
+      that assists with the interpretation of the message function-
+      ality, but during the final design stage, due account should
+      be taken of the benefits of truncation and omission afforded
+      by the rules for syntax, in terms of the order of presentation
+      of data.
+
+1.6.7 UN/EDIFACT message documentation defines each segment and its
+      sequence within the MESSAGE, and indicates the DATA ELEMENTS and
+      their sequence within each SEGMENT specified for use in the
+      message.  See Informative Annex C for the message structure.
+
+1.6.8 Development of messages requires two important skills: people
+      who are expert in the specific business area to which the
+      message applies, be it commercial, payment, insurance,
+      transport, etc., and people who understand the UN/EDIFACT syntax
+      message design principles, business and information modelling,
+      and computing systems.
+
+
+
+
+
+
+
+			      SECTION 2
+
+
+	       GENERAL GUIDELINES FOR MESSAGE DESIGN
+
+
+
+
+2.  GENERAL GUIDELINES FOR MESSAGE DESIGN
+
+2.1   The Building Blocks of Messages
+
+2.1.1 The basic "building blocks" of messages are:
+
+      1) data elements for use in segments, or as
+	 components of composite data elements;
+      2) composite data elements;
+      3) segments (which can be used individually, or as
+	 part of segment groups within a message), and
+      4) the structure of the message itself, detailing
+	 the order of segments and/or segment groups.
+
+
+2.2   Design of New UN/EDIFACT Messages - UNSMS
+
+2.2.1 The objective of the design process is to meet genuine data
+      interchange requirements with the minimum of complexity and
+      redundancy.  The aim should be to:
+
+      - support a well-defined and understood business need;
+      - be comparatively simple (in terms of function and design), and   
+      - avoid unnecessary emulation of paper-based procedures;
+
+2.2.2 The current UN/EDIFACT Draft Directory should be used to
+      review existing messages and segments, and utilised as a
+      starting point in developing a new message.
+
+2.2.3 Messages and segments should allow for multi-sectoral applica-
+      tions rather than a single, confined usage.
+
+2.2.4 Simplicity is a major objective in message design.  Over-
+      complication creates difficulties in comprehension, especially
+      for new users.  Messages should not be made more complex to save
+      a few characters in transmission.
+
+
+2.3   Requests for New UNSMS or for Changes to Existing UNSMS
+
+2.3.1 If a group of users need an EDI message covering international
+      requirements, they should first check whether a UNSM exists
+      which has been designed for the function in question--perhaps
+      from which a sub-set can be taken.
+
+2.3.2 If one does exist, they may then find that it does not totally
+      meet their requirements, in which case they can request a change
+      or addition to the relevant UNSM, which will be passed to the
+      appropriate message design group(s).
+
+2.3.3 If no such message exists, they may then submit a "New UNSM
+      Request" covering the function they require, which must be
+      submitted to the local RT Secretariat for processing under RT
+      procedures.
+
+
+2.4   Before Designing a New Message
+
+2.4.1 The following describes a step by step approach to message
+      design.
+
+
+  Step Action
+     
+    1. Analyse business requirements for all relevant
+       communications with business partners.
+
+    2. Model the key aspects of the business environment.
+     
+    3. Identify the EDI messages which are needed to satisfy
+       the required business function. Verify if messages
+       already exist in the current UN/EDIFACT Draft
+       Directory which should be used or amended.
+     
+    4. Select the highest priority message for development,
+       and define the "Business Function" for the message.
+       If at this stage it is decided that a new UNSM is
+       required, a "New UNSM Request" form must be prepared
+       and submitted immediately to the relevant RT Secretariat
+       for expedient processing.
+     
+    5. Determine the detailed business data needs.
+     
+    6. Select segments from the current UN/EDIFACT Draft
+       Directory and review segment groups already specified
+       for use in other UNSMs to meet the requirements for
+       each entity identified.
+     
+    7. i)  Identify the data items not covered by existing
+	   UN/EDIFACT segments;
+     
+       ii) determine whether the requirements for these data
+	   items can be met by requesting additional qualifier
+	   values for use in existing generic segments.  If not,
+	   check whether they are already defined in the current
+	   UN/EDIFACT Draft Data Elements Directory or in the
+	   Trade Data Elements Directory (UNTDED).  If not, then
+	   submit a Change Request for a new data element;
+     
+      iii) determine whether the requirements for these data items
+	   can now be met by adding them to the end of an existing
+	   UN/EDIFACT segment or composite having the correct
+	   function in the current UN/EDIFACT Draft Directory;
+     
+       iv) classify any remaining data items into conceptually
+	   related sets, providing a functional description for
+	   each set for the creation of a new segment to meet each
+	   function, and
+     
+       v)  determine the mandatory or conditional status for each
+	   data element, composite, segment, segment group and the
+	   number of permitted repeats.
+
+
+
+
+
+
+
+			     SECTION 3
+
+
+		  DESIGN OF THE COMPONENT PARTS OF
+			     A MESSAGE
+
+
+
+3.  DESIGN OF THE COMPONENT PARTS OF A MESSAGE
+
+3.1   Interchange Structure & Directory Relationships
+
+3.1.1 Informative Annex C demonstrates the hierarchical structure
+      of a UN/EDIFACT message.
+
+3.1.2 To support this hierarchical structure, within the UN/EDIFACT
+      process, five directories are held in UNTDID between all of
+      which there is both an upward and downward hierarchical
+      relationship.
+
+      |    +----------------+  ^
+      |    |   MESSAGES     |  |
+      |    +----------------+  |
+      |    |   Segments     |  |
+      |    +----------------+  |
+      |    | Composite Data |  |
+      |    |    Elements    |  |
+      |    +----------------+  |
+      |    | Data Elements  |  |
+      |    +----------------+  |
+      |    |   Code Lists   |  |
+      V    +----------------+  |
+
+
+3.2   Design of Data Elements
+
+3.2.1 Guidelines for data element design
+
+3.2.1.1 If a new data element has to be designed it should be
+	generic, allowing for use across the widest possible number
+	of applications.
+
+3.2.1.2 Having identified all of the data elements required to
+	satisfy the function of the message under development,
+	designers need to ascertain whether the required data
+	elements are included in the current UN/EDIFACT Draft
+	Directory, by taking the following steps:
+
+	Search the current UN/EDIFACT Draft Directory:
+ 
+	1) If the required data element is found and exactly
+	   meets the user's requirement, it should be specified
+	   for use;
+	2) If the required data element is found, but it appears
+	   that its name, description and/or its format/representation
+	   does not exactly meet the user's requirement, the Rappor-
+	   teur Change Request procedures should be followed, to
+	   request an amendment to the element in question, or
+	3) If the required data element is not found a "New Data
+	   Element Request" must be submitted under the Rapporteur
+	   Change Request procedures, with reference to UNTDED as
+	   necessary.
+
+	In the case of coded data elements:
+
+	1) If the required coded data element is found and the
+	   required code value is present in its associated code list,
+	   then the element should be specified for use;
+	2) If the required coded data element is found, but the re-
+	   quired code value is not present, a "New Code Request"
+	   should be submitted, or
+	3) If a "New Data Element Request" has been submitted for a
+	   coded element, a code request for each code value required
+	   for the data element must be submitted.
+
+
+3.2.2 Data element types and categories
+
+3.2.2.1 A data element is the smallest unit of information within the
+	structure of a message and there are two types, a simple data
+	element, and a component data element used in Composite Data
+	Elements (see Section 3.3)
+
+3.2.2.2 A simple data element can be one of three categories:
+
+	1) Where it  defines a precise business function,
+	   it is termed a specific simple data element.
+	   In tag, name and format order, an example could be:
+     
+
+	 Data Element  Data element name         Format tag
+
+
+	 5284          Unit price basis            n..9
+	
+			       (where n..9  means variable length
+			       numeric containing 1 to 9 digits)
+
+	 2) Where it defines a global business function which could
+	    be used across the widest range of functional/industry
+	    area, it is termed a generic simple data element.
+
+	    An example of such a generic simple data element could be:
+
+
+
+       Data Element  Data element name         Format tag
+
+
+       6064          Quantity difference         n..15
+
+			      (where n..15 means variable length
+			       numeric containing 1 to 15 digits)
+
+
+	   On its own, "quantity difference" has no specific meaning.
+	   In order to identify its precise business function, a data
+	   element qualifier is associated with it.
+
+	3) Where it gives a generic simple data element a precise
+	   business function, it is termed a data element qualifier.
+	   An example of a data element qualifier could
+	   be:
+
+	Data Element  Data element name           Format tag
+
+
+	6063          Quantity qualifier          an..3
+
+				 (where an..3 means variable length
+				  alphanumeric containing 1 to 3
+				  characters)
+
+
+	   The qualifier code values give precise meaning to the data
+	   being qualified.  For example, the list includes a code of
+	   "126" for "Quantity of goods that disappeared in transport"
+	   which, combined with the Quantity difference, gives
+	   explicit meaning to the number contained in the Quantity
+	   difference.
+
+3.2.2.3 A component data element is one which is used within a
+	composite data element (see Section  3.3).  A component
+	element can be one of the three categories defined above for
+	simple data elements.
+
+
+3.2.3 Rules for the design of new data elements
+
+  RULE 1: Existing qualified data elements shall always be used in
+	  preference to creating new data elements.
+
+  RULE 2: The following naming and formatting conventions shall be
+	  followed in the UN/EDIFACT data elements directory:
+
+	  a) A data element which qualifies a generic simple data
+	     element, composite, or  segment shall end with the name
+	     "qualifier" (e.g. "Currency qualifier").  The format of
+	     qualifiers shall be: an..3.  The code lists for quali-
+	     fiers shall be specified in EDCL only.
+
+	  b) A non-qualifier coded data element name shall end with
+	     " , coded" (e.g. "Currency, coded").  The format of
+	     non-qualifier coded data elements shall be: an..3
+
+	  c) Other coded data element names shall end with
+	     "identification" (e.g. "Hazard code identification")
+	     The format of other coded data elements shall be:
+	     an..x (where x > 3)
+
+	 d) Clear (plain language) data elements already specified
+	     in UNTDED shall adopt the same name and format in UNTDID.
+
+	  e) A new clear language data element not already specified
+	     in UNTDED shall have a format of either an..17, an..35
+	     or an..70, along with its corresponding name, as dictated
+	     by business requirements.
+
+	  f) The format and naming of other types of data elements
+	     shall be specified to meet business requirements.
+
+
+3.2.4 Coded data elements
+
+3.2.4.1 A coded data element is an element which has as its value a
+	code, described in a Code Lists directory.
+
+3.2.4.2 There are two types of UN/EDIFACT coded data elements: those
+	which are qualifiers; and other coded data elements.
+
+
+3.2.5 Rules associated with the design of coded data elements
+
+
+  RULE 3: Coded data elements which are qualifiers shall not have data
+	  elements 1131/3055 associated with them.
+
+  RULE 4: Generic coded simple data elements shall be specified in a
+	  composite data element in conjunction with conditional data
+	  elements 1131/3055.
+
+
+3.3   Design of Composite Data Elements
+
+3.3.1 Guidelines for composite data element design
+
+3.3.1.1 A composite data element is two or more component data ele-
+	ments grouped together to permit related information to be
+	expressed in a structured way.
+
+3.3.1.2 The composite data element directory contained in the current
+	UN/EDIFACT Draft Directory should be studied to identify
+	composite specification/layout.
+
+3.3.1.3 One type of design of composites is where the composite itself
+	is mandatory and all of its components are conditional.  At
+	least one of the components must be present under ISO 9735
+	Syntax Rules.
+
+3.3.1.4 When deciding on the composite data elements required in a
+	message under development, designers need to ascertain
+	whether all of the required composite data elements are
+	already defined in the current  UN/EDIFACT Draft Directory,
+	by taking the following steps:
+
+	Search the current UN/EDIFACT Draft Directory:
+
+	1) If the required composite data element is found and
+	   exactly meets the user's requirement, it should be
+	   specified for use.
+
+	2) If the required composite data element is found, but it
+	   appears that its name, description and/or its format/
+	   representation does not exactly meet the user's require-
+	   ment, the Rapporteur Change Request procedures should be
+	   followed, to request an amendment to the composite in
+	   question.
+
+	3) If the required composite data element is not found in
+	   the current UN/EDIFACT Draft Directory, then using the Rapporteur
+	   Change Request procedures, a "New  Composite Data Element
+	   Request" must be submitted.
+
+
+3.3.2 Guidelines for the design of non-qualified and qualified
+      composites
+
+3.3.2.1 A non-qualified composite is one which has a single function
+	needing no qualification.
+
+	Example:
+     
+     
+	Composite name :              MOVEMENT TYPE
+	Function  of composite :      Description of type of service
+				      for movement of cargo.
+	Components in the composite : Movement type, coded;
+				      Movement type
+     
+       The above composite could then take the form:
+	...+[Movement type, coded]:[Movement type]+...
+     
+     
+
+3.3.2.2 A qualified composite is one which needs a qualifier to
+	identify its function.
+
+	Example:
+
+     
+	 Composite name :              PERCENTAGE DETAILS
+	 Function of composite :       Identification of the usage
+					 of a percentage
+	 Components in the composite : Percentage qualifier;
+				       Percentage;
+				       Percentage basis, coded
+     
+	   The specific percentage (and if appropriate,the percentage
+	   basis) is identified according to the value of the com-
+	   posite qualifier (Percentage qualifier.)  The values of the
+	   "Percentage qualifier" are listed in the UN/EDIFACT codes
+	   lists directory.  For example:
+     
+	   1 - Allowance; 2 - Charge;  etc.
+     
+	   A PERCENTAGE DETAILS composite carrying "Allowance"
+	     percentage details  would take the form: 
+	     +1:[Percentage]+
+     
+
+3.3.2.3 The use of qualified composites significantly reduces the
+	number of entries in the Composite Data Elements Directory,
+	and provides flexibility.  For example, if the need for a new
+	"percentage  details" composite function is identified, all
+	that is required is the addition of a further qualifier code
+	in the relevant code list.
+
+
+3.3.3 Rules for the design of composite data elements
+
+  RULE 5: Composite data element shall have a single function, with
+	  each component data element relating directly to the
+	  function of the composite.
+
+  RULE 6: A composite data element shall comprise two or more com-
+	  ponent data elements.  Pairs or triplets of associated
+	  components shall not be repeated within a composite.
+
+  RULE 7: Composite data elements contained in the current UN/EDIFACT
+	  Composite Data Elements UN/EDIFACT Draft Directory shall be used,
+	  unless it is demonstrated that the required function cannot
+	  be achieved either by:
+
+	  - the addition of a new qualifier value to an existing
+	    qualified composite, or by the addition of a composite
+	    data element qualifier.
+
+	  - the addition of a component data element at the end of an
+	    existing composite (except as defined in Rule 16).
+
+  RULE 8: New composite data elements shall not contain the entire
+	  contents of an existing composite, nor shall the function of
+	  an existing composite be duplicated.
+
+  RULE 9: New composite data elements shall be designed to support
+	  the widest possible number of applications.
+
+ RULE 10: A qualifier giving specific meaning to a generic simple
+	  data element shall be placed directly after the data
+	  element.  Both elements then become component data elements
+	  of a composite data element.
+
+	  The following examples explain the position and use of such
+	  a qualifier within a composite:
+
+	       ...+QDE:Q+...          where:
+
+				     QDE - Qualified data element as
+					   a component in a composite
+				      Q  - Qualifier as a component in
+					   a composite
+
+
+	   Example:
+
+
+	     C279 QUANTITY DIFFERENCE INFORMATION
+	     6064     Quantity difference
+	     6063     Quantity qualifier
+
+	  which could contain the following data :
+
+	  ...+150:126+...   where 126  means  "Quantity
+	     of goods that disappeared in transport"
+
+
+
+ RULE 11: If a single component data element is to be qualified as
+	  part of a composite data element containing several com-
+	  ponent data elements, the qualifier shall appear after the
+	  data element to be qualified.
+
+	  Examples :
+
+
+	  ...+QCEl:Q:CE2:CE3+...     where:
+
+				    QCE1 - Qualified component element
+				       Q - Qualifier for QCE1
+				 CE2/CE3 - Component data elements
+  
+	    ...+CE1:QCE2:Q:CE3+...     where:
+
+				    QCE2 - Qualified component element
+				       Q - Qualifier for QCE2
+				 CE1/CE3 - Component data elements
+
+	    ...+CE1:QCE2:Q1:QCE3:Q2+.. where: 
+
+				     CE1 - Component data element
+				    QCE2 - Qualified component element
+				      Q1 - Qualifier for QCE2
+				    QCE3 - Qualified component element
+				      Q2 - Qualifier for QCE3
+
+
+
+ RULE 12: If a composite data element is to be qualified
+	  (i.e. the complete set of component data elements contained
+	  in a composite data element), then the qualifier shall be
+	  placed at the beginning  of the set as a component data
+	  element.
+
+	  The following examples explain the use of the qualifier
+	  in these circumstances:
+
+
+	  ...+Q:CE1:CE2:CE3+...      where:
+
+				     Q - Qualifier
+		      CE1;  CE2  & CE3 - Qualified component data
+					 elements.
+
+	   C501 PERCENTAGE DETAILS
+	   5482 Percentage
+	   5249 Percentage basis, coded
+	   1131 Code list qualifier
+	   3055 Code list responsible agency, coded
+ 
+	   which could be transmitted as:
+
+	   ...+12:20:4+...   where 12 indicates that the percentage
+				and percentage basis is that of
+				"DISCOUNT PERCENTAGE".
+
+
+
+ RULE 13: All mandatory components of a composite data element shall
+	  be placed at the beginning of the composite, followed by
+	  conditional components.
+
+ RULE 14: A component data element shall not repeat within a composite
+	  data element more than five times, and then only when a
+	  valid business reason can be specified and agreed by
+	  message design groups.
+
+ RULE 15: a) The clear (plain language) component of a coded/clear
+	     pair of data elements shall repeat  up to a maximum of
+	     two times in the composite data element when its format
+	     is defined as an..35.
+
+	  b) The clear (plain language) component of a coded/clear
+	     pair of data elements shall not repeat when its format
+	     is defined as an..70.
+  
+	  c) The FTX segment shall be used in a segment group instead
+	     of the clear component(s) of the composite data element
+	     in question when more than 70 characters are required.
+
+3.3.4 Rules for UN/EDIFACT composite data element maintenance
+
+ RULE 16: The Addition of a component data element to a composite data
+	  element shall result in the component being added to the end
+	  of the composite data element. The only exceptions to this
+	  are:
+
+	  a) if a mandatory component data element is approved
+	     for insertion in a composite  data element; or
+
+	   b) if the component data elements 1131 and 3055
+	      need to be inserted between a coded/clear pair of
+	      component data elements in an already existing
+	      composite data element.
+
+	   If either of the above amendments are approved, a new tag
+	   shall be assigned and the original composite data element
+	   in the next UN/EDIFACT Draft Directory shall be marked for deletion
+	   after three years.
+
+ RULE 17: All new messages shall always use the new composite if it
+	  is required in the message.
+
+ RULE 18: At the end of the three year period, the composite data
+	  element marked for deletion shall be replaced in all
+	  segments and associated messages with the new composite data
+	  element.
+
+
+3.4   Design of Segments
+
+3.4.1 Guidelines for segment design 
+
+3.4.1.1 When designing messages existing segments contained in the
+	current UN/EDIFACT Draft Directory should be used, before
+	considering the design of new segments.
+
+3.4.1.2 Many advantages ensue from the use of existing segments,
+	including acceleration of the message design process and
+	conformity across industry and national borders.
+
+3.4.1.3 Before designing a new segment, the following options need to
+	be considered:
+
+	If a qualified segment covering the function exists, the
+	segment qualifier can be used to provide the segment with
+	the required specific meaning, by requesting an addition to
+	the associated segment qualifier code list.
+
+	If it is possible to meet the required function by adding an
+	element to an existing segment, then UN Rapporteur Change
+	Request Procedures should be followed to request the addition
+	at the end of the segment.
+
+	If the required function can be met by use of two or more
+	existing segments, these can be placed in a segment group
+	within the message.  (See Section 4.4)
+
+3.4.1.4 If a new segment has to be designed, it should be generic,
+	allowing for use across the widest possible number of
+	applications.
+
+3.4.1.5 By designing generic segments, it is then possible to place
+	the segment in a range of segment groups to express different
+	functions.  This concept should however under no circumstances
+	result in solutions not supportive of specific business
+	requirements.  The creation of a specific segment needed for
+	certain defined business areas is permissible whenever the
+	result is approved under the maintenance procedures.
+
+3.4.1.6 Once  designed, the status of composites/data elements within
+	the segment (i.e. whether they are Mandatory or Conditional)
+	needs to be decided, with mandatory data appearing before
+	conditional data in the segment.  If a segment is to be used
+	in several different messages, in one message an element may
+	be mandatory, while being conditional in another.  If this
+	circumstance arises, the element should be made conditional,
+	and the usage specified in the message implementation
+	guidelines.
+
+
+3.4.2 Non-qualified and qualified segments
+
+3.4.2.1 A non-qualified segment needs no qualification to define
+	its function.
+
+	Example:
+
+	Segment   : DLI  DOCUMENT LINE IDENTIFICATION
+
+	Function  : To specify the processing mode of a
+		    specific line within a referenced
+		    document
+
+	Data Elements in Segment :  DOCUMENT LINE
+				    INDICATOR, CODED;
+				    LINE ITEM NUMBER
+
+	  The above segment could then take the form:
+
+	  DLI+[Document line indicator]+[Line item number]
+
+
+3.4.2.2 A qualified segment is one which needs a qualifier to specify
+	its usage.  The specific usage of the segment is attributed to
+	it according to the value of an appropriate segment qualifier
+	code, as defined in 3.4.2.3.
+
+	Example:
+
+	Segment  : COT CONTRIBUTION DETAILS
+
+	Function : To specify details about membership
+		   contributions
+
+	Data elements in segment : CONTRIBUTION
+				   QUALIFIER;
+				   CONTRIBUTION TYPE;
+				   INSTRUCTION;
+				   etc.
+
+       The specific contribution type and instruction is identified
+       according to the value of the segment qualifier
+       (CONTRIBUTION QUALIFIER).
+       
+       The values of the CONTRIBUTION QUALIFIER are listed in the
+       EDIFACT codes set directory.  The following qualifier values
+       are examples only: 1 - Normal,  2 - Special,  3 - Reversal
+       
+       Therefore, a COT segment carrying "Normal" contribution
+       details could take the form:
+
+	    ...COT+1+[Contribution type]+[Instructions]...
+
+
+3.4.2.3 The use of qualified segments significantly reduces the number
+	of entries in the Segment Directory, and provides flexibility.
+	If a required segment purpose is not covered in the existing
+	qualifier code list, a new qualifier code value should be
+	requested. Where relevant, this technique should always be
+	used in preference to designing a new and specific segment for
+	the same purpose.
+
+
+3.4.3 Implicit & explicit representation of segments in messages
+
+3.4.3.1 The ISO 9735 Syntax Rules permit segments to be transmitted
+	in either implicit or explicit  format, however, it is not
+	permissible to mix the two techniques within one message.
+
+3.4.3.2 The selection of either the implicit or the explicit nesting
+	technique for repeating segments must be decided by message
+	designers.  Implicit representation is recommended for use in
+	all UNSMs.  The explicit nesting indication should only be
+	used when the message definition would not enable the receiver
+	to identify the logical links of segments to other segments
+	when processing a message.
+
+3.4.3.3 A more detailed explanation of the two techniques is found in
+	ISO 9735.
+
+
+3.4.4 Rules for the design of new segments
+
+ RULE 19: A new segment shall have a single function (which can be
+	  qualified if necessary, to identify its usage).  A segment
+	  shall contain sufficient simple and/or composite data
+	  elements to fulfill its functional definition and the con-
+	  tents shall relate directly to the function of the segment.
+
+ RULE 20: A new segment shall not contain the entire contents of an
+	  existing segment, nor duplicate the function of an existing
+	  segment.
+
+ RULE 21: The status of composites and/or data elements within a
+	  segment shall be defined (i.e. Mandatory or Conditional).
+
+ RULE 22: All mandatory simple data elements and/or composite data
+	  elements shall be placed at the beginning of the segment,
+	  followed by all conditional simple data elements and/or
+	  composite data elements.
+
+ RULE 23: 3-alpha segment codes starting with the letter "U"
+	  (i.e. U..), are reserved for use by ISO 9735 and shall not
+	  be specified for use in data segments.
+
+ RULE 24: A qualifier giving the specific meaning to a qualified
+	  segment shall be placed as a mandatory data element directly
+	  after the segment code as the first data element in the
+	  segment.
+     
+	  Example:
+     
+
+	  ...QSC+Q+...
+
+			    QSC - Qualified Segment Code
+			      Q - Qualifier
+
+ RULE 25: Simple or composite data elements shall not repeat within a
+	  segment.  When multiple repeats are required, the segment
+	  should be repeated at the message level.
+
+ RULE 26: Only when a valid business reason can be specified in the
+	  "New Segment Request", may the same simple or composite
+	  data element repeat within the same segment--up to a
+	  maximum of five times, as agreed by message design groups.
+
+ RULE 27: Groups of two or more different composite data elements
+	  shall not be repeated in a segment.
+
+	  Example:  the following structures are not permitted:
+
+
+	  Segment AAA    Segment BBB
+	   C123           C123
+	   C345           C345
+			  C456
+	   C123
+	   C345           C123
+			  C345
+	   C123           C456
+	   C345
+
+
+3.4.5 Rules for UN/EDIFACT segment maintenance
+
+ RULE 28: The addition of a simple data element or a composite data
+	  element to a segment shall result in the simple or compo-
+	  site data element being added to the end of the segment. The
+	  only exceptions to this are:
+  
+	  - if a mandatory simple or composite data element
+	    is approved for insertion in a segment; or
+ 
+	  - if a data element marked for deletion after 3
+	    years is replaced by its substitute.
+
+	  If either of the above amendments are approved, a new seg-
+	  ment code shall be assigned and the original segment shall
+	  be marked for deletion after 3 years.
+
+ RULE 29: All new messages shall always use the new segment if it is
+	  required in the message.
+
+
+
+
+
+
+
+			    SECTION 4
+
+
+		   DESIGN OF MESSAGE STRUCTURE
+
+
+
+4.  DESIGN OF MESSAGE STRUCTURE
+
+4.1   Guidelines for Message Documentation 
+
+4.1.1 The layout for message documentation (referred to as a
+      "Boilerplate") is given in a UN document which should be
+      obtained from local RT Secretariats.
+
+4.1.2 Once the function and content of a message has been decided,
+      the message has to be designed and structured.  In addition
+      to the descriptive text in messages (as defined in the boiler-
+      plate), the structure of messages has to be presented in
+      documentation both in the form of a branching diagram, and as
+      a segment table.
+
+4.1.3 Branching diagrams and segment tables are graphic techniques
+      for indicating the logical structure of a message. Their func-
+      tion is to present a message diagramatically, from which the
+      order and relationship of segments and segment groups within
+      a message can be determined, including their mandatory or con-
+      ditional status.  The diagram defines the transmission order
+      of the segments as top to bottom and left to right. The
+      following diagram is for illustration only, to explain the
+      basic concepts of a branching diagram and a segment table.
+
+4.1.4     An example of a branching diagram is:
+
+      Level                    Message Type
+
+		  _________________________________________
+		  |      |      |      |     |      |     |
+	0        UNH    AAA    BBB     |    EEE     |    UNT
+		 M 1    M 1    C 1     |    C 1     |    M 1
+				       |            |
+				       |            |
+				    +----+          |
+				    |Gp.1|          |
+				    |C  9|          |
+				    |____|          |
+	1                           |CCC |         FFF
+				    |M  1|         C 9
+				    +----+
+				       |
+				       |
+	2                             DDD
+				      C 9
+
+
+4.1.5 As can be seen in the above diagram, "Levels" are shown for each
+      level of nesting of segments in a message.  Segments appearing
+      at Level 0 shall not repeat.  For each level of segment nesting,
+      the level numbers are incremented by 1.
+
+4.1.6 Example of a segment table is:
+
+      TAG    NAME                      S    REPT    S    REPT
+
+      UNH    Message header            M    1
+      AAA    Segment AAA               M    1
+      BBB    Segment BBB               C    1
+
+    - Segment Group 1 ----------------------------- C     9 ---+
+      CCC    Segment CCC               M    1                  |
+      DDD    Segment DDD               C    9 -----------------+
+
+      EEE    Segment EEE               C    1
+      FFF    Segment FFF               C    9
+      UNT    Segment UNT               M    1
+
+
+4.1.7 For the above message structure, assuming that all of the
+      conditional segments in the diagram appear once, and that Group
+      1 appears twice, the processing sequence of the segments would
+      be as follows:
+
+	UNH,  AAA,  BBB,  CCC,  DDD,  CCC,  DDD,  EEE,  FFF, UNT.
+
+4.1.8 In the above message structure, the first and last segments in
+      the message, UNH and UNT, are mandatory Service Segments, de-
+      fined in the UN/EDIFACT Syntax.  UNH is the message header
+      segment, which includes the message type, version and release
+      number, while UNT is the message trailer segment.  The remaining
+      segments (with segment codes AAA to FFF) are user data segments.
+
+4.1.9 Associated with each segment tag in the examples is shown either
+      "M" (if the segment is Mandatory within the message), or "C" (if
+      the segment is Conditional), followed by a number, meaning the
+      following:
+ 
+      M  l  means that the segment must appear once only in
+	      the message in the position shown in the diagram.
+ 
+      C  l  means the segment may appear once only in the
+	      message  in the position shown in the diagram
+	      (dependent if necessary on a semantic note related
+	      to the segment) or that it can be completely omitted.
+
+      M followed by a figure greater than 1 means that the
+      segment must appear at least once in the position shown,
+      but could repeat up to a maximum number of times equal to
+      the figure shown.
+
+      C followed by a figure greater than 1 means that the
+      segment may repeat in the position shown, up to a
+      maximum  number of times equal to the figure shown,
+      OR--because of its Conditional status--that it may not
+	appear at all.
+
+      Exactly the same concept applies to segment groups in respect
+      to their status and their number of repeats.
+
+
+4.2   Guidelines for the Design of Segment Groups
+
+4.2.1 A study of Status 2 messages in UNTDID will show that messages
+      often contain a high proportion of conditional segment groups.
+      This decision is often taken by message designers to permit
+      flexibility of use.
+
+4.2.2 Grouping of segments also permits information carried in
+      individual segments to be related in a structured way.
+
+4.2.3 The first segment of a group must occur only once per occurrence
+      of the group. and is designated as the "trigger" segment for the
+      group which it heads.  The trigger segment determines the func-
+      tion of the group.
+
+4.2.4 Message designers should be aware, that a segment group which is
+      contained within another segment group cannot be entered, other
+      than via the segment group immediately before (its parent seg-
+      ment group).  This means that at least the trigger segment for
+      the parent segment group must contain data when transmitted.
+
+4.2.5 In the message example given in 4.1.4, Group 1 (containing
+      segments CCC and DDD) shows a simple repeating structure.  Up to
+      a maximum of 9 occurrences of the group may appear, or the group
+      may be omitted since its is conditional.  Within each occurrence
+      of the group, the trigger segment CCC must appear (since it is
+      mandatory).  Segment DDD may be omitted since it is conditional,
+      or may repeat a maximum of 9 times.  A group of segments can,
+      and often does, contain one or more lower level groups of
+      segments.
+
+4.2.6 A fuller description of the hierarchical dependency of segments
+      in groups appearing at levels l, 2, 3, etc., repeating segments
+      and their representation implicitly or explicitly etc., can be
+      found in ISO 9735.
+
+4.2.7 As draft messages are developed, designers may find that they
+      may have to amend some of their original thoughts on the struc-
+      ture and contents of the message as this can be an iterative
+      process.
+
+4.2.8 A typical example of a segment group used in the same way across
+      many messages is the "Name and Address", segment group which
+      optionally includes segments to provide related "Contact" &
+      "Communication Number" data.  This segment group normally
+      follows a structure where NAD is the trigger segment for group,
+      with the dependent CTA and COM segments below.
+
+
+4.3   Rules for Segment Groups Design
+
+ RULE 30: Every group shall start with a non-repeating mandatory
+	  segment.
+
+ RULE 31: A segment group nested within another segment group shall be
+	  headed by its own trigger segment, and cannot be entered
+	  other than via the group which precedes it.
+
+
+4.4   Guidelines for the Design of Messages
+
+4.4.1 "Stand-alone" segments within segment groups (i.e. segments with
+      no dependent segment(s) below them) should be placed immediately
+      after the mandatory trigger segment of the group to which they
+      belong, in order to reduce the risk of segment collisions.
+
+4.4.2 Segment collision occurs for example:
+
+      1) if two or more segments with identical segment codes appear
+	 in a message with no mandatory segment with a different seg-
+	 ment code intervening between them at the same or higher
+	 level; or
+      2) if two or more segments with identical segment code appear in
+	 a message with no mandatory segment group triggered by a
+	 segment with a different segment code intervening.
+
+      In some cases, a mandatory segment with a different segment code
+      is also needed after the colliding segment, to prevent the
+      collision.
+
+4.4.3 An example of segment of collision is:
+
+      Level
+      ____________________________________________________________
+	   |
+	+-----+
+	| Gr 3|
+	|-----|
+	| C|99|
+	|-----|
+      1 | AAA |
+	|-----|
+	|M | 1|
+	+-----+
+	   |
+	   | __________________________________________________ ....
+	   |     |       |   |       |        |   |      |
+	   |  +-----+    |   |    +-----+     |   |   +-----+
+	   |  |Gr  4|    |   |    |Gr  6|     |   |   | Gr 7|
+	   |  |C   9|    |   |    |C   9|     |   |   | C 9 |
+	   |  |-----|    |   |    |-----|     |   |   |-----|
+      2   BBB | CCC |   FFF DDD   | GGG |    III EEE  | JJJ |
+	  C 9 | M 1 |   C 9 C 9   | M 1 |    C 1 C 9  | M 1 |
+	      +-----+             +-----+             +-----+
+		 |                   |                   |
+	      +-----+                |                   |
+	      |Gr  5|                |                   |
+	      |-----|                |                   |
+	      |C   9|                |                   |
+	      |-----|             +-----+             +-----+
+      3       | DDD |             | HHH |             | KKK |
+	      | M 1 |             | C 1 |             | C 9 |
+	      +-----+             +-----+             +-----+
+		 |
+		 |
+      4         EEE
+		C 9
+ 
+
+
+4.4.4 In the above example, since the stand-alone segment FFF is
+      conditional (and therefore may be omitted), there is a segment
+      collision between the stand-alone segment DDD (after segment
+      FFF) and segment DDD which is the trigger segment for Group 5.
+
+4.4.5 The risk which arises with segment collision, is that the recei-
+      ving translator routine could incorrectly associate identical
+      segments.
+
+4.4.6 A segment collision also occurs between the stand-alone EEE
+      segment appearing immediately before group 7 and the EEE segment
+      in group 5, since everything between them is conditional.
+
+4.4.7 Segment collision would be eliminated if stand-alone segments
+      FFF, DDD, III and EEE were moved before segment group 4.
+
+
+4.5   Rules for Message Design
+
+ RULE 32: A message is a set of ordered segments and/or segment
+	  groups, starting with the message header UNH segment, and
+	  ending with the message trailer UNT segment.  At least one
+	  additional segment or segment group shall appear between
+	  the header and trailer segments.
+
+ RULE 33: The contents of the current UN/EDIFACT Draft Directory
+	  shall be used as the starting point for the development of
+	  a message.
+
+ RULE 34: A proposed new message shall not duplicate the function of
+	  an existing message.
+
+ RULE 35: Messages shall be designed for use at the international
+	  level.
+
+ RULE 36: Any changes made to an existing message structure shall
+	  conform to the stated message functionality or else the
+	  message functionality shall be modified to conform with the
+	  changes to the message structure.
+
+ RULE 37: Messages shall be structured without segment collision.
+
+
+4.6   Rules for the Design of Message Types
+
+ RULE 38: Each message type shall have allocated to it a unique six
+	  letter identifier (e.g. INVOIC for the Commercial Invoice).
+	  Designers may allocate a code of their own choosing,
+	  controlled only by RT Technical Assessment Groups in the
+	  event of duplication with an existing code.
+
+
+4.7   Rules for the Use of UNS Segments
+
+ RULE 39: The service segment UNS shall only be used to prevent
+	  segment collision between segments contained in the Header,
+	  Detail and Summary sections of a message.
+
+ RULE 40: No more than two UNS segments shall be defined in a single
+	  message.  UNS segments shall have a maximum occurrence of
+	  one, a status of mandatory, and shall appear at the begin-
+	  ning of either the Detail section, and/or the Summary
+	  section as necessary.
+
+
+
+
+
+
+			   SECTION 5
+
+
+		   RESOLUTION OF THE MEANING OF
+	      THE MESSAGE DESIGN GUIDELINES & RULES
+
+
+
+5. RESOLUTION OF THE MEANING OF THE MESSAGE DESIGN GUIDELINES & RULES
+
+5.1  If any part of these guidelines and rules are unclear to any
+     message designer or message user, the specific query should be
+     directed to a Technical Assessment Group (TAG), via a local RT
+     Secretariat.
+
+5.2  Such queries will be dealt expeditiously via Joint RT/TAG
+     discussions.
+
+5.3  After change requests to the message design guidelines and rules
+     have been processed and agreed, the changes will be published
+     giving the appropriate interpretations, addenda and/or revisions.
+
+
+
+
+			  ANNEX A
+		       (INFORMATIVE)
+
+		Usage of data elements 1131/3055
+
+A.1 INTRODUCTION
+
+The capability to use externally maintained code lists is accomplished
+in UN/EDIFACT message design through the use of two data elements,
+1131 and 3055, which immediately follow a coded data element.  The
+combination of the elements 1131/3055 shall only be used in associ-
+ation with one preceding component.
+
+The specifications contained in A.2 and A.3 below are not mandatory.
+However, if the choice is made to implement A.2 and A.3, then the
+detail in those sections shall be applied.
+
+
+A.2  USE OF 1131/3055
+
+The UN/ECE Secretariat will allocate code values in data element 3055
+to identify responsible agencies.
+
+Specific code list identification numbers for data element 1131 can be
+obtained from the appropriate responsible agency identified in data
+element 3055.
+
+Each agency will be responsible for assigning code list identification
+numbers for each category of code list it maintains.  These identi-
+fication numbers will not be contained in the UN/EDIFACT Code Lists
+Directory for 1131.
+
+The only value in the UN/EDIFACT code list directory for data element
+1131 is "ZZZ".  This identifies that the coded data element used in
+association with 1131/3055 is mutually defined by trading partners.
+
+Data element 3055 would contain a list of responsible agencies.
+Examples of the values currently contained in data element 3055 are:
+
+       3   IATA (International Air Transport Association)
+       5   ISO  (International Organisation for Standardisation)
+       6   UN/ECE
+       16  DUNS (Dun and Bradstreet)
+       116 US, ANSI ASC X12
+       178 AU, SAA (Standards Association of Australia)
+     
+
+Additional values should be requested, as needed, to identify addi-
+tional responsible agencies such as national and regional authorities.
+
+Whenever data element 3055 is used, data element 1131 is mandatory.
+
+If data elements 1131 and 3055 are not used, the value of the
+associated coded data element value is from the UN/EDIFACT maintained
+code list.
+
+
+A.3 EXAMPLES FOR THE USAGE OF 1131/3055
+
+    1) Example of the omission of 1131/3055 which implies use of the
+       UN/EDIFACT maintained code list
+     
+
+     1131      3055    COMMENT
+
+
+		       The coded data element value
+		       used in association with
+		       1131/3055, is in the
+		       UN/EDIFACT code list for the
+		       coded element in question
+
+
+
+    2) Example of trading partner defined reference numbers
+
+
+	 1131      3055    COMMENT
+
+
+	 ZZZ           The coded data element value
+		       used in association with
+		       1131/3055 is mutually defined
+		       by trading partners (1131 =
+		       'ZZZ')
+     
+
+
+
+    3) Example of UN/ECE maintained 1131 code list
+
+
+	  1131      3055    COMMENT
+
+
+	  20         6     The coded data element value
+			   used in association with
+			   1131/3055 is one maintained
+			   by the UN/ECE (3055="6"), in
+			   UN/ECE Recommendation 20
+			   1131="20")
+
+
+    4) Example of an organisation maintained code list
+
+
+	 1131      3055    COMMENT
+
+
+	  1         16     The coded data element value
+			   used in association with
+			   1131/3055 is one maintained
+			   by Dun and Bradstreet
+			   (3055="16"), in the Duns
+			   list of enterprise numbers
+			   (1131="1")
+
+
+     
+    5) Example of nationally maintained 1131 code list
+
+
+	 1131      3055    COMMENT
+
+
+	  4         116    The coded data element value
+			   used in association with
+			   1131/3055 is one maintained
+			   by ANSI ASC X12 (3055="116"),
+			   in the American Bankers
+			   Association (ABA) routing
+			   number identification table
+			   (1131="4")
+
+ 
+
+
+
+
+			      ANNEX B
+			   (INFORMATIVE)
+
+	    Rapporteur Advisory & Support Teams (RTs)
+
+B.1 UN/EDIFACT MAINTENANCE
+
+1.1 It is via the RTs that maintenance procedures for the UN/EDIFACT
+    Syntax Rules, and the UN/EDIFACT Directory Sets will be coordi-
+    nated, in conjunction with the UN/ECE Secretariat.
+
+
+B.2 RAPPORTEURS
+
+2.1 Rapporteurs currently appointed by UN/ECE Working Party 4
+    represent Africa, Asia, Australia/New Zealand, Central and Eastern
+    Europe, Pan America and Western Europe (including EFTA).
+
+2.2 The names and contact points for the above Rapporteurs can be
+    obtained from either the UN/ECE Secretariat, or from local RT
+    Secretariats.
+
+
+B.3 RT SECRETARIAT CONTACT POINTS
+
+Western Europe:
+
+  The EC UN/EDIFACT Co-ordinator                 Tel: +32-2-299-0250
+  Commission of the European Communities         Fax: +32-2-299-0286
+  DG XIII - D5
+  Belliard 1/25
+  rue de la Loi 200
+  l040 Brussels
+  Belgium
+
+Pan America:
+
+  The PA UN/EDIFACT Co-ordinator                 Tel: +703-548-7005
+  DISA  (Data Interchange Standards Association) Fax: +703-548-5738
+  l800 Diagonal Road
+  Suite 355
+  Alexandria VA 223l4
+  USA
+
+Eastern Europe:
+  The EE UN/EDIFACT Co-ordinator                 Tel: +3 5 9 287-4572
+  BULPRO                                         Fax: +3 5 9 280-3968
+  Ministry of Trade
+  12, Al. Batenberg Str.
+  BG-1000 SOFIA
+  Bulgaria
+
+Asia :
+  The AS EDIFACT Co-ordinator                    Tel: +81 3 3437-6135
+  JASTPRO                                        Fax: +81 3 3437-6136
+  Daiichi Daimon Bldg
+  Shiba Daimon
+  2-10-1 Minato-ku
+  TOKYO
+  Japan
+
+Australia/New Zealand:
+  The AZ EDIFACT Co-ordinator                    Tel: +61 2 879-9135
+  P.O. Box 422                                   Fax: +61 2  817-2085
+  Gladesville
+  NSW 2111
+  Australia
+
+Africa :
+  The African EDIFACT Board                      Tel: +241763 652
+  AFEB Co-ordinator                              Fax: +241765 838
+  PO Box 561
+  Libreville
+  Gabon
+
+B.4  UN/ECE SECRETARIAT
+
+  United Nations Economic Commission             Tel: +41 22 9172773
+  for  Europe (UN/ECE)                           Fax: +41 22 9170036
+  Trade Facilitation Section
+  Palais des Nations
+  CH-1211 Geneva 10
+  Switzerland
+  
+
+
+
+			      ANNEX C
+			  (INFORMATIVE)
+
+	       Hierarchical structure of a message
+
+
+  See ISO 9735

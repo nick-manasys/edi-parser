@@ -1,0 +1,183 @@
+                                                   
+UN/EDIFACT STANDARD DIRECTORY
+
+PART 2  UNIFORM RULES OF CONDUCT FOR INTERCHANGE OF TRADE DATA
+        BY TELETRANSMISSION (UNCID)
+
+
+CHAPTER 2 - Text of the Uniform Rules of Conduct
+
+
+                         Article 1:  Objective
+
+These rules aim at facilitating the interchange of trade data effected
+by teletransmission, through the establishment of agreed rules of
+conduct between parties engaged in such transmission.  Except as
+otherwise provided in these rules, they do not apply to the
+substance of trade data transfers.
+
+
+                        Article 2:  Definitions
+
+For the purposes of these rules the following expressions used
+therein shall have the meaning set out below:
+
+a) Trade transaction: A specific contract for the purchase and sale
+   or supply of goods and/or services and/or other performances
+   between the parties concerned, identified as the transaction to
+   which a trade data message refers;
+
+b) Trade data message: Trade data exchanged between parties concerned
+   with the conclusion or performance of a trade transaction;
+
+c) Trade data transfer (hereinafter referred to as "transfer"): One or
+   more trade data messages sent together as one unit of dispatch
+   which includes heading and terminating data;
+
+d) Trade data interchange application protocol (TDI-AP): An accepted
+   method for interchange of trade data messages, based on interna-
+   tional standards for the presentation and structuring of trade data
+   transfers conveyed by teletransmission.
+
+e) Trade data log: A collection of trade data transfers that provides
+   a complete historical record of trade data interchanged.
+
+
+                         Article 3:  Application
+
+These rules are intended to apply to trade data interchange between
+parties using a TDI-AP.  They may also, as appropriate, be applied
+when other methods of trade data interchange by teletransmission are
+used.
+
+
+                     Article 4:  Interchange standards
+
+The trade data elements, message structure and similar rules
+and communication standards used in the interchange should be those
+specified in the TDI-AP concerned.
+
+
+                             Article 5: Care
+
+a) Parties applying a TDI-AP should ensure that their transfers are
+   correct and complete in form, and secure, according to the TDI-AP
+   concerned and should take care to ensure their capability to
+   receive such transfers.
+
+b) Intermediaries in transfers should be instructed to ensure that
+   there is no unauthorised change in transfers required to be
+   retransmitted and that the data content of such transfers is not
+   disclosed to any unauthorised person.
+
+
+                    Article 6:  Messages and transfers
+
+a) A trade data message may relate to one or more trade transactions
+   and should contain the appropriate identifier for each transaction
+   and means of verifying that the message is complete and correct
+   according to the TDI-AP concerned.
+
+b) A transfer should identify the sender and the recipient; it
+   should include means of verifying, either through the technique
+   used in the transfer itself or by some other manner provided by the
+   TDI-AP concerned, the formal completeness and authenticity of the
+   transfer.
+
+
+                 Article 7:  Acknowledgement of a transfer
+
+a) The sender of a transfer may stipulate that the recipient should
+   acknowledge receipt thereof.  Acknowledgement may be made through
+   the teletransmission technique used or by other means provided
+   through the TDI-AP concerned.  A recipient is not authorized to act
+   on such transfer until he has complied with the request of the
+   sender.
+
+b) If the sender has not received the stipulated acknowledgement
+   within a reasonable or stipulated time, he should take action to
+   obtain it. If, despite such action, an acknowledgement is not
+   received within a further period of reasonable time, the sender
+   should advise the recipient accordingly by using the same means as
+   in the first transfer or other means if necessary and, if he does
+   so, he is authorized to assume that the original transfer has not
+   been received.
+
+c) If a transfer received appears not to be in good order, correct
+   and complete in form, the recipient should inform the sender
+   thereof as soon as possible.
+
+d) If the recipient of a transfer understands that it is not intended
+   for him, he should take reasonable action as soon as possible to
+   inform the sender and should delete the information contained in
+   such transfer from his system, apart from the trade data log.
+
+
+                   Article 8:  Confirmation of content
+
+a) The sender of a transfer may request the recipient to advise him
+   whether the content of one or more identified messages in the
+   transfer appears to be correct in substance, without prejudice to
+   any subsequent consideration or action that the content may
+   warrant.  A recipient is not authorized to act on such transfer
+   until he has complied with the request of the sender.
+
+b) If the sender has not received the requested advice within a
+   reasonable time, he should take action to obtain it.  If, despite
+   such action, an advice is not received within a further period of
+   reasonable time, the sender should advise the recipient accordingly
+   and, if he does do, he is authorized to assume that the transfer
+   has not been accepted as correct in substance.
+
+
+                   Article 9: Protection of trade data
+
+a) The parties may agree to apply special protection, where permis-
+   sible, by encryption or by other means, to some or all data
+   exchanged between them.
+
+b) The recipient of a transfer so protected should assure that at
+   least the same level of protection is applied for any further
+   transfer.
+
+
+                       Article 10:  Storage of data
+
+a) Each party should ensure that a complete trade data log is
+   maintained of all transfers as they were sent and received, without
+   any modification.
+
+b) Such trade data log may be maintained on computer media
+   provided that, if so required, the data can be retrieved and
+   presented in readable form.
+
+c) The trade data log referred to in paragraph (a) of this
+   Article should be stored unchanged either for the period of time
+   required by national law in the country of the party maintaining
+   such trade data log or for such longer period as may be agreed
+   between the parties or, in the absence of any requirement of
+   national law or agreement between the parties, for three years.
+
+d) Each party shall be responsible for making such arrangements
+   as may be necessary for the data referred to in paragraph (b) of
+   this Article to be prepared as a correct record of the transfers as
+   sent and received by that party in accordance with paragraph (a) of
+   this Article.
+
+e) Each party must see to it that the person responsible for the data
+   processing system of the party concerned, or such third party as
+   may be agreed by the parties or required by law, shall, where so
+   required, certify that the trade data log and any reproduction made
+   from it is correct.
+
+
+                       Article 11:  Interpretation
+
+Queries regarding the correct meaning of the rules should
+be referred to the International Chamber of Commerce, Paris.
+
+                            -----------------
+The official ICC Brochure containing the text of the UNCID may be
+obtained from the ICC Secretariat, 38 Cours Albert Ier, F-75008 PARIS.
+                            -----------------
+

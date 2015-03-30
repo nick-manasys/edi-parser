@@ -1,0 +1,298 @@
+                                                  
+UN/EDIFACT DRAFT DIRECTORY
+
+PART 2  UNIFORM RULES OF CONDUCT FOR INTERCHANGE OF TRADE DATA
+        BY TELETRANSMISSION (UNCID)
+
+
+CHAPTER 1 - Introductory note
+
+
+I. The international trade transaction
+
+The UNCID rules are meant to provide a background for users of
+EDIFACT (Electronic Data Interchange for Administration, Commerce
+and Transport) and other systems of Electronic Trade Data
+Interchange, hereafter for short EDI.
+
+Users will have detailed knowledge of the cumbersome
+procedures involved in an international trade transaction, and the
+decisive advantages of electronic interchange. For illustration
+please see figure 1 which shows data flows and message functions.
+
+
+II. The computer age - towards paperless trading
+
+It is widely expected that the impact of computerization will
+be as great as that of industrial revolution. Computers are already
+providing all sorts of services at rising speed and diminishing cost.
+International trade data communication, however, seems to be a
+missing link.  Yet the need is great.  Not only do paper documentation
+and procedures represent as much as 10 per cent of goods value; they
+are slow, insecure, complicated and growing.  The possibilities of
+cost reduction are in the order of 50 per cent to the benefit of not
+only the main parties, but everyone involved, not least the
+authorities.
+
+This is why a major activity of the Working Party on
+Facilitation of International Trade Procedures of the United Nations
+Economic Commission for Europe (ECE), over the last decade and a half
+has been the creation of the tools that would make electronic
+interchange of data in international trade a secure, effective and
+cheap alternative.
+
+EDI is the direct transfer of structured business data between
+computers by electronic means, i.e. the paperless transfer of business
+"documentation". (An illustration of this development is given in
+figure 2.)
+
+The past years have seen an explosion of interest in EDI between
+national and international trade participants.  The technology is
+available and the momentum is growing.  It is estimated that within
+five years EDI will be commonplace between majors in international
+trade transactions.
+
+But EDI cannot operate to any great extent without a common
+international standard, and progress has been made in drawing together
+different standards.  Three building blocks are required: common data
+elements equivalent to the vocabulary; a syntax, which equates to the
+grammar in a normal language; and standard messages which combine data
+elements and syntax into a structured business message similar in
+concept to the paper document.  These instruments are being created in
+the work coordinated by the ECE.
+
+Alongside these technical developments thought and attention has
+also been given to what may be described as the "legal" aspects
+of EDI.
+
+
+III. The legal background
+
+Because of its physical characteristics, the traditional paper
+document is accepted as evidence.  It is durable, and changes or
+additions will normally be clearly visible.  The electronic document
+is quite different.  It takes the form of a magnetic medium whose
+data content can be changed at any time.  Changes or additions will
+not appear as such.
+
+The paper and the data communication links are only media for
+carrying information, however, and it is possible to establish
+techniques which give electronic data interchange characteristics
+that make it equal or superior to paper not only as carrier of
+information, but also as regards the evidential functions.
+
+Firstly EDI in itself presupposes procedures that make this
+form of communication more secure.  In addition to identification
+this technique can also provide for error detection and correction.
+Authentication in the sense that the data content is correct can also
+be established, and privacy can be secured by several means built
+into the system.  Finally, authentication, in the sense that the
+correct authorized person has issued the message, can also be
+secured.
+
+That is why the ECE, the United Nations Commission on
+International Trade Law (UNCITRAL) and the Customs Co-operation
+Council (CCC) have recommended to governments and organizations
+responsible for determining documentary requirements, that they
+undertake an update and overhaul of these requirements to allow for
+EDI.  This will, however, take time.  It is also dependent upon a
+general acceptance of a high level of security in data interchange.
+
+That is why it has been felt desirable to develop a set of
+internationally accepted rules - UNCID.  The first draft was based on
+the idea of creating a standard for communication agreements.  It was
+found, however, that due to the differing requirements of various
+user groups this was impracticable.  There was on the other hand
+general agreement on proposals for uniform rules as a code of
+conduct.
+
+
+IV.  UNCID
+
+The International Chamber of Commerce (ICC) agreed to
+establish a Joint Special Committee with participation from other
+interested organizations and user groups to evaluate and formulate
+such a set of rules.  UNCITRAL, ECE, CCC, the UNCTAD Special
+Programme on Trade Facilitation (FALPRO), the Organization for
+Economic Co-operation and Development (OECD), the International
+Organization for Standardization (ISO), the Commission of the
+European Communities, the European Insurance Committee and the
+Organization for Data Exchange by Teletransmission in Europe (ODETTE)
+were all represented in this committee in addition to various
+commissions of the ICC.
+
+In developing the rules the Committee based its work on
+certain vital concepts, inter alia, that the rules should:
+
+a) aim at facilitating the use of EDI through the establishment of an
+   agreed code of conduct between parties engaged in such electronic
+   interchange;
+
+b) apply only to the interchange of data and not to the substance of
+   trade data messages transmitted;
+
+c) incorporate the use of ISO and other internationally accepted
+   standards--to avoid confusion;
+
+d) deal with questions of security, verification and confirmation,
+   authentication of the communicating parties, logging and storage
+   of data;
+
+e) establish a focal point for interpretation that might enhance a
+   harmonized international understanding and therefore use of the
+   code.
+
+Acknowledgement and confirmation illustrate some of the problems
+found in developing useful rules.  In some systems acknowledgement
+is a mandatory requirement.  In others it is taken as good conduct.
+In others again the sender has to ask for it.  UNCID opts for this
+last solution.  In certain cases the sender will also want to know
+that the content of the transfer has been received in apparent good
+order and has been understood.  The sender may then ask for confir-
+mation.  This of course touches on the material content--but only
+marginally.  It should not be confused with the concept of legal
+acceptance--that is another (third) layer which is wholly outside
+the UNCID rules.
+
+It was also foreseen that the rules could form part of or be
+referred to, in any Trade Data Interchange Application Protocol
+(TDI-AP) or other specific communication agreement.
+
+
+V.   Need for specific communication agreements
+
+User groups may be organized in several ways.  But they all
+need some form of communication agreement, although requirements
+differ according to the groups in question and to what has been
+included in their "users manual" or "application level protocol"
+which is an agreement, but of a more technical nature.
+
+Apparently there is a strong need for communication agreements
+where EDI is used between defined organizations.  It is suggested
+that this need may be even more important in direct open
+communication.
+
+Several user groups have stressed that the UNCID rules make a
+useful basis for their communication agreements.  UNCID, agreed rules
+of conduct, give more than a mere starting point.  Defining an
+accepted level of professional behaviour they also secure a common
+approach.
+
+The details and form of communication agreements differ according
+to the size and type of the user groups.  The agreement may be
+included in a protocol or form a separate document.  It may contain
+additional rules, e.g., bearing on the substantive elements of the
+data exchanged, on the underlying agreement and on the professional
+approach. It is therefore not practical to formulate a standard model.
+
+It may be useful, however, to outline certain elements that should
+be considered in addition to UNCID, when formulating an agreement.
+
+1) There is always a risk that something may go wrong - who should
+   carry that risk?  Should each party carry its own or would it seem
+   possible to link risk to insurance or to the network operator?
+
+2) If damage is caused by a party failing to observe the rules, what
+   should be the consequences?  This is partly a question of limita-
+   tion of liability.  It also has a bearing on the situation of third
+   parties.
+
+3) Should the rules on risk and liability be covered by rules on
+   insurance?
+
+4) Should there be rules on timing, e.g. the time within which the
+   receivers should process the data, etc?
+
+5) Should there be rules on secrecy or other rules regarding the
+   substance of the data exchanged?
+
+6) Should there be rules of a professional nature - such as the
+   banking rules contained in SWIFT?
+
+7) Should there be rules on encryption or other security measures?
+
+8) Should there be rules on "signature"?
+
+It would also seem important to have rules on applicable law and
+dispute resolution.
+
+
++-----------------------------------------------------------------+
+|                                                                 |
+|   EXPORT                                                IMPORT  |
+|                             A                                   |
+|  +-------+                                             +-------+|
+|  | Seller|---------------------------------------------| Buyer ||
+|  +-------+                                             +-------+|
+|      |  E   +-----------+              +------------+  F   |    |
+|      |------|Public     |              |Public      |------|    |
+|      |      |Authorities|              |Authorities |      |    |
+|      |      +-----------+              +------------+      |    |
+|      |  D   +-----------+              +------------+  D   |    |
+|      |------|Insurer    |              |Insurer     |------|    |
+|      |      +-----------+              +------------+      |    |
+|      |  B   +-----------+              +------------+  B   |    |
+|      |------|Bank       |..............|Bank        |------|    |
+|  C.E.|      +-----------+              +-------------      |C.F.|
+|      |                                                     |    |
+|  +---------+                 C.F.                   +----------+|
+|  |Forwarder|----------------------------------------|Forwarder ||
+|  +---------+                                        +----------+|
+|      |  C   +-----------+              +------------+  C   |    |
+|      |------|Inland     |              |Inland      |------|    |
+|      |      |Transport  |              |Transport   |      |    |
+|      |      +-----------+              +------------+      |    |
+|      |  C   +-----------+              +------------+  C   |    |
+|      |------|Main Trp.  |--------------|Main Trp.   |------|    |
+|      |      +-----------+              +------------+      |    |
+|      |  C   +-----------+              +------------+  C   |    |
+|      |------|Terminal   |              |Terminal    |------|    |
+|      |      +-----------+              +------------+      |    |
+|      |  E   +-----------+              +------------+  F   |    |
+|      +------|Customs    |              |Customs     |------+    |
+|             +-----------+              +------------+           |
+|                                                                 |
+|  Main functions:                          Data flows:           |
+|  A Establishment of commercial agreement  Commercial            |
+|  B Arrangement of payment                 Financial             |
+|  C Arrangement of transport               Transport Intermediary|
+|  D Arrangement of insurance               Insurance             |
+|  E Clearance of export                    Official              |
+|  F Clearance of import                    Official              |
+|                                                                 |
+|  Figure 1.                                                      |
++-----------------------------------------------------------------+
+
+
+
+
++-----------------------------------------------------------------+
+|                                                                 |
+| SYSTEM A                                             SYSTEM B   |
+|                                                                 |
+|                                                                 |
+| +---------+ +----------+                                        |
+| |ADM. PROC| |ORDER PROC|                                        |
+| +---------+ +----------+                                        |
+| +----|-----------|                                              |
+| |                            point to                           |
+| |  +---------------------+..... point +---------------------+   |
+| |  |memory         |i |e |    ........|e |i |memory         |   |
+| |  |---------------|n |x |   +---+    |x |n |---------------|   |
+| +--|processing     |t |t |---|   |----|t |t |processing     |-+ |
+|    |---------------|e |e |   +---+    |e |e |---------------| | |
+|    | prog. | prog. |r |r |   mail     |r |r |prog.  | prog. | | |
+|    +---------------------+   box      +---------------------+ | |
+|                |                                              | |
+|          +-----------+                                        | |
+|          | Trade     |                                        | |
+|          | Documents |                                        | |
+|          +-----------+                                        | |
+|                |             +--------+                       | |
+|                +-------------| POST   |-----------------------+ |
+|                              +--------+                         |
+|                                                                 |
+| Figure 2.                                                       |
+|                                                                 |
++-----------------------------------------------------------------+
+

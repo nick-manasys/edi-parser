@@ -1,0 +1,255 @@
+
+UN/EDIFACT DRAFT DIRECTORY
+
+PART 4  UNITED NATIONS RULES FOR ELECTRONIC DATA INTERCHANGE
+        FOR ADMINISTRATION, COMMERCE AND TRANSPORT
+
+
+CHAPTER 2.3 - UN/EDIFACT Syntax Implementation Guidelines (continued)
+
+
+7.  Identification & Control of UN/EDIFACT Messages
+
+
+Note:
+----
+The information in this section and, in particular that on 
+version/release, no longer conforms to the existing Syntax 
+implementation guidelines which need revision in light of the
+decision at the March 1994 session of WP.4 to implement
+Standard and Draft directories.
+
+Paragraphs where changes have been made are marked at the 
+beginning with an *
+
+
+7.1 Definition of a UNSM
+
+    A United Nations Standard Message (UNSM) is one which:-
+
+    i)   has been registered, published, and which is maintained
+         by the United Nations Economic Commission for Europe;
+
+    ii)  has the values contained in the Controlling Agency,
+         Message Type, Message Version Number and Message
+         Release Number fields (the requirements for the use
+         of which are specified in ISO 9735), allocated and
+         controlled by the UN/ECE;
+
+    iii) always has the code value "UN" in the Controlling
+         Agency field.
+
+
+7.2 Definition of a Sub-set of a UNSM
+
+    A Sub-set of a UNSM is a message which is directly derived
+    from an approved UNSM, has the same function as the UNSM from
+    which it is derived, and which:
+
+    i)   contains all of the groups and segments defined as
+         having a mandatory status within the message, and the
+         mandatory data elements within them.  There shall be no
+         change to the status, order or content of the groups,
+         segments, and composite data elements and data elements
+         contained within the segments.
+
+         (It should be noted, however, that although many UNSMs
+         contain Conditional Groups of segments which may contain
+         one or more mandatory segments, providing the complete
+         conditional group is omitted from the sub-set, this
+         does not break the rule regarding the inclusion of
+         mandatory segments);
+
+    ii)  does not change the status, order or content of the
+         segments, composite data elements and data elements
+         in the conditional segments chosen for use from the
+         UNSM;
+
+    iii) does not add any segments, composite data elements or
+         data elements to the message;
+
+    iv)  contains the identical values specified for use in the
+         Message Type, Controlling Agency, Message Version
+         Number and Message Release Number fields, as are
+         specified for the UNSM from which the sub-set is
+         derived.
+
+
+7.3 UN/EDIFACT Directory Set Issue Numbers
+
+    It is essential that messages should be capable of being
+    identified in relation to the current version of the
+    directory from which they are derived, (i.e. the code lists,
+    data elements, composite data elements and segments).
+
+*   Whenever a new Standard directory set is published it contains
+    the message specifications for all registered UNSMs (Status 2
+    messages) and their supporting segments, composites, data
+    elements and codes.
+
+*   Draft directory sets contain all Status 1 (Draft
+    Recommendation) messages and all Status 2 (UNSM) messages in
+    their latest form and the supporting segments, composites, data
+    elements and codes.
+
+*   A directory will be identified by an issue number, allocated
+    and controlled under UN/EDIFACT procedures.  The issue number
+    will be a single Character indicating if the directory contains
+    Draft or Standard material (S or D) followed by a period
+    separator, followed by the last two digits of the year in which
+    the directory is agreed, followed by a sequential alpha
+    character assigned by the UN/ECE.  This sequential alpha
+    character begins with A at the start of each year and is
+    incremented if more than one directory of the same type (S or
+    D) is published during the same year.
+
+
+7.4 Message Version & Release Numbers for UNSMs and for Subsets of
+    UNSMs
+
+*   When a document related to a UNSM under development reaches
+    a Status of 2 (i.e. the status of "Recommendation"), and the
+    UNSM is agreed and published in a new issue of UNTDID, i.e. in  
+    the Standard Directory, the values in the following fields of 
+    the UNH/UNG segments used for the message (or a subset of the 
+    message) will be:
+
+    i)   Controlling Agency (data element 0051) - always the two
+         characters "UN";
+
+  * ii)  Message Version Number (data element 0052) - Always "S"
+         when published in a Standard directory, always "D" when
+         published in a Draft directory.
+
+  * iii) Message Release Number (data element 0054) - The last
+         two digits in the year of agreement followed by a single, 
+         sequential alpha character assigned by the UN that starts
+         with A at the beginning of each year and is incremented if
+         more than one directory of the same type (S or D) is
+         published in the same year.
+
+*7.5 Message Version/Release Numbers for Status 1, Draft Standard
+     Messages and Sub-sets of Draft Standard Messages
+
+*    When a document related to a UNSM under development reaches
+     a Status of 1 (i.e. the status of "Draft Recommendation"), and 
+     is agreed and published in a new issue of the Draft directory, 
+     the values in the following fields of the UNH/UNG segments used 
+     for the message (or a subset of the message) will be:
+
+  *  i)   Controlling Agency (data element 0051) - always the two
+          characters "UN";
+
+  *  ii)  Message Version Number (data element 0052) - Always "D". 
+
+  *  iii) Message Release Number (data element 0054) - The last
+          two digits in the year of agreement followed by a single, 
+          sequential alpha character assigned by the UN that starts
+          with A at the beginning of each year and is incremented if
+          more than one directory of the same type (S or D) is
+          published in the same year.
+
+
+7.6 Message Version/Release Numbers for pre-draft Messages 
+
+    If users wish to test messages (or sub-sets of messages)
+    which have not yet reached the "Draft for formal trial" stage
+    (i.e. messages under development which have a document status
+    of "O" or "P"), a different procedure must be followed.
+
+    The full procedures for the identification of documents
+    containing messages under development are contained in the UN
+    paper WP.4/GE.1/R.785.  Such documents will have a Status of
+    "O", plus a "Revision" number controlled by the Rapporteur's
+    Team where the request for the new UNSM originated.
+
+    Users wishing to test such messages must always use a Message
+    Version number of zero, a Message Release number equivalent
+    to the Revision number of the document revision upon which
+    they are basing their test, and a "Controlling agency" code
+    of "RT".  (Users should not test such messages until they have
+    been passed by the relevant Technical Assessment Group of the
+    RT where the request for the message originated.  Further,
+    users are strongly recommended to delay testing of messages
+    under development until the point where the development is
+    fairly stable, and even then, they must be aware that the
+    message content may well change before it reaches the status
+    of "Draft for formal trial").
+
+    Example:  (Document Status "O" or "P")
+
+    S009 MESSAGE IDENTIFIER
+  * 0065   Message type               :     NEWMSG
+    0052   Message version number     :     O
+    0054   Message release number     :    "n"
+    0051   Controlling agency         :     RT
+    0057   Association assigned code  :    (not used)
+
+    Where "n" in the release number field is equal to the
+    Revision number of the development document used as the
+    basis of the message being tested.
+
+
+7.7 User Conventions for the Implementation of Sub-sets of UNSMs
+
+    United Nations Standard Messages are structured in such a way
+    that they can be used by companies and organisations in many
+    different industries.  For example, the invoice UNSM contains
+    data elements and segments which are in common use in the
+    majority of invoicing applications. Other data elements and
+    segments specified for use in the message have a more
+    restricted application, and will probably be required by only
+    a few industry applications.  Thus, in the vast majority of
+    cases, industries will choose and become responsible for
+    specific industry related sub-sets from the total message
+    structure.  (The definition of a true sub-set defined above).
+
+    However, still abiding by this principle, users may wish to
+    go beyond the standard sub-set definition, and for reasons of
+    integrity, agree between a group of participants that certain
+    data elements and/or segments which are conditional in a UNSM
+    should always be required in their application.  In choosing
+    to go beyond the true sub-set definition set out in paragraph
+    2 above, users must bear in mind that to comply with the
+    spirit of sub-sets, any sub-set must always be more
+    restrictive than its parent UNSM.
+
+    To provide a unique identification for any particular sub-set
+    of a UNSM, users may wish to assign a code for use in the
+    "Association assigned code" field of the UNH and/or UNG
+    segments.  Further, if it is considered that there may be a
+    problem in assigning a code which may be duplicated by
+    another group of users, it is suggested that the local
+    Rapporteur's Team be consulted regarding the allocation of a
+    code value.
+
+
+7.8 User Conventions for the Implementation of UNSMs under Amendment
+
+    As UNSMs are used by more industries, it is quite likely that
+    some messages will be found not to cover some of the specific
+    requirements of those industries.  To provide these
+    requirements so that the messages can be used, immediate
+    changes to (or additions of) segments and elements may be
+    necessary by use of the official UN/EDIFACT "Change Request"
+    procedures.
+
+    Since the standards maintenance time-scales may delay the
+    implementation of the required modifications to the UNSM for
+    some time, users may wish to implement the changes
+    immediately so that the message can be used in their
+    application.
+
+    In order to identify the amended message (which then is NOT a
+    UNSM) during the interim period, the user group concerned
+    should consider including an appropriate code in the
+    "Association assigned code" field of the UNH and/or UNG
+    segments.  Where it is thought that there may be problems of
+    duplicated Association assigned code values, the local
+    Rapporteur's Team should be consulted regarding the
+    allocation of a code value.
+
+    As an alternative, in order to identify the group of users
+    requesting the amendments to the UNSM, in the interim period
+    of use of the message, the "Controlling Agency" data element
+    should be used for this purpose.
