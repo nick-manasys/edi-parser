@@ -391,7 +391,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         if (numval.validateSet(transactionNumber, providerId, groupSender, groupReceiver)) {
           schema.transactions(setid) match {
             case t: Transaction =>
-              if (t.group == groupCode) {
+              if (t.group == Some(groupCode)) {
                 data = parseTransaction(t)
                 data put (transactionGroup, group)
                 data put (transactionSet, setprops)

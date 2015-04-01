@@ -61,6 +61,7 @@
             </goals>
           </execution>
           <execution>
+            <id>build-x12-schemas</id>
             <phase>prepare-package</phase>
             <configuration>
               <recompileMode>incremental</recompileMode>
@@ -72,6 +73,31 @@
                   <args>
                     <arg>${basedir}/src/main/build-resources/x12</arg>
                     <arg>${project.build.directory}/schemas/x12</arg>
+                  </args>
+                  <jvmArgs>
+                    <jvmArg>-Xms256m</jvmArg>
+                    <jvmArg>-Xmx256m</jvmArg>
+                  </jvmArgs>
+                </launcher>
+              </launchers>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>build-edifact-schemas</id>
+            <phase>prepare-package</phase>
+            <configuration>
+              <recompileMode>incremental</recompileMode>
+              <source>${jdk.version}</source>
+              <target>${jdk.version}</target>
+              <launchers>
+                <launcher>
+                  <mainClass>com.anypoint.df.edi.schema.convert.EdifactTablesConverter</mainClass>
+                  <args>
+                    <arg>${basedir}/src/main/build-resources/edifact</arg>
+                    <arg>${project.build.directory}/schemas/edifact</arg>
                   </args>
                   <jvmArgs>
                     <jvmArg>-Xms256m</jvmArg>
