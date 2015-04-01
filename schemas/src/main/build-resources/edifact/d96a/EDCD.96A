@@ -1,15 +1,5 @@
-2.   Composite specifications
-
-     Change indicators
-
-     a plus sign (+)    for an addition
-     an asterisk (*)    for an amendment to structure
-     a hash sign (#)    for changes to names
-     a vertical bar (|) for changes to text for descriptions,
-                        notes and functions
-     a minus sign (-)   for a deletion
-     a X sign (X)       for marked for deletion
-
+*     *     *                                                     *
+*  *  *      *                                             *  *
 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
 
       C002  DOCUMENT/MESSAGE NAME

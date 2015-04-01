@@ -29,7 +29,11 @@ object EdifactTablesConverter {
   val elementDefsName = "EDED"
   val compositeDefsName = "EDCD"
   val segmentDefsName = "EDSD"
+  val messageTemplateName = "message-template.txt"
   val messagesDirName = "messages"
+
+  /** Check if a break line (one starting with hyphens or special break characters). */
+  def isBreak(line: String) = line.startsWith("---") || line.startsWith("ÄÄÄ")
 
   /** Simple iterator-style access to lines of input. */
   case class LineIterator(is: InputStream, enc: String) {
@@ -50,6 +54,31 @@ object EdifactTablesConverter {
         lastLine
       }
 
+    def trimmed = next trim
+
+    /** Skip lines until break line is skipped, or end of input. */
+    def skipBreakLine = {
+      while (hasNext && !isBreak(next)) {}
+      hasNext
+    }
+
+    /** Skip the next line, which must be blank. */
+    def skipBlankLine = {
+      val skip = trimmed
+      if (skip.length > 0) throw new IllegalStateException(s"Expected empty line, found: '$skip'")
+    }
+
+    /** Skip next line if it's blank. */
+    def skipIfBlank = if (peek.trim.length == 0) next
+
+    /** Skip lines until a blank line or end of input is found, returning with the iterator positioned after the blank
+      * line or at end.
+      */
+    def skipPastBlankLine = while (hasNext && next.trim.length > 0) Unit
+
+    /** Skip lines until one is found with a non-blank in the first character position. */
+    def skipToLead = while (hasNext && (peek.length == 0 || peek.startsWith(" "))) next
+
     next
   }
 
@@ -64,47 +93,24 @@ object EdifactTablesConverter {
     (split._1.toString trim, split._2.toString trim)
   }
 
-  /** Check if a break line (one starting with hyphens or special break characters). */
-  def isBreak(line: String) = line.startsWith("---") || line.startsWith("ÄÄÄ")
-
-  /** Skip lines until break line is skipped, or end of input. */
-  def skipBreakLine(lines: LineIterator) = {
-    while (lines.hasNext && !isBreak(lines next)) {}
-    lines hasNext
-  }
-
-  /** Skip the next line, which must be blankk. */
-  def skipBlankLine(lines: LineIterator) = {
-    val skip = lines.next.trim
-    if (skip.length > 0) throw new IllegalStateException(s"Expected empty line, found: '$skip'")
-  }
-
-  /** Skip lines until a blank line or end of input is found, returning with the iterator positioned after the blank
-    * line or at end.
-    */
-  def skipPastBlankLine(lines: LineIterator) = while (lines.hasNext && lines.next.trim.length > 0) Unit
-
-  /** Read input file to build all element schemas.
-    */
+  /** Read input file to build all element schemas. */
   def readElements(lines: LineIterator) = {
     @tailrec
     def merger(acc: String): String = {
-      val line = lines.next.trim
+      val line = lines.trimmed
       if (line.length > 0) merger(acc + " " + line)
       else acc
     }
-    /** Get next trimmed line of text, ignoring first character position of line (change indicator). */
-    def nextBlob: String = merger(lines.next.substring(1).trim)
+    /** Get next trimmed line of text, ignoring first two character positions of line (change indicators). */
+    def nextBlob: String = merger(lines.next.substring(2).trim)
     @tailrec
     def buildr(acc: List[Element]): List[Element] =
-      if (skipBreakLine(lines)) {
-        skipBlankLine(lines)
+      if (lines.skipBreakLine) {
+        lines.skipBlankLine
         val nametext = splitLead(nextBlob)
         val desctext = splitLead(nextBlob)
         val reprtext = splitLead(nextBlob)
-        if (desctext._1 != "Desc:" || reprtext._1 != "Repr:") {
-          throw new IllegalStateException("Error parsing element definition")
-        }
+        if (desctext._1 != "Desc:" || reprtext._1 != "Repr:") throw new IllegalStateException("Error parsing element definition")
         if (!nametext._2.endsWith("[I]")) {
           val typsplit = reprtext._2 span (c => c.isLetter)
           val typ = EdiConstants.toEdifactType(typsplit._1.toString.toUpperCase)
@@ -113,9 +119,9 @@ object EdifactTablesConverter {
           val minsize = if (sizesplit._1.isEmpty) maxsize else 0
           val rawname = nametext._2
           val splitat = rawname.indexOf('[')
-          if (splitat <= 0 || !rawname.endsWith("]")) throw new IllegalStateException("Invalid element name format, expected type in [X] form")
-          val name = rawname.substring(0, splitat).trim
-          buildr(Element(nametext._1, name, typ, minsize, maxsize) :: acc)
+          if (splitat > 0 && !rawname.endsWith("]")) throw new IllegalStateException("Invalid element name format, expected type in [X] form")
+          val name = if (splitat > 0) rawname.substring(0, splitat) else rawname
+          buildr(Element(nametext._1, name.trim, typ, minsize, maxsize) :: acc)
         } else buildr(acc)
       } else acc
 
@@ -135,7 +141,6 @@ object EdifactTablesConverter {
     * the line but the expected end of the substring may be beyond the end.
     */
   def safeSubstring(text: String, from: Int, to: Int) = {
-    println(s"extracting $from to $to from '$text'")
     if (to <= text.length) text.substring(from, to) trim
     else if (from >= text.length) throw new IllegalArgumentException(s"tried substring starting at $from with length ${text.length}")
     else text.substring(from) trim
@@ -156,21 +161,30 @@ object EdifactTablesConverter {
     else throw new IllegalArgumentException("invalid template (less than two asterisks)")
   }
 
-  /** Parse a line based on template. If trailing positions in the template have no text the last field present is
-    * continued on the next line of input. To handle special cases (such as notes included in the definition) the
-    * <code>require</code> flag can be used to abort the processing of lines which do not have a value present in the
-    * first template field.
+  /** Parse a line based on template. If wrapping is enabled this checks if the following line is all spaces up to the
+    * start of the wrapping field, and if so continues the wrapping field on that next line - but since the EDIFACT
+    * tables are inconsistent on wrapping the following fields, this checks for data beyond the end of the wrapped
+    * field on the folloiwng line before discarding the rest of the current line. To handle special cases (such as notes
+    * included in the definition) the <code>require</code> flag can be used to abort the processing of lines which do
+    * not have a value present in the first template field.
     *
     * @param starts field start positions (at least two values, last value is past end of last field)
     * @param require value required for first field
+    * @param wrap field start position to check for wrapping (-1 if none)
     * @param lines input iterator
+    * @returns trimmed fields
     */
-  def parseTemplate(starts: List[Int], require: Boolean, lines: LineIterator): Array[String] = {
+  def parseTemplate(starts: List[Int], require: Boolean, wrap: Int, lines: LineIterator): Array[String] = {
+
     /** Parse a line, continuing partial fields to next line. */
     @tailrec
     def parser(line: String, partial: Option[String], start: Int, rem: List[Int], acc: List[String]): List[String] =
       rem match {
         case h :: t => {
+          def continuedLine = lines.hasNext && lines.peek.length > start && {
+            val lead = lines.peek.takeWhile { _ == ' ' }.length
+            lead >= start && lead < h
+          }
           val field = partial match {
             case Some(s) => s + ' ' + safeSubstring(line, start, h)
             case _ => safeSubstring(line, start, h)
@@ -178,16 +192,17 @@ object EdifactTablesConverter {
           if (t.isEmpty) {
             if (field.length > 0) field :: acc
             else acc
-          } else if (line.length >= h) parser(line, None, h, t, field :: acc)
-          else if (lines hasNext) parser(lines.next, Some(field), start, rem, acc)
-          else acc
+          } else if (start == wrap && continuedLine) {
+            // check for more fields on following line before discarding this one
+            if (lines.peek.length > h) parser(lines.next, Some(field), start, rem, acc)
+            else parser(line, None, h, t, field + ' ' + lines.peek.trim :: acc)
+          } else parser(line, None, h, t, field :: acc)
         }
         case _ => acc
       }
 
     if (lines.hasNext) {
       val line = lines.next
-      println(s"parsing line '$line'")
       if (line.length == 0) Array()
       else {
         val (h :: t) = starts
@@ -213,12 +228,15 @@ object EdifactTablesConverter {
     * @param elements id to element map
     */
   def readComposites(lines: LineIterator, headtmpl: List[Int], bodytmpl: List[Int], elements: Map[String, Element]) = {
+    val wraphead = headtmpl(2)
+    val wrapbody = bodytmpl(3)
+
     @tailrec
     def buildr(acc: List[Composite]): List[Composite] = {
       def collectItems(cid: String) = {
         @tailrec
         def itemr(acc: List[SegmentComponent]): List[SegmentComponent] = {
-          val fields = parseTemplate(bodytmpl, true, lines)
+          val fields = parseTemplate(bodytmpl, true, wrapbody, lines)
           if (fields.length == 0) acc reverse
           else if (fields.length == 5) {
             val position = fields(0).toInt
@@ -234,12 +252,14 @@ object EdifactTablesConverter {
         itemr(Nil)
       }
 
-      if (skipBreakLine(lines)) {
-        skipBlankLine(lines)
-        val heads = parseTemplate(headtmpl, false, lines)
-        skipBlankLine(lines)
-        skipPastBlankLine(lines)
+      if (lines.skipBreakLine) {
+        lines.skipBlankLine
+        val heads = parseTemplate(headtmpl, false, wraphead, lines)
+        lines.skipBlankLine
+        lines.skipPastBlankLine
+        lines.skipToLead
         val items = collectItems(heads(1))
+        if (items.isEmpty) throw new IllegalArgumentException(s"No values defined for composite ${heads(1)}")
         buildr(Composite(heads(1), heads(2), items, Nil) :: acc)
       } else acc reverse
     }
@@ -262,29 +282,32 @@ object EdifactTablesConverter {
     */
   def readSegments(lines: LineIterator, headtmpl: List[Int], bodytmpl: List[Int],
     elements: Map[String, Element], composites: Map[String, Composite]) = {
+    val wraphead = headtmpl(2)
+    val wrapbody = bodytmpl(3)
+
     @tailrec
     def buildr(acc: List[Segment]): List[Segment] = {
 
-      if (skipBreakLine(lines)) {
-        skipBlankLine(lines)
-        val heads = parseTemplate(headtmpl, false, lines)
-        skipBlankLine(lines)
-        skipPastBlankLine(lines)
+      if (lines.skipBreakLine) {
+        lines.skipBlankLine
+        val heads = parseTemplate(headtmpl, false, wraphead, lines)
+        lines.skipBlankLine
+        lines.skipPastBlankLine
 
         @tailrec
         def itemr(acc: List[SegmentComponent]): List[SegmentComponent] = {
           def checkNext = {
-            skipPastBlankLine(lines)
+            lines.skipPastBlankLine
             lines.hasNext && !isBreak(lines.peek)
           }
-          val fields = parseTemplate(bodytmpl, true, lines)
+          val fields = parseTemplate(bodytmpl, true, wrapbody, lines)
           if (fields.length == 0) acc reverse
           else if (fields.length == 5 || fields.length == 6) {
             val position = fields(0).toInt
             val id = fields(2)
             val usage = convertUsage(fields(4))
             val key = EdiFact.keyName(heads(1), position)
-            val count = if (fields.length == 6) fields(5).toInt else 1
+            val count = if (fields.length == 6 && fields(5).length > 0) fields(5).toInt else 1
             val comp =
               if (elements.contains(id)) ElementComponent(elements(id), Some(fields(3)), key, position, usage, count)
               else if (composites.contains(id)) CompositeComponent(composites(id), Some(fields(3)), key, position, usage, count)
@@ -295,12 +318,130 @@ object EdifactTablesConverter {
           } else throw new IllegalArgumentException(s"wrong number of fields in input (${fields.toList}, expected 6)")
         }
 
+        lines.skipToLead
         val items = itemr(Nil)
+        if (items.isEmpty) throw new IllegalArgumentException(s"No values defined for segnebt ${heads(1)}")
         buildr(Segment(heads(1), heads(2), items, Nil) :: acc)
       } else acc reverse
     }
 
     buildr(Nil)
+  }
+
+  /** Build message from file input. This looks for the message name as the third non-blank line of the input, then
+    * skips everything to the expected "4.3.1 Segment table" heading. It parses the rest of the input as the transaction
+    * set description.
+    */
+  def readMessage(ident: String, lines: LineIterator, tmpl: List[Int], segments: Map[String, Segment]) = {
+
+    /** Skip message description to start of segment table. */
+    def skipToTable = {
+      while (lines.hasNext && !lines.nextLine.startsWith("4.3.1")) lines.next
+      if (!lines.hasNext) throw new IllegalArgumentException("Missing transaction segment table")
+      if (!lines.trimmed.endsWith("Segment table")) throw new IllegalArgumentException("Missing transaction segment table")
+      lines.skipBlankLine
+      if (!lines.next.startsWith("Pos")) throw new IllegalArgumentException("Missing expected column headers in transaction segment table")
+      lines.skipBlankLine
+    }
+
+    /** Check if next line is a section marker. */
+    def atSection = lines.hasNext && lines.peek.endsWith("SECTION")
+
+    /** Check if next line is an annex. */
+    def atAnnex = lines.hasNext && lines.peek.startsWith("Annex")
+
+    // boundary for separator lines (all blank to at least this point)
+    val limit = tmpl(5)
+
+    // potentially wrapped field start
+    val wrapstart = tmpl(3)
+
+    /** Convert input to a component definition, checking and handling loops. This is called recursively to handle nested
+      * loops.
+      * @param table index
+      * @param depth current nesting depth
+      * @return components
+      */
+    def convert(table: Int, depth: Int): List[TransactionComponent] = {
+
+      /** Recursively convert input to a component definition, checking and handling loops. This needs to process all
+        * input up to the end of the current loop (as indicated by a line which is blank, except for up to the depth
+        * character count) or the end of the current area (as indicated by a new section header, or end of input).
+        */
+      @tailrec
+      def liner(acc: List[TransactionComponent]): List[TransactionComponent] = {
+        def spaceCount = lines.peek.takeWhile { _ == ' ' }.length
+        if (!lines.hasNext || atSection || atAnnex) acc.reverse
+        else if (lines.peek.length == 0 || spaceCount > limit) {
+          // loop separator line, check if it shows end of current loop
+          val nesting = lines.peek.trim.length
+          if (depth > nesting) acc.reverse
+          else {
+            lines.next
+            liner(acc)
+          }
+        } else {
+          val fields = parseTemplate(tmpl, false, wrapstart, lines)
+          val usage = convertUsage(fields(4))
+          val repeat = fields(5).takeWhile { _.isDigit }.toInt
+          if (fields(2) == "") {
+            // start of a new loop definition
+            if (fields(3) == "") throw new IllegalArgumentException("Missing expected group name")
+            val discard = fields(3).charAt(0)
+            val name = fields(3).filter { _ != discard }.trim
+            val comps = convert(table, depth + 1)
+            val group = GroupComponent(name, usage, repeat, comps, None, Nil)
+            liner(group :: acc)
+          } else segments.get(fields(2)) match {
+            case Some(s) => {
+              val segref = ReferenceComponent(s, SegmentPosition(table, fields(0)), usage, repeat)
+              liner(segref :: acc)
+            }
+            case _ =>
+              if (Set("UNH", "UNT", "UNS", "UGH", "UGT") contains fields(2)) liner(acc)
+              else throw new IllegalArgumentException(s"Unknown segment reference ${fields(2)}")
+          }
+        }
+      }
+      liner(Nil)
+    }
+
+    lines.skipIfBlank
+    lines.skipPastBlankLine
+    lines.skipPastBlankLine
+    val name = lines.trimmed
+    skipToTable
+    if (atSection) {
+      if (!lines.trimmed.startsWith("HEADER")) throw new IllegalStateException("Missing expected HEADER SECTION")
+      val header = convert(0, 0)
+      val detail = if (atSection) {
+        if (lines.trimmed.startsWith("DETAIL")) convert(0, 0)
+        else throw new IllegalStateException("Missing expected DETAIL SECTION")
+      } else Nil
+      val summary = if (atSection && lines.trimmed.startsWith("SUMMARY")) convert(0, 0) else Nil
+      if (lines.hasNext && !atAnnex) throw new IllegalStateException("Not at end of description")
+      Transaction(ident, name, None, header, detail, summary)
+    } else {
+      val comps = convert(0, 0)
+      if (lines.hasNext && !atAnnex) throw new IllegalStateException("Not at end of description")
+      Transaction(ident, name, None, comps, Nil, Nil)
+    }
+  }
+
+  /** Write schema to file. */
+  def writeSchema(schema: EdiSchema, name: String, imports: Array[String], outdir: File) = {
+    println(s"writing schema $name")
+    val file = new File(outdir, name + yamlExtension)
+    val writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
+    YamlWriter.write(schema, imports, writer)
+    writer.close
+  }
+
+  /** Verify schema written to file. */
+  def verifySchema(baseSchema: EdiSchema, name: String, outdir: File, yamlrdr: YamlReader) = {
+    val reader = new InputStreamReader(new FileInputStream(new File(outdir, name + yamlExtension)), "UTF-8")
+    val readSchema = yamlrdr.loadYaml(reader, Array(outdir.getParentFile.getParentFile.getParentFile.getAbsolutePath))
+    //    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }
 
   /** Builds schemas from EDIFACT table data and outputs the schemas in YAML form. The arguments are 1) path to the
@@ -311,28 +452,69 @@ object EdifactTablesConverter {
     */
   def main(args: Array[String]): Unit = {
     val edifactdir = new File(args(0))
-
-    /** Process file from input directory using line iterator with safe close. */
-    def processFile[T](name: String)(op: LineIterator => T) = {
-      val file = new File(edifactdir, name)
-      val stream = new FileInputStream(file)
-      try { op(LineIterator(stream, "ISO-8859-1")) } finally { stream close }
+    val yamldir = new File(args(1))
+    if (yamldir.exists) yamldir.listFiles.foreach { version =>
+      if (version.exists && version.isDirectory) {
+        version.listFiles.foreach { f => f.delete }
+        version.delete
+      }
     }
-    
-    /** Build map from extracted key to object for all items in list. */
-    def buildMap[T](list: List[T], key: T => String) =
-      list.foldLeft(Map[String, T]()){ (acc, t) => acc + (key(t) -> t) }
-    
-    val yamldir = new File(args(2))
-    if (yamldir.exists) yamldir.listFiles.foreach { f => f.delete }
     else yamldir.mkdirs
-    val elements = processFile(elementDefsName + "." + args(1))(readElements(_))
-    val elemmap = buildMap[Element](elements, (e: Element) => e.ident)
-    val composites = processFile(compositeDefsName + "." + args(1))(iter =>
-      readComposites(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemmap))
-    val compmap = buildMap[Composite](composites, (c: Composite) => c.ident)
-    val segments = processFile(segmentDefsName + "." + args(1))(iter =>
-      readSegments(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemmap, compmap))
-    println(s"read ${segments.size} segments")
+    val yamlrdr = new YamlReader()
+    edifactdir.listFiles.foreach (version => {
+
+      /** Process file from input directory using line iterator with safe close. */
+      def processFile[T](name: String, op: LineIterator => T) = {
+        val file = new File(version, name)
+        if (!file.exists) throw new IllegalArgumentException(s"Missing required file $name")
+        try {
+          val stream = new FileInputStream(file)
+          try { op(LineIterator(stream, "ISO-8859-1")) } finally { stream close }
+        } catch {
+          case t: Throwable => throw new IllegalArgumentException(s"Error processing $name: ${t.getMessage}", t)
+        }
+      }
+
+      /** Build map from extracted key to object for all items in list. */
+      def buildMap[T](list: List[T], key: T => String) =
+        list.foldLeft(Map[String, T]()){ (acc, t) => acc + (key(t) -> t) }
+
+      println(s"Processing ${version.getName}")
+      val extension = "." + version.getName.toUpperCase.substring(1)
+      val elements = processFile(elementDefsName + extension, readElements(_))
+      val elemDefs = buildMap[Element](elements, (e: Element) => e.ident)
+      val composites = processFile(compositeDefsName + extension, iter =>
+        readComposites(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemDefs))
+      val compDefs = buildMap[Composite](composites, (c: Composite) => c.ident)
+      val segments = processFile(segmentDefsName + extension, iter =>
+        readSegments(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemDefs, compDefs))
+      val segDefs = buildMap[Segment](segments, (s: Segment) => s.ident)
+      val vnum = version.getName
+      val baseSchema = EdiSchema(EdiFact, vnum, elemDefs, compDefs, segDefs, Map[String, Transaction]())
+      val outdir = new File(yamldir, version.getName)
+      outdir.mkdirs
+      writeSchema(baseSchema, "basedefs", Array(), outdir)
+      verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
+
+      val msgtmpl = processFile(messageTemplateName, iter => buildTemplate(iter.next))
+      val messagesdir = new File(version, messagesDirName)
+      if (!messagesdir.exists) throw new IllegalArgumentException(s"Missing required $messagesDirName directory")
+      val transacts = messagesdir.listFiles.map { f =>
+        try {
+          val stream = new FileInputStream(f)
+          try {
+            val name = f.getName.takeWhile { _ != '_' }
+            val transact = readMessage(name, LineIterator(stream, "ISO-8859-1"), msgtmpl, segDefs)
+            val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
+              Map(transact.ident -> transact))
+            writeSchema(schema, transact.ident, Array(s"/edifact/${version.getName}/basedefs$yamlExtension"), outdir)
+          } finally { stream close }
+          println(s"Processed ${f.getName}")
+        } catch {
+          case t: Throwable => throw new IllegalArgumentException(s"Error processing message ${f.getName}: ${t.getMessage}", t)
+        }
+      }
+      println(s"Read ${transacts.size} message definitions")
+    })
   }
 }

@@ -169,7 +169,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
         }
         val groups = interlist.groupBy(transet => {
           val transdef = schema.transactions(transet.ident)
-          (transet selfId, transet partnerId, transet agencyCode, transet versionId, transdef group)
+          (transet selfId, transet partnerId, transet agencyCode, transet versionId, transdef.group.getOrElse(""))
         })
         groups foreach {
           case ((selfGroup, partnerGroup, agency, version, groupCode), grouplist) => {

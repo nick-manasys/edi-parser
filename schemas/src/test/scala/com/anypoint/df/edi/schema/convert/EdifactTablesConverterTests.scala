@@ -64,30 +64,30 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
 
   "skipBreakLine" should "skip lines until break line is skipped, or end of input" in {
     val lines1 = stringLines(input1)
-    skipBreakLine(lines1) should be(true)
+    lines1.skipBreakLine should be(true)
     lines1.next should be("")
     lines1.next should startWith("     1000")
-    skipBreakLine(lines1) should be(true)
+    lines1.skipBreakLine should be(true)
     lines1.next should be("")
     lines1.next should startWith("     1001")
-    skipBreakLine(lines1) should be(false)
+    lines1.skipBreakLine should be(false)
     val lines2 = stringLines(input2)
-    skipBreakLine(lines2) should be(true)
+    lines2.skipBreakLine should be(true)
     lines2.next should be("")
     lines2.next should startWith("   1000")
-    skipBreakLine(lines2) should be(true)
+    lines2.skipBreakLine should be(true)
     lines2.next should be("")
     lines2.next should startWith("   1001")
-    skipBreakLine(lines2) should be(false)
+    lines2.skipBreakLine should be(false)
   }
 
   "skipBlankLine" should "skip a single blank line" in {
     val lines = stringLines("\nabc\n   \n def\nghi")
-    skipBlankLine(lines)
+    lines.skipBlankLine
     lines.next should be("abc")
-    skipBlankLine(lines)
+    lines.skipBlankLine
     lines.next should be(" def")
-    intercept[IllegalStateException] { skipBlankLine(lines) }
+    intercept[IllegalStateException] { lines.skipBlankLine }
   }
 
   "readElements" should "read element definitions" in {
@@ -174,52 +174,52 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
 
   it should "return empty field list at empty line or end of input" in {
     val templ = buildTemplate("*  *")
-    parseTemplate(templ, false, stringLines("\n\n")) should be(Array())
-    parseTemplate(templ, false, stringLines("")) should be(Array())
+    parseTemplate(templ, false, -1, stringLines("\n\n")) should be(Array())
+    parseTemplate(templ, false, -1, stringLines("")) should be(Array())
   }
 
   it should "extract simple input fields based on template" in {
     val ctempl1a = buildTemplate(ctemplate1a)
     val ctempl1b = buildTemplate(ctemplate1b)
     val clines1 = stringLines(composite1a)
-    parseTemplate(ctempl1a, false, clines1) should be(Array("", "C817", "ADDRESS USAGE"))
-    skipBlankLine(clines1)
-    skipPastBlankLine(clines1)
-    parseTemplate(ctempl1b, true, clines1) should be(Array("010", "", "3299", "Address purpose code", "C"))
-    parseTemplate(ctempl1b, true, clines1) should be(Array("020", "", "3131", "Address type code", "C"))
-    parseTemplate(ctempl1b, true, clines1) should be(Array("030", "", "3475", "Address status code", "C"))
+    parseTemplate(ctempl1a, false, -1, clines1) should be(Array("", "C817", "ADDRESS USAGE"))
+    clines1.skipBlankLine
+    clines1.skipPastBlankLine
+    parseTemplate(ctempl1b, true, -1, clines1) should be(Array("010", "", "3299", "Address purpose code", "C"))
+    parseTemplate(ctempl1b, true, -1, clines1) should be(Array("020", "", "3131", "Address type code", "C"))
+    parseTemplate(ctempl1b, true, -1, clines1) should be(Array("030", "", "3475", "Address status code", "C"))
     val ctempl2a = buildTemplate(ctemplate2a)
     val ctempl2b = buildTemplate(ctemplate2b)
     val clines2 = stringLines(composite2)
-    parseTemplate(ctempl2a, false, clines2) should be(Array("", "C042", "NATIONALITY DETAILS"))
-    skipBlankLine(clines2)
-    skipPastBlankLine(clines2)
-    parseTemplate(ctempl2b, false, clines2) should be(Array("010", "", "3293", "Nationality, coded", "C"))
-    parseTemplate(ctempl2b, false, clines2) should be(Array("020", "", "1131", "Code list qualifier", "C"))
-    parseTemplate(ctempl2b, false, clines2) should be(Array("030", "", "3055", "Code list responsible agency, coded", "C"))
-    parseTemplate(ctempl2b, false, clines2) should be(Array("040", "", "3292", "Nationality", "C"))
+    parseTemplate(ctempl2a, false, -1, clines2) should be(Array("", "C042", "NATIONALITY DETAILS"))
+    clines2.skipBlankLine
+    clines2.skipPastBlankLine
+    parseTemplate(ctempl2b, false, -1, clines2) should be(Array("010", "", "3293", "Nationality, coded", "C"))
+    parseTemplate(ctempl2b, false, -1, clines2) should be(Array("020", "", "1131", "Code list qualifier", "C"))
+    parseTemplate(ctempl2b, false, -1, clines2) should be(Array("030", "", "3055", "Code list responsible agency, coded", "C"))
+    parseTemplate(ctempl2b, false, -1, clines2) should be(Array("040", "", "3292", "Nationality", "C"))
     val stempl1a = buildTemplate(stemplate1a)
     val stempl1b = buildTemplate(stemplate1b)
     val slines1 = stringLines(segment1a)
-    parseTemplate(stempl1a, false, slines1) should be(Array("", "ALC", "ALLOWANCE OR CHARGE"))
-    skipBlankLine(slines1)
-    skipPastBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("010", "", "5463", "ALLOWANCE OR CHARGE CODE QUALIFIER", "M", "1"))
-    skipBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("020", "", "C552", "ALLOWANCE/CHARGE INFORMATION", "C", "1"))
+    parseTemplate(stempl1a, false, -1, slines1) should be(Array("", "ALC", "ALLOWANCE OR CHARGE"))
+    slines1.skipBlankLine
+    slines1.skipPastBlankLine
+    parseTemplate(stempl1b, true, -1, slines1) should be(Array("010", "", "5463", "ALLOWANCE OR CHARGE CODE QUALIFIER", "M", "1"))
+    slines1.skipBlankLine
+    parseTemplate(stempl1b, true, -1, slines1) should be(Array("020", "", "C552", "ALLOWANCE/CHARGE INFORMATION", "C", "1"))
     val stempl2a = buildTemplate(stemplate2a)
     val stempl2b = buildTemplate(stemplate2b)
     val slines2 = stringLines(segment2)
-    parseTemplate(stempl2a, false, slines2) should be(Array("", "ALC", "ALLOWANCE OR CHARGE"))
-    skipBlankLine(slines2)
-    skipPastBlankLine(slines2)
-    parseTemplate(stempl2b, true, slines2) should be(Array("010", "", "5463", "ALLOWANCE OR CHARGE QUALIFIER", "M"))
-    skipBlankLine(slines2)
-    parseTemplate(stempl2b, true, slines2) should be(Array("020", "", "C552", "ALLOWANCE/CHARGE INFORMATION", "C"))
-    parseTemplate(stempl2b, false, slines2) should be(Array("", "", "1230", "Allowance or charge number", "C"))
-    parseTemplate(stempl2b, false, slines2) should be(Array("", "", "5189", "Charge/allowance description, coded", "C"))
-    skipBlankLine(slines2)
-    parseTemplate(stempl2b, true, slines2) should be(Array("030", "", "4471", "SETTLEMENT, CODED", "C"))
+    parseTemplate(stempl2a, false, -1, slines2) should be(Array("", "ALC", "ALLOWANCE OR CHARGE"))
+    slines2.skipBlankLine
+    slines2.skipPastBlankLine
+    parseTemplate(stempl2b, true, -1, slines2) should be(Array("010", "", "5463", "ALLOWANCE OR CHARGE QUALIFIER", "M"))
+    slines2.skipBlankLine
+    parseTemplate(stempl2b, true, -1, slines2) should be(Array("020", "", "C552", "ALLOWANCE/CHARGE INFORMATION", "C"))
+    parseTemplate(stempl2b, false, -1, slines2) should be(Array("", "", "1230", "Allowance or charge number", "C"))
+    parseTemplate(stempl2b, false, -1, slines2) should be(Array("", "", "5189", "Charge/allowance description, coded", "C"))
+    slines2.skipBlankLine
+    parseTemplate(stempl2b, true, -1, slines2) should be(Array("030", "", "4471", "SETTLEMENT, CODED", "C"))
   }
 
   val composite1b = """       C852 RISK OBJECT SUB-TYPE
@@ -248,29 +248,29 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     val ctempl1a = buildTemplate(ctemplate1a)
     val ctempl1b = buildTemplate(ctemplate1b)
     val clines1 = stringLines(composite1b)
-    parseTemplate(ctempl1a, false, clines1) should be(Array("", "C852", "RISK OBJECT SUB-TYPE"))
-    skipBlankLine(clines1)
-    skipPastBlankLine(clines1)
-    parseTemplate(ctempl1b, true, clines1) should be(Array("010", "", "7177", "Risk object sub-type description identifier", "C"))
-    parseTemplate(ctempl1b, true, clines1) should be(Array("020", "", "1131", "Code list identification code", "C"))
-    parseTemplate(ctempl1b, true, clines1) should be(Array("030", "", "3055", "Code list responsible agency code", "C"))
-    parseTemplate(ctempl1b, true, clines1) should be(Array("040", "", "7176", "Risk object sub-type description", "C"))
+    parseTemplate(ctempl1a, false, ctempl1a(2), clines1) should be(Array("", "C852", "RISK OBJECT SUB-TYPE"))
+    clines1.skipBlankLine
+    clines1.skipPastBlankLine
+    parseTemplate(ctempl1b, true, ctempl1b(3), clines1) should be(Array("010", "", "7177", "Risk object sub-type description identifier", "C"))
+    parseTemplate(ctempl1b, true, ctempl1b(3), clines1) should be(Array("020", "", "1131", "Code list identification code", "C"))
+    parseTemplate(ctempl1b, true, ctempl1b(3), clines1) should be(Array("030", "", "3055", "Code list responsible agency code", "C"))
+    parseTemplate(ctempl1b, true, ctempl1b(3), clines1) should be(Array("040", "", "7176", "Risk object sub-type description", "C"))
     val stempl1a = buildTemplate(stemplate1a)
     val stempl1b = buildTemplate(stemplate1b)
     val slines1 = stringLines(segment1b)
-    parseTemplate(stempl1a, false, slines1) should be(Array("", "SCD", "STRUCTURE COMPONENT DEFINITION"))
-    skipBlankLine(slines1)
-    skipPastBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("010", "", "7497", "STRUCTURE COMPONENT FUNCTION CODE QUALIFIER", "M", "1"))
-    skipBlankLine(slines1)
-    parseTemplate(stempl1b, true, slines1) should be(Array("020", "", "C786", "STRUCTURE COMPONENT IDENTIFICATION", "C", "1"))
+    parseTemplate(stempl1a, false, stempl1a(2), slines1) should be(Array("", "SCD", "STRUCTURE COMPONENT DEFINITION"))
+    slines1.skipBlankLine
+    slines1.skipPastBlankLine
+    parseTemplate(stempl1b, true, stempl1b(3), slines1) should be(Array("010", "", "7497", "STRUCTURE COMPONENT FUNCTION CODE QUALIFIER", "M", "1"))
+    slines1.skipBlankLine
+    parseTemplate(stempl1b, true, stempl1b(3), slines1) should be(Array("020", "", "C786", "STRUCTURE COMPONENT IDENTIFICATION", "C", "1"))
   }
 
   it should "throw an exception when fields are missing at end" in {
     val template = buildTemplate("* * *")
-    intercept[IllegalArgumentException] { parseTemplate(template, true, stringLines("AA")) }
-    intercept[IllegalArgumentException] { parseTemplate(template, true, stringLines("AA\n")) }
-    intercept[IllegalArgumentException] { parseTemplate(template, true, stringLines("AA\nAA\n")) }
+    intercept[IllegalArgumentException] { parseTemplate(template, true, -1, stringLines("AA")) }
+    intercept[IllegalArgumentException] { parseTemplate(template, true, -1, stringLines("AA\n")) }
+    intercept[IllegalArgumentException] { parseTemplate(template, true, -1, stringLines("AA\nAA\n")) }
   }
 
   "readComposites" should "parse complete composite definitions" in {

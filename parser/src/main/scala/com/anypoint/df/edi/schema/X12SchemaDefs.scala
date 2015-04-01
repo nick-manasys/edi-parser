@@ -259,7 +259,7 @@ object X12Acknowledgment {
     ElementComponent(elem329, None, "ST02", 2, MandatoryUsage, 1),
     ElementComponent(elem1705, None, "ST03", 3, OptionalUsage, 1)), Nil)
 
-  val trans997 = Transaction("997", "Functional Acknowledgment", "FA", List[TransactionComponent](
+  val trans997 = Transaction("997", "Functional Acknowledgment", Some("FA"), List[TransactionComponent](
     ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
     ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
     GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](

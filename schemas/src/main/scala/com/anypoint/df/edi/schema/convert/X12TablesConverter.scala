@@ -231,7 +231,7 @@ object X12TablesConverter {
           }
         }
         val (name, group) = transHeads(key)
-        Transaction(key, name, group, tables.getOrElse(1, Nil), tables.getOrElse(2, Nil), tables.getOrElse(3, Nil))
+        Transaction(key, name, Some(group), tables.getOrElse(1, Nil), tables.getOrElse(2, Nil), tables.getOrElse(3, Nil))
       })
     }
   }

@@ -5353,3 +5353,19 @@
 
      Repr: an..3
 
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+     0081  Section identification                                  [B]
+
+     Desc: Code qualifying the section.
+
+     Repr: a1
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+     0087  Anti-collision segment group identification             [B]
+
+     Desc: Group identifier
+
+     Repr: an..4
+

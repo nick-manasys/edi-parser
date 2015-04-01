@@ -53,7 +53,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
     sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   /** Set of functional groups supported by schema. */
-  val functionalGroups = schema.transactions.values.map { t => t.group } toSet
+  val functionalGroups = schema.transactions.values.map { t => t.group.getOrElse("") } toSet
 
   /** Flag for currently in a transaction. */
   var inTransaction = false

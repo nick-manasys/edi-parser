@@ -292,7 +292,7 @@ object EdiSchema {
     * @param detail
     * @param summary
     */
-  case class Transaction(val ident: String, val name: String, val group: String,
+  case class Transaction(val ident: String, val name: String, val group: Option[String],
     val heading: List[TransactionComponent], val detail: List[TransactionComponent],
     val summary: List[TransactionComponent]) {
 

@@ -362,7 +362,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
         val name = getRequiredString(nameKey, transmap)
-        val group = if (transmap.containsKey(groupKey)) transmap.get(groupKey).asInstanceOf[String] else ""
+        val group = if (transmap.containsKey(groupKey)) Some(transmap.get(groupKey).asInstanceOf[String]) else None
         val heading = parseTransactionPart(headingKey, transmap, form, 0, segments)
         val detail = parseTransactionPart(detailKey, transmap, form, 1, segments)
         val summary = parseTransactionPart(summaryKey, transmap, form, 2, segments)

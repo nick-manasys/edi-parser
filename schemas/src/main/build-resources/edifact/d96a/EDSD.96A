@@ -1,3 +1,5 @@
+*    *       *                                             *
+*  * *      *                                              *  *
 2.   Segment specifications
 
      Change indicators
@@ -2683,3 +2685,29 @@
       7036   Characteristic                                C  an..35
 
 080   4513  MAINTENANCE OPERATION, CODED                   C  an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+      UGH  ANTI-COLLISION SEGMENT GROUP HEADER
+
+      Function: To head, identify and specify an anti-collision segment group.
+
+010   0087  ANTI-COLLISION SEGMENT GROUP
+            IDENTIFICATION                                 M  an..4
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+      UGT  ANTI-COLLISION SEGMENT GROUP TRAILER
+
+      Function: To head, identify and specify an anti-collision segment group.
+
+010   0087  ANTI-COLLISION SEGMENT GROUP
+            IDENTIFICATION                                 M  an..4
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+      UNS  SECTION CONTROL
+
+      Function: To head, identify and specify an anti-collision segment group.
+
+010   0081  SECTION IDENTIFICATION                         M  a1

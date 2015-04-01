@@ -132,7 +132,10 @@ object YamlWriter extends WritesYaml with YamlDefs {
       schema.transactions.values.toList.sortBy { transact => transact.ident } foreach (transact => {
         writeIndented("- " + keyValueQuote(idKey, transact.ident), 0, writer)
         writeIndented(keyValuePair(nameKey, transact.name), 1, writer)
-        writeIndented(keyValuePair(groupKey, transact.group), 1, writer)
+        transact.group match {
+          case Some(g) => writeIndented(keyValuePair(groupKey, g), 1, writer)
+          case None =>
+        }
         if (transact.heading.size > 0) writeTransactionComps(headingKey, transact.heading, 1)
         if (transact.detail.size > 0) writeTransactionComps(detailKey, transact.detail, 1)
         if (transact.summary.size > 0) writeTransactionComps(summaryKey, transact.summary, 1)
