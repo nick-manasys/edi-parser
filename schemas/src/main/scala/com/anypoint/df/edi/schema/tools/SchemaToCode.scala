@@ -47,26 +47,29 @@ class SchemaDump(writer: PrintWriter) {
   def genName(comp: Composite) = s"comp${comp.ident}"
 
   def genName(segment: Segment) = s"seg${segment.ident}"
+  
+  def optionText(option: Option[String]) = if (option.isDefined) s"""Some("${option.get}")""" else "None"
 
   /** Build element inline definition. */
   def inlineElement(elem: Element) =
     s"""Element("${elem.ident}", "${elem.name}", ${elem.dataType}, ${elem.minLength}, ${elem.maxLength})"""
 
-  def inlineSegmentComponent(comp: SegmentComponent, elemrefs: Set[Element]) = comp match {
-    case elem: ElementComponent => {
-      val element = elem.element
-      val ref = if (elemrefs.contains(element)) genName(element) else inlineElement(element)
-      val name = if (comp.name == element.name) None else Some(comp.name)
-      s"""ElementComponent($ref, $name, "${comp.key}", ${elem.position}, ${elem.usage}, ${elem.count})"""
+  def inlineSegmentComponent(comp: SegmentComponent, compnames: Map[Composite, String], elemrefs: Set[Element]) =
+    comp match {
+      case elem: ElementComponent => {
+        val element = elem.element
+        val ref = if (elemrefs.contains(element)) genName(element) else inlineElement(element)
+        val name = if (comp.name == element.name) "None" else s"""Some("${comp.name}")"""
+        s"""ElementComponent($ref, $name, "${comp.key}", ${elem.position}, ${elem.usage}, ${elem.count})"""
+      }
+      case comp: CompositeComponent =>
+        s"""CompositeComponent(${compnames(comp.composite)}, Some("${comp.name}"), "${comp.key}", ${comp.position}, ${comp.usage}, ${comp.count})"""
     }
-    case comp: CompositeComponent =>
-      s"""CompositeComponent(${genName(comp.composite)}, "${comp.name}", ${comp.position}, ${comp.usage}, ${comp.count})"""
-  }
 
   /** Build segment components code. */
-  def componentList(comps: List[SegmentComponent], elemrefs: Set[Element]): Unit = {
+  def componentList(comps: List[SegmentComponent], compnames: Map[Composite, String], elemrefs: Set[Element]): Unit = {
     comps.foreach(comp => {
-      builder.breakAppend(inlineSegmentComponent(comp, elemrefs))
+      builder.breakAppend(inlineSegmentComponent(comp, compnames, elemrefs))
       builder.prepend = ", "
     })
     builder.prepend = ""
@@ -78,19 +81,19 @@ class SchemaDump(writer: PrintWriter) {
   }
 
   /** Build composite definition code. */
-  def defineComposite(comp: Composite, elemrefs: Set[Element]) = {
-    builder.append(s"""val ${genName(comp)} = Composite("${comp.ident}", "${comp.name}", List[SegmentComponent](""")
+  def defineComposite(comp: Composite, name: String, compnames: Map[Composite, String], elemrefs: Set[Element]) = {
+    builder.append(s"""val $name = Composite("${comp.ident}", "${comp.name}", List[SegmentComponent](""")
     builder.indent
-    componentList(comp.components, elemrefs)
-    builder.append("))")
+    componentList(comp.components, compnames, elemrefs)
+    builder.append("), Nil)")
     builder.outdent
     builder.break
   }
 
-  def defineSegment(segment: Segment, elemrefs: Set[Element]) = {
+  def defineSegment(segment: Segment, compnames: Map[Composite, String], elemrefs: Set[Element]) = {
     builder.append(s"""val ${genName(segment)} = Segment("${segment.ident}", "${segment.name}", List[SegmentComponent](""")
     builder.indent
-    componentList(segment.components, elemrefs)
+    componentList(segment.components, compnames, elemrefs)
     builder.append("), Nil)")
     builder.outdent
     builder.break
@@ -101,7 +104,8 @@ class SchemaDump(writer: PrintWriter) {
     comps.foreach(comp => {
       comp match {
         case ref: ReferenceComponent => {
-          val text = s"ReferenceComponent(${genName(ref.segment)}, ${ref.use}, ${ref.count})"
+          val position = s"""SegmentPosition(${ref.position.table}, "${ref.position.position}")"""
+          val text = s"ReferenceComponent(${genName(ref.segment)}, $position, ${ref.use}, ${ref.count})"
           if (builder.length > BREAK_LINE_LENGTH) builder.breakAppend(text)
           else builder.append(text)
         }
@@ -111,9 +115,10 @@ class SchemaDump(writer: PrintWriter) {
           builder.break
           componentList(group.items)
           builder.break
-          builder.append(group.varkey.toString)
+          builder.append("),")
+          builder.append(optionText(group.varkey))
           builder.append(", Nil")
-          builder.append("))")
+          builder.append(")")
           builder.outdent
         }
       }
@@ -121,7 +126,7 @@ class SchemaDump(writer: PrintWriter) {
     })
     builder.prepend = ""
   }
-  
+
   def toCode(segments: List[Segment]): Unit = {
     val elemrefs = segments.foldLeft(Map[Element, Int]())((acc, segment) =>
       segment.components.foldLeft(acc)((acc, comp) =>
@@ -137,8 +142,25 @@ class SchemaDump(writer: PrintWriter) {
           case ccomp: CompositeComponent => acc + ccomp.composite
           case _ => acc
         }))
-    composites.toList.sortBy(comp => comp.ident).foreach(comp => defineComposite(comp, elemreps))
-    segments.toList.sortBy(segment => segment.ident).foreach(segment => defineSegment(segment, elemreps))
+    val compgroups = composites.toList.groupBy { comp => comp.ident }
+    val compnames = compgroups.keys.toList.sorted.foldLeft(Map[Composite, String]()) {
+      case (map, id) => {
+        val list = compgroups(id)
+        val first = list.head
+        val basename = genName(first)
+        if (list.tail.isEmpty) {
+          defineComposite(first, basename, map, elemreps)
+          map + (first -> basename)
+        } else list.zipWithIndex.foldLeft(map) {
+          case (map, (comp, index)) => {
+            val name = basename + "_" + index
+            defineComposite(comp, name, map, elemreps)
+            map + (comp -> name)
+          }
+        }
+      }
+    }
+    segments.toList.sortBy(segment => segment.ident).foreach(segment => defineSegment(segment, compnames, elemreps))
   }
 
   def toCode(trans: Transaction): Unit = {
@@ -153,15 +175,15 @@ class SchemaDump(writer: PrintWriter) {
     }
     def dumpSection(comps: List[TransactionComponent]) =
       if (comps.nonEmpty) {
-      builder.break
-      componentList(comps)
-      builder.break
+        builder.break
+        componentList(comps)
+        builder.break
       }
     val segments = referencedSegments(trans.heading) ++ referencedSegments(trans.detail) ++
       referencedSegments(trans.summary)
     toCode(segments.toList)
     builder.break
-    builder.append(s"""val trans${trans.ident} = Transaction("${trans.ident}", "${trans.name}", "${trans.group}", List[TransactionComponent](""")
+    builder.append(s"""val trans${trans.ident} = Transaction("${trans.ident}", "${trans.name}", ${optionText(trans.group)}, List[TransactionComponent](""")
     builder.indent
     dumpSection(trans.heading)
     builder.append("), List[TransactionComponent](")
@@ -175,7 +197,7 @@ class SchemaDump(writer: PrintWriter) {
 }
 
 object SegmentsToCode {
-  
+
   /** Reads a schema definition and outputs one or more segment definitions as Scala code dumped to the console.
     */
   def main(args: Array[String]): Unit = {
