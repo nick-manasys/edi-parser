@@ -9,35 +9,34 @@ import scala.collection.JavaConversions
 import scala.collection.immutable.TreeMap
 import scala.util.Try
 import com.anypoint.df.edi.lexical.WriteException
-import com.anypoint.df.edi.lexical.X12Constants._
-import com.anypoint.df.edi.lexical.X12Writer
+import com.anypoint.df.edi.lexical.EdifactConstants._
+import com.anypoint.df.edi.lexical.EdifactWriter
 
-/** Configuration parameters for X12 schema writer.
+/** Configuration parameters for EDIFACT schema writer.
   */
-case class X12WriterConfig(val stringChars: CharacterRestriction, val subChar: Int, val charSet: Charset,
-  val delims: String, val suffix: String) {
-  if (delims.size < 4 || delims.size > 5) throw new IllegalArgumentException("delimiter string must be 4 or 5 characters")
-  val repsep = if (delims(2) == 'U') -1 else delims(2)
+case class EdifactWriterConfig(val syntax: SyntaxIdentifier, val version: SyntaxVersion, val subChar: Int,
+  val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String) {
+  if (delims.size != 0 && delims.size != 5) throw new IllegalArgumentException("delimiter string must be empty or 5 characters")
 }
 
 /** Provider interface for control numbers. */
-trait X12NumberProvider {
-  def interchangIdentifier(senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
-  def nextInterchange(interchange: String): Int
-  def nextGroup(interchange: String, senderCode: String, receiverCode: String): Int
-  def nextSet(interchange: String, senderCode: String, receiverCode: String): String
+trait EdifactNumberProvider {
+  def contextToken(senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
+  def nextInterchange(context: String): String
+  def nextGroup(context: String, senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
+  def nextMessage(context: String, msgType: String, msgVersion: String, msgRelease: String, agency: String): String
 }
 
-/** Writer for X12 EDI documents.
+/** Writer for EDIFACT EDI documents.
   */
-case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberProvider, config: X12WriterConfig)
-  extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
-    config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars),
-    sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
+case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
+  extends SchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax, config.delims,
+    config.suffix, config.subChar, config.decimalMark), sc) with EdifactSchemaDefs {
 
   import EdiSchema._
   import SchemaJavaValues._
-  import X12SchemaValues._
+  
+  val schemaDefs = versions(config.version)
 
   case class TransactionSet(val ident: String, val index: Int, val selfId: String, val partnerId: String,
     val agencyCode: String, val versionId: String, val data: ValueMap) {
@@ -63,34 +62,30 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
 
   /** Write start of a functional group (modifies passed in map). */
   def openGroup(functId: String, props: ValueMap) = {
-    props put (functionalIdentifierKey, functId)
-    val calendar = new GregorianCalendar
-    props put (groupDateKey, calendar)
-    val time = Integer.valueOf((calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000)
-    props put (groupTimeKey, time)
-    writeSegment(props, GSSegment)
+    props put (groupHeadReferenceKey, functId)
+    writeSegment(props, schemaDefs.segUNG)
     setCount = 0
   }
 
   /** Write close of a functional group (modifies passed in map). */
   def closeGroup(props: ValueMap) = {
-    props put (numberOfSetsKey, Integer.valueOf(setCount))
-    props put (groupControlEndKey, props.get(groupControlKey))
-    writeSegment(props, GESegment)
+    props put (groupTrailCountKey, Integer.valueOf(setCount))
+    props put (groupTrailReferenceKey, props.get(groupHeadReferenceKey))
+    writeSegment(props, schemaDefs.segUNE)
   }
 
   /** Write start of a transaction set (modifies passed in map). */
   def openSet(ident: String, props: ValueMap) = {
-    props put (transactionSetIdentifierKey, ident)
+    props put (msgHeadReferenceKey, ident)
     setSegmentBase = writer.getSegmentCount
-    writeSegment(props, STSegment)
+    writeSegment(props, schemaDefs.segUNH)
   }
 
   /** Write close of a transaction set (modifies passed in map). */
   def closeSet(props: ValueMap) = {
-    props put (numberOfSegmentsKey, Integer.valueOf(writer.getSegmentCount - setSegmentBase + 1))
-    props put (transactionSetControlEndKey, props.get(transactionSetControlKey))
-    writeSegment(props, SESegment)
+    props put (msgTrailCountKey, Integer.valueOf(writer.getSegmentCount - setSegmentBase + 1))
+    props put (msgTrailReferenceKey, props.get(msgHeadReferenceKey))
+    writeSegment(props, schemaDefs.segUNT)
     setCount += 1
   }
 
@@ -145,6 +140,19 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
     result map { case (tupkey, translist ) => (tupkey, translist reverse)} toList
   }
 
+    /** Stores list of string values matching the simple value components. */
+    def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
+      @tailrec
+      def setr(vals: List[String], rem: List[SegmentComponent]): Unit = vals match {
+        case h :: t => if (rem.nonEmpty) {
+          if (h.size > 0) data put (rem.head.key, h)
+          setr(t, rem.tail)
+          }
+        case _ =>
+      }
+      setr(values, comps)
+    }
+
   /** Write the output message. */
   def write(map: ValueMap) = Try({
     val interchanges = transactionInterchanges(getRequiredValueMap(transactionsMap, map))
@@ -152,43 +160,44 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
     interchanges foreach {
       case ((selfQual, selfId, partnerQual, partnerId, useIndicator), interlist) => {
         val interProps = new ValueMapImpl
-        val providerId = numprov interchangIdentifier (selfQual, selfId, partnerQual, partnerId)
-        interProps put (INTER_CONTROL, Integer valueOf (numprov nextInterchange (providerId)))
-        interProps put (RECEIVER_ID_QUALIFIER, partnerQual)
-        interProps put (RECEIVER_ID, partnerId)
-        interProps put (SENDER_ID_QUALIFIER, selfQual)
-        interProps put (SENDER_ID, selfId)
-        interProps put (VERSION_ID, getAs(interchangeVersionId, "00501", map))
-        interProps put (ACK_REQUESTED, getAs(acknowledgmentRequested, "1", map))
-        interProps put (TEST_INDICATOR, useIndicator)
+        val context = numprov contextToken (selfQual, selfId, partnerQual, partnerId)
+        /*
+         *   val interHeadReferenceKey = "UNB05"
+  val interHeadDateKey = "UNB0601"
+  val interHeadTimeKey = "UNB0602"
+  val interHeadApplicationKey = "UNB07"
+  val interHeadPriorityKey = "UNB08"
+  val interHeadAckreqKey = "UNB09"
+  val interHeadAgreementKey = "UNB10"
+  val interHeadTestKey = "UNB11"
+         * 
+         */
+        interProps put (interHeadReferenceKey, Integer valueOf (numprov nextInterchange (context)))
+        setStrings(List(config.syntax.code, config.version.code), schemaDefs.interHeadSyntax.components, interProps)
+        setStrings(List(partnerId, partnerQual), schemaDefs.interHeadSender.components, interProps)
+        setStrings(List(selfId, selfQual), schemaDefs.interHeadRecipient.components, interProps)
+        val calendar = new GregorianCalendar
+        interProps put (interHeadDateKey, calendar)
+        val time = Integer.valueOf((calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000)
+        interProps put (interHeadTimeKey, time)
         writer.init(interProps)
-        if (map.containsKey(interchangeAcksToSend)) {
-          val ta1list = getRequiredMapList(interchangeAcksToSend, map)
-          JavaConversions.asScalaIterator(ta1list iterator).foreach { ta1map => writeSegment(ta1map, X12Acknowledgment.segTA1) }
-          map.remove(interchangeAcksToSend)
-        }
+        writeSegment(interProps, schemaDefs.segUNB)
         val groups = interlist.groupBy(transet => {
           val transdef = schema.transactions(transet.ident)
           (transet selfId, transet partnerId, transet agencyCode, transet versionId, transdef.group.getOrElse(""))
         })
         groups foreach {
           case ((selfGroup, partnerGroup, agency, version, groupCode), grouplist) => {
-            val groupProps = new ValueMapImpl
-            groupProps put (applicationSendersKey, selfGroup)
-            groupProps put (applicationReceiversKey, partnerGroup)
-            groupProps put (groupControlKey, Integer valueOf (numprov nextGroup (providerId, selfGroup, partnerGroup)))
-            groupProps put (responsibleAgencyKey, agency)
-            groupProps put (versionIdentifierKey, version)
-            openGroup(groupCode, groupProps)
-            writer.countGroup
             grouplist foreach (transet => try {
-              @tailrec
-              def zeroPad(text: String, length: Int): String =
-                if (text.length < length) zeroPad("0" + text, length) else text
               val transdata = transet.data
               val setProps = new ValueMapImpl
-              setProps put (transactionSetControlKey, zeroPad(numprov nextSet (providerId, selfGroup, partnerGroup), 4))
-              if (transdata containsKey (transactionImplConventionRef)) setProps put (implementationConventionKey,
+              setProps put (msgHeadReferenceKey, numprov.nextMessage(context, transet.ident, "D", schema.version, "UN"))
+              setProps put (msgHeadMessageTypeKey, transet.ident)
+              setProps put (msgHeadMessageVersionKey, "D")
+              setProps put (msgHeadMessageReleaseKey, schema.version)
+              setProps put (msgHeadMessageAgencyKey, "UN")
+              setProps put (msgHeadMessageAssignedKey, groupCode)
+              if (transdata containsKey (transactionImplConventionRef)) setProps put (msgHeadImplIdentKey,
                 transdata get (transactionImplConventionRef))
               openSet(transet ident, setProps)
               writeTransaction(transdata, schema transactions (transet ident))
@@ -198,7 +207,6 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
                 logAndThrow(s"transaction ${transet ident} at index ${transet index} ${e.getMessage}", Some(e))
               }
             })
-            closeGroup(groupProps)
           }
         }
         term(interProps)

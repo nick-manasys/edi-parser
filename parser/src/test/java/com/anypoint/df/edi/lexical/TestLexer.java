@@ -31,15 +31,18 @@ public class TestLexer extends LexerBase
     /**
      * Initialize document parse.
      * 
-     * @param default unused
      * @param data unused
      * @return <code>null</code>
      * @throws IOException 
      */
-    public Object init(Map<String, Object> dflts, Map<String,Object> data) throws IOException {
-        reader = new BufferedReader(new InputStreamReader(stream, EdiConstants.ASCII_CHARSET));
-        advance(ItemType.SEGMENT);
-        return null;
+    public Object init(Map<String,Object> data) {
+        try {
+            reader = new BufferedReader(new InputStreamReader(stream, EdiConstants.ASCII_CHARSET));
+            advance(ItemType.SEGMENT);
+            return null;
+        } catch (IOException e) {
+            throw new RuntimeException("Error", e);
+        }
     }
 
     /**

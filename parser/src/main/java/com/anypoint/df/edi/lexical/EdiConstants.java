@@ -8,9 +8,9 @@ import java.util.Map;
 /**
  * Constants used for all EDI variations.
  */
-public final class EdiConstants
+public abstract class EdiConstants
 {
-    private EdiConstants() {}
+    protected EdiConstants() {}
     
     // standard character sets
     public static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
@@ -129,4 +129,29 @@ public final class EdiConstants
     public static final DataType[] INTEGER_TYPES = new DataType[] { DataType.INTEGER, DataType.TIME};
     public static final DataType[] DATE_TYPES = new DataType[] { DataType.DATE };
     public static final DataType[] STRING_TYPES = new DataType[] { DataType.ID, DataType.ALPHANUMERIC, DataType.ALPHA };
+    
+    /**
+     * Set flags for range of characters in array.
+     *
+     * @param from
+     * @param to
+     * @param flags
+     */
+    protected static void fillChars(char from, char to, boolean[] flags) {
+        for (int i = from; i <= to; i++) {
+            flags[i] = true;
+        }
+    }
+    
+    /**
+     * Set flags for specific characters in array.
+     *
+     * @param chars
+     * @param flags
+     */
+    protected static void setChars(char[] chars, boolean[] flags) {
+        for (int i = 0; i < chars.length; i++) {
+            flags[chars[i]] = true;
+        }
+    }
 }

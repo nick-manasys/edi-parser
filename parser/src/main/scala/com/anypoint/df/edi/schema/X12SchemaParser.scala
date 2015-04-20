@@ -21,8 +21,7 @@ import X12SchemaValues._
 import X12Acknowledgment._
 
 /** Entity identity information. Interchange qualifier and id are used for one direction of an interchange, while type
-  * (if non-zero length) is matched against the interchange type in an incoming message. The application identifier is
-  * used for the group header.
+  * (if non-zero length) is matched against the interchange type in an incoming message.
   */
 case class IdentityInformation(interchangeQualifier: String, interchangeId: String, interchangeType: String)
 
@@ -32,24 +31,51 @@ case class IdentityInformation(interchangeQualifier: String, interchangeId: Stri
   */
 case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
   val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
-  val reportDataErrors: Boolean, val strChar: CharacterSet, val charSet: Charset,
+  val reportDataErrors: Boolean, val substitutionChar: Int, val strChar: CharacterRestriction, val charSet: Charset,
   val receiverIds: Array[IdentityInformation], val senderIds: Array[IdentityInformation],
   val versionIds: Array[String]) {
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
 
+/** Validator called by parser to check that received interchange/group/message identifiers are not duplicates. */
 trait X12NumberValidator {
-  def interchangIdentifier(senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
-  def validateInterchange(num: Int, interchange: String): Boolean
-  def validateGroup(num: Int, interchange: String, senderCode: String, receiverCode: String): Boolean
-  def validateSet(number: String, interchange: String, senderCode: String, receiverCode: String): Boolean
+  
+  /** Generate unique context identifier for interchange sender-receiver pair. The returned identifier is saved and
+    * passed to the other methods in order to identify the context of the interchange, so the form of the identifier is
+    * entirely up to the implementation.
+    * @param senderQual interchange sender identification qualifier
+    * @param senderId interchange sender identification
+    * @param receiverQual interchange receiver identification qualifier
+    * @param receiverId interchange receiver identification
+    */
+  def contextToken(senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
+    
+  /** Validate receive interchange identification.
+    * @param num interchange control number
+    * @param context interchange sender-receiver pair context token
+    */
+  def validateInterchange(num: Int, context: String): Boolean
+  
+  /** Validate receive group identification.
+    * @param num group control number
+    * @param senderCode application sender's code
+    * @param receiverCode application receiver's code
+    * @param context interchange sender-receiver pair context token
+    */
+  def validateGroup(num: Int, senderCode: String, receiverCode: String, context: String): Boolean
+  
+  /** Validate transaction set identification.
+    * @param control transaction set control number (string value, despite the name)
+    * @param senderCode application sender's code (from group)
+    * @param receiverCode application receiver's code (from group)
+    * @param context interchange sender-receiver pair context token
+    */
+  def validateSet(control: String, senderCode: String, receiverCode: String, context: String): Boolean
 }
-
-case class InterchangeException(note: InterchangeNoteCode, text: String) extends LexicalException(text)
 
 /** Parser for X12 EDI documents. */
 case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberValidator, config: X12ParserConfig)
-  extends SchemaParser(new X12Lexer(in, config charSet, -1, config.strChar),
+  extends SchemaParser(new X12Lexer(in, config charSet, config.substitutionChar, config.strChar),
     sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
 
   /** Set of functional groups supported by schema. */
@@ -125,6 +151,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       })
     }
   }
+
+  /** Exception reporting problem in interchange. */
+  case class InterchangeException(note: InterchangeNoteCode, text: String) extends RuntimeException(text)
 
   /** Check if an element syntax error condition is fatal for the containing transaction. */
   def checkFatal(error: ElementSyntaxError) = error match {
@@ -388,7 +417,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         setack put (segAK5 ident, ak5data)
         rejectTransaction = false
         var data: ValueMap = null
-        if (numval.validateSet(transactionNumber, providerId, groupSender, groupReceiver)) {
+        if (numval.validateSet(providerId, groupSender, groupReceiver, transactionNumber)) {
           schema.transactions(setid) match {
             case t: Transaction =>
               if (t.group == Some(groupCode)) {
@@ -603,17 +632,17 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           })
           interchangeStartSegment = lexer.getSegmentNumber - 1
           interchangeNumber = getRequiredInt(INTER_CONTROL, interchange)
-          val providerId = numval.interchangIdentifier(getRequiredString(SENDER_ID_QUALIFIER, interchange),
+          val token = numval.contextToken(getRequiredString(SENDER_ID_QUALIFIER, interchange),
             getRequiredString(SENDER_ID, interchange), getRequiredString(RECEIVER_ID_QUALIFIER, interchange),
             getRequiredString(RECEIVER_ID, interchange))
-          if (numval.validateInterchange(interchangeNumber, providerId)) {
+          if (numval.validateInterchange(interchangeNumber, token)) {
             while (Set("ISB", "ISE", "TA3") contains lexer.token) discardSegment
             if (lexer.token == "TA1") {
               val receiveTA1s = new MapListImpl
               while (lexer.token == "TA1") receiveTA1s add parseSegment(segTA1, None, SegmentPosition(0, ""))
               map put (interchangeAcksReceived, receiveTA1s)
             }
-            parseInterchange(interchange, providerId) match {
+            parseInterchange(interchange, token) match {
               case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError, interchange)
               case note => buildTA1(AcknowledgedWithErrors, note, interchange)
             }

@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -53,6 +54,9 @@ public abstract class LexerBase
     /** Segment terminator. */
     char segmentTerminator;
     
+    /** Alternative decimal mark character (-1 if unused). */
+    int altDecimalMark;
+    
     /** Total number of groups in interchange. */
     int groupCount;
     
@@ -91,14 +95,24 @@ public abstract class LexerBase
      *
      * @param is input
      * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param altdec alternative decimal mark character (to '.', -1 if unused)
      * @param chars allowed character set flags for string data (<code>null</code> if unrestricted)
      */
-    public LexerBase(InputStream is, int release, int subst, boolean[] chars) {
+    public LexerBase(InputStream is, int subst, int altdec, boolean[] chars) {
         stream = is;
-        releaseIndicator = release;
         substitutionChar = subst;
+        altDecimalMark = altdec;
         allowedChars = chars;
     }
+    
+    /**
+     * Initialize lexer for start of input.
+     * 
+     * @param props
+     * @return status
+     * @throws LexicalException
+     */
+    public abstract Object init(Map<String,Object> props) throws LexicalException;
     
     /**
      * Read bytes from stream into array. Throws an IOException if not enough bytes are present to fill the array.
@@ -266,13 +280,20 @@ public abstract class LexerBase
      */
     void handleError(DataType typ, ErrorCondition err, String explain) throws LexicalException {
         boolean abort = false;
-        String text = err.text() + " for data type " + typ.code() + ": '" + token + "'";
+        String position = "element " + Integer.toString(elementNumber + 1);
+        if (repetitionNumber > 0) {
+            position = "repetition " + Integer.toString(repetitionNumber + 1) + " of " + position;
+        }
+        if (currentType == ItemType.QUALIFIER) {
+            position = "component " + Integer.toString(componentNumber + 1) + " of " + position;
+        }
+        String text = err.text() + " for data type " + typ.code() + " at " + position  + ": '" + token + "'";
         if (explain != null) {
             text += " (" + explain + ")";
         }
         try {
             if (errorHandler == null) {
-                throw new LexicalException(text);
+                throw new LexicalDataException(typ, err, text);
             } else {
                 errorHandler.error(this, typ, err, explain);
             }
@@ -281,9 +302,9 @@ public abstract class LexerBase
             throw e;
         } finally {
             if (abort) {
-                logger.error("Unrecoverable error " + text);
+                logger.error("Unrecoverable lexer error " + text);
             } else {
-                logger.info("Recoverable error " + text);
+                logger.info("Recoverable lexer error " + text);
             }
         }
     }

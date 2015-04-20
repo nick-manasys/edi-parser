@@ -5,10 +5,9 @@ import java.nio.charset.Charset;
 /**
  * Constants for X12 documents.
  */
-public final class X12Constants
+public final class X12Constants extends EdiConstants
 {
-    private X12Constants() {
-    }
+    private X12Constants() {}
     
     // standard character sets
     public static final Charset EBCDIC_CHARSET = Charset.forName("IBM1047");
@@ -52,7 +51,7 @@ public final class X12Constants
     /**
      * String character set alternatives.
      */
-    public enum CharacterSet
+    public enum CharacterRestriction
     {
         BASIC(basicCharacterSet),
         EXTENDED(extendedCharacterSet),
@@ -60,37 +59,12 @@ public final class X12Constants
         
         private final boolean[] characterFlags;
         
-        CharacterSet(boolean[] flags) {
+        CharacterRestriction(boolean[] flags) {
             characterFlags = flags;
         }
         
         public boolean[] flags() {
             return characterFlags;
-        }
-    }
-    
-    /**
-     * Set flags for range of characters in array.
-     *
-     * @param from
-     * @param to
-     * @param flags
-     */
-    private static void fillChars(char from, char to, boolean[] flags) {
-        for (int i = from; i <= to; i++) {
-            flags[i] = true;
-        }
-    }
-    
-    /**
-     * Set flags for specific characters in array.
-     *
-     * @param chars
-     * @param flags
-     */
-    private static void setChars(char[] chars, boolean[] flags) {
-        for (int i = 0; i < chars.length; i++) {
-            flags[chars[i]] = true;
         }
     }
 }

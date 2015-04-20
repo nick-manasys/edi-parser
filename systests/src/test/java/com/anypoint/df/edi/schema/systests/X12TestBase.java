@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.anypoint.df.edi.lexical.EdiConstants;
-import com.anypoint.df.edi.lexical.X12Constants.CharacterSet;
+import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 import com.anypoint.df.edi.schema.IdentityInformation;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.X12ParserConfig;
@@ -210,8 +210,8 @@ public abstract class X12TestBase extends TestBase {
         IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
         IdentityInformation[] senders = new IdentityInformation[1];
         senders[0] = identity;
-        X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true,
-            CharacterSet.EXTENDED, EdiConstants.ASCII_CHARSET, new IdentityInformation[0], new IdentityInformation[0],
+        X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, -1,
+            CharacterRestriction.EXTENDED, EdiConstants.ASCII_CHARSET, new IdentityInformation[0], new IdentityInformation[0],
             new String[0]);
 
         DocumentTest test = new DocumentTest(schema, config);

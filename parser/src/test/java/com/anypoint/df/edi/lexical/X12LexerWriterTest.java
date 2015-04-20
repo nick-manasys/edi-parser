@@ -12,7 +12,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.anypoint.df.edi.lexical.X12Constants.CharacterSet;
+import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 
 /**
  * Test for X12 document handling.
@@ -27,12 +27,12 @@ public class X12LexerWriterTest
     @Test
     public void roundTripEnvelope() throws Exception {
         InputStream in = new ByteArrayInputStream(ENVELOPE.getBytes("UTF-8"));
-        X12Lexer lexer = new X12Lexer(in, ASCII_CHARSET, -1, CharacterSet.EXTENDED);
+        X12Lexer lexer = new X12Lexer(in, ASCII_CHARSET, -1, CharacterRestriction.EXTENDED);
         Map<String, Object> props = new HashMap<>();
         lexer.init(props);
         lexer.term(props);
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        X12Writer writer = new X12Writer(os, ASCII_CHARSET, '*', '>', -1, '~', null, -1, CharacterSet.BASIC);
+        X12Writer writer = new X12Writer(os, ASCII_CHARSET, '*', '>', -1, '~', null, -1, CharacterRestriction.BASIC);
         writer.init(props);
         writer.term(props);
         writer.close();

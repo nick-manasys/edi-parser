@@ -35,7 +35,7 @@ class DefaultX12NumberProvider extends X12NumberProvider {
 class DefaultX12NumberValidator extends X12NumberValidator {
   var groupNums = Set[Int]()
   var setNums = Set[String]()
-  def interchangIdentifier(senderQual: String, senderId: String, receiverQual: String, receiverId: String) = ""
+  def contextToken(senderQual: String, senderId: String, receiverQual: String, receiverId: String) = ""
   def validateInterchange(num: Int, interchange: String) = {
     groupNums = Set[Int]()
     true
@@ -47,10 +47,47 @@ class DefaultX12NumberValidator extends X12NumberValidator {
   def validateSet(number: String, interchange: String, senderCode: String, receiverCode: String) = setNums.add(number)
 }
 
+class DefaultEdifactNumberProvider extends EdifactNumberProvider {
+  var interNum = 0
+  var groupNum = 0
+  var setNum = 0
+  def contextToken(senderQual: String, senderId: String, receiverQual: String, receiverId: String) = ""
+  def nextInterchange(context: String) = {
+    interNum += 1
+    interNum.toString
+  }
+  def nextGroup(context: String, senderQual: String, senderId: String, receiverQual: String, receiverId: String) = {
+    groupNum += 1
+    groupNum.toString
+  }
+  def nextMessage(context: String, msgType: String, msgVersion: String, msgRelease: String, agency: String) = {
+    setNum += 1
+    setNum.toString
+  }
+}
+
+class DefaultEdifactNumberValidator extends EdifactNumberValidator {
+  var groupRefs = Set[String]()
+  var setRefs = Set[String]()
+  def contextToken(senderId: String, senderCode: String, senderInternal: String, senderInternalSub: String,
+    receiverId: String, receiverCode: String, receiverInternal: String, receiverInternalSub: String) = ""
+  def validateInterchange(controlRef: String, context: String) = {
+    groupRefs = Set[String]()
+    true
+  }
+  def validateGroup(groupRef: String, senderId: String, senderCode: String, receiverId: String, receiverCode: String,
+    context: String) = {
+    setRefs = Set[String]()
+    groupRefs.add(groupRef)
+  }
+  def validateMessage(msgRef: String, msgType: String, msgVersion: String, msgRelease: String, agencyCode: String,
+    associationCode: String, directoryVersion: String, subFunction: String, context: String) = setRefs.add(msgRef)
+}
+
 case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12SchemaDefs with SchemaJavaDefs {
 
-  def this(sch: EdiSchema) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true,
-    CharacterSet.EXTENDED, ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]()))
+  def this(sch: EdiSchema) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true, -1,
+    CharacterRestriction.EXTENDED, ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]()))
 
   import com.anypoint.df.edi.schema.X12Acknowledgment._
   import com.anypoint.df.edi.schema.SchemaJavaValues._
@@ -72,7 +109,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     */
   def printDoc(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterSet.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
+    val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
     val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, config)
     val transacts = getRequiredValueMap(transactionsMap, map)
     foreachListInMap(transacts, (translist: MapList) =>
@@ -98,7 +135,7 @@ case class DocumentTest(schema: EdiSchema, config: X12ParserConfig) extends X12S
     */
   def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterSet.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
+    val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
     val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, config)
     val outmap = new ValueMapImpl(map)
     val transactions = new ValueMapImpl

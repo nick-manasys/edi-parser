@@ -21,7 +21,7 @@ public class LexerBaseTest
     public TestLexer initializeLexer(String text) throws IOException {
         InputStream is = new ByteArrayInputStream(text.getBytes(EdiConstants.ASCII_CHARSET));
         TestLexer lexer = new TestLexer(is);
-        lexer.init(null, null);
+        lexer.init(null);
         return lexer;
     }
     

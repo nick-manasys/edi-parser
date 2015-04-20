@@ -4,7 +4,7 @@ package com.anypoint.df.edi.lexical;
 import java.io.IOException;
 
 /**
- * Exception caused by error in parsing EDI data.
+ * Exception caused by error in parsing EDI.
  */
 public class LexicalException extends IOException
 {

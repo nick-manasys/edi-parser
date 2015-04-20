@@ -60,6 +60,9 @@ public abstract class WriterBase
     
     /** Release character (-1 if unused). */
     private final int releaseIndicator;
+    
+    /** Character used for decimal mark. */
+    protected final char decimalMark;
 
     /** Segment terminator. */
     private final char segmentTerminator;
@@ -94,15 +97,17 @@ public abstract class WriterBase
      * @param segsep inter-segment separator (following segment terminator; <code>null</code> if none)
      * @param release release character
      * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param mark decimal mark character
      * @param chars allowed character set flags for string data (<code>null</code> if unrestricted)
      */
     protected WriterBase(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
-        String segsep, int release, int subst, boolean[] chars) {
+        String segsep, int release, int subst, char mark, boolean[] chars) {
         stream = os;
         dataSeparator = datasep;
         subElement = subsep;
         repetitionSeparator = repsep;
         segmentTerminator = segterm;
+        decimalMark = mark;
         segmentSeparator = segsep;
         releaseIndicator = release;
         substitutionChar = subst;
@@ -272,7 +277,48 @@ public abstract class WriterBase
         checkSegmentStart();
         writer.write(text);
     }
-
+    
+    /**
+     * Get required property value, throwing an exception if the value is not defined.
+     *
+     * @param key
+     * @param props
+     * @return value
+     * @throws WriteException
+     */
+    protected static Object getRequired(String key, Map<String, Object> props) throws WriteException {
+        Object value = props.get(key);
+        if (value == null) {
+            throw new WriteException("missing required property value '" + key + "'");
+        }
+        return value;
+    }
+    
+    /**
+     * Write property value as alphanumeric token.
+     *
+     * @param key
+     * @param props
+     * @param dflt default value (<code>null</code> if none)
+     * @param minl minimum length
+     * @param maxl maximum length
+     * @throws IOException 
+     */
+    protected void writeProperty(String key, Map<String, Object> props, String dflt, int minl, int maxl)
+        throws IOException {
+        String text;
+        if (dflt == null) {
+            writeAlphaNumeric(getRequired(key, props).toString(), minl, maxl);
+        } else {
+            text = (String)props.get(key);
+            if (text == null) {
+                text = dflt;
+            }
+            writeAlphaNumeric(text, minl, maxl);
+        }
+        writeDataSeparator();
+    }
+    
     /**
      * Write text with space characters appended to minimum length. If the text is longer than the maximum length this
      * throws an exception.

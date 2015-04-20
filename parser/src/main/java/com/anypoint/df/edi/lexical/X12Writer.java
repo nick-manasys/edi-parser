@@ -1,18 +1,7 @@
 
 package com.anypoint.df.edi.lexical;
 
-import static com.anypoint.df.edi.lexical.X12Constants.ACK_REQUESTED;
-import static com.anypoint.df.edi.lexical.X12Constants.AUTHORIZATION_INFO;
-import static com.anypoint.df.edi.lexical.X12Constants.AUTHORIZATION_QUALIFIER;
-import static com.anypoint.df.edi.lexical.X12Constants.INTER_CONTROL;
-import static com.anypoint.df.edi.lexical.X12Constants.RECEIVER_ID;
-import static com.anypoint.df.edi.lexical.X12Constants.RECEIVER_ID_QUALIFIER;
-import static com.anypoint.df.edi.lexical.X12Constants.SECURITY_INFO;
-import static com.anypoint.df.edi.lexical.X12Constants.SECURITY_QUALIFIER;
-import static com.anypoint.df.edi.lexical.X12Constants.SENDER_ID;
-import static com.anypoint.df.edi.lexical.X12Constants.SENDER_ID_QUALIFIER;
-import static com.anypoint.df.edi.lexical.X12Constants.TEST_INDICATOR;
-import static com.anypoint.df.edi.lexical.X12Constants.VERSION_ID;
+import static com.anypoint.df.edi.lexical.X12Constants.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -21,7 +10,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Map;
 
-import com.anypoint.df.edi.lexical.X12Constants.CharacterSet;
+import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 
 /**
  * Writer variation for X12.
@@ -42,49 +31,8 @@ public class X12Writer extends WriterBase
      * @param chset character set selection
      */
     public X12Writer(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
-        String segsep, int subst, CharacterSet chset) {
-        super(os, encoding, datasep, subsep, repsep, segterm, segsep, -1, subst, chset.flags());
-    }
-    
-    /**
-     * Get required property value, throwing an exception if the value is not defined.
-     *
-     * @param key
-     * @param props
-     * @return value
-     * @throws WriteException
-     */
-    private static Object getRequired(String key, Map<String, Object> props) throws WriteException {
-        Object value = props.get(key);
-        if (value == null) {
-            throw new WriteException("missing required property value '" + key + "'");
-        }
-        return value;
-    }
-    
-    /**
-     * Write property value as alphanumeric token.
-     *
-     * @param key
-     * @param props
-     * @param dflt default value (<code>null</code> if none)
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @throws IOException 
-     */
-    private void writeProperty(String key, Map<String, Object> props, String dflt, int minl, int maxl)
-        throws IOException {
-        String text;
-        if (dflt == null) {
-            writeAlphaNumeric(getRequired(key, props).toString(), minl, maxl);
-        } else {
-            text = (String)props.get(key);
-            if (text == null) {
-                text = dflt;
-            }
-            writeAlphaNumeric(text, minl, maxl);
-        }
-        writeDataSeparator();
+        String segsep, int subst, CharacterRestriction chset) {
+        super(os, encoding, datasep, subsep, repsep, segterm, segsep, -1, subst, '.', chset.flags());
     }
 
     /**

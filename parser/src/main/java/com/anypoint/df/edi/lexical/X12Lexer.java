@@ -12,11 +12,11 @@ import static com.anypoint.df.edi.lexical.EdiConstants.*;
 import static com.anypoint.df.edi.lexical.X12Constants.*;
 
 /**
- * Parser variation for X12.
+ * Lexer variation for X12.
  */
 public class X12Lexer extends LexerBase
 {
-    /** Status returned by {@link X12Lexer#term(Map)} method. */
+    /** Status returned by {@link X12Lexer#init(Map)} method. */
     public enum InterchangeStartStatus { VALID, AUTHORIZATION_QUALIFIER_ERROR, AUTHORIZATION_INFO_ERROR,
         SECURITY_QUALIFIER_ERROR, SECURITY_INFO_ERROR, SENDER_ID_QUALIFIER_ERROR, SENDER_ID_ERROR,
         RECEIVER_ID_QUALIFIER_ERROR, RECEIVER_ID_ERROR, INTERCHANGE_DATE_ERROR, INTERCHANGE_TIME_ERROR,
@@ -33,8 +33,8 @@ public class X12Lexer extends LexerBase
      * @param subst substitution character for invalid character in string (-1 if unused)
      * @param chset character set selection
      */
-    public X12Lexer(InputStream is, Charset charset, int subst, CharacterSet chset) {
-        super(is, -1, subst, chset.flags());
+    public X12Lexer(InputStream is, Charset charset, int subst, CharacterRestriction chset) {
+        super(is, subst, -1, chset.flags());
         reader = new BufferedReader(new InputStreamReader(stream, charset));
     }
     
@@ -63,6 +63,7 @@ public class X12Lexer extends LexerBase
      */
     public InterchangeStartStatus init(Map<String,Object> props) {
         try {
+            
             // make sure data is present
             int value = reader.read();
             while (value == '\n' || value == '\r' || value == ' ') {
