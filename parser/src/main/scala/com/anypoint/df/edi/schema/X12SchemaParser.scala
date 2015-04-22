@@ -316,7 +316,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       groupErrors.clear
       groupStartSegment = lexer.getSegmentNumber
       groupTransactionCount = 0
-      val map = parseSegment(GSSegment, None, SegmentPosition(0, "0000"))
+      val map = parseSegment(GSSegment, None, outsidePosition)
       inGroup = true
       map
     } else throw new IllegalStateException("missing required GS segment")
@@ -353,7 +353,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       oneOrMoreSegmentsInError = false
       inTransaction = true
       transactionStartSegment = lexer.getSegmentNumber
-      val values = parseSegment(STSegment, None, SegmentPosition(0, "0000"))
+      val values = parseSegment(STSegment, None, outsidePosition)
       groupTransactionCount += 1
       (values.get(transactionSetIdentifierKey).asInstanceOf[String], values)
     } else throw new IllegalStateException("not positioned at ST segment")
@@ -373,6 +373,9 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       inTransaction = false
     } else transactionError(MissingTrailerTransaction)
   }
+
+  /** Convert section control segment to next section number. If not at a section control, this just returns None. */
+  def convertSectionControl = None
 
   /** Convert loop start or end segment to identity form. If not at a loop segment, this just returns None. */
   def convertLoop = if (Set("LS", "LE").contains(lexer.token)) Some(lexer.token + lexer.peek) else None

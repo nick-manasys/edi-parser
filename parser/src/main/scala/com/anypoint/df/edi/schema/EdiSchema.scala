@@ -354,7 +354,7 @@ object EdiSchema {
     def keyName(parentId: String, position: Int): String
   }
   case object EdiFact extends EdiForm("EDIFACT") {
-    def isEnvelopeSegment(ident: String) = Set("UNH", "UNT") contains ident
+    def isEnvelopeSegment(ident: String) = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS") contains ident
     val loopWrapperStart = "UGH"
     val loopWrapperEnd = "UGT"
     def keyName(parentId: String, position: Int) = {

@@ -41,6 +41,10 @@ trait SchemaJavaDefs {
     else throw new IllegalArgumentException(s"not a map list '$key'")
   }
   
+  def getAs[T](key: String, map: ValueMap): T = map.get(key).asInstanceOf[T]
+  
+  def getAsString(key: String, map: ValueMap) = getAs[String](key, map)
+  
   def getAs[T](key: String, dflt: T, map: ValueMap): T =
     if (map.containsKey(key)) map.get(key).asInstanceOf[T]
     else dflt

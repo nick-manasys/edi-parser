@@ -21,6 +21,8 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   import SchemaJavaValues._
 
   val logger = Logger.getLogger(getClass.getName)
+  
+  val outsidePosition = SegmentPosition(0, "0000")
 
   /** Discard current element. */
   def discardElement = {
@@ -325,7 +327,16 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     topMap put (transactionId, transaction.ident)
     topMap put (transactionName, transaction.name)
     topMap put (transactionHeading, parseTable(0, transaction.headingById))
-    topMap put (transactionDetail, parseTable(1, transaction.detailById))
+    convertSectionControl match {
+      case Some(1) | None => {
+        topMap put (transactionDetail, parseTable(1, transaction.detailById))
+      }
+      case _ =>
+    }
+    convertSectionControl match {
+      case Some(1) => segmentError(lexer.token, None, ComponentErrors.OutOfOrderSegment)
+      case _ =>
+    }
     topMap put (transactionSummary, parseTable(2, transaction.summaryById))
     topMap
   }
@@ -338,6 +349,9 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   /** Discard input past end of current transaction. */
   def discardTransaction: Unit
+
+  /** Convert section control segment to next section number. If not at a section control, this just returns None. */
+  def convertSectionControl: Option[Int]
 
   /** Convert loop start or end segment to identity form. If not at a loop segment, this just returns None. */
   def convertLoop: Option[String]

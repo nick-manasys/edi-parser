@@ -53,7 +53,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   it should "parse the envelope segments as requested" in {
     val in = new ByteArrayInputStream((lead + UNH + buildUNT(0) + buildUNZ(1)).getBytes())
-    val parser = EdifactSchemaParser(in, EdiSchema(EdiFact, "1997a", Map.empty, Map.empty, Map.empty, Map.empty),
+    val parser = EdifactSchemaParser(in, EdiSchema(EdiFact, "01b", Map.empty, Map.empty, Map.empty, Map.empty),
       new DefaultEdifactNumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (SyntaxVersion.VERSION3)
@@ -62,8 +62,13 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     props.get(interHeadSenderQualKey) should be ("14")
     props.get(interHeadRecipientIdentKey) should be ("7611937000723")
     props.get(interHeadRecipientQualKey) should be ("14")
-    props.get(interHeadDateKey) should be (new BigDecimal("90604"))
-    props.get(interHeadTimeKey) should be (new BigDecimal(1205))
+    props.get(interHeadDateKey) should be (90604)
+    props.get(interHeadTimeKey) should be (1205)
+//    val calendar = props.get(interHeadDateKey).asInstanceOf[java.util.Calendar]
+//    calendar.get(Calendar.YEAR) should be (2009)
+//    calendar.get(Calendar.MONTH) should be (5)
+//    calendar.get(Calendar.DAY_OF_MONTH) should be (4)
+//    props.get(interHeadTimeKey) should be((12 * 60 + 5) * 60 * 1000)
     props.get(interHeadReferenceKey) should be ("8")
     val (transid, sprops) = parser.openSet
     transid should be("INVOIC")
@@ -75,27 +80,28 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     parser.closeSet(sprops)
   }
 
-//  it should "throw an exception when positioned at wrong segment" in {
-//    val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-//    val parser = EdifactSchemaParser(in, EdiSchema(EdiFact, "1997a", Map.empty, Map.empty, Map.empty, Map.empty),
-//      new DefaultEdifactNumberValidator, parserConfig)
-//    val props = new ValueMapImpl
-//    parser.init(props) should be (VALID)
-//    intercept[IllegalStateException] { parser.openSet }
-//    val gprops = parser.openGroup
-//    intercept[IllegalStateException] { parser.openGroup }
-//  }
+  it should "throw an exception when positioned at wrong segment" in {
+    val in = new ByteArrayInputStream((lead + UNH + buildUNT(0) + buildUNZ(1)).getBytes())
+    val parser = EdifactSchemaParser(in, EdiSchema(EdiFact, "01b", Map.empty, Map.empty, Map.empty, Map.empty),
+      new DefaultEdifactNumberValidator, parserConfig)
+    val props = new ValueMapImpl
+    parser.init(props) should be (SyntaxVersion.VERSION3)
+    parser.parseCompList(ControlV3Defs.segUNB.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, props)
+    intercept[IllegalStateException] { parser.openGroup }
+    parser.openSet
+    intercept[IllegalStateException] { parser.openSet }
+  }
 
-//  it should "parse a complete interchange message" in {
-//    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
-//    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
-//    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-//    val parser = X12SchemaParser(messageIn, schema, new DefaultX12NumberValidator, parserConfig)
-//    val result = parser.parse
-//    result.isInstanceOf[Success[ValueMap]] should be (true)
-//    val map = result.get
-//  }
-//
+  it should "parse a complete interchange message" in {
+    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")
+    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, parserConfig)
+    val result = parser.parse
+    result.isInstanceOf[Success[ValueMap]] should be (true)
+    val map = result.get
+  }
+
 //  behavior of "X12SchemaWriter"
 //
 //  it should "write the ISA envelope when initialized and then terminated" in {

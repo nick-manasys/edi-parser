@@ -505,7 +505,7 @@ object EdifactTablesConverter {
           try {
             val name = f.getName.takeWhile { _ != '_' }
             val transact = readMessage(name, LineIterator(stream, "ISO-8859-1"), msgtmpl, segDefs)
-            val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
+            val schema = EdiSchema(EdiFact, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
               Map(transact.ident -> transact))
             writeSchema(schema, transact.ident, Array(s"/edifact/${version.getName}/basedefs$yamlExtension"), outdir)
           } finally { stream close }
