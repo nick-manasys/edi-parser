@@ -21,9 +21,9 @@ case class EdifactWriterConfig(val syntax: SyntaxIdentifier, val version: Syntax
 
 /** Provider interface for control numbers. */
 trait EdifactNumberProvider {
-  def contextToken(senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
+  def contextToken(senderId: String, senderQual: String, receiverId: String, receiverQual: String): String
   def nextInterchange(context: String): String
-  def nextGroup(context: String, senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
+  def nextGroup(context: String, senderId: String, senderQual: String, receiverId: String, receiverQual: String): String
   def nextMessage(context: String, msgType: String, msgVersion: String, msgRelease: String, agency: String): String
 }
 
@@ -160,7 +160,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     interchanges foreach {
       case ((selfQual, selfId, partnerQual, partnerId, useIndicator), interlist) => {
         val interProps = new ValueMapImpl
-        val context = numprov contextToken (selfQual, selfId, partnerQual, partnerId)
+        val context = numprov contextToken (selfId, selfQual, partnerId, partnerQual)
         /*
          *   val interHeadReferenceKey = "UNB05"
   val interHeadDateKey = "UNB0601"

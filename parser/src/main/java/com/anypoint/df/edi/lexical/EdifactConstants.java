@@ -27,10 +27,10 @@ public final class EdifactConstants extends EdiConstants
     }
     
     /** EDIFACT Level A character set. */
-    private static final boolean[] levelACharacterSet;
+    public static final boolean[] levelACharacterSet;
     
     /** EDIFACT Level B character set. */
-    private static final boolean[] levelBCharacterSet;
+    public static final boolean[] levelBCharacterSet;
     
     static {
         levelACharacterSet = new boolean[128];
