@@ -8,6 +8,10 @@ trait EdifactSchemaDefs {
   val interchangeStartSegment = "UNB"
   val interchangeEndSegment = "UNZ"
 
+  val interHeadSyntaxIdentKey = "UNB0101"
+  val interHeadSyntaxVersionKey = "UNB0102"
+  val interHeadSyntaxCodeKey = "UNB0103"
+  val interHeadSyntaxEncodingKey = "UNB0104"
   val interHeadSenderIdentKey = "UNB0201"
   val interHeadSenderQualKey = "UNB0202"
   val interHeadRecipientIdentKey = "UNB0301"

@@ -11,6 +11,7 @@ import scala.util.Try
 import com.anypoint.df.edi.lexical.WriteException
 import com.anypoint.df.edi.lexical.EdifactConstants._
 import com.anypoint.df.edi.lexical.EdifactWriter
+import com.anypoint.df.edi.lexical.WriterBase
 
 /** Configuration parameters for EDIFACT schema writer.
   */
@@ -35,12 +36,12 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
 
   import EdiSchema._
   import SchemaJavaValues._
-  
+
   val schemaDefs = versions(config.version)
 
-  case class TransactionSet(val ident: String, val index: Int, val selfId: String, val partnerId: String,
-    val agencyCode: String, val versionId: String, val data: ValueMap) {
-    override def toString = s"transaction $ident at index $index"
+  case class Message(val ident: String, val index: Int, val selfId: Option[String], val partnerId: Option[String],
+    val data: ValueMap) {
+    override def toString = s"message $ident at index $index"
   }
 
   var setCount = 0
@@ -55,8 +56,18 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     }
   }
 
-  /** Output interchange trailer segment(s) and finish with stream. */
+  /** Output interchange header segment(s). */
+  def init(props: ValueMap) = {
+    props put (interHeadSyntaxIdentKey, config.syntax.code)
+    props put (interHeadSyntaxVersionKey, config.version.code)
+    // TODO: set character encoding for v4, if it doesn't match syntax
+    writer.init(props)
+    writeSegment(props, schemaDefs.segUNB)
+  }
+
+  /** Output interchange trailer segment(s). */
   def term(props: ValueMap) = {
+    writeSegment(props, schemaDefs.segUNZ)
     writer.term(props)
   }
 
@@ -92,25 +103,28 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment) = segment.ident == "ST" || segment.ident == "SE"
 
-  /** Group transaction sets into lists for one or more interchanges based on the self and partner identification
-    * information. This also verifies that the data for each transaction matches the transaction type of the containing
-    * list, and saves information in the transaction set to refer back to the position in the input data. Note that the
-    * list of transactions for each interchange is in reverse order relative to the original order of the transactions.
-    * @param transMap transaction identifiers to lists of transactions
-    * @return List(((interSelfQual, interSelf, interPartQual, interPart, interUsage), List(transSet))
+  /** Group messages into lists for one or more interchanges based on the self and partner identification
+    * information. This also verifies that the data for each message matches the message type of the containing
+    * list, and saves information in the message to refer back to the position in the input data. Note that the
+    * list of message for each interchange is in reverse order relative to the original order of the message.
+    * @param transMap message identifiers to lists of message
+    * @return List(((interSelfQual, interSelf, interPartQual, interPart, interUsage), List(Message))
     */
-  def transactionInterchanges(transMap: ValueMap) = {
-    def tupleKey(transet: TransactionSet) = try {
+  def messageInterchanges(transMap: ValueMap) = {
+    def optionalString(key: String, map: ValueMap) =
+      if (map.containsKey(key)) Some(getAsString(key, map))
+      else None
+    def tupleKey(transet: Message) = try {
       (getRequiredString(transactionInterSelfQualId, transet.data),
         getRequiredString(transactionInterSelfId, transet.data),
         getRequiredString(transactionInterPartnerQualId, transet.data),
         getRequiredString(transactionInterPartnerId, transet.data),
-        getRequiredString(transactionInterchangeUsage, transet.data))
+        optionalString(transactionInterchangeUsage, transet.data))
     } catch {
       case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
     }
     val scalaTrans = JavaConversions.mapAsScalaMap(transMap)
-    val result = scalaTrans.foldLeft(TreeMap[(String, String, String, String, String), List[TransactionSet]]()) {
+    val result = scalaTrans.foldLeft(TreeMap[(String, String, String, String, Option[String]), List[Message]]()) {
       case (acc, (transnum, transets)) => {
         val transbuff = JavaConversions.asScalaBuffer(transets.asInstanceOf[MapList])
         val sequence = (0 until transbuff.size) map { i =>
@@ -118,11 +132,9 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
           try {
             val transid = getRequiredString(transactionId, transdata)
             if (transid != transnum) throw new IllegalArgumentException(s"$transactionId value '$transid'' does not match containing type")
-            val selfid = getRequiredString(transactionGroupSelfId, transdata)
-            val partnerid = getRequiredString(transactionGroupPartnerId, transdata)
-            val agencyCode = getRequiredString(transactionGroupAgencyCode, transdata)
-            val versionid = getRequiredString(transactionGroupVersionCode, transdata)
-            TransactionSet(transnum, i, selfid, partnerid, agencyCode, versionid, transdata)
+            val selfid = optionalString(transactionGroupSelfId, transdata)
+            val partnerid = optionalString(transactionGroupPartnerId, transdata)
+            Message(transnum, i, selfid, partnerid, transdata)
           } catch {
             case e: IllegalArgumentException => logAndThrow(s"transaction $transnum at index $i ${e.getMessage}", None)
           }
@@ -137,64 +149,68 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
         })
       }
     }
-    result map { case (tupkey, translist ) => (tupkey, translist reverse)} toList
+    result map { case (tupkey, translist) => (tupkey, translist reverse) } toList
   }
 
-    /** Stores list of string values matching the simple value components. */
-    def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
-      @tailrec
-      def setr(vals: List[String], rem: List[SegmentComponent]): Unit = vals match {
-        case h :: t => if (rem.nonEmpty) {
-          if (h.size > 0) data put (rem.head.key, h)
-          setr(t, rem.tail)
-          }
-        case _ =>
+  /** Stores list of string values matching the simple value components. */
+  def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
+    @tailrec
+    def setr(vals: List[String], rem: List[SegmentComponent]): Unit = vals match {
+      case h :: t => if (rem.nonEmpty) {
+        if (h.size > 0) data put (rem.head.key, h)
+        setr(t, rem.tail)
       }
-      setr(values, comps)
+      case _ =>
     }
+    setr(values, comps)
+  }
 
   /** Write the output message. */
   def write(map: ValueMap) = Try({
-    val interchanges = transactionInterchanges(getRequiredValueMap(transactionsMap, map))
+    val interchanges = messageInterchanges(getRequiredValueMap(transactionsMap, map))
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
     interchanges foreach {
       case ((selfQual, selfId, partnerQual, partnerId, useIndicator), interlist) => {
         val interProps = new ValueMapImpl
         val context = numprov contextToken (selfId, selfQual, partnerId, partnerQual)
-        /*
-         *   val interHeadReferenceKey = "UNB05"
-  val interHeadDateKey = "UNB0601"
-  val interHeadTimeKey = "UNB0602"
-  val interHeadApplicationKey = "UNB07"
-  val interHeadPriorityKey = "UNB08"
-  val interHeadAckreqKey = "UNB09"
-  val interHeadAgreementKey = "UNB10"
-  val interHeadTestKey = "UNB11"
-         * 
-         */
-        interProps put (interHeadReferenceKey, Integer valueOf (numprov nextInterchange (context)))
+        val interref = numprov nextInterchange (context)
+        interProps put (interHeadReferenceKey, interref)
         setStrings(List(config.syntax.code, config.version.code), schemaDefs.interHeadSyntax.components, interProps)
         setStrings(List(partnerId, partnerQual), schemaDefs.interHeadSender.components, interProps)
         setStrings(List(selfId, selfQual), schemaDefs.interHeadRecipient.components, interProps)
-        val calendar = new GregorianCalendar
-        interProps put (interHeadDateKey, calendar)
-        val time = Integer.valueOf((calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000)
-        interProps put (interHeadTimeKey, time)
-        writer.init(interProps)
-        writeSegment(interProps, schemaDefs.segUNB)
+        if (!map.containsKey(interHeadDateKey)) {
+          val calendar = new GregorianCalendar
+          val date = ((calendar.get(Calendar.DAY_OF_MONTH)) * 100 + (calendar.get(Calendar.MONTH) + 1)) * 10000 + calendar.get(Calendar.YEAR)
+//          val builder = new StringBuilder
+//          builder append (WriterBase.padZeroes(calendar.get(Calendar.DAY_OF_MONTH).toString, 2))
+//          builder append (WriterBase.padZeroes((calendar.get(Calendar.MONTH) + 1).toString, 2))
+//          if (config.syntax == SyntaxVersion.VERSION4) {
+//            builder append (WriterBase.padZeroes(calendar.get(Calendar.YEAR).toString, 4))
+//          } else {
+//            builder append (WriterBase.padZeroes((calendar.get(Calendar.YEAR) % 100).toString, 2))
+//          }
+          interProps put (interHeadDateKey, Integer.valueOf(date))
+        }
+        if (!map.containsKey(interHeadTimeKey)) {
+          val calendar = new GregorianCalendar
+          val time = Integer.valueOf(calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE))
+          interProps put (interHeadTimeKey, time)
+        }
+        init(interProps)
         val groups = interlist.groupBy(transet => {
           val transdef = schema.transactions(transet.ident)
-          (transet selfId, transet partnerId, transet agencyCode, transet versionId, transdef.group.getOrElse(""))
+          (transet selfId, transet partnerId, transdef.group.getOrElse(""))
         })
         groups foreach {
-          case ((selfGroup, partnerGroup, agency, version, groupCode), grouplist) => {
+          case ((selfGroup, partnerGroup, groupCode), grouplist) => {
             grouplist foreach (transet => try {
               val transdata = transet.data
               val setProps = new ValueMapImpl
               setProps put (msgHeadReferenceKey, numprov.nextMessage(context, transet.ident, "D", schema.version, "UN"))
               setProps put (msgHeadMessageTypeKey, transet.ident)
-              setProps put (msgHeadMessageVersionKey, "D")
-              setProps put (msgHeadMessageReleaseKey, schema.version)
+              val version = schema.version.toUpperCase
+              setProps put (msgHeadMessageVersionKey, version.substring(0, 1))
+              setProps put (msgHeadMessageReleaseKey, version.substring(1))
               setProps put (msgHeadMessageAgencyKey, "UN")
               setProps put (msgHeadMessageAssignedKey, groupCode)
               if (transdata containsKey (transactionImplConventionRef)) setProps put (msgHeadImplIdentKey,
@@ -202,14 +218,18 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
               openSet(transet ident, setProps)
               writeTransaction(transdata, schema transactions (transet ident))
               closeSet(setProps)
+              setCount = setCount + 1
             } catch {
-              case e @ (_: IllegalArgumentException | _: WriteException) => {
+              case e@(_: IllegalArgumentException | _: WriteException) => {
                 logAndThrow(s"transaction ${transet ident} at index ${transet index} ${e.getMessage}", Some(e))
               }
             })
           }
         }
-        term(interProps)
+        val termprops = new ValueMapImpl
+        termprops put (interTrailReferenceKey, interref)
+        termprops put (interTrailCountKey, Integer.valueOf(setCount))
+        term(termprops)
       }
     }
     writer close

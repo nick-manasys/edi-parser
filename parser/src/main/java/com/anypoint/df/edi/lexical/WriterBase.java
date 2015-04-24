@@ -420,7 +420,7 @@ public abstract class WriterBase
      * @param value
      * @param minl
      */
-    protected String padZeroes(String value, int minl) {
+    public static String padZeroes(String value, int minl) {
         String text = value;
         boolean negate = text.startsWith("-");
         int length = text.length() - (negate ? 1 : 0);

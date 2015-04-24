@@ -16,6 +16,7 @@ import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
  */
 public class EdifactWriter extends WriterBase
 {
+    private final boolean needUna;
     private final String overrideDelimiters;
     
     /**
@@ -37,6 +38,8 @@ public class EdifactWriter extends WriterBase
             charNonBlank(delimsOrDefault(delims, version, syntax).charAt(2)),
             delimsOrDefault(delims, version, syntax).charAt(3), segsep,
             charNonBlank(delimsOrDefault(delims, version, syntax).charAt(4)), subst, mark, syntax.flags());
+        String dfltdelims = version.defaultDelimiters(syntax);
+        needUna = delims != null && !delims.equals(dfltdelims);
         overrideDelimiters = delims;
     }
     
@@ -77,7 +80,7 @@ public class EdifactWriter extends WriterBase
     public void init(Map<String, Object> props) throws IOException {
         
         // write UNA if needed
-        if (overrideDelimiters != null) {
+        if (needUna) {
             writer.write("UNA");
             writer.write(overrideDelimiters.charAt(1));
             writer.write(overrideDelimiters.charAt(0));

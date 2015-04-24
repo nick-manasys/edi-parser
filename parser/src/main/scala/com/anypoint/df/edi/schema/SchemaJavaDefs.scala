@@ -59,6 +59,9 @@ trait SchemaJavaDefs {
     }
   }
   
+  def copyIfPresent(key1: String, map1: ValueMap, key2: String, map2: ValueMap) =
+    if (map1.containsKey(key1)) map2 put (key2, map1.get(key1))
+  
   def foreachListInMap(map: ValueMap, f: MapList => Unit) = {
     val iter = map.values.iterator
     while (iter.hasNext) {

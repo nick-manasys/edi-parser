@@ -1,0 +1,2780 @@
+form: EDIFACT
+version: 'd96a'
+transactions:
+- id: 'ORDERS'
+  name: Purchase order message
+  heading:
+  - { idRef: 'BGM', position: '0020', usage: M }
+  - { idRef: 'DTM', position: '0030', usage: M, count: 35 }
+  - { idRef: 'PAI', position: '0040', usage: C }
+  - { idRef: 'ALI', position: '0050', usage: C, count: 5 }
+  - { idRef: 'IMD', position: '0060', usage: C }
+  - { idRef: 'FTX', position: '0070', usage: C, count: 99 }
+  - loopId: 'Segment group 1'
+    usage: C
+    count: 10
+    items:
+    - { idRef: 'RFF', position: '0090', usage: M }
+    - { idRef: 'DTM', position: '0100', usage: C, count: 5 }
+  - loopId: 'Segment group 2'
+    usage: C
+    count: 99
+    items:
+    - { idRef: 'NAD', position: '0120', usage: M }
+    - { idRef: 'LOC', position: '0130', usage: C, count: 25 }
+    - { idRef: 'FII', position: '0140', usage: C, count: 5 }
+    - loopId: 'Segment group 3'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'RFF', position: '0160', usage: M }
+      - { idRef: 'DTM', position: '0170', usage: C, count: 5 }
+    - loopId: 'Segment group 4'
+      usage: C
+      count: 5
+      items:
+      - { idRef: 'DOC', position: '0190', usage: M }
+      - { idRef: 'DTM', position: '0200', usage: C, count: 5 }
+    - loopId: 'Segment group 5'
+      usage: C
+      count: 5
+      items:
+      - { idRef: 'CTA', position: '0220', usage: M }
+      - { idRef: 'COM', position: '0230', usage: C, count: 5 }
+  - loopId: 'Segment group 6'
+    usage: C
+    count: 5
+    items:
+    - { idRef: 'TAX', position: '0250', usage: M }
+    - { idRef: 'MOA', position: '0260', usage: C }
+    - { idRef: 'LOC', position: '0270', usage: C, count: 5 }
+  - loopId: 'Segment group 7'
+    usage: C
+    count: 5
+    items:
+    - { idRef: 'CUX', position: '0290', usage: M }
+    - { idRef: 'PCD', position: '0300', usage: C, count: 5 }
+    - { idRef: 'DTM', position: '0310', usage: C, count: 5 }
+  - loopId: 'Segment group 8'
+    usage: C
+    count: 10
+    items:
+    - { idRef: 'PAT', position: '0330', usage: M }
+    - { idRef: 'DTM', position: '0340', usage: C, count: 5 }
+    - { idRef: 'PCD', position: '0350', usage: C }
+    - { idRef: 'MOA', position: '0360', usage: C }
+  - loopId: 'Segment group 9'
+    usage: C
+    count: 10
+    items:
+    - { idRef: 'TDT', position: '0380', usage: M }
+    - loopId: 'Segment group 10'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'LOC', position: '0400', usage: M }
+      - { idRef: 'DTM', position: '0410', usage: C, count: 5 }
+  - loopId: 'Segment group 11'
+    usage: C
+    count: 5
+    items:
+    - { idRef: 'TOD', position: '0430', usage: M }
+    - { idRef: 'LOC', position: '0440', usage: C, count: 2 }
+  - loopId: 'Segment group 12'
+    usage: C
+    count: 10
+    items:
+    - { idRef: 'PAC', position: '0460', usage: M }
+    - { idRef: 'MEA', position: '0470', usage: C, count: 5 }
+    - loopId: 'Segment group 13'
+      usage: C
+      count: 5
+      items:
+      - { idRef: 'PCI', position: '0490', usage: M }
+      - { idRef: 'RFF', position: '0500', usage: C }
+      - { idRef: 'DTM', position: '0510', usage: C, count: 5 }
+      - { idRef: 'GIN', position: '0520', usage: C, count: 10 }
+  - loopId: 'Segment group 14'
+    usage: C
+    count: 10
+    items:
+    - { idRef: 'EQD', position: '0540', usage: M }
+    - { idRef: 'HAN', position: '0550', usage: C, count: 5 }
+    - { idRef: 'MEA', position: '0560', usage: C, count: 5 }
+    - { idRef: 'FTX', position: '0570', usage: C, count: 5 }
+  - loopId: 'Segment group 15'
+    usage: C
+    count: 10
+    items:
+    - { idRef: 'SCC', position: '0590', usage: M }
+    - { idRef: 'FTX', position: '0600', usage: C, count: 5 }
+    - { idRef: 'RFF', position: '0610', usage: C, count: 5 }
+    - loopId: 'Segment group 16'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'QTY', position: '0630', usage: M }
+      - { idRef: 'DTM', position: '0640', usage: C, count: 5 }
+  - loopId: 'Segment group 17'
+    usage: C
+    count: 25
+    items:
+    - { idRef: 'APR', position: '0660', usage: M }
+    - { idRef: 'DTM', position: '0670', usage: C, count: 5 }
+    - { idRef: 'RNG', position: '0680', usage: C }
+  - loopId: 'Segment group 18'
+    usage: C
+    count: 15
+    items:
+    - { idRef: 'ALC', position: '0700', usage: M }
+    - { idRef: 'ALI', position: '0710', usage: C, count: 5 }
+    - { idRef: 'DTM', position: '0720', usage: C, count: 5 }
+    - loopId: 'Segment group 19'
+      usage: C
+      items:
+      - { idRef: 'QTY', position: '0740', usage: M }
+      - { idRef: 'RNG', position: '0750', usage: C }
+    - loopId: 'Segment group 20'
+      usage: C
+      items:
+      - { idRef: 'PCD', position: '0770', usage: M }
+      - { idRef: 'RNG', position: '0780', usage: C }
+    - loopId: 'Segment group 21'
+      usage: C
+      count: 2
+      items:
+      - { idRef: 'MOA', position: '0800', usage: M }
+      - { idRef: 'RNG', position: '0810', usage: C }
+    - loopId: 'Segment group 22'
+      usage: C
+      items:
+      - { idRef: 'RTE', position: '0830', usage: M }
+      - { idRef: 'RNG', position: '0840', usage: C }
+    - loopId: 'Segment group 23'
+      usage: C
+      count: 5
+      items:
+      - { idRef: 'TAX', position: '0860', usage: M }
+      - { idRef: 'MOA', position: '0870', usage: C }
+  - loopId: 'Segment group 24'
+    usage: C
+    count: 100
+    items:
+    - { idRef: 'RCS', position: '0890', usage: M }
+    - { idRef: 'RFF', position: '0900', usage: C, count: 5 }
+    - { idRef: 'DTM', position: '0910', usage: C, count: 5 }
+    - { idRef: 'FTX', position: '0920', usage: C, count: 5 }
+  detail:
+  - loopId: 'Segment group 25'
+    usage: C
+    count: 200000
+    items:
+    - { idRef: 'LIN', position: '0940', usage: M }
+    - { idRef: 'PIA', position: '0950', usage: C, count: 25 }
+    - { idRef: 'IMD', position: '0960', usage: C, count: 99 }
+    - { idRef: 'MEA', position: '0970', usage: C, count: 5 }
+    - { idRef: 'QTY', position: '0980', usage: C, count: 10 }
+    - { idRef: 'PCD', position: '0990', usage: C, count: 5 }
+    - { idRef: 'ALI', position: '1000', usage: C, count: 5 }
+    - { idRef: 'DTM', position: '1010', usage: C, count: 35 }
+    - { idRef: 'MOA', position: '1020', usage: C, count: 10 }
+    - { idRef: 'GIN', position: '1030', usage: C, count: 1000 }
+    - { idRef: 'GIR', position: '1040', usage: C, count: 1000 }
+    - { idRef: 'QVR', position: '1050', usage: C }
+    - { idRef: 'DOC', position: '1060', usage: C, count: 5 }
+    - { idRef: 'PAI', position: '1070', usage: C }
+    - { idRef: 'FTX', position: '1080', usage: C, count: 99 }
+    - loopId: 'Segment group 26'
+      usage: C
+      count: 999
+      items:
+      - { idRef: 'CCI', position: '1100', usage: M }
+      - { idRef: 'CAV', position: '1110', usage: C, count: 10 }
+      - { idRef: 'MEA', position: '1120', usage: C, count: 10 }
+    - loopId: 'Segment group 27'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'PAT', position: '1140', usage: M }
+      - { idRef: 'DTM', position: '1150', usage: C, count: 5 }
+      - { idRef: 'PCD', position: '1160', usage: C }
+      - { idRef: 'MOA', position: '1170', usage: C }
+    - loopId: 'Segment group 28'
+      usage: C
+      count: 25
+      items:
+      - { idRef: 'PRI', position: '1190', usage: M }
+      - { idRef: 'CUX', position: '1200', usage: C }
+      - { idRef: 'APR', position: '1210', usage: C }
+      - { idRef: 'RNG', position: '1220', usage: C }
+      - { idRef: 'DTM', position: '1230', usage: C, count: 5 }
+    - loopId: 'Segment group 29'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'RFF', position: '1250', usage: M }
+      - { idRef: 'DTM', position: '1260', usage: C, count: 5 }
+    - loopId: 'Segment group 30'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'PAC', position: '1280', usage: M }
+      - { idRef: 'MEA', position: '1290', usage: C, count: 5 }
+      - { idRef: 'QTY', position: '1300', usage: C, count: 5 }
+      - { idRef: 'DTM', position: '1310', usage: C, count: 5 }
+      - loopId: 'Segment group 31'
+        usage: C
+        items:
+        - { idRef: 'RFF', position: '1330', usage: M }
+        - { idRef: 'DTM', position: '1340', usage: C, count: 5 }
+      - loopId: 'Segment group 32'
+        usage: C
+        count: 5
+        items:
+        - { idRef: 'PCI', position: '1360', usage: M }
+        - { idRef: 'RFF', position: '1370', usage: C }
+        - { idRef: 'DTM', position: '1380', usage: C, count: 5 }
+        - { idRef: 'GIN', position: '1390', usage: C, count: 10 }
+    - loopId: 'Segment group 33'
+      usage: C
+      count: 9999
+      items:
+      - { idRef: 'LOC', position: '1410', usage: M }
+      - { idRef: 'QTY', position: '1420', usage: C }
+      - { idRef: 'DTM', position: '1430', usage: C, count: 5 }
+    - loopId: 'Segment group 34'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'TAX', position: '1450', usage: M }
+      - { idRef: 'MOA', position: '1460', usage: C }
+      - { idRef: 'LOC', position: '1470', usage: C, count: 5 }
+    - loopId: 'Segment group 35'
+      usage: C
+      count: 99
+      items:
+      - { idRef: 'NAD', position: '1490', usage: M }
+      - { idRef: 'LOC', position: '1500', usage: C, count: 5 }
+      - loopId: 'Segment group 36'
+        usage: C
+        count: 5
+        items:
+        - { idRef: 'RFF', position: '1520', usage: M }
+        - { idRef: 'DTM', position: '1530', usage: C, count: 5 }
+      - loopId: 'Segment group 37'
+        usage: C
+        count: 5
+        items:
+        - { idRef: 'DOC', position: '1550', usage: M }
+        - { idRef: 'DTM', position: '1560', usage: C, count: 5 }
+      - loopId: 'Segment group 38'
+        usage: C
+        count: 5
+        items:
+        - { idRef: 'CTA', position: '1580', usage: M }
+        - { idRef: 'COM', position: '1590', usage: C, count: 5 }
+    - loopId: 'Segment group 39'
+      usage: C
+      count: 99
+      items:
+      - { idRef: 'ALC', position: '1610', usage: M }
+      - { idRef: 'ALI', position: '1620', usage: C, count: 5 }
+      - { idRef: 'DTM', position: '1630', usage: C, count: 5 }
+      - loopId: 'Segment group 40'
+        usage: C
+        items:
+        - { idRef: 'QTY', position: '1650', usage: M }
+        - { idRef: 'RNG', position: '1660', usage: C }
+      - loopId: 'Segment group 41'
+        usage: C
+        items:
+        - { idRef: 'PCD', position: '1680', usage: M }
+        - { idRef: 'RNG', position: '1690', usage: C }
+      - loopId: 'Segment group 42'
+        usage: C
+        count: 2
+        items:
+        - { idRef: 'MOA', position: '1710', usage: M }
+        - { idRef: 'RNG', position: '1720', usage: C }
+      - loopId: 'Segment group 43'
+        usage: C
+        items:
+        - { idRef: 'RTE', position: '1740', usage: M }
+        - { idRef: 'RNG', position: '1750', usage: C }
+      - loopId: 'Segment group 44'
+        usage: C
+        count: 5
+        items:
+        - { idRef: 'TAX', position: '1770', usage: M }
+        - { idRef: 'MOA', position: '1780', usage: C }
+    - loopId: 'Segment group 45'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'TDT', position: '1800', usage: M }
+      - loopId: 'Segment group 46'
+        usage: C
+        count: 10
+        items:
+        - { idRef: 'LOC', position: '1820', usage: M }
+        - { idRef: 'DTM', position: '1830', usage: C, count: 5 }
+    - loopId: 'Segment group 47'
+      usage: C
+      count: 5
+      items:
+      - { idRef: 'TOD', position: '1850', usage: M }
+      - { idRef: 'LOC', position: '1860', usage: C, count: 2 }
+    - loopId: 'Segment group 48'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'EQD', position: '1880', usage: M }
+      - { idRef: 'HAN', position: '1890', usage: C, count: 5 }
+      - { idRef: 'MEA', position: '1900', usage: C, count: 5 }
+      - { idRef: 'FTX', position: '1910', usage: C, count: 5 }
+    - loopId: 'Segment group 49'
+      usage: C
+      count: 100
+      items:
+      - { idRef: 'SCC', position: '1930', usage: M }
+      - { idRef: 'FTX', position: '1940', usage: C, count: 5 }
+      - { idRef: 'RFF', position: '1950', usage: C, count: 5 }
+      - loopId: 'Segment group 50'
+        usage: C
+        count: 10
+        items:
+        - { idRef: 'QTY', position: '1970', usage: M }
+        - { idRef: 'DTM', position: '1980', usage: C, count: 5 }
+    - loopId: 'Segment group 51'
+      usage: C
+      count: 100
+      items:
+      - { idRef: 'RCS', position: '2000', usage: M }
+      - { idRef: 'RFF', position: '2010', usage: C, count: 5 }
+      - { idRef: 'DTM', position: '2020', usage: C, count: 5 }
+      - { idRef: 'FTX', position: '2030', usage: C, count: 5 }
+    - loopId: 'Segment group 52'
+      usage: C
+      count: 10
+      items:
+      - { idRef: 'STG', position: '2050', usage: M }
+      - loopId: 'Segment group 53'
+        usage: C
+        count: 3
+        items:
+        - { idRef: 'QTY', position: '2070', usage: M }
+        - { idRef: 'MOA', position: '2080', usage: C }
+  summary:
+  - { idRef: 'MOA', position: '2100', usage: C, count: 12 }
+  - { idRef: 'CNT', position: '2110', usage: C, count: 10 }
+  - loopId: 'Segment group 54'
+    usage: C
+    count: 10
+    items:
+    - { idRef: 'ALC', position: '2130', usage: M }
+    - { idRef: 'ALI', position: '2140', usage: C }
+    - { idRef: 'MOA', position: '2150', usage: M, count: 2 }
+segments:
+- id: 'ADR'
+  name: ADDRESS
+  values:
+  - { idRef: 'C817', position: 10, usage: C }
+  - { idRef: 'C090', position: 20, usage: C }
+  - { idRef: '3164', name: 'CITY NAME', position: 30, usage: C }
+  - { idRef: '3251', name: 'POSTCODE IDENTIFICATION', position: 40, usage: C }
+  - { idRef: '3207', name: 'COUNTRY, CODED', position: 50, usage: C }
+  - { idRef: 'C819', position: 60, usage: C }
+  - { idRef: 'C517', position: 70, usage: C }
+- id: 'AGR'
+  name: AGREEMENT IDENTIFICATION
+  values:
+  - { idRef: 'C543', position: 10, usage: C }
+  - { idRef: '9419', name: 'SERVICE LAYER, CODED', position: 20, usage: C }
+- id: 'AJT'
+  name: ADJUSTMENT DETAILS
+  values:
+  - { idRef: '4465', name: 'ADJUSTMENT REASON, CODED', position: 10, usage: M }
+  - { idRef: '1082', name: 'LINE ITEM NUMBER', position: 20, usage: C }
+- id: 'ALC'
+  name: ALLOWANCE OR CHARGE
+  values:
+  - { idRef: '5463', name: 'ALLOWANCE OR CHARGE QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C552', position: 20, usage: C }
+  - { idRef: '4471', name: 'SETTLEMENT, CODED', position: 30, usage: C }
+  - { idRef: '1227', name: 'CALCULATION SEQUENCE INDICATOR, CODED', position: 40, usage: C }
+  - { idRef: 'C214', position: 50, usage: C }
+- id: 'ALI'
+  name: ADDITIONAL INFORMATION
+  values:
+  - { idRef: '3239', name: 'COUNTRY OF ORIGIN, CODED', position: 10, usage: C }
+  - { idRef: '9213', name: 'TYPE OF DUTY REGIME, CODED', position: 20, usage: C }
+  - { idRef: '4183', name: 'SPECIAL CONDITIONS, CODED', position: 30, usage: C }
+  - { idRef: '4183', name: 'SPECIAL CONDITIONS, CODED', position: 40, usage: C }
+  - { idRef: '4183', name: 'SPECIAL CONDITIONS, CODED', position: 50, usage: C }
+  - { idRef: '4183', name: 'SPECIAL CONDITIONS, CODED', position: 60, usage: C }
+  - { idRef: '4183', name: 'SPECIAL CONDITIONS, CODED', position: 70, usage: C }
+- id: 'APR'
+  name: ADDITIONAL PRICE INFORMATION
+  values:
+  - { idRef: '4043', name: 'CLASS OF TRADE, CODED', position: 10, usage: C }
+  - { idRef: 'C138', position: 20, usage: C }
+  - { idRef: 'C960', position: 30, usage: C }
+- id: 'ARD'
+  name: AMOUNTS RELATIONSHIP DETAILS
+  values:
+  - { idRef: 'C549', position: 10, usage: C }
+- id: 'ARR'
+  name: ARRAY INFORMATION
+  values:
+  - { idRef: 'C778', position: 10, usage: C }
+  - { idRef: 'C770', position: 20, usage: C }
+- id: 'ASI'
+  name: ARRAY STRUCTURE IDENTIFICATION
+  values:
+  - { idRef: 'C779', position: 10, usage: M }
+  - { idRef: 'C082', position: 20, usage: C }
+  - { idRef: '4405', name: 'STATUS, CODED', position: 30, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 40, usage: C }
+- id: 'ATT'
+  name: ATTRIBUTE
+  values:
+  - { idRef: '9017', name: 'ATTRIBUTE FUNCTION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C955', position: 20, usage: C }
+  - { idRef: 'C956', position: 30, usage: C }
+- id: 'AUT'
+  name: AUTHENTICATION RESULT
+  values:
+  - { idRef: '9280', name: 'VALIDATION RESULT', position: 10, usage: M }
+  - { idRef: '9282', name: 'VALIDATION KEY IDENTIFICATION', position: 20, usage: C }
+- id: 'BGM'
+  name: BEGINNING OF MESSAGE
+  values:
+  - { idRef: 'C002', position: 10, usage: C }
+  - { idRef: '1004', name: 'DOCUMENT/MESSAGE NUMBER', position: 20, usage: C }
+  - { idRef: '1225', name: 'MESSAGE FUNCTION, CODED', position: 30, usage: C }
+  - { idRef: '4343', name: 'RESPONSE TYPE, CODED', position: 40, usage: C }
+- id: 'BII'
+  name: STRUCTURE IDENTIFICATION
+  values:
+  - { idRef: '7429', name: 'INDEXING STRUCTURE QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C045', position: 20, usage: M }
+  - { idRef: '7140', name: 'ITEM NUMBER', position: 30, usage: C }
+- id: 'BUS'
+  name: BUSINESS FUNCTION
+  values:
+  - { idRef: 'C521', position: 10, usage: C }
+  - { idRef: '3279', name: 'GEOGRAPHIC ENVIRONMENT, CODED', position: 20, usage: C }
+  - { idRef: '4487', name: 'TYPE OF FINANCIAL TRANSACTION, CODED', position: 30, usage: C }
+  - { idRef: 'C551', position: 40, usage: C }
+  - { idRef: '4463', name: 'INTRA-COMPANY PAYMENT, CODED', position: 50, usage: C }
+- id: 'CAV'
+  name: CHARACTERISTIC VALUE
+  values:
+  - { idRef: 'C889', position: 10, usage: M }
+- id: 'CCD'
+  name: CREDIT COVER DETAILS
+  values:
+  - { idRef: '4505', name: 'CREDIT COVER REQUEST, CODED', position: 10, usage: C }
+  - { idRef: '4507', name: 'CREDIT COVER RESPONSE, CODED', position: 20, usage: C }
+  - { idRef: '4509', name: 'CREDIT COVER REASON, CODED', position: 30, usage: C }
+- id: 'CCI'
+  name: CHARACTERISTIC/CLASS ID
+  values:
+  - { idRef: '7059', name: 'PROPERTY CLASS, CODED', position: 10, usage: C }
+  - { idRef: 'C502', position: 20, usage: C }
+  - { idRef: 'C240', position: 30, usage: C }
+- id: 'CDI'
+  name: PHYSICAL OR LOGICAL STATE
+  values:
+  - { idRef: '7001', name: 'PHYSICAL OR LOGICAL STATE QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C564', position: 20, usage: M }
+- id: 'CDS'
+  name: CODE SET IDENTIFICATION
+  values:
+  - { idRef: 'C702', position: 10, usage: M }
+  - { idRef: '1507', name: 'CLASS DESIGNATOR, CODED', position: 20, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 30, usage: C }
+- id: 'CDV'
+  name: CODE VALUE DEFINITION
+  values:
+  - { idRef: '9426', name: 'CODE VALUE', position: 10, usage: M }
+  - { idRef: '9434', name: 'CODE NAME', position: 20, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 30, usage: C }
+- id: 'CED'
+  name: COMPUTER ENVIRONMENT DETAILS
+  values:
+  - { idRef: '1501', name: 'COMPUTER ENVIRONMENT DETAILS QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C079', position: 20, usage: M }
+- id: 'CMP'
+  name: COMPOSITE DATA ELEMENT IDENTIFICATION
+  values:
+  - { idRef: '9146', name: 'COMPOSITE DATA ELEMENT TAG', position: 10, usage: M }
+  - { idRef: '1507', name: 'CLASS DESIGNATOR, CODED', position: 20, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 30, usage: C }
+- id: 'CNI'
+  name: CONSIGNMENT INFORMATION
+  values:
+  - { idRef: '1490', name: 'CONSOLIDATION ITEM NUMBER', position: 10, usage: C }
+  - { idRef: 'C503', position: 20, usage: C }
+  - { idRef: '1312', name: 'CONSIGNMENT LOAD SEQUENCE NUMBER', position: 30, usage: C }
+- id: 'CNT'
+  name: CONTROL TOTAL
+  values:
+  - { idRef: 'C270', position: 10, usage: M }
+- id: 'COD'
+  name: COMPONENT DETAILS
+  values:
+  - { idRef: 'C823', position: 10, usage: C }
+  - { idRef: 'C824', position: 20, usage: C }
+- id: 'COM'
+  name: COMMUNICATION CONTACT
+  values:
+  - { idRef: 'C076', position: 10, usage: M }
+- id: 'COT'
+  name: CONTRIBUTION DETAILS
+  values:
+  - { idRef: '5047', name: 'CONTRIBUTION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C953', position: 20, usage: C }
+  - { idRef: 'C522', position: 30, usage: C }
+  - { idRef: 'C203', position: 40, usage: C }
+  - { idRef: 'C960', position: 50, usage: C }
+- id: 'CPI'
+  name: CHARGE PAYMENT INSTRUCTIONS
+  values:
+  - { idRef: 'C229', position: 10, usage: C }
+  - { idRef: 'C231', position: 20, usage: C }
+  - { idRef: '4237', name: 'PREPAID/COLLECT INDICATOR, CODED', position: 30, usage: C }
+- id: 'CPS'
+  name: CONSIGNMENT PACKING SEQUENCE
+  values:
+  - { idRef: '7164', name: 'HIERARCHICAL ID. NUMBER', position: 10, usage: M }
+  - { idRef: '7166', name: 'HIERARCHICAL PARENT ID.', position: 20, usage: C }
+  - { idRef: '7075', name: 'PACKAGING LEVEL, CODED', position: 30, usage: C }
+- id: 'CST'
+  name: CUSTOMS STATUS OF GOODS
+  values:
+  - { idRef: '1496', name: 'GOODS ITEM NUMBER', position: 10, usage: C }
+  - { idRef: 'C246', position: 20, usage: C }
+  - { idRef: 'C246', position: 30, usage: C }
+  - { idRef: 'C246', position: 40, usage: C }
+  - { idRef: 'C246', position: 50, usage: C }
+  - { idRef: 'C246', position: 60, usage: C }
+- id: 'CTA'
+  name: CONTACT INFORMATION
+  values:
+  - { idRef: '3139', name: 'CONTACT FUNCTION, CODED', position: 10, usage: C }
+  - { idRef: 'C056', position: 20, usage: C }
+- id: 'CUX'
+  name: CURRENCIES
+  values:
+  - { idRef: 'C504', position: 10, usage: C }
+  - { idRef: 'C504', position: 20, usage: C }
+  - { idRef: '5402', name: 'RATE OF EXCHANGE', position: 30, usage: C }
+  - { idRef: '6341', name: 'CURRENCY MARKET EXCHANGE, CODED', position: 40, usage: C }
+- id: 'DAM'
+  name: DAMAGE
+  values:
+  - { idRef: '7493', name: 'DAMAGE DETAILS QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C821', position: 20, usage: C }
+  - { idRef: 'C822', position: 30, usage: C }
+  - { idRef: 'C825', position: 40, usage: C }
+  - { idRef: 'C826', position: 50, usage: C }
+- id: 'DGS'
+  name: DANGEROUS GOODS
+  values:
+  - { idRef: '8273', name: 'DANGEROUS GOODS REGULATIONS, CODED', position: 10, usage: C }
+  - { idRef: 'C205', position: 20, usage: C }
+  - { idRef: 'C234', position: 30, usage: C }
+  - { idRef: 'C223', position: 40, usage: C }
+  - { idRef: '8339', name: 'PACKING GROUP, CODED', position: 50, usage: C }
+  - { idRef: '8364', name: 'EMS NUMBER', position: 60, usage: C }
+  - { idRef: '8410', position: 70, usage: C }
+  - { idRef: '8126', name: 'TREM CARD NUMBER', position: 80, usage: C }
+  - { idRef: 'C235', position: 90, usage: C }
+  - { idRef: 'C236', position: 100, usage: C }
+  - { idRef: '8255', name: 'PACKING INSTRUCTION, CODED', position: 110, usage: C }
+  - { idRef: '8325', name: 'CATEGORY OF MEANS OF TRANSPORT, CODED', position: 120, usage: C }
+  - { idRef: '8211', name: 'PERMISSION FOR TRANSPORT, CODED', position: 130, usage: C }
+- id: 'DII'
+  name: DIRECTORY IDENTIFICATION
+  values:
+  - { idRef: '1056', name: 'VERSION', position: 10, usage: M }
+  - { idRef: '1058', name: 'RELEASE', position: 20, usage: M }
+  - { idRef: '9148', name: 'DIRECTORY STATUS', position: 30, usage: C }
+  - { idRef: '1476', name: 'CONTROL AGENCY', position: 40, usage: C }
+  - { idRef: '3453', name: 'LANGUAGE, CODED', position: 50, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 60, usage: C }
+- id: 'DIM'
+  name: DIMENSIONS
+  values:
+  - { idRef: '6145', name: 'DIMENSION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C211', position: 20, usage: M }
+- id: 'DLI'
+  name: DOCUMENT LINE IDENTIFICATION
+  values:
+  - { idRef: '1073', name: 'DOCUMENT LINE INDICATOR, CODED', position: 10, usage: M }
+  - { idRef: '1082', name: 'LINE ITEM NUMBER', position: 20, usage: M }
+- id: 'DLM'
+  name: DELIVERY LIMITATIONS
+  values:
+  - { idRef: '4455', name: 'BACK ORDER, CODED', position: 10, usage: C }
+  - { idRef: 'C522', position: 20, usage: C }
+  - { idRef: 'C214', position: 30, usage: C }
+  - { idRef: '4457', name: 'PRODUCT/SERVICE SUBSTITUTION, CODED', position: 40, usage: C }
+- id: 'DMS'
+  name: DOCUMENT/MESSAGE SUMMARY
+  values:
+  - { idRef: '1004', name: 'DOCUMENT/MESSAGE NUMBER', position: 10, usage: C }
+  - { idRef: '1001', name: 'DOCUMENT/MESSAGE NAME, CODED', position: 20, usage: C }
+  - { idRef: '7240', name: 'TOTAL NUMBER OF ITEMS', position: 30, usage: C }
+- id: 'DOC'
+  name: DOCUMENT/MESSAGE DETAILS
+  values:
+  - { idRef: 'C002', position: 10, usage: M }
+  - { idRef: 'C503', position: 20, usage: C }
+  - { idRef: '3153', name: 'COMMUNICATION CHANNEL IDENTIFIER, CODED', position: 30, usage: C }
+  - { idRef: '1220', name: 'NUMBER OF COPIES OF DOCUMENT REQUIRED', position: 40, usage: C }
+  - { idRef: '1218', name: 'NUMBER OF ORIGINALS OF DOCUMENT REQUIRED', position: 50, usage: C }
+- id: 'DSI'
+  name: DATA SET IDENTIFICATION
+  values:
+  - { idRef: 'C782', position: 10, usage: M }
+  - { idRef: 'C082', position: 20, usage: C }
+  - { idRef: '4405', name: 'STATUS, CODED', position: 30, usage: C }
+  - { idRef: 'C286', position: 40, usage: C }
+  - { idRef: '1060', name: 'REVISION NUMBER', position: 50, usage: C }
+- id: 'DTM'
+  name: DATE/TIME/PERIOD
+  values:
+  - { idRef: 'C507', position: 10, usage: M }
+- id: 'EFI'
+  name: EXTERNAL FILE LINK IDENTIFICATION
+  values:
+  - { idRef: 'C077', position: 10, usage: M }
+  - { idRef: 'C099', position: 20, usage: C }
+  - { idRef: '1050', name: 'SEQUENCE NUMBER', position: 30, usage: C }
+- id: 'ELM'
+  name: SIMPLE DATA ELEMENT DETAILS
+  values:
+  - { idRef: '9150', name: 'SIMPLE DATA ELEMENT TAG', position: 10, usage: M }
+  - { idRef: '9153', name: 'SIMPLE DATA ELEMENT CHARACTER REPRESENTATION, CODED', position: 20, usage: C }
+  - { idRef: '9155', name: 'SIMPLE DATA ELEMENT LENGTH TYPE, CODED', position: 30, usage: C }
+  - { idRef: '9156', name: 'SIMPLE DATA ELEMENT MAXIMUM LENGTH', position: 40, usage: C }
+  - { idRef: '9158', name: 'SIMPLE DATA ELEMENT MINIMUM LENGTH', position: 50, usage: C }
+  - { idRef: '9161', name: 'CODE SET INDICATOR, CODED', position: 60, usage: C }
+  - { idRef: '1507', name: 'CLASS DESIGNATOR, CODED', position: 70, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 80, usage: C }
+- id: 'ELU'
+  name: DATA ELEMENT USAGE DETAILS
+  values:
+  - { idRef: '9162', name: 'DATA ELEMENT TAG', position: 10, usage: M }
+  - { idRef: '7299', name: 'REQUIREMENT DESIGNATOR, CODED', position: 20, usage: C }
+  - { idRef: '1050', name: 'SEQUENCE NUMBER', position: 30, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 40, usage: C }
+- id: 'EMP'
+  name: EMPLOYMENT DETAILS
+  values:
+  - { idRef: '9003', name: 'EMPLOYMENT QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C948', position: 20, usage: C }
+  - { idRef: 'C951', position: 30, usage: C }
+  - { idRef: 'C950', position: 40, usage: C }
+  - { idRef: '3494', name: 'JOB TITLE', position: 50, usage: C }
+  - { idRef: '9035', name: 'QUALIFICATION AREA, CODED', position: 60, usage: C }
+- id: 'EQA'
+  name: ATTACHED EQUIPMENT
+  values:
+  - { idRef: '8053', name: 'EQUIPMENT QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C237', position: 20, usage: C }
+- id: 'EQD'
+  name: EQUIPMENT DETAILS
+  values:
+  - { idRef: '8053', name: 'EQUIPMENT QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C237', position: 20, usage: C }
+  - { idRef: 'C224', position: 30, usage: C }
+  - { idRef: '8077', name: 'EQUIPMENT SUPPLIER, CODED', position: 40, usage: C }
+  - { idRef: '8249', name: 'EQUIPMENT STATUS, CODED', position: 50, usage: C }
+  - { idRef: '8169', name: 'FULL/EMPTY INDICATOR, CODED', position: 60, usage: C }
+- id: 'EQN'
+  name: NUMBER OF UNITS
+  values:
+  - { idRef: 'C523', position: 10, usage: M }
+- id: 'ERC'
+  name: APPLICATION ERROR INFORMATION
+  values:
+  - { idRef: 'C901', position: 10, usage: M }
+- id: 'ERP'
+  name: ERROR POINT DETAILS
+  values:
+  - { idRef: 'C701', position: 10, usage: M }
+- id: 'FCA'
+  name: FINANCIAL CHARGES ALLOCATION
+  values:
+  - { idRef: '4471', name: 'SETTLEMENT, CODED', position: 10, usage: M }
+  - { idRef: 'C878', position: 20, usage: C }
+- id: 'FII'
+  name: FINANCIAL INSTITUTION INFORMATION
+  values:
+  - { idRef: '3035', name: 'PARTY QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C078', position: 20, usage: C }
+  - { idRef: 'C088', position: 30, usage: C }
+  - { idRef: '3207', name: 'COUNTRY, CODED', position: 40, usage: C }
+- id: 'FNS'
+  name: FOOTNOTE SET
+  values:
+  - { idRef: 'C783', position: 10, usage: M }
+  - { idRef: 'C082', position: 20, usage: C }
+  - { idRef: '4405', name: 'STATUS, CODED', position: 30, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 40, usage: C }
+- id: 'FNT'
+  name: FOOTNOTE
+  values:
+  - { idRef: 'C784', position: 10, usage: M }
+  - { idRef: 'C082', position: 20, usage: C }
+  - { idRef: '4405', name: 'STATUS, CODED', position: 30, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 40, usage: C }
+- id: 'FTX'
+  name: FREE TEXT
+  values:
+  - { idRef: '4451', name: 'TEXT SUBJECT QUALIFIER', position: 10, usage: M }
+  - { idRef: '4453', name: 'TEXT FUNCTION, CODED', position: 20, usage: C }
+  - { idRef: 'C107', position: 30, usage: C }
+  - { idRef: 'C108', position: 40, usage: C }
+  - { idRef: '3453', name: 'LANGUAGE, CODED', position: 50, usage: C }
+- id: 'GDS'
+  name: NATURE OF CARGO
+  values:
+  - { idRef: 'C703', position: 10, usage: C }
+- id: 'GID'
+  name: GOODS ITEM DETAILS
+  values:
+  - { idRef: '1496', name: 'GOODS ITEM NUMBER', position: 10, usage: C }
+  - { idRef: 'C213', position: 20, usage: C }
+  - { idRef: 'C213', position: 30, usage: C }
+  - { idRef: 'C213', position: 40, usage: C }
+- id: 'GIN'
+  name: GOODS IDENTITY NUMBER
+  values:
+  - { idRef: '7405', name: 'IDENTITY NUMBER QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C208', position: 20, usage: M }
+  - { idRef: 'C208', position: 30, usage: C }
+  - { idRef: 'C208', position: 40, usage: C }
+  - { idRef: 'C208', position: 50, usage: C }
+  - { idRef: 'C208', position: 60, usage: C }
+- id: 'GIR'
+  name: RELATED IDENTIFICATION NUMBERS
+  values:
+  - { idRef: '7297', name: 'SET IDENTIFICATION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C206', position: 20, usage: M }
+  - { idRef: 'C206', position: 30, usage: C }
+  - { idRef: 'C206', position: 40, usage: C }
+  - { idRef: 'C206', position: 50, usage: C }
+  - { idRef: 'C206', position: 60, usage: C }
+- id: 'GIS'
+  name: GENERAL INDICATOR
+  values:
+  - { idRef: 'C529', position: 10, usage: M }
+- id: 'GOR'
+  name: GOVERNMENTAL REQUIREMENTS
+  values:
+  - { idRef: '8323', name: 'TRANSPORT MOVEMENT, CODED', position: 10, usage: C }
+  - { idRef: 'C232', position: 20, usage: C }
+  - { idRef: 'C232', position: 30, usage: C }
+  - { idRef: 'C232', position: 40, usage: C }
+  - { idRef: 'C232', position: 50, usage: C }
+- id: 'GRU'
+  name: SEGMENT GROUP USAGE DETAILS
+  values:
+  - { idRef: '9164', name: 'GROUP IDENTIFICATION', position: 10, usage: M }
+  - { idRef: '7299', name: 'REQUIREMENT DESIGNATOR, CODED', position: 20, usage: C }
+  - { idRef: '6176', name: 'MAXIMUM NUMBER OF OCCURRENCES', position: 30, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 40, usage: C }
+  - { idRef: '1050', name: 'SEQUENCE NUMBER', position: 50, usage: C }
+- id: 'HAN'
+  name: HANDLING INSTRUCTIONS
+  values:
+  - { idRef: 'C524', position: 10, usage: C }
+  - { idRef: 'C218', position: 20, usage: C }
+- id: 'ICD'
+  name: INSURANCE COVER DESCRIPTION
+  values:
+  - { idRef: 'C330', position: 10, usage: M }
+  - { idRef: 'C331', position: 20, usage: M }
+- id: 'IDE'
+  name: IDENTITY
+  values:
+  - { idRef: '7495', name: 'IDENTIFICATION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C206', position: 20, usage: M }
+  - { idRef: 'C082', position: 30, usage: C }
+  - { idRef: '4405', name: 'STATUS, CODED', position: 40, usage: C }
+  - { idRef: '1222', name: 'CONFIGURATION LEVEL', position: 50, usage: C }
+  - { idRef: 'C778', position: 60, usage: C }
+  - { idRef: 'C240', position: 70, usage: C }
+- id: 'IHC'
+  name: PERSON CHARACTERISTIC
+  values:
+  - { idRef: '3289', name: 'PERSON CHARACTERISTIC QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C818', position: 20, usage: C }
+- id: 'IMD'
+  name: ITEM DESCRIPTION
+  values:
+  - { idRef: '7077', name: 'ITEM DESCRIPTION TYPE, CODED', position: 10, usage: C }
+  - { idRef: '7081', name: 'ITEM CHARACTERISTIC, CODED', position: 20, usage: C }
+  - { idRef: 'C273', position: 30, usage: C }
+  - { idRef: '7383', name: 'SURFACE/LAYER INDICATOR, CODED', position: 40, usage: C }
+- id: 'IND'
+  name: INDEX DETAILS
+  values:
+  - { idRef: 'C545', position: 10, usage: C }
+  - { idRef: 'C546', position: 20, usage: C }
+- id: 'INP'
+  name: PARTIES TO INSTRUCTION
+  values:
+  - { idRef: 'C849', position: 10, usage: C }
+  - { idRef: 'C522', position: 20, usage: C }
+  - { idRef: 'C850', position: 30, usage: C }
+  - { idRef: '1229', name: 'ACTION REQUEST/NOTIFICATION, CODED', position: 40, usage: C }
+- id: 'INV'
+  name: INVENTORY MANAGEMENT RELATED DETAILS
+  values:
+  - { idRef: '4501', name: 'INVENTORY MOVEMENT DIRECTION, CODED', position: 10, usage: C }
+  - { idRef: '7491', name: 'TYPE OF INVENTORY AFFECTED, CODED', position: 20, usage: C }
+  - { idRef: '4499', name: 'REASON FOR INVENTORY MOVEMENT, CODED', position: 30, usage: C }
+  - { idRef: '4503', name: 'INVENTORY BALANCE METHOD, CODED', position: 40, usage: C }
+  - { idRef: 'C522', position: 50, usage: C }
+- id: 'IRQ'
+  name: INFORMATION REQUIRED
+  values:
+  - { idRef: 'C333', position: 10, usage: M }
+- id: 'LAN'
+  name: LANGUAGE
+  values:
+  - { idRef: '3455', name: 'LANGUAGE QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C508', position: 20, usage: C }
+- id: 'LIN'
+  name: LINE ITEM
+  values:
+  - { idRef: '1082', name: 'LINE ITEM NUMBER', position: 10, usage: C }
+  - { idRef: '1229', name: 'ACTION REQUEST/NOTIFICATION, CODED', position: 20, usage: C }
+  - { idRef: 'C212', position: 30, usage: C }
+  - { idRef: 'C829', position: 40, usage: C }
+  - { idRef: '1222', name: 'CONFIGURATION LEVEL', position: 50, usage: C }
+  - { idRef: '7083', name: 'CONFIGURATION, CODED', position: 60, usage: C }
+- id: 'LOC'
+  name: PLACE/LOCATION IDENTIFICATION
+  values:
+  - { idRef: '3227', name: 'PLACE/LOCATION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C517', position: 20, usage: C }
+  - { idRef: 'C519', position: 30, usage: C }
+  - { idRef: 'C553', position: 40, usage: C }
+  - { idRef: '5479', name: 'RELATION, CODED', position: 50, usage: C }
+- id: 'MEA'
+  name: MEASUREMENTS
+  values:
+  - { idRef: '6311', name: 'MEASUREMENT APPLICATION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C502', position: 20, usage: C }
+  - { idRef: 'C174', position: 30, usage: C }
+  - { idRef: '7383', name: 'SURFACE/LAYER INDICATOR, CODED', position: 40, usage: C }
+- id: 'MEM'
+  name: MEMBERSHIP DETAILS
+  values:
+  - { idRef: '7449', name: 'MEMBERSHIP QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C942', position: 20, usage: C }
+  - { idRef: 'C944', position: 30, usage: C }
+  - { idRef: 'C945', position: 40, usage: C }
+  - { idRef: 'C203', position: 50, usage: C }
+  - { idRef: 'C960', position: 60, usage: C }
+- id: 'MKS'
+  name: MARKET/SALES CHANNEL INFORMATION
+  values:
+  - { idRef: '7293', name: 'SECTOR/SUBJECT IDENTIFICATION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C332', position: 20, usage: M }
+  - { idRef: '1229', name: 'ACTION REQUEST/NOTIFICATION, CODED', position: 30, usage: C }
+- id: 'MOA'
+  name: MONETARY AMOUNT
+  values:
+  - { idRef: 'C516', position: 10, usage: M }
+- id: 'MSG'
+  name: MESSAGE TYPE IDENTIFICATION
+  values:
+  - { idRef: 'C709', position: 10, usage: M }
+  - { idRef: '1507', name: 'CLASS DESIGNATOR, CODED', position: 20, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 30, usage: C }
+- id: 'NAD'
+  name: NAME AND ADDRESS
+  values:
+  - { idRef: '3035', name: 'PARTY QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C082', position: 20, usage: C }
+  - { idRef: 'C058', position: 30, usage: C }
+  - { idRef: 'C080', position: 40, usage: C }
+  - { idRef: 'C059', position: 50, usage: C }
+  - { idRef: '3164', name: 'CITY NAME', position: 60, usage: C }
+  - { idRef: '3229', name: 'COUNTRY SUB-ENTITY IDENTIFICATION', position: 70, usage: C }
+  - { idRef: '3251', name: 'POSTCODE IDENTIFICATION', position: 80, usage: C }
+  - { idRef: '3207', name: 'COUNTRY, CODED', position: 90, usage: C }
+- id: 'NAT'
+  name: NATIONALITY
+  values:
+  - { idRef: '3493', name: 'NATIONALITY QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C042', position: 20, usage: C }
+- id: 'PAC'
+  name: PACKAGE
+  values:
+  - { idRef: '7224', name: 'NUMBER OF PACKAGES', position: 10, usage: C }
+  - { idRef: 'C531', position: 20, usage: C }
+  - { idRef: 'C202', position: 30, usage: C }
+  - { idRef: 'C402', position: 40, usage: C }
+  - { idRef: 'C532', position: 50, usage: C }
+- id: 'PAI'
+  name: PAYMENT INSTRUCTIONS
+  values:
+  - { idRef: 'C534', position: 10, usage: M }
+- id: 'PAT'
+  name: PAYMENT TERMS BASIS
+  values:
+  - { idRef: '4279', name: 'PAYMENT TERMS TYPE QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C110', position: 20, usage: C }
+  - { idRef: 'C112', position: 30, usage: C }
+- id: 'PCD'
+  name: PERCENTAGE DETAILS
+  values:
+  - { idRef: 'C501', position: 10, usage: M }
+- id: 'PCI'
+  name: PACKAGE IDENTIFICATION
+  values:
+  - { idRef: '4233', name: 'MARKING INSTRUCTIONS, CODED', position: 10, usage: C }
+  - { idRef: 'C210', position: 20, usage: C }
+  - { idRef: '8275', name: 'CONTAINER/PACKAGE STATUS, CODED', position: 30, usage: C }
+  - { idRef: 'C827', position: 40, usage: C }
+- id: 'PDI'
+  name: PERSON DEMOGRAPHIC INFORMATION
+  values:
+  - { idRef: '3499', name: 'SEX, CODED', position: 10, usage: C }
+  - { idRef: 'C085', position: 20, usage: C }
+  - { idRef: 'C101', position: 30, usage: C }
+- id: 'PGI'
+  name: PRODUCT GROUP INFORMATION
+  values:
+  - { idRef: '5379', name: 'PRODUCT GROUP TYPE, CODED', position: 10, usage: M }
+  - { idRef: 'C288', position: 20, usage: C }
+- id: 'PIA'
+  name: ADDITIONAL PRODUCT ID
+  values:
+  - { idRef: '4347', name: 'PRODUCT ID. FUNCTION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C212', position: 20, usage: M }
+  - { idRef: 'C212', position: 30, usage: C }
+  - { idRef: 'C212', position: 40, usage: C }
+  - { idRef: 'C212', position: 50, usage: C }
+  - { idRef: 'C212', position: 60, usage: C }
+- id: 'PIT'
+  name: PRICE ITEM LINE
+  values:
+  - { idRef: '1082', name: 'LINE ITEM NUMBER', position: 10, usage: C }
+  - { idRef: '1229', name: 'ACTION REQUEST/NOTIFICATION, CODED', position: 20, usage: C }
+  - { idRef: 'C292', position: 30, usage: C }
+  - { idRef: '7011', name: 'ARTICLE AVAILABILITY, CODED', position: 40, usage: C }
+  - { idRef: '5495', name: 'SUB-LINE INDICATOR, CODED', position: 50, usage: C }
+  - { idRef: '1222', name: 'CONFIGURATION LEVEL', position: 60, usage: C }
+  - { idRef: '7083', name: 'CONFIGURATION, CODED', position: 70, usage: C }
+- id: 'PNA'
+  name: PARTY NAME
+  values:
+  - { idRef: '3035', name: 'PARTY QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C206', position: 20, usage: C }
+  - { idRef: 'C082', position: 30, usage: C }
+  - { idRef: '3403', name: 'NAME TYPE, CODED', position: 40, usage: C }
+  - { idRef: '3397', name: 'NAME STATUS, CODED', position: 50, usage: C }
+  - { idRef: 'C816', position: 60, usage: C }
+  - { idRef: 'C816', position: 70, usage: C }
+  - { idRef: 'C816', position: 80, usage: C }
+  - { idRef: 'C816', position: 90, usage: C }
+  - { idRef: 'C816', position: 100, usage: C }
+- id: 'PRC'
+  name: PROCESS IDENTIFICATION
+  values:
+  - { idRef: 'C242', position: 10, usage: M }
+- id: 'PRI'
+  name: PRICE DETAILS
+  values:
+  - { idRef: 'C509', position: 10, usage: C }
+  - { idRef: '5213', name: 'SUB-LINE PRICE CHANGE, CODED', position: 20, usage: C }
+- id: 'PSD'
+  name: PHYSICAL SAMPLE DESCRIPTION
+  values:
+  - { idRef: '4407', name: 'SAMPLE PROCESS STATUS, CODED', position: 10, usage: C }
+  - { idRef: '7039', name: 'SAMPLE SELECTION METHOD, CODED', position: 20, usage: C }
+  - { idRef: 'C526', position: 30, usage: C }
+  - { idRef: '7045', name: 'SAMPLE DESCRIPTION, CODED', position: 40, usage: C }
+  - { idRef: '7047', name: 'SAMPLE DIRECTION, CODED', position: 50, usage: C }
+  - { idRef: 'C514', position: 60, usage: C }
+  - { idRef: 'C514', position: 70, usage: C }
+  - { idRef: 'C514', position: 80, usage: C }
+- id: 'PTY'
+  name: PRIORITY
+  values:
+  - { idRef: '4035', name: 'PRIORITY QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C585', position: 20, usage: C }
+- id: 'QTY'
+  name: QUANTITY
+  values:
+  - { idRef: 'C186', position: 10, usage: M }
+- id: 'QVR'
+  name: QUANTITY VARIANCES
+  values:
+  - { idRef: 'C279', position: 10, usage: C }
+  - { idRef: '4221', name: 'DISCREPANCY, CODED', position: 20, usage: C }
+  - { idRef: 'C960', position: 30, usage: C }
+- id: 'RCS'
+  name: REQUIREMENTS AND CONDITIONS
+  values:
+  - { idRef: '7293', name: 'SECTOR/SUBJECT IDENTIFICATION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C550', position: 20, usage: C }
+  - { idRef: '1229', name: 'ACTION REQUEST/NOTIFICATION, CODED', position: 30, usage: C }
+- id: 'REL'
+  name: RELATIONSHIP
+  values:
+  - { idRef: '9141', name: 'RELATIONSHIP QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C941', position: 20, usage: C }
+- id: 'RFF'
+  name: REFERENCE
+  values:
+  - { idRef: 'C506', position: 10, usage: M }
+- id: 'RNG'
+  name: RANGE DETAILS
+  values:
+  - { idRef: '6167', name: 'RANGE TYPE QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C280', position: 20, usage: C }
+- id: 'RTE'
+  name: RATE DETAILS
+  values:
+  - { idRef: 'C128', position: 10, usage: M }
+- id: 'SAL'
+  name: REMUNERATION TYPE IDENTIFICATION
+  values:
+  - { idRef: 'C049', position: 10, usage: C }
+- id: 'SCC'
+  name: SCHEDULING CONDITIONS
+  values:
+  - { idRef: '4017', name: 'DELIVERY PLAN STATUS INDICATOR, CODED', position: 10, usage: M }
+  - { idRef: '4493', name: 'DELIVERY REQUIREMENTS, CODED', position: 20, usage: C }
+  - { idRef: 'C329', position: 30, usage: C }
+- id: 'SCD'
+  name: STRUCTURE COMPONENT DEFINITION
+  values:
+  - { idRef: '7497', name: 'COMPONENT FUNCTION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C786', position: 20, usage: C }
+  - { idRef: 'C082', position: 30, usage: C }
+  - { idRef: '4405', name: 'STATUS, CODED', position: 40, usage: C }
+  - { idRef: '1222', name: 'CONFIGURATION LEVEL', position: 50, usage: C }
+  - { idRef: 'C778', position: 60, usage: C }
+  - { idRef: 'C240', position: 70, usage: C }
+- id: 'SEG'
+  name: SEGMENT IDENTIFICATION
+  values:
+  - { idRef: '9166', name: 'SEGMENT TAG', position: 10, usage: M }
+  - { idRef: '1507', name: 'CLASS DESIGNATOR, CODED', position: 20, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 30, usage: C }
+- id: 'SEL'
+  name: SEAL NUMBER
+  values:
+  - { idRef: '9308', name: 'SEAL NUMBER', position: 10, usage: M }
+  - { idRef: 'C215', position: 20, usage: C }
+  - { idRef: '4517', name: 'SEAL CONDITION, CODED', position: 30, usage: C }
+- id: 'SEQ'
+  name: SEQUENCE DETAILS
+  values:
+  - { idRef: '1245', name: 'STATUS INDICATOR, CODED', position: 10, usage: C }
+  - { idRef: 'C286', position: 20, usage: C }
+- id: 'SFI'
+  name: SAFETY INFORMATION
+  values:
+  - { idRef: '7164', name: 'HIERARCHICAL ID. NUMBER', position: 10, usage: M }
+  - { idRef: 'C814', position: 20, usage: C }
+  - { idRef: 'C815', position: 30, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 40, usage: C }
+- id: 'SGP'
+  name: SPLIT GOODS PLACEMENT
+  values:
+  - { idRef: 'C237', position: 10, usage: M }
+  - { idRef: '7224', name: 'NUMBER OF PACKAGES', position: 20, usage: C }
+- id: 'SGU'
+  name: SEGMENT USAGE DETAILS
+  values:
+  - { idRef: '9166', name: 'SEGMENT TAG', position: 10, usage: M }
+  - { idRef: '7299', name: 'REQUIREMENT DESIGNATOR, CODED', position: 20, usage: C }
+  - { idRef: '6176', name: 'MAXIMUM NUMBER OF OCCURRENCES', position: 30, usage: C }
+  - { idRef: '7168', name: 'LEVEL NUMBER', position: 40, usage: C }
+  - { idRef: '1050', name: 'SEQUENCE NUMBER', position: 50, usage: C }
+  - { idRef: '1049', name: 'MESSAGE SECTION, CODED', position: 60, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 70, usage: C }
+- id: 'SPS'
+  name: SAMPLING PARAMETERS FOR SUMMARY STATISTICS
+  values:
+  - { idRef: 'C526', position: 10, usage: C }
+  - { idRef: '6074', name: 'CONFIDENCE LIMIT', position: 20, usage: C }
+  - { idRef: 'C512', position: 30, usage: C }
+  - { idRef: 'C512', position: 40, usage: C }
+  - { idRef: 'C512', position: 50, usage: C }
+  - { idRef: 'C512', position: 60, usage: C }
+  - { idRef: 'C512', position: 70, usage: C }
+- id: 'STA'
+  name: STATISTICS
+  values:
+  - { idRef: '6331', name: 'STATISTIC TYPE, CODED', position: 10, usage: M }
+  - { idRef: 'C527', position: 20, usage: C }
+- id: 'STC'
+  name: STATISTICAL CONCEPT
+  values:
+  - { idRef: 'C785', position: 10, usage: M }
+  - { idRef: 'C082', position: 20, usage: C }
+  - { idRef: '4405', name: 'STATUS, CODED', position: 30, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 40, usage: C }
+- id: 'STG'
+  name: STAGES
+  values:
+  - { idRef: '9421', name: 'STAGES QUALIFIER', position: 10, usage: M }
+  - { idRef: '6426', name: 'NUMBER OF STAGES', position: 20, usage: C }
+  - { idRef: '6428', name: 'ACTUAL STAGE COUNT', position: 30, usage: C }
+- id: 'STS'
+  name: STATUS
+  values:
+  - { idRef: 'C601', position: 10, usage: C }
+  - { idRef: 'C555', position: 20, usage: C }
+  - { idRef: 'C556', position: 30, usage: C }
+  - { idRef: 'C556', position: 40, usage: C }
+  - { idRef: 'C556', position: 50, usage: C }
+  - { idRef: 'C556', position: 60, usage: C }
+  - { idRef: 'C556', position: 70, usage: C }
+- id: 'TAX'
+  name: DUTY/TAX/FEE DETAILS
+  values:
+  - { idRef: '5283', name: 'DUTY/TAX/FEE FUNCTION QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C241', position: 20, usage: C }
+  - { idRef: 'C533', position: 30, usage: C }
+  - { idRef: '5286', name: 'DUTY/TAX/FEE ASSESSMENT BASIS', position: 40, usage: C }
+  - { idRef: 'C243', position: 50, usage: C }
+  - { idRef: '5305', name: 'DUTY/TAX/FEE CATEGORY, CODED', position: 60, usage: C }
+  - { idRef: '3446', name: 'PARTY TAX IDENTIFICATION NUMBER', position: 70, usage: C }
+- id: 'TCC'
+  name: TRANSPORT CHARGE/RATE CALCULATIONS
+  values:
+  - { idRef: 'C200', position: 10, usage: C }
+  - { idRef: 'C203', position: 20, usage: C }
+  - { idRef: 'C528', position: 30, usage: C }
+  - { idRef: 'C554', position: 40, usage: C }
+- id: 'TDT'
+  name: DETAILS OF TRANSPORT
+  values:
+  - { idRef: '8051', name: 'TRANSPORT STAGE QUALIFIER', position: 10, usage: M }
+  - { idRef: '8028', name: 'CONVEYANCE REFERENCE NUMBER', position: 20, usage: C }
+  - { idRef: 'C220', position: 30, usage: C }
+  - { idRef: 'C228', position: 40, usage: C }
+  - { idRef: 'C040', position: 50, usage: C }
+  - { idRef: '8101', name: 'TRANSIT DIRECTION, CODED', position: 60, usage: C }
+  - { idRef: 'C401', position: 70, usage: C }
+  - { idRef: 'C222', position: 80, usage: C }
+  - { idRef: '8281', name: 'TRANSPORT OWNERSHIP, CODED', position: 90, usage: C }
+- id: 'TEM'
+  name: TEST METHOD
+  values:
+  - { idRef: 'C244', position: 10, usage: C }
+  - { idRef: '4419', name: 'TEST ROUTE OF ADMINISTERING, CODED', position: 20, usage: C }
+  - { idRef: '3077', name: 'TEST MEDIA, CODED', position: 30, usage: C }
+  - { idRef: '6311', name: 'MEASUREMENT APPLICATION QUALIFIER', position: 40, usage: C }
+  - { idRef: '7188', name: 'TEST REVISION NUMBER', position: 50, usage: C }
+  - { idRef: 'C515', position: 60, usage: C }
+- id: 'TMD'
+  name: TRANSPORT MOVEMENT DETAILS
+  values:
+  - { idRef: 'C219', position: 10, usage: C }
+  - { idRef: '8332', name: 'EQUIPMENT PLAN', position: 20, usage: C }
+  - { idRef: '8341', name: 'HAULAGE ARRANGEMENTS, CODED', position: 30, usage: C }
+- id: 'TMP'
+  name: TEMPERATURE
+  values:
+  - { idRef: '6245', name: 'TEMPERATURE QUALIFIER', position: 10, usage: M }
+  - { idRef: 'C239', position: 20, usage: C }
+- id: 'TOD'
+  name: TERMS OF DELIVERY OR TRANSPORT
+  values:
+  - { idRef: '4055', name: 'TERMS OF DELIVERY OR TRANSPORT FUNCTION, CODED', position: 10, usage: C }
+  - { idRef: '4215', name: 'TRANSPORT CHARGES METHOD OF PAYMENT, CODED', position: 20, usage: C }
+  - { idRef: 'C100', position: 30, usage: C }
+- id: 'TPL'
+  name: TRANSPORT PLACEMENT
+  values:
+  - { idRef: 'C222', position: 10, usage: M }
+- id: 'TSR'
+  name: TRANSPORT SERVICE REQUIREMENTS
+  values:
+  - { idRef: 'C536', position: 10, usage: C }
+  - { idRef: 'C233', position: 20, usage: C }
+  - { idRef: 'C537', position: 30, usage: C }
+  - { idRef: 'C703', position: 40, usage: C }
+- id: 'UGH  AN'
+  name: TI-COLLISION SEGMENT GROUP HEADER
+  values:
+  - { idRef: '0087', name: 'ANTI-COLLISION SEGMENT GROUP IDENTIFICATION', position: 10, usage: M }
+- id: 'UGT  AN'
+  name: TI-COLLISION SEGMENT GROUP TRAILER
+  values:
+  - { idRef: '0087', name: 'ANTI-COLLISION SEGMENT GROUP IDENTIFICATION', position: 10, usage: M }
+- id: 'UNS  SE'
+  name: CTION CONTROL
+  values:
+  - { idRef: '0081', name: 'SECTION IDENTIFICATION', position: 10, usage: M }
+- id: 'VLI'
+  name: VALUE LIST IDENTIFICATION
+  values:
+  - { idRef: 'C780', position: 10, usage: M }
+  - { idRef: 'C082', position: 20, usage: C }
+  - { idRef: '4405', name: 'STATUS, CODED', position: 30, usage: C }
+  - { idRef: '1514', name: 'VALUE LIST NAME', position: 40, usage: C }
+  - { idRef: '1507', name: 'CLASS DESIGNATOR, CODED', position: 50, usage: C }
+  - { idRef: '1505', name: 'VALUE LIST TYPE, CODED', position: 60, usage: C }
+  - { idRef: 'C240', position: 70, usage: C }
+  - { idRef: '4513', name: 'MAINTENANCE OPERATION, CODED', position: 80, usage: C }
+composites:
+- id: 'C002'
+  name: 'DOCUMENT/MESSAGE NAME'
+  values:
+  - { idRef: '1001', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '1000', position: 40, usage: C }
+- id: 'C040'
+  name: 'CARRIER'
+  values:
+  - { idRef: '3127', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3128', position: 40, usage: C }
+- id: 'C042'
+  name: 'NATIONALITY DETAILS'
+  values:
+  - { idRef: '3293', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3292', position: 40, usage: C }
+- id: 'C045'
+  name: 'BILL LEVEL IDENTIFICATION'
+  values:
+  - { idRef: '7436', position: 10, usage: C }
+  - { idRef: '7438', position: 20, usage: C }
+  - { idRef: '7440', position: 30, usage: C }
+  - { idRef: '7442', position: 40, usage: C }
+  - { idRef: '7444', position: 50, usage: C }
+  - { idRef: '7446', position: 60, usage: C }
+- id: 'C049'
+  name: 'REMUNERATION TYPE IDENTIFICATION'
+  values:
+  - { idRef: '5315', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '5314', position: 40, usage: C }
+  - { idRef: '5314', position: 50, usage: C }
+- id: 'C056'
+  name: 'DEPARTMENT OR EMPLOYEE DETAILS'
+  values:
+  - { idRef: '3413', position: 10, usage: C }
+  - { idRef: '3412', position: 20, usage: C }
+- id: 'C058'
+  name: 'NAME AND ADDRESS'
+  values:
+  - { idRef: '3124', position: 10, usage: M }
+  - { idRef: '3124', position: 20, usage: C }
+  - { idRef: '3124', position: 30, usage: C }
+  - { idRef: '3124', position: 40, usage: C }
+  - { idRef: '3124', position: 50, usage: C }
+- id: 'C059'
+  name: 'STREET'
+  values:
+  - { idRef: '3042', position: 10, usage: M }
+  - { idRef: '3042', position: 20, usage: C }
+  - { idRef: '3042', position: 30, usage: C }
+  - { idRef: '3042', position: 40, usage: C }
+- id: 'C076'
+  name: 'COMMUNICATION CONTACT'
+  values:
+  - { idRef: '3148', position: 10, usage: M }
+  - { idRef: '3155', position: 20, usage: M }
+- id: 'C077'
+  name: 'FILE IDENTIFICATION'
+  values:
+  - { idRef: '1508', position: 10, usage: C }
+  - { idRef: '7008', position: 20, usage: C }
+- id: 'C078'
+  name: 'ACCOUNT IDENTIFICATION'
+  values:
+  - { idRef: '3194', position: 10, usage: C }
+  - { idRef: '3192', position: 20, usage: C }
+  - { idRef: '3192', position: 30, usage: C }
+  - { idRef: '6345', position: 40, usage: C }
+- id: 'C079'
+  name: 'COMPUTER ENVIRONMENT IDENTIFICATION'
+  values:
+  - { idRef: '1511', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '1510', position: 40, usage: C }
+  - { idRef: '1056', position: 50, usage: C }
+  - { idRef: '1058', position: 60, usage: C }
+  - { idRef: '7402', position: 70, usage: C }
+- id: 'C080'
+  name: 'PARTY NAME'
+  values:
+  - { idRef: '3036', position: 10, usage: M }
+  - { idRef: '3036', position: 20, usage: C }
+  - { idRef: '3036', position: 30, usage: C }
+  - { idRef: '3036', position: 40, usage: C }
+  - { idRef: '3036', position: 50, usage: C }
+  - { idRef: '3045', position: 60, usage: C }
+- id: 'C082'
+  name: 'PARTY IDENTIFICATION DETAILS'
+  values:
+  - { idRef: '3039', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C085'
+  name: 'MARITAL STATUS DETAILS'
+  values:
+  - { idRef: '3479', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3478', position: 40, usage: C }
+- id: 'C088'
+  name: 'INSTITUTION IDENTIFICATION'
+  values:
+  - { idRef: '3433', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3434', position: 40, usage: C }
+  - { idRef: '1131', position: 50, usage: C }
+  - { idRef: '3055', position: 60, usage: C }
+  - { idRef: '3432', position: 70, usage: C }
+  - { idRef: '3436', position: 80, usage: C }
+- id: 'C090'
+  name: 'ADDRESS DETAILS'
+  values:
+  - { idRef: '3477', position: 10, usage: M }
+  - { idRef: '3286', position: 20, usage: M }
+  - { idRef: '3286', position: 30, usage: C }
+  - { idRef: '3286', position: 40, usage: C }
+  - { idRef: '3286', position: 50, usage: C }
+  - { idRef: '3286', position: 60, usage: C }
+- id: 'C099'
+  name: 'FILE DETAILS'
+  values:
+  - { idRef: '1516', position: 10, usage: M }
+  - { idRef: '1056', position: 20, usage: C }
+  - { idRef: '1503', position: 30, usage: C }
+  - { idRef: '1502', position: 40, usage: C }
+- id: 'C100'
+  name: 'TERMS OF DELIVERY OR TRANSPORT'
+  values:
+  - { idRef: '4053', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4052', position: 40, usage: C }
+  - { idRef: '4052', position: 50, usage: C }
+- id: 'C101'
+  name: 'RELIGION DETAILS'
+  values:
+  - { idRef: '3483', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3482', position: 40, usage: C }
+- id: 'C107'
+  name: 'TEXT REFERENCE'
+  values:
+  - { idRef: '4441', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C108'
+  name: 'TEXT LITERAL'
+  values:
+  - { idRef: '4440', position: 10, usage: M }
+  - { idRef: '4440', position: 20, usage: C }
+  - { idRef: '4440', position: 30, usage: C }
+  - { idRef: '4440', position: 40, usage: C }
+  - { idRef: '4440', position: 50, usage: C }
+- id: 'C110'
+  name: 'PAYMENT TERMS'
+  values:
+  - { idRef: '4277', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4276', position: 40, usage: C }
+  - { idRef: '4276', position: 50, usage: C }
+- id: 'C112'
+  name: 'TERMS/TIME INFORMATION'
+  values:
+  - { idRef: '2475', position: 10, usage: M }
+  - { idRef: '2009', position: 20, usage: C }
+  - { idRef: '2151', position: 30, usage: C }
+  - { idRef: '2152', position: 40, usage: C }
+- id: 'C128'
+  name: 'RATE DETAILS'
+  values:
+  - { idRef: '5419', position: 10, usage: M }
+  - { idRef: '5420', position: 20, usage: M }
+  - { idRef: '5284', position: 30, usage: C }
+  - { idRef: '6411', position: 40, usage: C }
+- id: 'C138'
+  name: 'PRICE MULTIPLIER INFORMATION'
+  values:
+  - { idRef: '5394', position: 10, usage: M }
+  - { idRef: '5393', position: 20, usage: C }
+- id: 'C174'
+  name: 'VALUE/RANGE'
+  values:
+  - { idRef: '6411', position: 10, usage: M }
+  - { idRef: '6314', position: 20, usage: C }
+  - { idRef: '6162', position: 30, usage: C }
+  - { idRef: '6152', position: 40, usage: C }
+  - { idRef: '6432', position: 50, usage: C }
+- id: 'C186'
+  name: 'QUANTITY DETAILS'
+  values:
+  - { idRef: '6063', position: 10, usage: M }
+  - { idRef: '6060', position: 20, usage: M }
+  - { idRef: '6411', position: 30, usage: C }
+- id: 'C200'
+  name: 'CHARGE'
+  values:
+  - { idRef: '8023', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '8022', position: 40, usage: C }
+  - { idRef: '4237', position: 50, usage: C }
+  - { idRef: '7140', position: 60, usage: C }
+- id: 'C202'
+  name: 'PACKAGE TYPE'
+  values:
+  - { idRef: '7065', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7064', position: 40, usage: C }
+- id: 'C203'
+  name: 'RATE/TARIFF CLASS'
+  values:
+  - { idRef: '5243', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '5242', position: 40, usage: C }
+  - { idRef: '5275', position: 50, usage: C }
+- id: 'C205'
+  name: 'HAZARD CODE'
+  values:
+  - { idRef: '8351', position: 10, usage: M }
+  - { idRef: '8078', position: 20, usage: C }
+  - { idRef: '8092', position: 30, usage: C }
+- id: 'C206'
+  name: 'IDENTIFICATION NUMBER'
+  values:
+  - { idRef: '7402', position: 10, usage: M }
+  - { idRef: '7405', position: 20, usage: C }
+  - { idRef: '4405', position: 30, usage: C }
+- id: 'C208'
+  name: 'IDENTITY NUMBER RANGE'
+  values:
+  - { idRef: '7402', position: 10, usage: M }
+  - { idRef: '7402', position: 20, usage: C }
+- id: 'C210'
+  name: 'MARKS & LABELS'
+  values:
+  - { idRef: '7102', position: 10, usage: M }
+  - { idRef: '7102', position: 20, usage: C }
+  - { idRef: '7102', position: 30, usage: C }
+  - { idRef: '7102', position: 40, usage: C }
+  - { idRef: '7102', position: 50, usage: C }
+  - { idRef: '7102', position: 60, usage: C }
+  - { idRef: '7102', position: 70, usage: C }
+  - { idRef: '7102', position: 80, usage: C }
+  - { idRef: '7102', position: 90, usage: C }
+  - { idRef: '7102', position: 100, usage: C }
+- id: 'C211'
+  name: 'DIMENSIONS'
+  values:
+  - { idRef: '6411', position: 10, usage: M }
+  - { idRef: '6168', position: 20, usage: C }
+  - { idRef: '6140', position: 30, usage: C }
+  - { idRef: '6008', position: 40, usage: C }
+- id: 'C212'
+  name: 'ITEM NUMBER IDENTIFICATION'
+  values:
+  - { idRef: '7140', position: 10, usage: C }
+  - { idRef: '7143', position: 20, usage: C }
+  - { idRef: '1131', position: 30, usage: C }
+  - { idRef: '3055', position: 40, usage: C }
+- id: 'C213'
+  name: 'NUMBER AND TYPE OF PACKAGES'
+  values:
+  - { idRef: '7224', position: 10, usage: C }
+  - { idRef: '7065', position: 20, usage: C }
+  - { idRef: '1131', position: 30, usage: C }
+  - { idRef: '3055', position: 40, usage: C }
+  - { idRef: '7064', position: 50, usage: C }
+- id: 'C214'
+  name: 'SPECIAL SERVICES IDENTIFICATION'
+  values:
+  - { idRef: '7161', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7160', position: 40, usage: C }
+  - { idRef: '7160', position: 50, usage: C }
+- id: 'C215'
+  name: 'SEAL ISSUER'
+  values:
+  - { idRef: '9303', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '9302', position: 40, usage: C }
+- id: 'C218'
+  name: 'HAZARDOUS MATERIAL'
+  values:
+  - { idRef: '7419', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C219'
+  name: 'MOVEMENT TYPE'
+  values:
+  - { idRef: '8335', position: 10, usage: C }
+  - { idRef: '8334', position: 20, usage: C }
+- id: 'C220'
+  name: 'MODE OF TRANSPORT'
+  values:
+  - { idRef: '8067', position: 10, usage: C }
+  - { idRef: '8066', position: 20, usage: C }
+- id: 'C222'
+  name: 'TRANSPORT IDENTIFICATION'
+  values:
+  - { idRef: '8213', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '8212', position: 40, usage: C }
+  - { idRef: '8453', position: 50, usage: C }
+- id: 'C223'
+  name: 'DANGEROUS GOODS SHIPMENT FLASHPOINT'
+  values:
+  - { idRef: '7106', position: 10, usage: C }
+  - { idRef: '6411', position: 20, usage: C }
+- id: 'C224'
+  name: 'EQUIPMENT SIZE AND TYPE'
+  values:
+  - { idRef: '8155', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '8154', position: 40, usage: C }
+- id: 'C228'
+  name: 'TRANSPORT MEANS'
+  values:
+  - { idRef: '8179', position: 10, usage: C }
+  - { idRef: '8178', position: 20, usage: C }
+- id: 'C229'
+  name: 'CHARGE CATEGORY'
+  values:
+  - { idRef: '5237', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C231'
+  name: 'METHOD OF PAYMENT'
+  values:
+  - { idRef: '4215', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C232'
+  name: 'GOVERNMENT ACTION'
+  values:
+  - { idRef: '9415', position: 10, usage: C }
+  - { idRef: '9411', position: 20, usage: C }
+  - { idRef: '9417', position: 30, usage: C }
+  - { idRef: '9353', position: 40, usage: C }
+- id: 'C233'
+  name: 'SERVICE'
+  values:
+  - { idRef: '7273', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7273', position: 40, usage: C }
+  - { idRef: '1131', position: 50, usage: C }
+  - { idRef: '3055', position: 60, usage: C }
+- id: 'C234'
+  name: 'UNDG INFORMATION'
+  values:
+  - { idRef: '7124', position: 10, usage: C }
+  - { idRef: '7088', position: 20, usage: C }
+- id: 'C235'
+  name: 'HAZARD IDENTIFICATION'
+  values:
+  - { idRef: '8158', position: 10, usage: C }
+  - { idRef: '8186', position: 20, usage: C }
+- id: 'C236'
+  name: 'DANGEROUS GOODS LABEL'
+  values:
+  - { idRef: '8246', position: 10, usage: C }
+  - { idRef: '8246', position: 20, usage: C }
+  - { idRef: '8246', position: 30, usage: C }
+- id: 'C237'
+  name: 'EQUIPMENT IDENTIFICATION'
+  values:
+  - { idRef: '8260', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3207', position: 40, usage: C }
+- id: 'C239'
+  name: 'TEMPERATURE SETTING'
+  values:
+  - { idRef: '6246', position: 10, usage: C }
+  - { idRef: '6411', position: 20, usage: C }
+- id: 'C240'
+  name: 'PRODUCT CHARACTERISTIC'
+  values:
+  - { idRef: '7037', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7036', position: 40, usage: C }
+  - { idRef: '7036', position: 50, usage: C }
+- id: 'C241'
+  name: 'DUTY/TAX/FEE TYPE'
+  values:
+  - { idRef: '5153', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '5152', position: 40, usage: C }
+- id: 'C242'
+  name: 'PROCESS TYPE AND DESCRIPTION'
+  values:
+  - { idRef: '7187', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7186', position: 40, usage: C }
+  - { idRef: '7186', position: 50, usage: C }
+- id: 'C243'
+  name: 'DUTY/TAX/FEE DETAIL'
+  values:
+  - { idRef: '5279', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '5278', position: 40, usage: C }
+  - { idRef: '5273', position: 50, usage: C }
+  - { idRef: '1131', position: 60, usage: C }
+  - { idRef: '3055', position: 70, usage: C }
+- id: 'C244'
+  name: 'TEST METHOD'
+  values:
+  - { idRef: '4415', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4416', position: 40, usage: C }
+- id: 'C246'
+  name: 'CUSTOMS IDENTITY CODES'
+  values:
+  - { idRef: '7361', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C270'
+  name: 'CONTROL'
+  values:
+  - { idRef: '6069', position: 10, usage: M }
+  - { idRef: '6066', position: 20, usage: M }
+  - { idRef: '6411', position: 30, usage: C }
+- id: 'C273'
+  name: 'ITEM DESCRIPTION'
+  values:
+  - { idRef: '7009', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7008', position: 40, usage: C }
+  - { idRef: '7008', position: 50, usage: C }
+  - { idRef: '3453', position: 60, usage: C }
+- id: 'C279'
+  name: 'QUANTITY DIFFERENCE INFORMATION'
+  values:
+  - { idRef: '6064', position: 10, usage: M }
+  - { idRef: '6063', position: 20, usage: C }
+- id: 'C280'
+  name: 'RANGE'
+  values:
+  - { idRef: '6411', position: 10, usage: M }
+  - { idRef: '6162', position: 20, usage: C }
+  - { idRef: '6152', position: 30, usage: C }
+- id: 'C286'
+  name: 'SEQUENCE INFORMATION'
+  values:
+  - { idRef: '1050', position: 10, usage: M }
+  - { idRef: '1159', position: 20, usage: C }
+  - { idRef: '1131', position: 30, usage: C }
+  - { idRef: '3055', position: 40, usage: C }
+- id: 'C288'
+  name: 'PRODUCT GROUP'
+  values:
+  - { idRef: '5389', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '5388', position: 40, usage: C }
+- id: 'C292'
+  name: 'PRICE CHANGE INFORMATION'
+  values:
+  - { idRef: '5377', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C329'
+  name: 'PATTERN DESCRIPTION'
+  values:
+  - { idRef: '2013', position: 10, usage: C }
+  - { idRef: '2015', position: 20, usage: C }
+  - { idRef: '2017', position: 30, usage: C }
+- id: 'C330'
+  name: 'INSURANCE COVER TYPE'
+  values:
+  - { idRef: '4497', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C331'
+  name: 'INSURANCE COVER DETAILS'
+  values:
+  - { idRef: '4495', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4494', position: 40, usage: C }
+  - { idRef: '4494', position: 50, usage: C }
+- id: 'C332'
+  name: 'SALES CHANNEL IDENTIFICATION'
+  values:
+  - { idRef: '3496', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C333'
+  name: 'INFORMATION REQUEST'
+  values:
+  - { idRef: '4511', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4510', position: 40, usage: C }
+- id: 'C401'
+  name: 'EXCESS TRANSPORTATION INFORMATION'
+  values:
+  - { idRef: '8457', position: 10, usage: M }
+  - { idRef: '8459', position: 20, usage: M }
+  - { idRef: '7130', position: 30, usage: C }
+- id: 'C402'
+  name: 'PACKAGE TYPE IDENTIFICATION'
+  values:
+  - { idRef: '7077', position: 10, usage: M }
+  - { idRef: '7064', position: 20, usage: M }
+  - { idRef: '7143', position: 30, usage: C }
+  - { idRef: '7064', position: 40, usage: C }
+  - { idRef: '7143', position: 50, usage: C }
+- id: 'C501'
+  name: 'PERCENTAGE DETAILS'
+  values:
+  - { idRef: '5245', position: 10, usage: M }
+  - { idRef: '5482', position: 20, usage: C }
+  - { idRef: '5249', position: 30, usage: C }
+  - { idRef: '1131', position: 40, usage: C }
+  - { idRef: '3055', position: 50, usage: C }
+- id: 'C502'
+  name: 'MEASUREMENT DETAILS'
+  values:
+  - { idRef: '6313', position: 10, usage: C }
+  - { idRef: '6321', position: 20, usage: C }
+  - { idRef: '6155', position: 30, usage: C }
+  - { idRef: '6154', position: 40, usage: C }
+- id: 'C503'
+  name: 'DOCUMENT/MESSAGE DETAILS'
+  values:
+  - { idRef: '1004', position: 10, usage: C }
+  - { idRef: '1373', position: 20, usage: C }
+  - { idRef: '1366', position: 30, usage: C }
+  - { idRef: '3453', position: 40, usage: C }
+- id: 'C504'
+  name: 'CURRENCY DETAILS'
+  values:
+  - { idRef: '6347', position: 10, usage: M }
+  - { idRef: '6345', position: 20, usage: C }
+  - { idRef: '6343', position: 30, usage: C }
+  - { idRef: '6348', position: 40, usage: C }
+- id: 'C506'
+  name: 'REFERENCE'
+  values:
+  - { idRef: '1153', position: 10, usage: M }
+  - { idRef: '1154', position: 20, usage: C }
+  - { idRef: '1156', position: 30, usage: C }
+  - { idRef: '4000', position: 40, usage: C }
+- id: 'C507'
+  name: 'DATE/TIME/PERIOD'
+  values:
+  - { idRef: '2005', position: 10, usage: M }
+  - { idRef: '2380', position: 20, usage: C }
+  - { idRef: '2379', position: 30, usage: C }
+- id: 'C508'
+  name: 'LANGUAGE DETAILS'
+  values:
+  - { idRef: '3453', position: 10, usage: C }
+  - { idRef: '3452', position: 20, usage: C }
+- id: 'C509'
+  name: 'PRICE INFORMATION'
+  values:
+  - { idRef: '5125', position: 10, usage: M }
+  - { idRef: '5118', position: 20, usage: C }
+  - { idRef: '5375', position: 30, usage: C }
+  - { idRef: '5387', position: 40, usage: C }
+  - { idRef: '5284', position: 50, usage: C }
+  - { idRef: '6411', position: 60, usage: C }
+- id: 'C512'
+  name: 'SIZE DETAILS'
+  values:
+  - { idRef: '6173', position: 10, usage: C }
+  - { idRef: '6174', position: 20, usage: C }
+- id: 'C514'
+  name: 'SAMPLE LOCATION DETAILS'
+  values:
+  - { idRef: '3237', position: 10, usage: C }
+  - { idRef: '3236', position: 20, usage: C }
+- id: 'C515'
+  name: 'TEST REASON'
+  values:
+  - { idRef: '4425', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4424', position: 40, usage: C }
+- id: 'C516'
+  name: 'MONETARY AMOUNT'
+  values:
+  - { idRef: '5025', position: 10, usage: M }
+  - { idRef: '5004', position: 20, usage: C }
+  - { idRef: '6345', position: 30, usage: C }
+  - { idRef: '6343', position: 40, usage: C }
+  - { idRef: '4405', position: 50, usage: C }
+- id: 'C517'
+  name: 'LOCATION IDENTIFICATION'
+  values:
+  - { idRef: '3225', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3224', position: 40, usage: C }
+- id: 'C519'
+  name: 'RELATED LOCATION ONE IDENTIFICATION'
+  values:
+  - { idRef: '3223', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3222', position: 40, usage: C }
+- id: 'C521'
+  name: 'BUSINESS FUNCTION'
+  values:
+  - { idRef: '4027', position: 10, usage: M }
+  - { idRef: '4025', position: 20, usage: M }
+  - { idRef: '1131', position: 30, usage: C }
+  - { idRef: '3055', position: 40, usage: C }
+  - { idRef: '4022', position: 50, usage: C }
+- id: 'C522'
+  name: 'INSTRUCTION'
+  values:
+  - { idRef: '4403', position: 10, usage: M }
+  - { idRef: '4401', position: 20, usage: C }
+  - { idRef: '1131', position: 30, usage: C }
+  - { idRef: '3055', position: 40, usage: C }
+  - { idRef: '4400', position: 50, usage: C }
+- id: 'C523'
+  name: 'NUMBER OF UNIT DETAILS'
+  values:
+  - { idRef: '6350', position: 10, usage: C }
+  - { idRef: '6353', position: 20, usage: C }
+- id: 'C524'
+  name: 'HANDLING INSTRUCTIONS'
+  values:
+  - { idRef: '4079', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4078', position: 40, usage: C }
+- id: 'C526'
+  name: 'FREQUENCY DETAILS'
+  values:
+  - { idRef: '6071', position: 10, usage: M }
+  - { idRef: '6072', position: 20, usage: C }
+  - { idRef: '6411', position: 30, usage: C }
+- id: 'C527'
+  name: 'STATISTICAL DETAILS'
+  values:
+  - { idRef: '6314', position: 10, usage: C }
+  - { idRef: '6411', position: 20, usage: C }
+  - { idRef: '6313', position: 30, usage: C }
+  - { idRef: '6321', position: 40, usage: C }
+- id: 'C528'
+  name: 'COMMODITY/RATE DETAIL'
+  values:
+  - { idRef: '7357', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C529'
+  name: 'PROCESSING INDICATOR'
+  values:
+  - { idRef: '7365', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7187', position: 40, usage: C }
+- id: 'C531'
+  name: 'PACKAGING DETAILS'
+  values:
+  - { idRef: '7075', position: 10, usage: C }
+  - { idRef: '7233', position: 20, usage: C }
+  - { idRef: '7073', position: 30, usage: C }
+- id: 'C532'
+  name: 'RETURNABLE PACKAGE DETAILS'
+  values:
+  - { idRef: '8395', position: 10, usage: C }
+- id: 'C533'
+  name: 'DUTY/TAX/FEE ACCOUNT DETAIL'
+  values:
+  - { idRef: '5289', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C534'
+  name: 'PAYMENT INSTRUCTION DETAILS'
+  values:
+  - { idRef: '4439', position: 10, usage: C }
+  - { idRef: '4431', position: 20, usage: C }
+  - { idRef: '4461', position: 30, usage: C }
+  - { idRef: '1131', position: 40, usage: C }
+  - { idRef: '3055', position: 50, usage: C }
+  - { idRef: '4435', position: 60, usage: C }
+- id: 'C536'
+  name: 'CONTRACT AND CARRIAGE CONDITION'
+  values:
+  - { idRef: '4065', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C537'
+  name: 'TRANSPORT PRIORITY'
+  values:
+  - { idRef: '4219', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C543'
+  name: 'AGREEMENT TYPE IDENTIFICATION'
+  values:
+  - { idRef: '7431', position: 10, usage: M }
+  - { idRef: '7433', position: 20, usage: C }
+  - { idRef: '1131', position: 30, usage: C }
+  - { idRef: '3055', position: 40, usage: C }
+  - { idRef: '7434', position: 50, usage: C }
+- id: 'C545'
+  name: 'INDEX IDENTIFICATION'
+  values:
+  - { idRef: '5013', position: 10, usage: M }
+  - { idRef: '5027', position: 20, usage: C }
+  - { idRef: '1131', position: 30, usage: C }
+  - { idRef: '3055', position: 40, usage: C }
+- id: 'C546'
+  name: 'INDEX VALUE'
+  values:
+  - { idRef: '5030', position: 10, usage: M }
+  - { idRef: '5039', position: 20, usage: C }
+- id: 'C549'
+  name: 'MONETARY FUNCTION'
+  values:
+  - { idRef: '5007', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C550'
+  name: 'REQUIREMENT/CONDITION IDENTIFICATION'
+  values:
+  - { idRef: '7295', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7294', position: 40, usage: C }
+- id: 'C551'
+  name: 'BANK OPERATION'
+  values:
+  - { idRef: '4383', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C552'
+  name: 'ALLOWANCE/CHARGE INFORMATION'
+  values:
+  - { idRef: '1230', position: 10, usage: C }
+  - { idRef: '5189', position: 20, usage: C }
+- id: 'C553'
+  name: 'RELATED LOCATION TWO IDENTIFICATION'
+  values:
+  - { idRef: '3233', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3232', position: 40, usage: C }
+- id: 'C554'
+  name: 'RATE/TARIFF CLASS DETAIL'
+  values:
+  - { idRef: '5243', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C555'
+  name: 'STATUS EVENT'
+  values:
+  - { idRef: '9011', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '9010', position: 40, usage: C }
+- id: 'C556'
+  name: 'STATUS REASON'
+  values:
+  - { idRef: '9013', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '9012', position: 40, usage: C }
+- id: 'C564'
+  name: 'PHYSICAL OR LOGICAL STATE INFORMATION'
+  values:
+  - { idRef: '7007', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7006', position: 40, usage: C }
+- id: 'C585'
+  name: 'PRIORITY DETAILS'
+  values:
+  - { idRef: '4037', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4036', position: 40, usage: C }
+- id: 'C601'
+  name: 'STATUS TYPE'
+  values:
+  - { idRef: '9015', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C701'
+  name: 'ERROR POINT DETAILS'
+  values:
+  - { idRef: '1049', position: 10, usage: M }
+  - { idRef: '1052', position: 20, usage: C }
+  - { idRef: '1054', position: 30, usage: C }
+- id: 'C702'
+  name: 'CODE SET IDENTIFICATION'
+  values:
+  - { idRef: '9150', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C703'
+  name: 'NATURE OF CARGO'
+  values:
+  - { idRef: '7085', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C709'
+  name: 'MESSAGE IDENTIFIER'
+  values:
+  - { idRef: '1475', position: 10, usage: M }
+  - { idRef: '1056', position: 20, usage: M }
+  - { idRef: '1058', position: 30, usage: M }
+  - { idRef: '1476', position: 40, usage: M }
+  - { idRef: '1523', position: 50, usage: C }
+  - { idRef: '1060', position: 60, usage: C }
+- id: 'C770'
+  name: 'ARRAY CELL DETAILS'
+  values:
+  - { idRef: '9424', position: 10, usage: C }
+- id: 'C778'
+  name: 'POSITION IDENTIFICATION'
+  values:
+  - { idRef: '7164', position: 10, usage: C }
+  - { idRef: '1050', position: 20, usage: C }
+- id: 'C779'
+  name: 'ARRAY STRUCTURE IDENTIFICATION'
+  values:
+  - { idRef: '9428', position: 10, usage: M }
+  - { idRef: '7405', position: 20, usage: C }
+- id: 'C780'
+  name: 'VALUE LIST IDENTIFICATION'
+  values:
+  - { idRef: '1518', position: 10, usage: M }
+  - { idRef: '7405', position: 20, usage: C }
+- id: 'C782'
+  name: 'DATA SET IDENTIFICATION'
+  values:
+  - { idRef: '1520', position: 10, usage: M }
+  - { idRef: '7405', position: 20, usage: C }
+- id: 'C783'
+  name: 'FOOTNOTE SET IDENTIFICATION'
+  values:
+  - { idRef: '9430', position: 10, usage: M }
+  - { idRef: '7405', position: 20, usage: C }
+- id: 'C784'
+  name: 'FOOTNOTE IDENTIFICATION'
+  values:
+  - { idRef: '9432', position: 10, usage: M }
+  - { idRef: '7405', position: 20, usage: C }
+- id: 'C785'
+  name: 'STATISTICAL CONCEPT IDENTIFICATION'
+  values:
+  - { idRef: '6434', position: 10, usage: M }
+  - { idRef: '7405', position: 20, usage: C }
+- id: 'C786'
+  name: 'STRUCTURE COMPONENT IDENTIFICATION'
+  values:
+  - { idRef: '7512', position: 10, usage: M }
+  - { idRef: '7405', position: 20, usage: C }
+- id: 'C814'
+  name: 'SAFETY SECTION'
+  values:
+  - { idRef: '4046', position: 10, usage: M }
+  - { idRef: '4044', position: 20, usage: C }
+- id: 'C815'
+  name: 'ADDITIONAL SAFETY INFORMATION'
+  values:
+  - { idRef: '4039', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4038', position: 40, usage: C }
+- id: 'C816'
+  name: 'NAME COMPONENT DETAILS'
+  values:
+  - { idRef: '3405', position: 10, usage: M }
+  - { idRef: '3398', position: 20, usage: C }
+  - { idRef: '3401', position: 30, usage: C }
+  - { idRef: '3295', position: 40, usage: C }
+- id: 'C817'
+  name: 'ADDRESS USAGE'
+  values:
+  - { idRef: '3299', position: 10, usage: C }
+  - { idRef: '3131', position: 20, usage: C }
+  - { idRef: '3475', position: 30, usage: C }
+- id: 'C818'
+  name: 'PERSON INHERITED CHARACTERISTIC DETAILS'
+  values:
+  - { idRef: '3311', position: 10, usage: C }
+- id: 'C819'
+  name: 'COUNTRY SUB-ENTITY DETAILS'
+  values:
+  - { idRef: '3229', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3228', position: 40, usage: C }
+- id: 'C821'
+  name: 'TYPE OF DAMAGE'
+  values:
+  - { idRef: '7501', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7500', position: 40, usage: C }
+- id: 'C822'
+  name: 'DAMAGE AREA'
+  values:
+  - { idRef: '7503', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7502', position: 40, usage: C }
+- id: 'C823'
+  name: 'TYPE OF UNIT/COMPONENT'
+  values:
+  - { idRef: '7505', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7504', position: 40, usage: C }
+- id: 'C824'
+  name: 'COMPONENT MATERIAL'
+  values:
+  - { idRef: '7507', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7506', position: 40, usage: C }
+- id: 'C825'
+  name: 'DAMAGE SEVERITY'
+  values:
+  - { idRef: '7509', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7508', position: 40, usage: C }
+- id: 'C826'
+  name: 'ACTION'
+  values:
+  - { idRef: '1229', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '1228', position: 40, usage: C }
+- id: 'C827'
+  name: 'TYPE OF MARKING'
+  values:
+  - { idRef: '7511', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C829'
+  name: 'SUB-LINE INFORMATION'
+  values:
+  - { idRef: '5495', position: 10, usage: C }
+  - { idRef: '1082', position: 20, usage: C }
+- id: 'C849'
+  name: 'PARTIES TO INSTRUCTION'
+  values:
+  - { idRef: '3301', position: 10, usage: M }
+  - { idRef: '3285', position: 20, usage: C }
+- id: 'C850'
+  name: 'STATUS OF INSTRUCTION'
+  values:
+  - { idRef: '4405', position: 10, usage: M }
+  - { idRef: '3036', position: 20, usage: C }
+- id: 'C878'
+  name: 'CHARGE/ALLOWANCE ACCOUNT'
+  values:
+  - { idRef: '3434', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '3194', position: 40, usage: C }
+  - { idRef: '6345', position: 50, usage: C }
+- id: 'C889'
+  name: 'CHARACTERISTIC VALUE'
+  values:
+  - { idRef: '7111', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7110', position: 40, usage: C }
+  - { idRef: '7110', position: 50, usage: C }
+- id: 'C901'
+  name: 'APPLICATION ERROR DETAIL'
+  values:
+  - { idRef: '9321', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C941'
+  name: 'RELATIONSHIP'
+  values:
+  - { idRef: '9143', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '9142', position: 40, usage: C }
+- id: 'C942'
+  name: 'MEMBERSHIP CATEGORY'
+  values:
+  - { idRef: '7451', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7450', position: 40, usage: C }
+- id: 'C944'
+  name: 'MEMBERSHIP STATUS'
+  values:
+  - { idRef: '7453', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '7452', position: 40, usage: C }
+- id: 'C945'
+  name: 'MEMBERSHIP LEVEL'
+  values:
+  - { idRef: '7455', position: 10, usage: M }
+  - { idRef: '7457', position: 20, usage: C }
+  - { idRef: '1131', position: 30, usage: C }
+  - { idRef: '3055', position: 40, usage: C }
+  - { idRef: '7456', position: 50, usage: C }
+- id: 'C948'
+  name: 'EMPLOYMENT CATEGORY'
+  values:
+  - { idRef: '9005', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '9004', position: 40, usage: C }
+- id: 'C950'
+  name: 'QUALIFICATION CLASSIFICATION'
+  values:
+  - { idRef: '9007', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '9006', position: 40, usage: C }
+  - { idRef: '9006', position: 50, usage: C }
+- id: 'C951'
+  name: 'OCCUPATION'
+  values:
+  - { idRef: '9009', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '9008', position: 40, usage: C }
+  - { idRef: '9008', position: 50, usage: C }
+- id: 'C953'
+  name: 'CONTRIBUTION TYPE'
+  values:
+  - { idRef: '5049', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '5048', position: 40, usage: C }
+- id: 'C955'
+  name: 'ATTRIBUTE TYPE'
+  values:
+  - { idRef: '9021', position: 10, usage: M }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+- id: 'C956'
+  name: 'ATTRIBUTE DETAILS'
+  values:
+  - { idRef: '9019', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '9018', position: 40, usage: C }
+- id: 'C960'
+  name: 'REASON FOR CHANGE'
+  values:
+  - { idRef: '4295', position: 10, usage: C }
+  - { idRef: '1131', position: 20, usage: C }
+  - { idRef: '3055', position: 30, usage: C }
+  - { idRef: '4294', position: 40, usage: C }
+elements:
+  - { id: '0081', name: 'Section identification', type: A, minLength: 1, maxLength: 1 }
+  - { id: '0087', name: 'Anti-collision segment group identification', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '1000', name: 'Document/message name', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1001', name: 'Document/message name, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1004', name: 'Document/message number', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1049', name: 'Message section, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1050', name: 'Sequence number', type: AN, minLength: 0, maxLength: 6 }
+  - { id: '1052', name: 'Message item number', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1054', name: 'Message sub-item number', type: N, minLength: 0, maxLength: 6 }
+  - { id: '1056', name: 'Version', type: AN, minLength: 0, maxLength: 9 }
+  - { id: '1058', name: 'Release', type: AN, minLength: 0, maxLength: 9 }
+  - { id: '1060', name: 'Revision number', type: AN, minLength: 0, maxLength: 6 }
+  - { id: '1073', name: 'Document line indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1082', name: 'Line item number', type: N, minLength: 0, maxLength: 6 }
+  - { id: '1131', name: 'Code list qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1153', name: 'Reference qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1154', name: 'Reference number', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1156', name: 'Line number', type: AN, minLength: 0, maxLength: 6 }
+  - { id: '1159', name: 'Sequence number source, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1218', name: 'Number of originals of document required', type: N, minLength: 0, maxLength: 2 }
+  - { id: '1220', name: 'Number of copies of document required', type: N, minLength: 0, maxLength: 2 }
+  - { id: '1222', name: 'Configuration level', type: N, minLength: 0, maxLength: 2 }
+  - { id: '1225', name: 'Message function, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1227', name: 'Calculation sequence indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1228', name: 'Action request/notification', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1229', name: 'Action request/notification, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1230', name: 'Allowance or charge number', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1245', name: 'Status indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1312', name: 'Consignment load sequence number', type: N, minLength: 0, maxLength: 4 }
+  - { id: '1366', name: 'Document/message source', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1373', name: 'Document/message status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1475', name: 'Message type identifier', type: AN, minLength: 0, maxLength: 6 }
+  - { id: '1476', name: 'Control agency', type: AN, minLength: 0, maxLength: 2 }
+  - { id: '1490', name: 'Consolidation item number', type: N, minLength: 0, maxLength: 4 }
+  - { id: '1496', name: 'Goods item number', type: N, minLength: 0, maxLength: 5 }
+  - { id: '1501', name: 'Computer environment details qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1502', name: 'Data format', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1503', name: 'Data format, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1505', name: 'Value list type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1507', name: 'Class designator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1508', name: 'File name', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1510', name: 'Computer environment', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1511', name: 'Computer environment, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '1514', name: 'Value list name', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '1516', name: 'File format', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '1518', name: 'Value list identifier', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1520', name: 'Data set identifier', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '1523', name: 'Association assigned identification', type: AN, minLength: 0, maxLength: 6 }
+  - { id: '2005', name: 'Date/time/period qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '2009', name: 'Time relation, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '2013', name: 'Frequency, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '2015', name: 'Despatch pattern, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '2017', name: 'Despatch pattern timing, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '2151', name: 'Type of period, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '2152', name: 'Number of periods', type: N, minLength: 0, maxLength: 3 }
+  - { id: '2379', name: 'Date/time/period format qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '2380', name: 'Date/time/period', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '2475', name: 'Payment time reference, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3035', name: 'Party qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3036', name: 'Party name', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3039', name: 'Party id. identification', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3042', name: 'Street and number/p.o. box', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3045', name: 'Party name format, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3055', name: 'Code list responsible agency, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3077', name: 'Test media, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3124', name: 'Name and address line', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3127', name: 'Carrier identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '3128', name: 'Carrier name', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3131', name: 'Address type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3139', name: 'Contact function, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3148', name: 'Communication number', type: AN, minLength: 0, maxLength: 512 }
+  - { id: '3153', name: 'Communication channel identifier, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3155', name: 'Communication channel qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3164', name: 'City name', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3192', name: 'Account holder name', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3194', name: 'Account holder number', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3207', name: 'Country, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3222', name: 'Related place/location one', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '3223', name: 'Related place/location one identification', type: AN, minLength: 0, maxLength: 25 }
+  - { id: '3224', name: 'Place/location', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '3225', name: 'Place/location identification', type: AN, minLength: 0, maxLength: 25 }
+  - { id: '3227', name: 'Place/location qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3228', name: 'Country sub-entity', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3229', name: 'Country sub-entity identification', type: AN, minLength: 0, maxLength: 9 }
+  - { id: '3232', name: 'Related place/location two', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '3233', name: 'Related place/location two identification', type: AN, minLength: 0, maxLength: 25 }
+  - { id: '3236', name: 'Sample location', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3237', name: 'Sample location, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3239', name: 'Country of origin, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3251', name: 'Postcode identification', type: AN, minLength: 0, maxLength: 9 }
+  - { id: '3279', name: 'Geographic environment, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3285', name: 'Recipient of the instruction identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '3286', name: 'Address component', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '3289', name: 'Person characteristic qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3292', name: 'Nationality', type: A, minLength: 0, maxLength: 35 }
+  - { id: '3293', name: 'Nationality, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3295', name: 'Name component original representation, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3299', name: 'Address purpose, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3301', name: 'Party enacting instruction identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '3310', name: 'Person inherited characteristic', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '3311', name: 'Person inherited characteristic identification', type: AN, minLength: 0, maxLength: 8 }
+  - { id: '3397', name: 'Name status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3398', name: 'Name component', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '3401', name: 'Name component status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3403', name: 'Name type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3405', name: 'Name component qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3412', name: 'Department or employee', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3413', name: 'Department or employee identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '3432', name: 'Institution name', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '3433', name: 'Institution name identification', type: AN, minLength: 0, maxLength: 11 }
+  - { id: '3434', name: 'Institution branch number', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '3436', name: 'Institution branch place', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '3446', name: 'Party tax identification number', type: AN, minLength: 0, maxLength: 20 }
+  - { id: '3452', name: 'Language', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3453', name: 'Language, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3455', name: 'Language qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3475', name: 'Address status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3477', name: 'Address format, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3478', name: 'Marital status', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3479', name: 'Marital status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3482', name: 'Religion', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3483', name: 'Religion, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3493', name: 'Nationality qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '3494', name: 'Job title', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '3496', name: 'Sales channel identifier', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '3499', name: 'Sex, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4000', name: 'Reference version number', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4017', name: 'Delivery plan status indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4022', name: 'Business description', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '4025', name: 'Business function, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4027', name: 'Business function qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4035', name: 'Priority qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4036', name: 'Priority', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4037', name: 'Priority, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4038', name: 'Additional safety information', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4039', name: 'Additional safety information, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4043', name: 'Class of trade, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4044', name: 'Safety section name', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '4046', name: 'Safety section', type: N, minLength: 0, maxLength: 2 }
+  - { id: '4052', name: 'Terms of delivery or transport', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '4053', name: 'Terms of delivery or transport, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4055', name: 'Terms of delivery or transport function, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4065', name: 'Contract and carriage condition, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4078', name: 'Handling instructions', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '4079', name: 'Handling instructions, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4183', name: 'Special conditions, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4215', name: 'Transport charges method of payment, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4219', name: 'Transport priority, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4221', name: 'Discrepancy, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4233', name: 'Marking instructions, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4237', name: 'Prepaid/collect indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4276', name: 'Terms of payment', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4277', name: 'Terms of payment identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '4279', name: 'Payment terms type qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4294', name: 'Change reason', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4295', name: 'Change reason, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4343', name: 'Response type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4347', name: 'Product id. function qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4383', name: 'Bank operation, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4400', name: 'Instruction', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4401', name: 'Instruction, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4403', name: 'Instruction qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4405', name: 'Status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4407', name: 'Sample process status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4415', name: 'Test method identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '4416', name: 'Test description', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '4419', name: 'Test route of administering, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4424', name: 'Test reason', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4425', name: 'Test reason identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '4431', name: 'Payment guarantee, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4435', name: 'Payment channel, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4439', name: 'Payment conditions, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4440', name: 'Free text', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '4441', name: 'Free text, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4451', name: 'Text subject qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4453', name: 'Text function, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4455', name: 'Back order, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4457', name: 'Product/service substitution, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4461', name: 'Payment means, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4463', name: 'Intra-company payment, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4465', name: 'Adjustment reason, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4471', name: 'Settlement, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4487', name: 'Type of financial transaction, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4493', name: 'Delivery requirements, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4494', name: 'Insurance cover', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4495', name: 'Insurance cover identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '4497', name: 'Insurance cover type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4499', name: 'Reason for inventory movement, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4501', name: 'Inventory movement direction, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4503', name: 'Inventory balance method, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4505', name: 'Credit cover request, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4507', name: 'Credit cover response, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4509', name: 'Credit cover reason, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4510', name: 'Requested information', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '4511', name: 'Requested information, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4513', name: 'Maintenance operation, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '4517', name: 'Seal condition, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5004', name: 'Monetary amount', type: N, minLength: 0, maxLength: 18 }
+  - { id: '5007', name: 'Monetary function, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5013', name: 'Index qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5025', name: 'Monetary amount type qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5027', name: 'Index type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5030', name: 'Index value', type: N, minLength: 0, maxLength: 6 }
+  - { id: '5039', name: 'Index value representation, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5047', name: 'Contribution qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5048', name: 'Contribution type', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '5049', name: 'Contribution type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5118', name: 'Price', type: N, minLength: 0, maxLength: 15 }
+  - { id: '5125', name: 'Price qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5152', name: 'Duty/tax/fee type', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '5153', name: 'Duty/tax/fee type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5189', name: 'Charge/allowance description, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5213', name: 'Sub-line price change, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5237', name: 'Charge category, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5242', name: 'Rate/tariff class', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '5243', name: 'Rate/tariff class identification', type: AN, minLength: 0, maxLength: 9 }
+  - { id: '5245', name: 'Percentage qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5249', name: 'Percentage basis, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5273', name: 'Duty/tax/fee rate basis identification', type: AN, minLength: 0, maxLength: 12 }
+  - { id: '5275', name: 'Supplementary rate/tariff basis identification', type: AN, minLength: 0, maxLength: 6 }
+  - { id: '5278', name: 'Duty/tax/fee rate', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '5279', name: 'Duty/tax/fee rate identification', type: AN, minLength: 0, maxLength: 7 }
+  - { id: '5283', name: 'Duty/tax/fee function qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5284', name: 'Unit price basis', type: N, minLength: 0, maxLength: 9 }
+  - { id: '5286', name: 'Duty/tax/fee assessment basis', type: AN, minLength: 0, maxLength: 15 }
+  - { id: '5289', name: 'Duty/tax/fee account identification', type: AN, minLength: 0, maxLength: 6 }
+  - { id: '5305', name: 'Duty/tax/fee category, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5314', name: 'Remuneration type', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '5315', name: 'Remuneration type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5375', name: 'Price type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5377', name: 'Price change indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5379', name: 'Product group type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5387', name: 'Price type qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5388', name: 'Product group', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '5389', name: 'Product group, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5393', name: 'Price multiplier qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5394', name: 'Price multiplier', type: N, minLength: 0, maxLength: 12 }
+  - { id: '5402', name: 'Rate of exchange', type: N, minLength: 0, maxLength: 12 }
+  - { id: '5419', name: 'Rate type qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5420', name: 'Rate per unit', type: N, minLength: 0, maxLength: 15 }
+  - { id: '5463', name: 'Allowance or charge qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5479', name: 'Relation, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '5482', name: 'Percentage', type: N, minLength: 0, maxLength: 10 }
+  - { id: '5495', name: 'Sub-line indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6008', name: 'Height dimension', type: N, minLength: 0, maxLength: 15 }
+  - { id: '6060', name: 'Quantity', type: N, minLength: 0, maxLength: 15 }
+  - { id: '6063', name: 'Quantity qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6064', name: 'Quantity difference', type: N, minLength: 0, maxLength: 15 }
+  - { id: '6066', name: 'Control value', type: N, minLength: 0, maxLength: 18 }
+  - { id: '6069', name: 'Control qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6071', name: 'Frequency qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6072', name: 'Frequency value', type: N, minLength: 0, maxLength: 9 }
+  - { id: '6074', name: 'Confidence limit', type: N, minLength: 0, maxLength: 6 }
+  - { id: '6140', name: 'Width dimension', type: N, minLength: 0, maxLength: 15 }
+  - { id: '6145', name: 'Dimension qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6152', name: 'Range maximum', type: N, minLength: 0, maxLength: 18 }
+  - { id: '6154', name: 'Measurement attribute', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '6155', name: 'Measurement attribute, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6162', name: 'Range minimum', type: N, minLength: 0, maxLength: 18 }
+  - { id: '6167', name: 'Range type qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6168', name: 'Length dimension', type: N, minLength: 0, maxLength: 15 }
+  - { id: '6173', name: 'Size qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6174', name: 'Size', type: N, minLength: 0, maxLength: 15 }
+  - { id: '6176', name: 'Maximum number of occurrences', type: N, minLength: 0, maxLength: 7 }
+  - { id: '6245', name: 'Temperature qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6246', name: 'Temperature setting', type: N, minLength: 3, maxLength: 3 }
+  - { id: '6311', name: 'Measurement application qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6313', name: 'Measurement dimension, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6314', name: 'Measurement value', type: N, minLength: 0, maxLength: 18 }
+  - { id: '6321', name: 'Measurement significance, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6331', name: 'Statistic type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6341', name: 'Currency market exchange, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6343', name: 'Currency qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6345', name: 'Currency, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6347', name: 'Currency details qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6348', name: 'Currency rate base', type: N, minLength: 0, maxLength: 4 }
+  - { id: '6350', name: 'Number of units', type: N, minLength: 0, maxLength: 15 }
+  - { id: '6353', name: 'Number of units qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6411', name: 'Measure unit qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '6426', name: 'Number of stages', type: N, minLength: 0, maxLength: 2 }
+  - { id: '6428', name: 'Actual stage count', type: N, minLength: 0, maxLength: 2 }
+  - { id: '6432', name: 'Significant digits', type: N, minLength: 0, maxLength: 2 }
+  - { id: '6434', name: 'Statistical concept identifier', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7001', name: 'Physical or logical state qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7006', name: 'Physical or logical state', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7007', name: 'Physical or logical state, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7008', name: 'Item description', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7009', name: 'Item description identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7011', name: 'Article availability, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7036', name: 'Characteristic', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7037', name: 'Characteristic identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7039', name: 'Sample selection method, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7045', name: 'Sample description, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7047', name: 'Sample direction, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7059', name: 'Property class, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7064', name: 'Type of packages', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7065', name: 'Type of packages identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7073', name: 'Packaging terms and conditions, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7075', name: 'Packaging level, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7077', name: 'Item description type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7081', name: 'Item characteristic, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7083', name: 'Configuration, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7085', name: 'Nature of cargo, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7088', name: 'Dangerous goods flashpoint', type: AN, minLength: 0, maxLength: 8 }
+  - { id: '7102', name: 'Shipping marks', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7106', name: 'Shipment flashpoint', type: N, minLength: 3, maxLength: 3 }
+  - { id: '7110', name: 'Characteristic value', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7111', name: 'Characteristic value, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7124', name: 'UNDG number', type: N, minLength: 4, maxLength: 4 }
+  - { id: '7130', name: 'Customer authorization number', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7140', name: 'Item number', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7143', name: 'Item number type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7160', name: 'Special service', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7161', name: 'Special services, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7164', name: 'Hierarchical id. number', type: AN, minLength: 0, maxLength: 12 }
+  - { id: '7166', name: 'Hierarchical parent id.', type: AN, minLength: 0, maxLength: 12 }
+  - { id: '7168', name: 'Level number', type: N, minLength: 1, maxLength: 1 }
+  - { id: '7186', name: 'Process type', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7187', name: 'Process type identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7188', name: 'Test revision number', type: AN, minLength: 0, maxLength: 30 }
+  - { id: '7224', name: 'Number of packages', type: N, minLength: 0, maxLength: 8 }
+  - { id: '7233', name: 'Packaging related information, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7240', name: 'Total number of items', type: N, minLength: 0, maxLength: 15 }
+  - { id: '7273', name: 'Service requirement, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7293', name: 'Sector/subject identification qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7294', name: 'Requirement or condition', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7295', name: 'Requirement/condition identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7297', name: 'Set identification qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7299', name: 'Requirement designator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7357', name: 'Commodity/rate identification', type: AN, minLength: 0, maxLength: 18 }
+  - { id: '7361', name: 'Customs code identification', type: AN, minLength: 0, maxLength: 18 }
+  - { id: '7365', name: 'Processing indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7383', name: 'Surface/layer indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7402', name: 'Identity number', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7405', name: 'Identity number qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7419', name: 'Hazardous material class code, identification', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '7429', name: 'Indexing structure qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7431', name: 'Agreement type qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7433', name: 'Agreement type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7434', name: 'Agreement type description', type: AN, minLength: 0, maxLength: 70 }
+  - { id: '7436', name: 'Level one id.', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7438', name: 'Level two id.', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7440', name: 'Level three id.', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7442', name: 'Level four id.', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7444', name: 'Level five id.', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7446', name: 'Level six id.', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '7449', name: 'Membership qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7450', name: 'Membership category', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7451', name: 'Membership category identification', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '7452', name: 'Membership status', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7453', name: 'Membership status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7455', name: 'Membership level qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7456', name: 'Membership level', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7457', name: 'Membership level identification', type: AN, minLength: 0, maxLength: 9 }
+  - { id: '7491', name: 'Type of inventory affected, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7493', name: 'Damage details qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7495', name: 'Identification qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7497', name: 'Component function qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7500', name: 'Type of damage', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7501', name: 'Type of damage, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7502', name: 'Damage area', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7503', name: 'Damage area identification', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '7504', name: 'Type of unit/component', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7505', name: 'Type of unit/component, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7506', name: 'Component material', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7507', name: 'Component material, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7508', name: 'Damage severity', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '7509', name: 'Damage severity, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7511', name: 'Type of marking, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '7512', name: 'Structure component identifier', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '8022', name: 'Freight and charges', type: AN, minLength: 0, maxLength: 26 }
+  - { id: '8023', name: 'Freight and charges identification', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '8028', name: 'Conveyance reference number', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '8051', name: 'Transport stage qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8053', name: 'Equipment qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8066', name: 'Mode of transport', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '8067', name: 'Mode of transport, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8077', name: 'Equipment supplier, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8078', name: 'Hazard substance/item/page number', type: AN, minLength: 0, maxLength: 7 }
+  - { id: '8092', name: 'Hazard code version number', type: AN, minLength: 0, maxLength: 10 }
+  - { id: '8101', name: 'Transit direction, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8126', name: 'Trem card number', type: AN, minLength: 0, maxLength: 10 }
+  - { id: '8154', name: 'Equipment size and type', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '8155', name: 'Equipment size and type identification', type: AN, minLength: 0, maxLength: 10 }
+  - { id: '8158', name: 'Hazard identification number, upper part', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '8169', name: 'Full/empty indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8178', name: 'Type of means of transport', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '8179', name: 'Type of means of transport identification', type: AN, minLength: 0, maxLength: 8 }
+  - { id: '8186', name: 'Substance identification number, lower part', type: AN, minLength: 4, maxLength: 4 }
+  - { id: '8211', name: 'Permission for transport, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8212', name: 'Id. of the means of transport', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '8213', name: 'Id. of means of transport identification', type: AN, minLength: 0, maxLength: 9 }
+  - { id: '8246', name: 'Dangerous goods label marking', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '8249', name: 'Equipment status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8255', name: 'Packing instruction, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8260', name: 'Equipment identification number', type: AN, minLength: 0, maxLength: 17 }
+  - { id: '8273', name: 'Dangerous goods regulations, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8275', name: 'Container/package status, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8281', name: 'Transport ownership, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8323', name: 'Transport movement, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8325', name: 'Category of means of transport, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8332', name: 'Equipment plan', type: AN, minLength: 0, maxLength: 26 }
+  - { id: '8334', name: 'Movement type', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '8335', name: 'Movement type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8339', name: 'Packing group, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8341', name: 'Haulage arrangements, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8351', name: 'Hazard code identification', type: AN, minLength: 0, maxLength: 7 }
+  - { id: '8364', name: 'EMS number', type: AN, minLength: 0, maxLength: 6 }
+  - { id: '8393', name: 'Returnable package load contents, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8395', name: 'Returnable package freight payment responsibility, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8410', name: 'MFAG', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '8453', name: 'Nationality of means of transport, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8457', name: 'Excess transportation reason, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '8459', name: 'Excess transportation responsibility, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9003', name: 'Employment qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9004', name: 'Employment category', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9005', name: 'Employment category, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9006', name: 'Qualification classification', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9007', name: 'Qualification classification, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9008', name: 'Occupation', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9009', name: 'Occupation, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9010', name: 'Status event', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9011', name: 'Status event, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9012', name: 'Status reason', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9013', name: 'Status reason, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9015', name: 'Status type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9017', name: 'Attribute function qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9018', name: 'Attribute', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9019', name: 'Attribute, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9021', name: 'Attribute type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9035', name: 'Qualification area, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9141', name: 'Relationship qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9142', name: 'Relationship', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9143', name: 'Relationship, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9146', name: 'Composite data element tag', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '9148', name: 'Directory status', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9150', name: 'Simple data element tag', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '9153', name: 'Simple data element character representation, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9155', name: 'Simple data element length type, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9156', name: 'Simple data element maximum length', type: N, minLength: 0, maxLength: 3 }
+  - { id: '9158', name: 'Simple data element minimum length', type: N, minLength: 0, maxLength: 3 }
+  - { id: '9161', name: 'Code set indicator, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9162', name: 'Data element tag', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '9164', name: 'Group identification', type: AN, minLength: 0, maxLength: 4 }
+  - { id: '9166', name: 'Segment tag', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9213', name: 'Type of duty regime, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9280', name: 'Validation result', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9282', name: 'Validation key identification', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9302', name: 'Sealing party', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9303', name: 'Sealing party, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9308', name: 'Seal number', type: AN, minLength: 0, maxLength: 10 }
+  - { id: '9321', name: 'Application error identification', type: AN, minLength: 0, maxLength: 8 }
+  - { id: '9353', name: 'Government procedure, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9411', name: 'Government involvement, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9415', name: 'Government agency, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9417', name: 'Government action, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9419', name: 'Service layer, coded', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9421', name: 'Stages qualifier', type: AN, minLength: 0, maxLength: 3 }
+  - { id: '9424', name: 'Array cell information', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9426', name: 'Code value', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9428', name: 'Array structure identifier', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9430', name: 'Footnote set identifier', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9432', name: 'Footnote identifier', type: AN, minLength: 0, maxLength: 35 }
+  - { id: '9434', name: 'Code name', type: AN, minLength: 0, maxLength: 70 }

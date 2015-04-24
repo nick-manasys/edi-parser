@@ -21,7 +21,7 @@ public final class EdifactConstants extends EdiConstants
     private static Charset charsetOrNull(String name) {
         try {
             return Charset.forName(name);
-        } catch (Exception e) {
+        } catch (Throwable e) {
             return null;
         }
     }
@@ -46,48 +46,7 @@ public final class EdifactConstants extends EdiConstants
     // standard character sets
     public static final Charset UTF8 = Charset.forName("UTF-8");
     
-    public static final Map<String,SyntaxIdentifier> EDIFACT_CHARSETS;
-    static {
-        EDIFACT_CHARSETS = new HashMap<>();
-        for (SyntaxIdentifier syntax: SyntaxIdentifier.values()) {
-            EDIFACT_CHARSETS.put(syntax.syntaxCode, syntax);
-        }
-    }
-    
-    // delimiters: data separator, subelement separator, repetition separator, segment terminator, release
-    private static final String basicDelimiters = "+: '?";
-    private static final String alternateDelimiters = "\035\037 \034 ";
-    private static final String version4Delimiters = "+:*'?";
-    
-    public enum SyntaxVersion {
-        VERSION3("3"), VERSION4("4");
-        
-        private final String codeValue;
-        
-        SyntaxVersion(String code) {
-            codeValue = code;
-        }
-        
-        public String code() {
-            return codeValue;
-        }
-        
-        /**
-         * Get default delimiters string.
-         * 
-         * @param sid syntax identifier in use
-         * @return data separator, subelement separator, repetition separator, segment terminator, release
-         */
-        public String defaultDelimiters(SyntaxIdentifier sid) {
-            if (this == VERSION4) {
-                return version4Delimiters;
-            }
-            if (sid == SyntaxIdentifier.LEVELA) {
-                return basicDelimiters;
-            }
-            return alternateDelimiters;
-        }
-    }
+    public static final Map<String,SyntaxIdentifier> EDIFACT_CHARSETS = new HashMap<>();
     
     /** Syntax identifiers. */
     public enum SyntaxIdentifier
@@ -127,6 +86,41 @@ public final class EdifactConstants extends EdiConstants
         
         public boolean[] flags() {
             return characterFlags;
+        }
+    }
+    
+    // delimiters: data separator, subelement separator, repetition separator, segment terminator, release
+    private static final String basicDelimiters = "+: '?";
+    private static final String alternateDelimiters = "\035\037 \034 ";
+    private static final String version4Delimiters = "+:*'?";
+    
+    public enum SyntaxVersion {
+        VERSION3("3"), VERSION4("4");
+        
+        private final String codeValue;
+        
+        SyntaxVersion(String code) {
+            codeValue = code;
+        }
+        
+        public String code() {
+            return codeValue;
+        }
+        
+        /**
+         * Get default delimiters string.
+         * 
+         * @param sid syntax identifier in use
+         * @return data separator, subelement separator, repetition separator, segment terminator, release
+         */
+        public String defaultDelimiters(SyntaxIdentifier sid) {
+            if (this == VERSION4) {
+                return version4Delimiters;
+            }
+            if (sid == SyntaxIdentifier.LEVELA) {
+                return basicDelimiters;
+            }
+            return alternateDelimiters;
         }
     }
     

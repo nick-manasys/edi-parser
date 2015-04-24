@@ -495,30 +495,6 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       getr(comps, Nil).toArray
     }
 
-    def parseMessage(context: String) = {
-      val (setid, setprops) = openSet
-      if (numval.validateMessage(getRequiredString(msgHeadReferenceKey, setprops),
-        getRequiredString(msgHeadMessageTypeKey, setprops),
-        getRequiredString(msgHeadMessageVersionKey, setprops),
-        getRequiredString(msgHeadMessageReleaseKey, setprops),
-        getRequiredString(msgHeadMessageAgencyKey, setprops),
-        getAsString(msgHeadMessageAssignedKey, setprops),
-        getAsString(msgHeadMessageDirectoryKey, setprops),
-        getAsString(msgHeadMessageSubfunctionKey, setprops), context)) {
-        schema.transactions(setid) match {
-          case t: Transaction => {
-            val data = parseTransaction(t)
-            if (isSetClose) {
-              closeSet(setprops)
-              interchangeMessageCount = interchangeMessageCount + 1
-              transLists.get(setid).add(data)
-            } else messageError(NotSupportedInPosition)
-          }
-          case _ => messageError(NoAgreementForValue)
-        }
-      } else messageError(DuplicateDetected)
-    }
-
     var done = false
     while (!done) {
 
@@ -536,6 +512,38 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         }
       }
       try {
+
+    def parseMessage(context: String, group: Option[ValueMap]) = {
+      val (setid, setprops) = openSet
+      if (numval.validateMessage(getRequiredString(msgHeadReferenceKey, setprops),
+        getRequiredString(msgHeadMessageTypeKey, setprops),
+        getRequiredString(msgHeadMessageVersionKey, setprops),
+        getRequiredString(msgHeadMessageReleaseKey, setprops),
+        getRequiredString(msgHeadMessageAgencyKey, setprops),
+        getAsString(msgHeadMessageAssignedKey, setprops),
+        getAsString(msgHeadMessageDirectoryKey, setprops),
+        getAsString(msgHeadMessageSubfunctionKey, setprops), context)) {
+        schema.transactions(setid) match {
+          case t: Transaction => {
+            val data = parseTransaction(t)
+            if (isSetClose) {
+              closeSet(setprops)
+              data put (transactionInterSelfId, getRequiredString(interHeadRecipientIdentKey, interchange))
+              data put (transactionInterSelfQualId, getRequiredString(interHeadRecipientQualKey, interchange))
+              data put (transactionInterPartnerId, getRequiredString(interHeadSenderIdentKey, interchange))
+              data put (transactionInterPartnerQualId, getRequiredString(interHeadSenderQualKey, interchange))
+              group.foreach { gmap => {
+                copyIfPresent(groupHeadRecipientIdentKey, gmap, transactionGroupSelfId, data)
+                copyIfPresent(groupHeadSenderIdentKey, gmap, transactionGroupPartnerId, data)
+              }}
+              interchangeMessageCount = interchangeMessageCount + 1
+              transLists.get(setid).add(data)
+            } else messageError(NotSupportedInPosition)
+          }
+          case _ => messageError(NoAgreementForValue)
+        }
+      } else messageError(DuplicateDetected)
+    }
 
         // initialize for interchange
         interchangeSegmentNumber = lexer.getSegmentNumber - 1
@@ -557,17 +565,18 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
             if (isGroupEnvelope) {
               val groupmap = openGroup
               while (!isGroupClose) {
-                if (isSetOpen) parseMessage(context)
+                if (isSetOpen) parseMessage(context, Some(groupmap))
                 else groupError(InvalidOccurrence)
               }
             } else if (isSetOpen) {
-              parseMessage(context)
+              parseMessage(context, None)
             } else {
               val text = s"Unexpected segment ${lexer.token} at ${lexer.getSegmentNumber}"
               logger error text
               throw InterchangeException(InvalidOccurrence, text)
             }
           }
+          val typ = lexer.currentType
           if (lexer.currentType == END) {
             logger.error(s"end of file with missing $interchangeEndSegment")
             interchangeError(InvalidOccurrence)

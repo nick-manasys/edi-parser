@@ -25,7 +25,9 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   import SchemaJavaValues._
 
   val DATETIME = "090604:1205"
-  val lead = s"UNA:+.? 'UNB+UNOC:3+5790001086626:14+7611937000723:14+$DATETIME+8'"
+  val UNA = "UNA:+.? '"
+  val UNB = s"UNB+UNOC:3+5790001086626:14+7611937000723:14+$DATETIME+8'"
+  val lead = s"$UNA$UNB"
   val UNH = "UNH+800001+INVOIC:D:01B:UN:EAN010'"
   val UNT = "UNT+43+800001'"
   val UNZ = "UNZ+1+8'"
@@ -102,56 +104,53 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val map = result.get
   }
 
-//  behavior of "X12SchemaWriter"
-//
-//  it should "write the ISA envelope when initialized and then terminated" in {
-//    val out = new ByteArrayOutputStream
-//    val config = X12WriterConfig(CharacterRestriction.BASIC, -1, ASCII_CHARSET, "*>U~", null)
-//    val writer = X12SchemaWriter(out, EdiSchema(X12, "05010", Map.empty, Map.empty, Map.empty, Map.empty),
-//      new DefaultX12NumberProvider, config)
-//    val props = new ValueMapImpl
-//    props.put(AUTHORIZATION_QUALIFIER, "00")
-//    props.put(AUTHORIZATION_INFO, "ABC")
-//    props.put(SECURITY_QUALIFIER, "00")
-//    props.put(SECURITY_INFO, "DEF")
-//    props.put(SENDER_ID_QUALIFIER, "01")
-//    props.put(SENDER_ID, "013227180")
-//    props.put(RECEIVER_ID_QUALIFIER, "ZZ")
-//    props.put(RECEIVER_ID, "IJDIECAFOX")
-//    props.put(VERSION_ID, "00401")
-//    props.put(INTER_CONTROL, Integer.valueOf(1244))
-//    props.put(ACK_REQUESTED, "0")
-//    props.put(TEST_INDICATOR, "P")
-//    writer.writer.init(props)
-//    writer.writer.countGroup()
-//    writer.term(props)
-//    writer.writer.close
-//    val text = new String(out.toByteArray)
-//    val start = ISA indexOf (DATETIME)
-//    val end = start + DATETIME.length
-//    val compare = ISA + IEA
-//    text.substring(0, start) should be (compare.substring(0, start))
-//    text.substring(end) should be (compare.substring(end))
-//  }
-//
-//  it should "roundtrip a parsed document" in {
-//    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
-//    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
-//    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
-//    val parser = X12SchemaParser(messageIn, schema, new DefaultX12NumberValidator, parserConfig)
-//    val parseResult = parser.parse
-//    parseResult.isInstanceOf[Success[ValueMap]] should be (true)
-//    val out = new ByteArrayOutputStream
-//    val config = X12WriterConfig(CharacterRestriction.BASIC, -1, ASCII_CHARSET, "*>U~", null)
-//    val writer = X12SchemaWriter(out, schema, new DefaultX12NumberProvider, config)
-//    val props = parseResult.get
-//    writer.write(props)
-//    val text = new String(out.toByteArray)
-//    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")).getLines
-//    val builder = new StringBuilder
-//    lines.foreach(line => builder.append(line))
-//    
-//    // TODO: fix comparison to ignore date/times in ISA and GS
-//    //    text should be (builder.toString)
-//  }
+  behavior of "EdifactSchemaWriter"
+
+  it should "write the UNB/UNZ envelope when initialized and then terminated" in {
+    val out = new ByteArrayOutputStream
+    val config = EdifactWriterConfig(SyntaxIdentifier.LEVELC, SyntaxVersion.VERSION3, -1, '.', ASCII_CHARSET, "+: '?", "")
+    val writer = EdifactSchemaWriter(out, EdiSchema(EdiFact, "ORDERS", Map.empty, Map.empty, Map.empty, Map.empty),
+      new DefaultEdifactNumberProvider, config)
+    val initprops = new ValueMapImpl
+    initprops.put(interHeadSenderIdentKey, "5790001086626")
+    initprops.put(interHeadSenderQualKey, "14")
+    initprops.put(interHeadRecipientIdentKey, "7611937000723")
+    initprops.put(interHeadRecipientQualKey, "14")
+    initprops.put(interHeadDateKey, Integer.valueOf(90604))
+    initprops.put(interHeadTimeKey, Integer.valueOf(1205))
+    initprops.put(interHeadReferenceKey, "8")
+    writer.init(initprops)
+    val termprops = new ValueMapImpl
+    termprops.put(interTrailCountKey, Integer.valueOf(1))
+    termprops.put(interTrailReferenceKey, "8")
+    writer.term(termprops)
+    writer.writer.close
+    val text = new String(out.toByteArray)
+    val start = UNB indexOf (DATETIME)
+    val end = start + DATETIME.length
+    val compare = lead + UNZ
+    text.substring(0, start) should be (compare.substring(0, start))
+    text.substring(end) should be (compare.substring(end))
+  }
+
+  it should "roundtrip a parsed document" in {
+    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")
+    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, parserConfig)
+    val parseResult = parser.parse
+    parseResult.isInstanceOf[Success[ValueMap]] should be (true)
+    val out = new ByteArrayOutputStream
+    val config = EdifactWriterConfig(SyntaxIdentifier.LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
+    val writer = EdifactSchemaWriter(out, schema, new DefaultEdifactNumberProvider, config)
+    val props = parseResult.get
+    writer.write(props).get   //isSuccess should be (true)
+    val text = new String(out.toByteArray)
+    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")).getLines
+    val builder = new StringBuilder
+    lines.foreach(line => builder.append(line))
+    
+    // TODO: fix comparison to ignore date/times
+    //    text should be (builder.toString)
+  }
 }
