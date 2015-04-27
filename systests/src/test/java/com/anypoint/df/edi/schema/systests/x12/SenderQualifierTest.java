@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.schema.systests;
+package com.anypoint.df.edi.schema.systests.x12;
 
 import junit.framework.Assert;
 
@@ -28,13 +28,13 @@ public class SenderQualifierTest extends X12TestBase {
 	@Ignore
 	public void qualifierMissmatch() throws Exception {
 	    // TODO: this results in a TA1 rejection, not an exception
-		String ediParseResult = parsWithSenderIdentityInformation(getInputFilePath(), "AA", "BB", "TEST");
+		String ediParseResult = parseWithSenderIdentityInformation(getInputFilePath(), "AA", "BB", "TEST");
 		Assert.assertTrue(ediParseResult.contains(getExceptionText()));
 	}
 	
 	@Test 
 	public void qualifierMatch() throws Exception {
-		String ediParseResult = parsWithSenderIdentityInformation(getInputFilePath(), "ZZ", "MODUS", "");
+		String ediParseResult = parseWithSenderIdentityInformation(getInputFilePath(), "ZZ", "MODUS", "");
 		Assert.assertFalse(ediParseResult.contains(getExceptionText()));
 	}
 

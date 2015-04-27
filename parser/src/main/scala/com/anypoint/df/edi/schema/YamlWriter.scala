@@ -67,12 +67,12 @@ object YamlWriter extends WritesYaml with YamlDefs {
       writeIndented(keyValueQuote(positionKey, wrap.position.position), indent + 1, writer)
       writeIndented(keyValueQuote(endPositionKey, wrap.endPosition.position), indent + 1, writer)
       writeIndented(keyValuePair(usageKey, wrap.usage.code toString), indent + 1, writer)
-      writeIndented(s"$loopKey:", indent + 1, writer)
+      writeIndented(s"$groupKey:", indent + 1, writer)
       writeGroupComponent(wrap.loopGroup, indent + 1)
     }
 
     def writeGroupComponent(group: GroupComponent, indent: Int): Unit = {
-      writeIndented("- " + keyValueQuote(loopIdKey, group.ident), indent, writer)
+      writeIndented("- " + keyValueQuote(groupIdKey, group.ident), indent, writer)
       writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1, writer)
       if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1, writer)
       writeTransactionComps(itemsKey, group.items, indent + 1)
@@ -133,7 +133,7 @@ object YamlWriter extends WritesYaml with YamlDefs {
         writeIndented("- " + keyValueQuote(idKey, transact.ident), 0, writer)
         writeIndented(keyValuePair(nameKey, transact.name), 1, writer)
         transact.group match {
-          case Some(g) => writeIndented(keyValuePair(groupKey, g), 1, writer)
+          case Some(g) => writeIndented(keyValuePair(classKey, g), 1, writer)
           case None =>
         }
         if (transact.heading.size > 0) writeTransactionComps(headingKey, transact.heading, 1)

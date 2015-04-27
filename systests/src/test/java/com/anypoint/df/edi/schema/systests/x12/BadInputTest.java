@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.schema.systests;
+package com.anypoint.df.edi.schema.systests.x12;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -11,7 +11,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.anypoint.df.edi.schema.systests.files.BadInputFiles;
+import com.anypoint.df.edi.schema.systests.x12.files.BadInputFiles;
 
 @RunWith(Parameterized.class)
 public class BadInputTest extends X12TestBase {

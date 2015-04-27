@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.schema.systests.files;
+package com.anypoint.df.edi.schema.systests.x12.files;
 
 public final class BadInputFiles {
 	

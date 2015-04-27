@@ -3,17 +3,17 @@ version: '005010'
 transactions:
 - id: '850'
   name: Purchase order
-  group: PO
+  class: PO
   heading:
   - { idRef: 'ST', position: '0100', usage: M }
-  - loopId: 'N1'
+  - groupId: 'N1'
     usage: O
     items:
     - { idRef: 'N1', position: '3100', usage: O }
     - { idRef: 'N2', position: '3200', usage: O }
     - { idRef: 'N3', position: '3300', usage: O }
   detail:
-  - loopId: 'PO1'
+  - groupId: 'PO1'
     usage: M
     items:
     - { idRef: 'PO1', position: '0100', usage: O }

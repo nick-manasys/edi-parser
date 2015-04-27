@@ -10,52 +10,52 @@ transactions:
   - { idRef: 'ALI', position: '0050', usage: C, count: 5 }
   - { idRef: 'IMD', position: '0060', usage: C }
   - { idRef: 'FTX', position: '0070', usage: C, count: 99 }
-  - loopId: 'Segment group 1'
+  - groupId: 'Segment group 1'
     usage: C
     count: 10
     items:
     - { idRef: 'RFF', position: '0090', usage: M }
     - { idRef: 'DTM', position: '0100', usage: C, count: 5 }
-  - loopId: 'Segment group 2'
+  - groupId: 'Segment group 2'
     usage: C
     count: 99
     items:
     - { idRef: 'NAD', position: '0120', usage: M }
     - { idRef: 'LOC', position: '0130', usage: C, count: 25 }
     - { idRef: 'FII', position: '0140', usage: C, count: 5 }
-    - loopId: 'Segment group 3'
+    - groupId: 'Segment group 3'
       usage: C
       count: 10
       items:
       - { idRef: 'RFF', position: '0160', usage: M }
       - { idRef: 'DTM', position: '0170', usage: C, count: 5 }
-    - loopId: 'Segment group 4'
+    - groupId: 'Segment group 4'
       usage: C
       count: 5
       items:
       - { idRef: 'DOC', position: '0190', usage: M }
       - { idRef: 'DTM', position: '0200', usage: C, count: 5 }
-    - loopId: 'Segment group 5'
+    - groupId: 'Segment group 5'
       usage: C
       count: 5
       items:
       - { idRef: 'CTA', position: '0220', usage: M }
       - { idRef: 'COM', position: '0230', usage: C, count: 5 }
-  - loopId: 'Segment group 6'
+  - groupId: 'Segment group 6'
     usage: C
     count: 5
     items:
     - { idRef: 'TAX', position: '0250', usage: M }
     - { idRef: 'MOA', position: '0260', usage: C }
     - { idRef: 'LOC', position: '0270', usage: C, count: 5 }
-  - loopId: 'Segment group 7'
+  - groupId: 'Segment group 7'
     usage: C
     count: 5
     items:
     - { idRef: 'CUX', position: '0290', usage: M }
     - { idRef: 'PCD', position: '0300', usage: C, count: 5 }
     - { idRef: 'DTM', position: '0310', usage: C, count: 5 }
-  - loopId: 'Segment group 8'
+  - groupId: 'Segment group 8'
     usage: C
     count: 10
     items:
@@ -63,30 +63,30 @@ transactions:
     - { idRef: 'DTM', position: '0340', usage: C, count: 5 }
     - { idRef: 'PCD', position: '0350', usage: C }
     - { idRef: 'MOA', position: '0360', usage: C }
-  - loopId: 'Segment group 9'
+  - groupId: 'Segment group 9'
     usage: C
     count: 10
     items:
     - { idRef: 'TDT', position: '0380', usage: M }
-    - loopId: 'Segment group 10'
+    - groupId: 'Segment group 10'
       usage: C
       count: 10
       items:
       - { idRef: 'LOC', position: '0400', usage: M }
       - { idRef: 'DTM', position: '0410', usage: C, count: 5 }
-  - loopId: 'Segment group 11'
+  - groupId: 'Segment group 11'
     usage: C
     count: 5
     items:
     - { idRef: 'TOD', position: '0430', usage: M }
     - { idRef: 'LOC', position: '0440', usage: C, count: 2 }
-  - loopId: 'Segment group 12'
+  - groupId: 'Segment group 12'
     usage: C
     count: 10
     items:
     - { idRef: 'PAC', position: '0460', usage: M }
     - { idRef: 'MEA', position: '0470', usage: C, count: 5 }
-    - loopId: 'Segment group 13'
+    - groupId: 'Segment group 13'
       usage: C
       count: 5
       items:
@@ -94,7 +94,7 @@ transactions:
       - { idRef: 'RFF', position: '0500', usage: C }
       - { idRef: 'DTM', position: '0510', usage: C, count: 5 }
       - { idRef: 'GIN', position: '0520', usage: C, count: 10 }
-  - loopId: 'Segment group 14'
+  - groupId: 'Segment group 14'
     usage: C
     count: 10
     items:
@@ -102,61 +102,61 @@ transactions:
     - { idRef: 'HAN', position: '0550', usage: C, count: 5 }
     - { idRef: 'MEA', position: '0560', usage: C, count: 5 }
     - { idRef: 'FTX', position: '0570', usage: C, count: 5 }
-  - loopId: 'Segment group 15'
+  - groupId: 'Segment group 15'
     usage: C
     count: 10
     items:
     - { idRef: 'SCC', position: '0590', usage: M }
     - { idRef: 'FTX', position: '0600', usage: C, count: 5 }
     - { idRef: 'RFF', position: '0610', usage: C, count: 5 }
-    - loopId: 'Segment group 16'
+    - groupId: 'Segment group 16'
       usage: C
       count: 10
       items:
       - { idRef: 'QTY', position: '0630', usage: M }
       - { idRef: 'DTM', position: '0640', usage: C, count: 5 }
-  - loopId: 'Segment group 17'
+  - groupId: 'Segment group 17'
     usage: C
     count: 25
     items:
     - { idRef: 'APR', position: '0660', usage: M }
     - { idRef: 'DTM', position: '0670', usage: C, count: 5 }
     - { idRef: 'RNG', position: '0680', usage: C }
-  - loopId: 'Segment group 18'
+  - groupId: 'Segment group 18'
     usage: C
     count: 15
     items:
     - { idRef: 'ALC', position: '0700', usage: M }
     - { idRef: 'ALI', position: '0710', usage: C, count: 5 }
     - { idRef: 'DTM', position: '0720', usage: C, count: 5 }
-    - loopId: 'Segment group 19'
+    - groupId: 'Segment group 19'
       usage: C
       items:
       - { idRef: 'QTY', position: '0740', usage: M }
       - { idRef: 'RNG', position: '0750', usage: C }
-    - loopId: 'Segment group 20'
+    - groupId: 'Segment group 20'
       usage: C
       items:
       - { idRef: 'PCD', position: '0770', usage: M }
       - { idRef: 'RNG', position: '0780', usage: C }
-    - loopId: 'Segment group 21'
+    - groupId: 'Segment group 21'
       usage: C
       count: 2
       items:
       - { idRef: 'MOA', position: '0800', usage: M }
       - { idRef: 'RNG', position: '0810', usage: C }
-    - loopId: 'Segment group 22'
+    - groupId: 'Segment group 22'
       usage: C
       items:
       - { idRef: 'RTE', position: '0830', usage: M }
       - { idRef: 'RNG', position: '0840', usage: C }
-    - loopId: 'Segment group 23'
+    - groupId: 'Segment group 23'
       usage: C
       count: 5
       items:
       - { idRef: 'TAX', position: '0860', usage: M }
       - { idRef: 'MOA', position: '0870', usage: C }
-  - loopId: 'Segment group 24'
+  - groupId: 'Segment group 24'
     usage: C
     count: 100
     items:
@@ -165,7 +165,7 @@ transactions:
     - { idRef: 'DTM', position: '0910', usage: C, count: 5 }
     - { idRef: 'FTX', position: '0920', usage: C, count: 5 }
   detail:
-  - loopId: 'Segment group 25'
+  - groupId: 'Segment group 25'
     usage: C
     count: 200000
     items:
@@ -184,14 +184,14 @@ transactions:
     - { idRef: 'DOC', position: '1060', usage: C, count: 5 }
     - { idRef: 'PAI', position: '1070', usage: C }
     - { idRef: 'FTX', position: '1080', usage: C, count: 99 }
-    - loopId: 'Segment group 26'
+    - groupId: 'Segment group 26'
       usage: C
       count: 999
       items:
       - { idRef: 'CCI', position: '1100', usage: M }
       - { idRef: 'CAV', position: '1110', usage: C, count: 10 }
       - { idRef: 'MEA', position: '1120', usage: C, count: 10 }
-    - loopId: 'Segment group 27'
+    - groupId: 'Segment group 27'
       usage: C
       count: 10
       items:
@@ -199,7 +199,7 @@ transactions:
       - { idRef: 'DTM', position: '1150', usage: C, count: 5 }
       - { idRef: 'PCD', position: '1160', usage: C }
       - { idRef: 'MOA', position: '1170', usage: C }
-    - loopId: 'Segment group 28'
+    - groupId: 'Segment group 28'
       usage: C
       count: 25
       items:
@@ -208,13 +208,13 @@ transactions:
       - { idRef: 'APR', position: '1210', usage: C }
       - { idRef: 'RNG', position: '1220', usage: C }
       - { idRef: 'DTM', position: '1230', usage: C, count: 5 }
-    - loopId: 'Segment group 29'
+    - groupId: 'Segment group 29'
       usage: C
       count: 10
       items:
       - { idRef: 'RFF', position: '1250', usage: M }
       - { idRef: 'DTM', position: '1260', usage: C, count: 5 }
-    - loopId: 'Segment group 30'
+    - groupId: 'Segment group 30'
       usage: C
       count: 10
       items:
@@ -222,12 +222,12 @@ transactions:
       - { idRef: 'MEA', position: '1290', usage: C, count: 5 }
       - { idRef: 'QTY', position: '1300', usage: C, count: 5 }
       - { idRef: 'DTM', position: '1310', usage: C, count: 5 }
-      - loopId: 'Segment group 31'
+      - groupId: 'Segment group 31'
         usage: C
         items:
         - { idRef: 'RFF', position: '1330', usage: M }
         - { idRef: 'DTM', position: '1340', usage: C, count: 5 }
-      - loopId: 'Segment group 32'
+      - groupId: 'Segment group 32'
         usage: C
         count: 5
         items:
@@ -235,96 +235,96 @@ transactions:
         - { idRef: 'RFF', position: '1370', usage: C }
         - { idRef: 'DTM', position: '1380', usage: C, count: 5 }
         - { idRef: 'GIN', position: '1390', usage: C, count: 10 }
-    - loopId: 'Segment group 33'
+    - groupId: 'Segment group 33'
       usage: C
       count: 9999
       items:
       - { idRef: 'LOC', position: '1410', usage: M }
       - { idRef: 'QTY', position: '1420', usage: C }
       - { idRef: 'DTM', position: '1430', usage: C, count: 5 }
-    - loopId: 'Segment group 34'
+    - groupId: 'Segment group 34'
       usage: C
       count: 10
       items:
       - { idRef: 'TAX', position: '1450', usage: M }
       - { idRef: 'MOA', position: '1460', usage: C }
       - { idRef: 'LOC', position: '1470', usage: C, count: 5 }
-    - loopId: 'Segment group 35'
+    - groupId: 'Segment group 35'
       usage: C
       count: 99
       items:
       - { idRef: 'NAD', position: '1490', usage: M }
       - { idRef: 'LOC', position: '1500', usage: C, count: 5 }
-      - loopId: 'Segment group 36'
+      - groupId: 'Segment group 36'
         usage: C
         count: 5
         items:
         - { idRef: 'RFF', position: '1520', usage: M }
         - { idRef: 'DTM', position: '1530', usage: C, count: 5 }
-      - loopId: 'Segment group 37'
+      - groupId: 'Segment group 37'
         usage: C
         count: 5
         items:
         - { idRef: 'DOC', position: '1550', usage: M }
         - { idRef: 'DTM', position: '1560', usage: C, count: 5 }
-      - loopId: 'Segment group 38'
+      - groupId: 'Segment group 38'
         usage: C
         count: 5
         items:
         - { idRef: 'CTA', position: '1580', usage: M }
         - { idRef: 'COM', position: '1590', usage: C, count: 5 }
-    - loopId: 'Segment group 39'
+    - groupId: 'Segment group 39'
       usage: C
       count: 99
       items:
       - { idRef: 'ALC', position: '1610', usage: M }
       - { idRef: 'ALI', position: '1620', usage: C, count: 5 }
       - { idRef: 'DTM', position: '1630', usage: C, count: 5 }
-      - loopId: 'Segment group 40'
+      - groupId: 'Segment group 40'
         usage: C
         items:
         - { idRef: 'QTY', position: '1650', usage: M }
         - { idRef: 'RNG', position: '1660', usage: C }
-      - loopId: 'Segment group 41'
+      - groupId: 'Segment group 41'
         usage: C
         items:
         - { idRef: 'PCD', position: '1680', usage: M }
         - { idRef: 'RNG', position: '1690', usage: C }
-      - loopId: 'Segment group 42'
+      - groupId: 'Segment group 42'
         usage: C
         count: 2
         items:
         - { idRef: 'MOA', position: '1710', usage: M }
         - { idRef: 'RNG', position: '1720', usage: C }
-      - loopId: 'Segment group 43'
+      - groupId: 'Segment group 43'
         usage: C
         items:
         - { idRef: 'RTE', position: '1740', usage: M }
         - { idRef: 'RNG', position: '1750', usage: C }
-      - loopId: 'Segment group 44'
+      - groupId: 'Segment group 44'
         usage: C
         count: 5
         items:
         - { idRef: 'TAX', position: '1770', usage: M }
         - { idRef: 'MOA', position: '1780', usage: C }
-    - loopId: 'Segment group 45'
+    - groupId: 'Segment group 45'
       usage: C
       count: 10
       items:
       - { idRef: 'TDT', position: '1800', usage: M }
-      - loopId: 'Segment group 46'
+      - groupId: 'Segment group 46'
         usage: C
         count: 10
         items:
         - { idRef: 'LOC', position: '1820', usage: M }
         - { idRef: 'DTM', position: '1830', usage: C, count: 5 }
-    - loopId: 'Segment group 47'
+    - groupId: 'Segment group 47'
       usage: C
       count: 5
       items:
       - { idRef: 'TOD', position: '1850', usage: M }
       - { idRef: 'LOC', position: '1860', usage: C, count: 2 }
-    - loopId: 'Segment group 48'
+    - groupId: 'Segment group 48'
       usage: C
       count: 10
       items:
@@ -332,20 +332,20 @@ transactions:
       - { idRef: 'HAN', position: '1890', usage: C, count: 5 }
       - { idRef: 'MEA', position: '1900', usage: C, count: 5 }
       - { idRef: 'FTX', position: '1910', usage: C, count: 5 }
-    - loopId: 'Segment group 49'
+    - groupId: 'Segment group 49'
       usage: C
       count: 100
       items:
       - { idRef: 'SCC', position: '1930', usage: M }
       - { idRef: 'FTX', position: '1940', usage: C, count: 5 }
       - { idRef: 'RFF', position: '1950', usage: C, count: 5 }
-      - loopId: 'Segment group 50'
+      - groupId: 'Segment group 50'
         usage: C
         count: 10
         items:
         - { idRef: 'QTY', position: '1970', usage: M }
         - { idRef: 'DTM', position: '1980', usage: C, count: 5 }
-    - loopId: 'Segment group 51'
+    - groupId: 'Segment group 51'
       usage: C
       count: 100
       items:
@@ -353,12 +353,12 @@ transactions:
       - { idRef: 'RFF', position: '2010', usage: C, count: 5 }
       - { idRef: 'DTM', position: '2020', usage: C, count: 5 }
       - { idRef: 'FTX', position: '2030', usage: C, count: 5 }
-    - loopId: 'Segment group 52'
+    - groupId: 'Segment group 52'
       usage: C
       count: 10
       items:
       - { idRef: 'STG', position: '2050', usage: M }
-      - loopId: 'Segment group 53'
+      - groupId: 'Segment group 53'
         usage: C
         count: 3
         items:
@@ -367,7 +367,7 @@ transactions:
   summary:
   - { idRef: 'MOA', position: '2100', usage: C, count: 12 }
   - { idRef: 'CNT', position: '2110', usage: C, count: 10 }
-  - loopId: 'Segment group 54'
+  - groupId: 'Segment group 54'
     usage: C
     count: 10
     items:

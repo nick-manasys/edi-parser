@@ -1,6 +1,7 @@
-package com.anypoint.df.edi.schema.systests;
+package com.anypoint.df.edi.schema.systests.x12;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.ByteArrayInputStream;
 import java.util.Calendar;
@@ -12,6 +13,7 @@ import org.junit.Test;
 
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
+import com.anypoint.df.edi.schema.tools.DocumentTestX12;
 
 public class BiztalkTest extends X12TestBase {
 
@@ -27,7 +29,7 @@ public class BiztalkTest extends X12TestBase {
 
     @Test
     public void verifyWriteUsingDate() throws Exception {
-        DocumentTest test = new DocumentTest(schema);
+        DocumentTest test = new DocumentTestX12(schema);
         String text = readAsString("/x12/005010/biztalk-interop/850x1.edi");
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
         Map<String, Object> transmap = (Map<String, Object>)result.get(SchemaJavaValues.transactionsMap());

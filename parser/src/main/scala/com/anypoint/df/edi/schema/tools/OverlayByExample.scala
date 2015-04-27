@@ -79,14 +79,14 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       case DropSegment(id, pos) =>
         writeIndented(s"""- { ${keyValueQuote(idRefKey, id)}, ${keyValueQuote(positionKey, pos)}, ${keyValuePair(usageKey, UnusedUsage.code)} }""", indent, writer)
       case ModifyLoop(id, posThere, nested) =>
-        writeIndented(s"- ${keyValueQuote(loopIdRefKey, id)}", indent, writer)
+        writeIndented(s"- ${keyValueQuote(groupIdRefKey, id)}", indent, writer)
         writeIndented(s"${keyValueQuote(positionKey, posThere)}", indent + 1, writer)
         writeSection(indent + 1, itemsKey, nested)
       case ModifyWrapper(id, posThere, nested) =>
         writeIndented(s"- ${keyValueQuote(wrapIdRefKey, id)}", indent, writer)
         writeIndented(s"${keyValueQuote(positionKey, posThere)}", indent + 1, writer)
         if (nested.isEmpty) writeIndented(keyValuePair(usageKey, UnusedUsage.code), indent + 1, writer)
-        else writeSection(indent + 1, loopKey, nested)
+        else writeSection(indent + 1, groupKey, nested)
     }
 
     /** Write list of modifications to segments in a transaction with leading label. */

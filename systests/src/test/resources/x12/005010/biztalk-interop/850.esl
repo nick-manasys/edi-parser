@@ -4,7 +4,7 @@ imports: [ '/x12/005010/basedefs.esl' ]
 transactions:
 - id: '850'
   name: Purchase Order
-  group: PO
+  class: PO
   heading:
   - { idRef: 'ST', position: '0100', usage: M }
   - { idRef: 'BEG', position: '0200', usage: M }
@@ -17,7 +17,7 @@ transactions:
   - { idRef: 'PAM', position: '0950', usage: U, count: 10 }
   - { idRef: 'CSH', position: '1100', usage: O, count: 5 }
   - { idRef: 'TC2', position: '1150', usage: U, count: '>1' }
-  - loopId: 'SAC'
+  - groupId: 'SAC'
     usage: U
     count: 25
     items:
@@ -41,7 +41,7 @@ transactions:
   - { idRef: 'PCT', position: '2760', usage: U, count: '>1' }
   - { idRef: 'CTB', position: '2800', usage: U, count: 5 }
   - { idRef: 'TXI', position: '2850', usage: U, count: '>1' }
-  - loopId: 'LDT'
+  - groupId: 'LDT'
     usage: U
     count: '>1'
     items:
@@ -49,7 +49,7 @@ transactions:
     - { idRef: 'QTY', position: '2858', usage: O, count: '>1' }
     - { idRef: 'MTX', position: '2860', usage: O, count: '>1' }
     - { idRef: 'REF', position: '2865', usage: O, count: '>1' }
-  - loopId: 'AMT'
+  - groupId: 'AMT'
     usage: U
     count: '>1'
     items:
@@ -57,13 +57,13 @@ transactions:
     - { idRef: 'REF', position: '2890', usage: O, count: '>1' }
     - { idRef: 'DTM', position: '2900', usage: O }
     - { idRef: 'PCT', position: '2920', usage: O, count: '>1' }
-    - loopId: 'FA1'
+    - groupId: 'FA1'
       usage: O
       count: '>1'
       items:
       - { idRef: 'FA1', position: '2930', usage: O }
       - { idRef: 'FA2', position: '2940', usage: M, count: '>1' }
-  - loopId: 'N9'
+  - groupId: 'N9'
     usage: O
     count: 1000
     items:
@@ -72,7 +72,7 @@ transactions:
     - { idRef: 'MTX', position: '3000', usage: O, count: '>1' }
     - { idRef: 'PWK', position: '3050', usage: U, count: '>1' }
     - { idRef: 'EFI', position: '3080', usage: U, count: '>1' }
-  - loopId: 'N1'
+  - groupId: 'N1'
     usage: O
     count: 200
     items:
@@ -91,13 +91,13 @@ transactions:
     - { idRef: 'TD3', position: '4000', usage: U, count: 12 }
     - { idRef: 'TD4', position: '4100', usage: U, count: 5 }
     - { idRef: 'PKG', position: '4200', usage: U, count: 200 }
-  - loopId: 'LM'
+  - groupId: 'LM'
     usage: U
     count: '>1'
     items:
     - { idRef: 'LM', position: '4300', usage: O }
     - { idRef: 'LQ', position: '4400', usage: M, count: '>1' }
-  - loopId: 'SPI'
+  - groupId: 'SPI'
     usage: U
     count: '>1'
     items:
@@ -105,7 +105,7 @@ transactions:
     - { idRef: 'REF', position: '4600', usage: O, count: 5 }
     - { idRef: 'DTM', position: '4700', usage: O, count: 5 }
     - { idRef: 'MTX', position: '4800', usage: O, count: '>1' }
-    - loopId: 'N1'
+    - groupId: 'N1'
       usage: O
       count: 20
       items:
@@ -116,7 +116,7 @@ transactions:
       - { idRef: 'REF', position: '5300', usage: O, count: 20 }
       - { idRef: 'G61', position: '5400', usage: O }
       - { idRef: 'MTX', position: '5500', usage: O, count: '>1' }
-    - loopId: 'CB1'
+    - groupId: 'CB1'
       usage: O
       count: '>1'
       items:
@@ -125,7 +125,7 @@ transactions:
       - { idRef: 'DTM', position: '5800', usage: O, count: 5 }
       - { idRef: 'LDT', position: '5900', usage: O }
       - { idRef: 'MTX', position: '6000', usage: O, count: '>1' }
-  - loopId: 'ADV'
+  - groupId: 'ADV'
     usage: U
     count: '>1'
     items:
@@ -133,7 +133,7 @@ transactions:
     - { idRef: 'DTM', position: '6200', usage: O, count: '>1' }
     - { idRef: 'MTX', position: '6300', usage: O, count: '>1' }
   detail:
-  - loopId: 'PO1'
+  - groupId: 'PO1'
     usage: M
     count: 100000
     items:
@@ -143,7 +143,7 @@ transactions:
     - { idRef: 'CUR', position: '0200', usage: U }
     - { idRef: 'CN1', position: '0250', usage: U }
     - { idRef: 'PO3', position: '0300', usage: U, count: 25 }
-    - loopId: 'CTP'
+    - groupId: 'CTP'
       usage: U
       count: '>1'
       items:
@@ -151,7 +151,7 @@ transactions:
       - { idRef: 'CUR', position: '0430', usage: O }
     - { idRef: 'PAM', position: '0450', usage: U, count: 10 }
     - { idRef: 'MEA', position: '0490', usage: U, count: 40 }
-    - loopId: 'PID'
+    - groupId: 'PID'
       usage: O
       count: 1000
       items:
@@ -161,7 +161,7 @@ transactions:
     - { idRef: 'PO4', position: '0900', usage: O, count: '>1' }
     - { idRef: 'REF', position: '1000', usage: U, count: '>1' }
     - { idRef: 'PER', position: '1100', usage: U, count: 3 }
-    - loopId: 'SAC'
+    - groupId: 'SAC'
       usage: U
       count: 25
       items:
@@ -189,13 +189,13 @@ transactions:
     - { idRef: 'SPI', position: '2900', usage: U, count: '>1' }
     - { idRef: 'TXI', position: '2910', usage: U, count: '>1' }
     - { idRef: 'CTB', position: '2920', usage: U, count: '>1' }
-    - loopId: 'QTY'
+    - groupId: 'QTY'
       usage: U
       count: '>1'
       items:
       - { idRef: 'QTY', position: '2930', usage: O }
       - { idRef: 'SI', position: '2940', usage: O, count: '>1' }
-    - loopId: 'SCH'
+    - groupId: 'SCH'
       usage: U
       count: 200
       items:
@@ -205,14 +205,14 @@ transactions:
       - { idRef: 'TD3', position: '2980', usage: O, count: 12 }
       - { idRef: 'TD4', position: '2990', usage: O, count: 5 }
       - { idRef: 'REF', position: '3000', usage: O, count: '>1' }
-    - loopId: 'PKG'
+    - groupId: 'PKG'
       usage: U
       count: 200
       items:
       - { idRef: 'PKG', position: '3050', usage: O }
       - { idRef: 'MEA', position: '3100', usage: O, count: '>1' }
     - { idRef: 'LS', position: '3200', usage: O }
-    - loopId: 'LDT'
+    - groupId: 'LDT'
       usage: U
       count: '>1'
       items:
@@ -220,14 +220,14 @@ transactions:
       - { idRef: 'QTY', position: '3220', usage: O, count: '>1' }
       - { idRef: 'MTX', position: '3230', usage: O, count: '>1' }
       - { idRef: 'REF', position: '3240', usage: O, count: 3 }
-      - loopId: 'LM'
+      - groupId: 'LM'
         usage: O
         count: '>1'
         items:
         - { idRef: 'LM', position: '3250', usage: O }
         - { idRef: 'LQ', position: '3260', usage: M, count: '>1' }
     - { idRef: 'LE', position: '3270', usage: O }
-    - loopId: 'N9'
+    - groupId: 'N9'
       usage: U
       count: 1000
       items:
@@ -237,7 +237,7 @@ transactions:
       - { idRef: 'MTX', position: '3400', usage: O, count: '>1' }
       - { idRef: 'PWK', position: '3450', usage: O, count: '>1' }
       - { idRef: 'EFI', position: '3480', usage: O, count: '>1' }
-    - loopId: 'N1'
+    - groupId: 'N1'
       usage: U
       count: 200
       items:
@@ -259,7 +259,7 @@ transactions:
       - { idRef: 'TD3', position: '4400', usage: O, count: 12 }
       - { idRef: 'TD4', position: '4500', usage: O, count: 5 }
       - { idRef: 'PKG', position: '4600', usage: O, count: 200 }
-      - loopId: 'LDT'
+      - groupId: 'LDT'
         usage: O
         count: '>1'
         items:
@@ -268,7 +268,7 @@ transactions:
         - { idRef: 'QTY', position: '4660', usage: O, count: 5 }
         - { idRef: 'MTX', position: '4680', usage: O, count: '>1' }
         - { idRef: 'REF', position: '4690', usage: O, count: 3 }
-    - loopId: 'SLN'
+    - groupId: 'SLN'
       usage: U
       count: 1000
       items:
@@ -285,27 +285,27 @@ transactions:
       - { idRef: 'PAM', position: '5170', usage: O, count: 10 }
       - { idRef: 'PO4', position: '5180', usage: O }
       - { idRef: 'TAX', position: '5190', usage: O, count: 3 }
-      - loopId: 'N9'
+      - groupId: 'N9'
         usage: O
         count: '>1'
         items:
         - { idRef: 'N9', position: '5230', usage: O }
         - { idRef: 'DTM', position: '5240', usage: O, count: '>1' }
         - { idRef: 'MTX', position: '5250', usage: O, count: '>1' }
-      - loopId: 'SAC'
+      - groupId: 'SAC'
         usage: O
         count: 25
         items:
         - { idRef: 'SAC', position: '5260', usage: O }
         - { idRef: 'CUR', position: '5270', usage: O }
         - { idRef: 'CTP', position: '5280', usage: O }
-      - loopId: 'QTY'
+      - groupId: 'QTY'
         usage: O
         count: '>1'
         items:
         - { idRef: 'QTY', position: '5290', usage: O }
         - { idRef: 'SI', position: '5300', usage: O, count: '>1' }
-      - loopId: 'N1'
+      - groupId: 'N1'
         usage: O
         count: 10
         items:
@@ -318,21 +318,21 @@ transactions:
         - { idRef: 'REF', position: '5800', usage: O, count: 12 }
         - { idRef: 'PER', position: '5900', usage: O, count: 3 }
         - { idRef: 'SI', position: '5950', usage: O, count: '>1' }
-    - loopId: 'AMT'
+    - groupId: 'AMT'
       usage: U
       count: '>1'
       items:
       - { idRef: 'AMT', position: '6000', usage: O }
       - { idRef: 'REF', position: '6100', usage: O, count: '>1' }
       - { idRef: 'PCT', position: '6120', usage: O, count: '>1' }
-    - loopId: 'LM'
+    - groupId: 'LM'
       usage: U
       count: '>1'
       items:
       - { idRef: 'LM', position: '6200', usage: O }
       - { idRef: 'LQ', position: '6300', usage: M, count: '>1' }
   summary:
-  - loopId: 'CTT'
+  - groupId: 'CTT'
     usage: O
     items:
     - { idRef: 'CTT', position: '0100', usage: O }

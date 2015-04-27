@@ -1,6 +1,7 @@
-package com.anypoint.df.edi.schema.systests;
+package com.anypoint.df.edi.schema.systests.x12;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.InputStream;
 import java.util.Arrays;
@@ -15,9 +16,10 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.anypoint.df.edi.schema.SchemaJavaValues;
-import com.anypoint.df.edi.schema.systests.files.BadInputFiles;
+import com.anypoint.df.edi.schema.systests.x12.files.BadInputFiles;
 import com.anypoint.df.edi.schema.tools.Decode997;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
+import com.anypoint.df.edi.schema.tools.DocumentTestX12;
 
 @RunWith(Parameterized.class)
 public class MalformedInputTest extends X12TestBase {
@@ -39,7 +41,7 @@ public class MalformedInputTest extends X12TestBase {
 
 	@Test
 	public void badInput() throws Exception {
-        DocumentTest test = new DocumentTest(schema);
+        DocumentTest test = new DocumentTestX12(schema);
         InputStream is = BiztalkTest.class.getResourceAsStream(badFilePath);
         Map<String, Object> result = test.parse(is);
         List<Map<String, Object>> acks = (List<Map<String, Object>>)result.

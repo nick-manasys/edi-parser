@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.schema.systests;
+package com.anypoint.df.edi.schema.systests.x12;
 
 import static org.junit.Assert.assertEquals;
 

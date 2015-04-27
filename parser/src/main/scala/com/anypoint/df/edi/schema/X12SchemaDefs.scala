@@ -8,9 +8,34 @@ trait X12SchemaDefs {
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
-  
+
   val InterchangeStartSegment = "ISA"
   val InterchangeEndSegment = "IEA"
+
+  val elemI05 = Element("I05", "Interchange ID Qualifier", ID, 2, 2)
+  val elemI12 = Element("I12", "Interchange Control Number", INTEGER, 9, 9)
+
+  val segISA = Segment("ISA", "Interchange Control Header", List[SegmentComponent](
+    ElementComponent(Element("I01", "Authorization Information Qualifier", ID, 2, 2), None, "ISA01", 1, MandatoryUsage, 1),
+    ElementComponent(Element("I02", "Authorization Information", ALPHANUMERIC, 10, 10), None, "ISA02", 2, MandatoryUsage, 1),
+    ElementComponent(Element("I03", "Security Information Qualifier", ID, 2, 2), None, "ISA03", 3, MandatoryUsage, 1),
+    ElementComponent(Element("I04", "Security Information", ALPHANUMERIC, 10, 10), None, "ISA04", 4, MandatoryUsage, 1),
+    ElementComponent(elemI05, None, "ISA05", 5, MandatoryUsage, 1),
+    ElementComponent(Element("I06", "Interchange Sender ID", ALPHANUMERIC, 15, 15), None, "ISA06", 6, MandatoryUsage, 1),
+    ElementComponent(elemI05, None, "ISA07", 7, MandatoryUsage, 1),
+    ElementComponent(Element("I07", "Interchange Receiver ID", ALPHANUMERIC, 15, 15), None, "ISA08", 8, MandatoryUsage, 1),
+    ElementComponent(Element("I08", "Interchange Date", DATE, 6, 6), None, "ISA09", 9, MandatoryUsage, 1),
+    ElementComponent(Element("I09", "Interchange Time", TIME, 4, 4), None, "ISA10", 10, MandatoryUsage, 1),
+    ElementComponent(Element("I65", "Repetition Separator", ALPHANUMERIC, 1, 1), None, "ISA11", 11, MandatoryUsage, 1),
+    ElementComponent(Element("I11", "Interchange Control Version Number", ID, 5, 5), None, "ISA12", 12, MandatoryUsage, 1),
+    ElementComponent(elemI12, None, "ISA13", 13, MandatoryUsage, 1),
+    ElementComponent(Element("I13", "Acknowledgment Requested", ID, 1, 1), None, "ISA14", 14, MandatoryUsage, 1),
+    ElementComponent(Element("I14", "Interchange Usage Indicator", ID, 1, 1), None, "ISA15", 15, MandatoryUsage, 1),
+    ElementComponent(Element("I15", "Component Element Separator", ALPHANUMERIC, 1, 1), None, "ISA16", 16, MandatoryUsage, 1)), Nil)
+
+  val segIEA = Segment("IEA", "Interchange Control Trailer", List[SegmentComponent](
+    ElementComponent(Element("I16", "Number of Included Functional Groups", INTEGER, 1, 5), None, "IEA01", 1, MandatoryUsage, 1),
+    ElementComponent(elemI12, None, "IEA02", 2, MandatoryUsage, 1)), Nil)
 
   val GSSegment = Segment("GS", "Functional group header", List[SegmentComponent](
     ElementComponent(Element("479", "", ID, 2, 2), Some(functionalIdentifierName), "GS01", 1, MandatoryUsage, 1),
@@ -118,7 +143,7 @@ object X12Acknowledgment {
   val LexerEndStatusInterchangeNote = Map(
     (InterchangeEndStatus.CONTROL_NUMBER_ERROR -> InterchangeControlNumberMismatch),
     (InterchangeEndStatus.GROUP_COUNT_ERROR -> InterchangeInvalidContent))
-    
+
   /** Functional group syntax error codes (X12 716 element codes). */
   sealed abstract class GroupSyntaxError(val code: String, val text: String) extends Coded[String]
   case object NotSupportedGroup extends GroupSyntaxError("1", "Functional Group Not Supported")
@@ -282,7 +307,7 @@ object X12Acknowledgment {
 }
 
 object X12SchemaValues {
-  
+
   // root properties
   val interchangeVersionId = "InterchangeVersion"
   val acknowledgmentRequested = "AcknowledgmentRequested"

@@ -135,7 +135,7 @@ class SchemaDump(writer: PrintWriter) {
           case _ => acc
         }))
     val elemreps = elemrefs.filter(pair => pair._2 > 1).map(pair => pair._1).toSet
-    elemreps.toList.sortBy(element => element.ident.toInt).foreach(element => defineElement(element))
+    elemreps.toList.sortBy(element => element.ident).foreach(element => defineElement(element))
     val composites = segments.foldLeft(Set[Composite]())((acc, segment) =>
       segment.components.foldLeft(acc)((acc, comp) =>
         comp match {

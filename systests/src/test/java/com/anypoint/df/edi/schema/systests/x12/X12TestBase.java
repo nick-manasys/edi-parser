@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.schema.systests;
+package com.anypoint.df.edi.schema.systests.x12;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -16,8 +16,10 @@ import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 import com.anypoint.df.edi.schema.IdentityInformation;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.X12ParserConfig;
+import com.anypoint.df.edi.schema.systests.TestBase;
 import com.anypoint.df.edi.schema.tools.Decode997;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
+import com.anypoint.df.edi.schema.tools.DocumentTestX12;
 
 public abstract class X12TestBase extends TestBase {
 
@@ -145,7 +147,7 @@ public abstract class X12TestBase extends TestBase {
      * @throws IOException
      */
     protected void parseAndCheckWrite(String path) throws IOException {
-        DocumentTest test = new DocumentTest(schema);
+        DocumentTest test = new DocumentTestX12(schema);
         String text = readAsString(path);
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
         checkWrite(test, text, result);
@@ -189,8 +191,8 @@ public abstract class X12TestBase extends TestBase {
      * @throws IOException
      */
     protected String parseAndReturnAck(String path) {
-        DocumentTest test = new DocumentTest(schema);
-        InputStream is = BiztalkTest.class.getResourceAsStream(path);
+        DocumentTest test = new DocumentTestX12(schema);
+        InputStream is = X12TestBase.class.getResourceAsStream(path);
         if (is == null) {
             throw new IllegalArgumentException("File " + path + " not found");
         }
@@ -205,7 +207,7 @@ public abstract class X12TestBase extends TestBase {
 
     }
 
-    protected String parsWithSenderIdentityInformation(String inputFilePath, String interchangeQualifier,
+    protected String parseWithSenderIdentityInformation(String inputFilePath, String interchangeQualifier,
         String interchangeId, String interchangeType) {
         IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
         IdentityInformation[] senders = new IdentityInformation[1];
@@ -214,8 +216,8 @@ public abstract class X12TestBase extends TestBase {
             CharacterRestriction.EXTENDED, EdiConstants.ASCII_CHARSET, new IdentityInformation[0], new IdentityInformation[0],
             new String[0]);
 
-        DocumentTest test = new DocumentTest(schema, config);
-        InputStream is = BiztalkTest.class.getResourceAsStream(inputFilePath);
+        DocumentTest test = new DocumentTestX12(schema, config);
+        InputStream is = X12TestBase.class.getResourceAsStream(inputFilePath);
         try {
             Map<String, Object> result = test.parse(is);
             return test.printAck(result);

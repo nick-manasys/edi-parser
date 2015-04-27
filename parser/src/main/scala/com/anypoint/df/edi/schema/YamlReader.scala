@@ -178,10 +178,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       }
       if (values.containsKey(itemsKey)) {
         val items = getRequiredMapList(itemsKey, values)
-        GroupComponent(getRequiredString(loopIdKey, values), use, count, parseComponent(items.asScala.toList, Nil), None, Nil)
+        GroupComponent(getRequiredString(groupIdKey, values), use, count, parseComponent(items.asScala.toList, Nil), None, Nil)
       } else if (values.containsKey(wrapIdKey)) {
         val wrapid = getRequiredString(wrapIdKey, values)
-        val list = getRequiredMapList(loopKey, values)
+        val list = getRequiredMapList(groupKey, values)
         if (list.size != 1) throw new IllegalArgumentException(s"Single group definition required for loop with $wrapIdKey $wrapid")
         val group = convertComponent(list.get(0)).asInstanceOf[GroupComponent]
         if (segments.contains(form.loopWrapperStart) && segments.contains(form.loopWrapperEnd)) {
@@ -257,13 +257,13 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
                   val use = getUsageOverride(values, wrap.usage)
                   val count = getCountOverride(values, wrap.count)
                   val group =
-                    if (values.containsKey(loopKey)) overGroup(getRequiredValueMap(loopKey, values), wrap.loopGroup)
+                    if (values.containsKey(groupKey)) overGroup(getRequiredValueMap(groupKey, values), wrap.loopGroup)
                     else wrap.loopGroup
                   overr(t, LoopWrapperComponent(wrap.open, wrap.close, wrap.position, wrap.endPosition, use, wrap.ident, group) :: prior, bt)
                 }
                 case (group: GroupComponent) => {
-                  if (values.containsKey(loopIdRefKey)) {
-                    val compare = getRequiredString(loopIdRefKey, values)
+                  if (values.containsKey(groupIdRefKey)) {
+                    val compare = getRequiredString(groupIdRefKey, values)
                     if (compare != group.ident) throw new IllegalStateException(s"loop at position $position is not $compare")
                   }
                   val use = getUsageOverride(values, group.usage)
@@ -362,7 +362,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
         val name = getRequiredString(nameKey, transmap)
-        val group = if (transmap.containsKey(groupKey)) Some(transmap.get(groupKey).asInstanceOf[String]) else None
+        val group = if (transmap.containsKey(classKey)) Some(transmap.get(classKey).asInstanceOf[String]) else None
         val heading = parseTransactionPart(headingKey, transmap, form, 0, segments)
         val detail = parseTransactionPart(detailKey, transmap, form, 1, segments)
         val summary = parseTransactionPart(summaryKey, transmap, form, 2, segments)
@@ -372,7 +372,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         if (!basedefs.contains(idref)) throw new IllegalStateException(s"referenced transaction $idref is not defined")
         val basedef = basedefs(idref)
         val name = getAs(nameKey, basedef.name, transmap)
-        val group = getAs(groupKey, basedef.group, transmap)
+        val group = getAs(classKey, basedef.group, transmap)
         val heading = parseTransactionOverlayPart(headingKey, transmap, basedef.heading, segments)
         val detail = parseTransactionOverlayPart(detailKey, transmap, basedef.detail, segments)
         val summary = parseTransactionOverlayPart(summaryKey, transmap, basedef.summary, segments)
