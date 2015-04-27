@@ -1,6 +1,6 @@
 form: X12
 version: '005010'
-transactions:
+structures:
 - id: '850'
   name: Purchase order
   class: PO

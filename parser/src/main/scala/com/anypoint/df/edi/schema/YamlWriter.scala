@@ -128,7 +128,7 @@ object YamlWriter extends WritesYaml with YamlDefs {
     if (!schema.transactions.isEmpty) {
 
       // write transaction details
-      writeIndented(s"$transactionsKey:", 0, writer)
+      writeIndented(s"$structuresKey:", 0, writer)
       schema.transactions.values.toList.sortBy { transact => transact.ident } foreach (transact => {
         writeIndented("- " + keyValueQuote(idKey, transact.ident), 0, writer)
         writeIndented(keyValuePair(nameKey, transact.name), 1, writer)

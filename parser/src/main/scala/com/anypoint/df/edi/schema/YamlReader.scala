@@ -358,7 +358,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
   /** Convert transaction definitions. */
   private def convertTransactions(input: ValueMap, form: EdiForm, segments: Map[String, Segment],
     basedefs: EdiSchema.TransactionMap) =
-    getRequiredMapList(transactionsKey, input).asScala.toList.
+    getRequiredMapList(structuresKey, input).asScala.toList.
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
         val name = getRequiredString(nameKey, transmap)
@@ -446,7 +446,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         if (input.containsKey(segmentsKey)) convertSegments(input, form, elements, composites, baseSchema.segments)
         else baseSchema.segments
       val transactions =
-        if (input.containsKey(transactionsKey)) convertTransactions(input, form, segments, baseSchema.transactions)
+        if (input.containsKey(structuresKey)) convertTransactions(input, form, segments, baseSchema.transactions)
         else baseSchema.transactions
       val count = transactions.size
       EdiSchema(form, version, elements, composites, segments, transactions)

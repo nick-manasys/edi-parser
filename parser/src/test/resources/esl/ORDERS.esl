@@ -1,6 +1,6 @@
 form: EDIFACT
 version: 'd96a'
-transactions:
+structures:
 - id: 'ORDERS'
   name: Purchase order message
   heading:

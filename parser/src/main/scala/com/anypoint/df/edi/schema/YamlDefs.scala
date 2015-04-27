@@ -25,7 +25,7 @@ trait YamlDefs {
   val minLengthKey = "minLength"
   val maxLengthKey = "maxLength"
   val segmentsKey = "segments"
-  val transactionsKey = "transactions"
+  val structuresKey = "structures"
   val classKey = "class"
   val headingKey = "heading"
   val detailKey = "detail"

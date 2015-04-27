@@ -102,7 +102,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     if (transmods.nonEmpty) {
 
       // write transaction modifications
-      writeIndented(s"$transactionsKey:", 0, writer)
+      writeIndented(s"$structuresKey:", 0, writer)
       transmods foreach (transmod => {
         writeIndented(s"- ${keyValueQuote(idRefKey, transmod.ident)}", 0, writer)
         if (transmod.headMods.nonEmpty) writeSection(1, headingKey, transmod.headMods)

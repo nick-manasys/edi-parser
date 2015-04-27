@@ -1,7 +1,7 @@
 form: X12
 version: '005010'
 imports: [ '/x12/005010/basedefs.esl' ]
-transactions:
+structures:
 - id: '850'
   name: Purchase Order
   class: PO
