@@ -1,18 +1,20 @@
 package com.anypoint.df.edi.schema.tools
 
+import com.anypoint.df.edi.lexical.X12Constants._
 import com.anypoint.df.edi.schema.{ SchemaJavaDefs, X12SchemaDefs, EdiSchema }
 import com.anypoint.df.edi.schema.SchemaJavaValues._
 import com.anypoint.df.edi.schema.X12Acknowledgment._
 
-/** TODO
-  *
+/** X12 997 functional acknowledgment decoder. This is set up for received 997, with the interchange information linked
+ * from the transaction map.
   */
 object Decode997 extends X12SchemaDefs with SchemaJavaDefs {
   def decode(root: ValueMap) = {
     if (getRequiredString(transactionId, root) != trans997.ident) throw new IllegalArgumentException("Not a 997 transaction")
     val builder = new StringBuilder
-    builder ++= s"From ${getRequiredString(transactionInterPartnerQualId, root)}:${getRequiredString(transactionInterPartnerId, root)}\n"
-    builder ++= s"To ${getRequiredString(transactionInterSelfQualId, root)}:${getRequiredString(transactionInterSelfId, root)}\n"
+    val inter = getRequiredValueMap(interchangeKey, root)
+    builder ++= s"From ${getRequiredString(SENDER_ID_QUALIFIER, inter)}:${getRequiredString(SENDER_ID, inter)}\n"
+    builder ++= s"To ${getRequiredString(RECEIVER_ID_QUALIFIER, inter)}:${getRequiredString(RECEIVER_ID, inter)}\n"
     val ackhead = getRequiredValueMap(transactionHeading, root)
     val stdata = getRequiredValueMap(segST ident, ackhead)
     builder ++= s"Control number ${getRequiredString(segST.components(1) key, stdata)}\n"

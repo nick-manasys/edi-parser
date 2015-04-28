@@ -16,20 +16,20 @@ public final class X12Constants extends EdiConstants
     public static final String CHAR_SET = "Character set";
     
     // interchange properties from ISA segment
-    public static final String AUTHORIZATION_QUALIFIER = "Authorization qualifier";
-    public static final String AUTHORIZATION_INFO = "Authorization info";
-    public static final String SECURITY_QUALIFIER = "Security qualifier";
-    public static final String SECURITY_INFO = "Security info";
-    public static final String SENDER_ID_QUALIFIER = "Sender identification qualifier";
-    public static final String SENDER_ID = "Sender identification";
-    public static final String RECEIVER_ID_QUALIFIER = "Receiver identification qualifier";
-    public static final String RECEIVER_ID = "Receiver identification";
-    public static final String INTERCHANGE_DATE = "Interchange date";
-    public static final String INTERCHANGE_TIME = "Interchange time";
-    public static final String VERSION_ID = "Version identification";
-    public static final String INTER_CONTROL = "Interchange control";
-    public static final String ACK_REQUESTED = "Ack requested";
-    public static final String TEST_INDICATOR = "Test indicator";
+    public static final String AUTHORIZATION_QUALIFIER = "ISA01";
+    public static final String AUTHORIZATION_INFO = "ISA02";
+    public static final String SECURITY_QUALIFIER = "ISA03";
+    public static final String SECURITY_INFO = "ISA04";
+    public static final String SENDER_ID_QUALIFIER = "ISA05";
+    public static final String SENDER_ID = "ISA06";
+    public static final String RECEIVER_ID_QUALIFIER = "ISA07";
+    public static final String RECEIVER_ID = "ISA08";
+    public static final String INTERCHANGE_DATE = "ISA09";
+    public static final String INTERCHANGE_TIME = "ISA10";
+    public static final String VERSION_ID = "ISA12";
+    public static final String INTER_CONTROL = "ISA13";
+    public static final String ACK_REQUESTED = "ISA14";
+    public static final String TEST_INDICATOR = "ISA15";
     
     /** X12 basic character set. */
     private static final boolean[] basicCharacterSet;

@@ -9,9 +9,6 @@ trait X12SchemaDefs {
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 
-  val InterchangeStartSegment = "ISA"
-  val InterchangeEndSegment = "IEA"
-
   val elemI05 = Element("I05", "Interchange ID Qualifier", ID, 2, 2)
   val elemI12 = Element("I12", "Interchange Control Number", INTEGER, 9, 9)
 
@@ -59,6 +56,32 @@ trait X12SchemaDefs {
   val SESegment = Segment("SE", "Transaction set trailer", List[SegmentComponent](
     ElementComponent(Element("96", "", INTEGER, 1, 10), Some(numberOfSegmentsName), "SE01", 1, MandatoryUsage, 1),
     ElementComponent(Element("329", "", ALPHANUMERIC, 4, 9), Some(transactionSetControlName), "SE02", 2, MandatoryUsage, 1)), Nil)
+
+  val InterchangeStartSegment = segISA.ident
+  val InterchangeEndSegment = segIEA.ident
+  
+  // value keys for GS segment
+  val groupFunctionalIdentifierKey = GSSegment.components(0).key
+  val groupApplicationSenderKey = GSSegment.components(1).key
+  val groupApplicationReceiverKey = GSSegment.components(2).key
+  val groupDateKey = GSSegment.components(3).key
+  val groupTimeKey = GSSegment.components(4).key
+  val groupControlNumberHeaderKey = GSSegment.components(5).key
+  val groupResponsibleAgencyKey = GSSegment.components(6).key
+  val groupVersionReleaseIndustryKey = GSSegment.components(7).key
+  
+  // value keys for GE segment
+  val groupNumberSetsIncludedKey = GESegment.components(0).key
+  val groupControlNumberTrailerKey = GESegment.components(1).key
+  
+  // value keys for ST segment
+  val setIdentifierCodeKey = STSegment.components(0).key
+  val setControlNumberHeaderKey = STSegment.components(1).key
+  val setImplementationConventionKey = STSegment.components(2).key
+  
+  // value keys for SE segment
+  val setNumberSegmentsIncludedKey = SESegment.components(0).key
+  val setControlNumberTrailerKey = SESegment.components(1).key
 }
 
 object X12Acknowledgment {
@@ -311,43 +334,28 @@ object X12SchemaValues {
   // root properties
   val interchangeVersionId = "InterchangeVersion"
   val acknowledgmentRequested = "AcknowledgmentRequested"
+  
+  // transaction set properties
+  val implementationConventionReference = "ImplementationConventionOverride"
 
   // group properties from GS segment
-  val functionalIdentifierName = "Functional identifier code";
-  val applicationSendersName = "Application sender's code";
-  val applicationReceiversName = "Application receiver's code";
-  val groupDateName = "Group date";
-  val groupTimeName = "Group time";
-  val groupControlName = "Group control number";
-  val responsibleAgencyName = "Responsible agency code";
-  val versionIdentifierName = "Version / release / industry identifier code";
-  val functionalIdentifierKey = "GS01";
-  val applicationSendersKey = "GS02";
-  val applicationReceiversKey = "GS03";
-  val groupDateKey = "GS04";
-  val groupTimeKey = "GS05";
-  val groupControlKey = "GS06";
-  val responsibleAgencyKey = "GS07";
-  val versionIdentifierKey = "GS08";
+  val functionalIdentifierName = "Functional identifier code"
+  val applicationSendersName = "Application sender's code"
+  val applicationReceiversName = "Application receiver's code"
+  val groupDateName = "Group date"
+  val groupTimeName = "Group time"
+  val groupControlName = "Group control number"
+  val responsibleAgencyName = "Responsible agency code"
+  val versionIdentifierName = "Version / release / industry identifier code"
 
   // group properties from GE segment
-  val numberOfSetsName = "Number of transaction sets included";
-  //    val groupControlName = "Group control number";
-  val numberOfSetsKey = "GE01";
-  val groupControlEndKey = "GE02";
+  val numberOfSetsName = "Number of transaction sets included"
 
   // transaction set properties from ST segment
-  val transactionSetIdentifierName = "Transaction set identifier code";
-  val transactionSetControlName = "Transaction set control number";
-  val implementationConventionName = "Implementation convention reference";
-  val transactionSetIdentifierKey = "ST01";
-  val transactionSetControlKey = "ST02";
-  val implementationConventionKey = "ST03";
+  val transactionSetIdentifierName = "Transaction set identifier code"
+  val transactionSetControlName = "Transaction set control number"
+  val implementationConventionName = "Implementation convention reference"
 
   // transaction set properties from SE segment
-  val numberOfSegmentsName = "Number of included segments";
-  //    val transactionSetControlName = "Transaction set control number";
-  val numberOfSegmentsKey = "SE01";
-  val transactionSetControlEndKey = "SE02";
-
+  val numberOfSegmentsName = "Number of included segments"
 }

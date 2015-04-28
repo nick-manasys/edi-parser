@@ -63,7 +63,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
 
   /** Write start of a functional group (modifies passed in map). */
   def openGroup(functId: String, props: ValueMap) = {
-    props put (functionalIdentifierKey, functId)
+    props put (groupFunctionalIdentifierKey, functId)
     val calendar = new GregorianCalendar
     props put (groupDateKey, calendar)
     val time = Integer.valueOf((calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000)
@@ -74,43 +74,54 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
 
   /** Write close of a functional group (modifies passed in map). */
   def closeGroup(props: ValueMap) = {
-    props put (numberOfSetsKey, Integer.valueOf(setCount))
-    props put (groupControlEndKey, props.get(groupControlKey))
+    props put (groupNumberSetsIncludedKey, Integer.valueOf(setCount))
+    props put (groupControlNumberTrailerKey, props.get(groupControlNumberHeaderKey))
     writeSegment(props, GESegment)
   }
 
   /** Write start of a transaction set (modifies passed in map). */
   def openSet(ident: String, props: ValueMap) = {
-    props put (transactionSetIdentifierKey, ident)
+    props put (setIdentifierCodeKey, ident)
     setSegmentBase = writer.getSegmentCount
     writeSegment(props, STSegment)
   }
 
   /** Write close of a transaction set (modifies passed in map). */
   def closeSet(props: ValueMap) = {
-    props put (numberOfSegmentsKey, Integer.valueOf(writer.getSegmentCount - setSegmentBase + 1))
-    props put (transactionSetControlEndKey, props.get(transactionSetControlKey))
+    props put (setNumberSegmentsIncludedKey, Integer.valueOf(writer.getSegmentCount - setSegmentBase + 1))
+    props put (setControlNumberTrailerKey, props.get(setControlNumberHeaderKey))
     writeSegment(props, SESegment)
     setCount += 1
   }
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment) = segment.ident == "ST" || segment.ident == "SE"
-
+  
   /** Group transaction sets into lists for one or more interchanges based on the self and partner identification
     * information. This also verifies that the data for each transaction matches the transaction type of the containing
     * list, and saves information in the transaction set to refer back to the position in the input data. Note that the
     * list of transactions for each interchange is in reverse order relative to the original order of the transactions.
-    * @param transMap transaction identifiers to lists of transactions
+    * @param rootMap message root
     * @return List(((interSelfQual, interSelf, interPartQual, interPart, interUsage), List(transSet))
     */
-  def transactionInterchanges(transMap: ValueMap) = {
+  def transactionInterchanges(rootMap: ValueMap) = {
+    val interDflt = getAsMap(interchangeKey, rootMap)
+    val groupDflt = getAsMap(groupKey, rootMap)
+    val transMap = getAsMap(transactionsMap, rootMap)
+    def getInterchangeString(key: String, specific: ValueMap) =
+      if (specific != null && specific.containsKey(key)) getAsString(key, specific)
+      else getAsString(key, interDflt)
+    def getGroupString(key: String, specific: ValueMap) =
+      if (specific != null && specific.containsKey(key)) getAsString(key, specific)
+      else if (groupDflt == null) null
+      else getAsString(key, groupDflt)
     def tupleKey(transet: TransactionSet) = try {
-      (getRequiredString(transactionInterSelfQualId, transet.data),
-        getRequiredString(transactionInterSelfId, transet.data),
-        getRequiredString(transactionInterPartnerQualId, transet.data),
-        getRequiredString(transactionInterPartnerId, transet.data),
-        getRequiredString(transactionInterchangeUsage, transet.data))
+      val specific = getAsMap(interchangeKey, transet.data)
+      (getInterchangeString(SENDER_ID_QUALIFIER, specific),
+        getInterchangeString(SENDER_ID, specific),
+        getInterchangeString(RECEIVER_ID_QUALIFIER, specific),
+        getInterchangeString(RECEIVER_ID, specific),
+        getInterchangeString(TEST_INDICATOR, specific))
     } catch {
       case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
     }
@@ -123,10 +134,11 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
           try {
             val transid = getRequiredString(transactionId, transdata)
             if (transid != transnum) throw new IllegalArgumentException(s"$transactionId value '$transid'' does not match containing type")
-            val selfid = getRequiredString(transactionGroupSelfId, transdata)
-            val partnerid = getRequiredString(transactionGroupPartnerId, transdata)
-            val agencyCode = getRequiredString(transactionGroupAgencyCode, transdata)
-            val versionid = getRequiredString(transactionGroupVersionCode, transdata)
+            val specific = getAsMap(groupKey, transdata)
+            val selfid = getGroupString(groupApplicationSenderKey, specific)
+            val partnerid = getGroupString(groupApplicationReceiverKey, specific)
+            val agencyCode = getGroupString(groupResponsibleAgencyKey, specific)
+            val versionid = getGroupString(groupVersionReleaseIndustryKey, specific)
             TransactionSet(transnum, i, selfid, partnerid, agencyCode, versionid, transdata)
           } catch {
             case e: IllegalArgumentException => logAndThrow(s"transaction $transnum at index $i ${e.getMessage}", None)
@@ -147,17 +159,19 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
 
   /** Write the output message. */
   def write(map: ValueMap) = Try({
-    val interchanges = transactionInterchanges(getRequiredValueMap(transactionsMap, map))
+    val interchanges = transactionInterchanges(map)
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
+    val interDflt = getAsMap(interchangeKey, map)
+    val groupDflt = getAsMap(groupKey, map)
     interchanges foreach {
-      case ((selfQual, selfId, partnerQual, partnerId, useIndicator), interlist) => {
+      case ((senderQual, senderId, receiverQual, receiverId, useIndicator), interlist) => {
         val interProps = new ValueMapImpl
-        val providerId = numprov interchangIdentifier (selfQual, selfId, partnerQual, partnerId)
+        val providerId = numprov interchangIdentifier (senderQual, senderId, receiverQual, receiverId)
         interProps put (INTER_CONTROL, Integer valueOf (numprov nextInterchange (providerId)))
-        interProps put (RECEIVER_ID_QUALIFIER, partnerQual)
-        interProps put (RECEIVER_ID, partnerId)
-        interProps put (SENDER_ID_QUALIFIER, selfQual)
-        interProps put (SENDER_ID, selfId)
+        interProps put (RECEIVER_ID_QUALIFIER, receiverQual)
+        interProps put (RECEIVER_ID, receiverId)
+        interProps put (SENDER_ID_QUALIFIER, senderQual)
+        interProps put (SENDER_ID, senderId)
         interProps put (VERSION_ID, getAs(interchangeVersionId, "00501", map))
         interProps put (ACK_REQUESTED, getAs(acknowledgmentRequested, "1", map))
         interProps put (TEST_INDICATOR, useIndicator)
@@ -172,13 +186,13 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
           (transet selfId, transet partnerId, transet agencyCode, transet versionId, transdef.group.getOrElse(""))
         })
         groups foreach {
-          case ((selfGroup, partnerGroup, agency, version, groupCode), grouplist) => {
+          case ((senderGroup, receiverGroup, agency, version, groupCode), grouplist) => {
             val groupProps = new ValueMapImpl
-            groupProps put (applicationSendersKey, selfGroup)
-            groupProps put (applicationReceiversKey, partnerGroup)
-            groupProps put (groupControlKey, Integer valueOf (numprov nextGroup (providerId, selfGroup, partnerGroup)))
-            groupProps put (responsibleAgencyKey, agency)
-            groupProps put (versionIdentifierKey, version)
+            groupProps put (groupApplicationSenderKey, senderGroup)
+            groupProps put (groupApplicationReceiverKey, receiverGroup)
+            groupProps put (groupControlNumberHeaderKey, Integer valueOf (numprov nextGroup (providerId, senderGroup, receiverGroup)))
+            groupProps put (groupResponsibleAgencyKey, agency)
+            groupProps put (groupVersionReleaseIndustryKey, version)
             openGroup(groupCode, groupProps)
             writer.countGroup
             grouplist foreach (transet => try {
@@ -187,9 +201,9 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
                 if (text.length < length) zeroPad("0" + text, length) else text
               val transdata = transet.data
               val setProps = new ValueMapImpl
-              setProps put (transactionSetControlKey, zeroPad(numprov nextSet (providerId, selfGroup, partnerGroup), 4))
-              if (transdata containsKey (transactionImplConventionRef)) setProps put (implementationConventionKey,
-                transdata get (transactionImplConventionRef))
+              setProps put (setControlNumberHeaderKey, zeroPad(numprov nextSet (providerId, senderGroup, receiverGroup), 4))
+              if (transdata containsKey (implementationConventionReference)) setProps put (setImplementationConventionKey,
+                transdata get (implementationConventionReference))
               openSet(transet ident, setProps)
               writeTransaction(transdata, schema transactions (transet ident))
               closeSet(setProps)

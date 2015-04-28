@@ -115,10 +115,10 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Segment number for interchange start. */
   var interchangeSegmentNumber = 0
-  
+
   /** Number of groups in interchange. */
   var interchangeGroupCount = 0
-  
+
   /** Number of messages in interchange. */
   var interchangeMessageCount = 0
 
@@ -338,7 +338,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   def messageError(error: SyntaxError) = {
     logErrorInMessage(true, false, error.text)
   }
-  
+
   def interchangeError(error: SyntaxError) = {
     logInterchangeEnvelopeError(true, error.text)
   }
@@ -447,7 +447,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     val interAckList = new MapListImpl
     map put (interchangeAcksGenerated, interAckList)
     val funcAckList = new MapListImpl
-    map put (functionalAcknowledgments, funcAckList)
+    map put (functionalAcksGenerated, funcAckList)
     val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
     schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
     map put (transactionsMap, transLists)
@@ -513,37 +513,31 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       }
       try {
 
-    def parseMessage(context: String, group: Option[ValueMap]) = {
-      val (setid, setprops) = openSet
-      if (numval.validateMessage(getRequiredString(msgHeadReferenceKey, setprops),
-        getRequiredString(msgHeadMessageTypeKey, setprops),
-        getRequiredString(msgHeadMessageVersionKey, setprops),
-        getRequiredString(msgHeadMessageReleaseKey, setprops),
-        getRequiredString(msgHeadMessageAgencyKey, setprops),
-        getAsString(msgHeadMessageAssignedKey, setprops),
-        getAsString(msgHeadMessageDirectoryKey, setprops),
-        getAsString(msgHeadMessageSubfunctionKey, setprops), context)) {
-        schema.transactions(setid) match {
-          case t: Transaction => {
-            val data = parseTransaction(t)
-            if (isSetClose) {
-              closeSet(setprops)
-              data put (transactionInterSelfId, getRequiredString(interHeadRecipientIdentKey, interchange))
-              data put (transactionInterSelfQualId, getRequiredString(interHeadRecipientQualKey, interchange))
-              data put (transactionInterPartnerId, getRequiredString(interHeadSenderIdentKey, interchange))
-              data put (transactionInterPartnerQualId, getRequiredString(interHeadSenderQualKey, interchange))
-              group.foreach { gmap => {
-                copyIfPresent(groupHeadRecipientIdentKey, gmap, transactionGroupSelfId, data)
-                copyIfPresent(groupHeadSenderIdentKey, gmap, transactionGroupPartnerId, data)
-              }}
-              interchangeMessageCount = interchangeMessageCount + 1
-              transLists.get(setid).add(data)
-            } else messageError(NotSupportedInPosition)
-          }
-          case _ => messageError(NoAgreementForValue)
+        def parseMessage(context: String, group: Option[ValueMap]) = {
+          val (setid, setprops) = openSet
+          if (numval.validateMessage(getRequiredString(msgHeadReferenceKey, setprops),
+            getRequiredString(msgHeadMessageTypeKey, setprops),
+            getRequiredString(msgHeadMessageVersionKey, setprops),
+            getRequiredString(msgHeadMessageReleaseKey, setprops),
+            getRequiredString(msgHeadMessageAgencyKey, setprops),
+            getAsString(msgHeadMessageAssignedKey, setprops),
+            getAsString(msgHeadMessageDirectoryKey, setprops),
+            getAsString(msgHeadMessageSubfunctionKey, setprops), context)) {
+            schema.transactions(setid) match {
+              case t: Transaction => {
+                val data = parseTransaction(t)
+                if (isSetClose) {
+                  closeSet(setprops)
+                  group.foreach { gmap => data.put(groupKey, gmap) }
+                  data.put(interchangeKey, interchange)
+                  interchangeMessageCount = interchangeMessageCount + 1
+                  transLists.get(setid).add(data)
+                } else messageError(NotSupportedInPosition)
+              }
+              case _ => messageError(NoAgreementForValue)
+            }
+          } else messageError(DuplicateDetected)
         }
-      } else messageError(DuplicateDetected)
-    }
 
         // initialize for interchange
         interchangeSegmentNumber = lexer.getSegmentNumber - 1

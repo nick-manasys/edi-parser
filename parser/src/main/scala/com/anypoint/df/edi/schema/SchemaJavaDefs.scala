@@ -45,9 +45,27 @@ trait SchemaJavaDefs {
   
   def getAsString(key: String, map: ValueMap) = getAs[String](key, map)
   
+  def getAsMap(key: String, map: ValueMap) = getAs[ValueMap](key, map)
+  
   def getAs[T](key: String, dflt: T, map: ValueMap): T =
     if (map.containsKey(key)) map.get(key).asInstanceOf[T]
     else dflt
+  
+  def swap(key1: String, key2: String, map: ValueMap) =
+    if (map.containsKey(key1)) {
+      val temp = map get(key1)
+      if (map.containsKey(key2)) map put(key1, map get(key2))
+      map put(key2, temp)
+    } else if (map.containsKey(key2)) {
+      map put(key1, map get(key2))
+      map remove(key2)
+    }
+  
+  def move(key: String, map1: ValueMap, map2: ValueMap) =
+    if (map1.containsKey(key)) {
+      map2 put(key, map1.get(key))
+      map1 remove(key)
+    }
     
   def applyIfPresent[T](key: String, map: ValueMap, f: T => Unit) =
     if (map.containsKey(key)) f(map.get(key).asInstanceOf[T])
@@ -84,14 +102,17 @@ object SchemaJavaValues {
   val characterEncoding = "Encoding"
 
   // value keys for parse output map
-  val functionalAcknowledgments = "Acknowledgments"
+  val functionalAcksGenerated = "FunctionalAcksGenerated"
+  val functionalAcksReceived = "FunctionalAcksReceived"
   val interchangeAcksGenerated = "InterchangeAcksGenerated"
   val interchangeAcksReceived = "InterchangeAcksReceived"
   val interchangeAcksToSend = "InterchangeAcksToSend"
   val transactionsMap = "Transactions"
   
-  // value keys for group data
-  val groupInterchange = "Interchange"
+  // value keys for envelope data maps
+  val interchangeKey = "Interchange"
+  val groupKey = "Group"
+  val setKey = "Set"
 
   // value keys for top-level transaction parse result map
   val transactionId = "Id"
@@ -99,18 +120,4 @@ object SchemaJavaValues {
   val transactionHeading = "Heading"
   val transactionDetail = "Detail"
   val transactionSummary = "Summary"
-  val transactionSet = "Set"
-  val transactionGroup = "Group"
-  
-  // value key for top-level transaction output map
-  val transactionInterSelfQualId = "InterIdQualSelf"
-  val transactionInterSelfId = "InterIdSelf"
-  val transactionGroupSelfId = "GroupIdSelf"
-  val transactionGroupAgencyCode = "ResponsibleAgencyCode"
-  val transactionGroupVersionCode = "VersionIdentifierCode"
-  val transactionInterPartnerQualId = "InterIdQualPartner"
-  val transactionInterPartnerId = "InterIdPartner"
-  val transactionGroupPartnerId = "GroupIdPartner"
-  val transactionImplConventionRef = "ImplConventionRef"
-  val transactionInterchangeUsage = "InterchangeUsage"
 }

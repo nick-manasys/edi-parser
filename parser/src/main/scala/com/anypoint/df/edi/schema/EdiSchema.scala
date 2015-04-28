@@ -197,6 +197,9 @@ object EdiSchema {
       case grp: GroupComponent => acc + (grp.leadSegment.ident -> grp)
       case _ => acc
     })
+  
+  /** Key for a transaction component. */
+  def componentKey(ident: String, pos: SegmentPosition) = pos.position + ":" + ident
 
   /** Segment reference.
     * @param segment
@@ -218,7 +221,7 @@ object EdiSchema {
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
     val endPosition: SegmentPosition, use: Usage, val ident: String, grp: GroupComponent)
-    extends TransactionComponent(open.ident + ident, start, use, 1) {
+    extends TransactionComponent(componentKey(open.ident, start), start, use, 1) {
     val loopGroup = GroupComponent(grp.ident, grp.usage, grp.count, grp.items, grp.varkey, grp.variants, Some(key))
     val compsById = Map((open.ident + ident) -> ReferenceComponent(open, start, MandatoryUsage, 1),
       (close.ident + ident) -> ReferenceComponent(close, endPosition, MandatoryUsage, 1))
@@ -244,7 +247,7 @@ object EdiSchema {
     * @param itms
     */
   case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
-    itms: List[TransactionComponent]) extends GroupBase(s"$baseid[$elemval]", pos, use, cnt, itms)
+    itms: List[TransactionComponent]) extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, itms)
 
   /** Get lead reference from list of transaction components. If the first component is not a reference this throws an
     * exception.

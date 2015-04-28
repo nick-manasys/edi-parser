@@ -176,7 +176,7 @@ public abstract class X12TestBase extends TestBase {
      */
     protected void printAcknowledgments(Map<String, Object> result) {
         List<Map<String, Object>> acks = (List<Map<String, Object>>) result.get(SchemaJavaValues
-            .functionalAcknowledgments());
+            .functionalAcksGenerated());
         if (acks != null) {
             for (Map<String, Object> ack : acks) {
                 System.out.println(Decode997.decode(ack));

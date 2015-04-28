@@ -45,7 +45,7 @@ public class MalformedInputTest extends X12TestBase {
         InputStream is = BiztalkTest.class.getResourceAsStream(badFilePath);
         Map<String, Object> result = test.parse(is);
         List<Map<String, Object>> acks = (List<Map<String, Object>>)result.
-            get(SchemaJavaValues.functionalAcknowledgments());
+            get(SchemaJavaValues.functionalAcksGenerated());
         assertNotNull(acks);
         assertTrue(acks.size() > 0);
         String text = Decode997.decode(acks.get(0));

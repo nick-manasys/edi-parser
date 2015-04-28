@@ -5,6 +5,9 @@ trait EdifactSchemaDefs {
   import EdiSchema._
   import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion
   
+  // transaction set properties
+  val implementationConventionReference = "ImplementationConventionOverride"
+  
   val interchangeStartSegment = "UNB"
   val interchangeEndSegment = "UNZ"
 

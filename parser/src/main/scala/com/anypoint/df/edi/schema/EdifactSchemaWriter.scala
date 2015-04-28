@@ -107,19 +107,28 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     * information. This also verifies that the data for each message matches the message type of the containing
     * list, and saves information in the message to refer back to the position in the input data. Note that the
     * list of message for each interchange is in reverse order relative to the original order of the message.
-    * @param transMap message identifiers to lists of message
+    * @param rootMap message root
     * @return List(((interSelfQual, interSelf, interPartQual, interPart, interUsage), List(Message))
     */
-  def messageInterchanges(transMap: ValueMap) = {
-    def optionalString(key: String, map: ValueMap) =
-      if (map.containsKey(key)) Some(getAsString(key, map))
-      else None
+  def messageInterchanges(rootMap: ValueMap) = {
+    def optionalString(value: String) = if (value == null) None else Some(value)
+    val interDflt = getRequiredValueMap(interchangeKey, rootMap)
+    val groupDflt = getAsMap(groupKey, rootMap)
+    val transMap = getRequiredValueMap(transactionsMap, rootMap)
+    def getInterchangeString(key: String, specific: ValueMap) =
+      if (specific != null && specific.containsKey(key)) getAsString(key, specific)
+      else getAsString(key, interDflt)
+    def getGroupString(key: String, specific: ValueMap) =
+      if (specific != null && specific.containsKey(key)) getAsString(key, specific)
+      else if (groupDflt == null) null
+      else getAsString(key, groupDflt)
     def tupleKey(transet: Message) = try {
-      (getRequiredString(transactionInterSelfQualId, transet.data),
-        getRequiredString(transactionInterSelfId, transet.data),
-        getRequiredString(transactionInterPartnerQualId, transet.data),
-        getRequiredString(transactionInterPartnerId, transet.data),
-        optionalString(transactionInterchangeUsage, transet.data))
+      val specific = getAsMap(interchangeKey, transet.data)
+      (getInterchangeString(interHeadSenderQualKey, specific),
+        getInterchangeString(interHeadSenderIdentKey, specific),
+        getInterchangeString(interHeadRecipientQualKey, specific),
+        getInterchangeString(interHeadRecipientIdentKey, specific),
+        optionalString(getInterchangeString(interHeadTestKey, specific)))
     } catch {
       case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
     }
@@ -132,8 +141,9 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
           try {
             val transid = getRequiredString(transactionId, transdata)
             if (transid != transnum) throw new IllegalArgumentException(s"$transactionId value '$transid'' does not match containing type")
-            val selfid = optionalString(transactionGroupSelfId, transdata)
-            val partnerid = optionalString(transactionGroupPartnerId, transdata)
+            val specific = getAsMap(interchangeKey, transdata)
+            val selfid = optionalString(getGroupString(groupHeadSenderIdentKey, specific))
+            val partnerid = optionalString(getGroupString(groupHeadRecipientIdentKey, specific))
             Message(transnum, i, selfid, partnerid, transdata)
           } catch {
             case e: IllegalArgumentException => logAndThrow(s"transaction $transnum at index $i ${e.getMessage}", None)
@@ -167,7 +177,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
 
   /** Write the output message. */
   def write(map: ValueMap) = Try({
-    val interchanges = messageInterchanges(getRequiredValueMap(transactionsMap, map))
+    val interchanges = messageInterchanges(map)
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
     interchanges foreach {
       case ((selfQual, selfId, partnerQual, partnerId, useIndicator), interlist) => {
@@ -213,8 +223,8 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
               setProps put (msgHeadMessageReleaseKey, version.substring(1))
               setProps put (msgHeadMessageAgencyKey, "UN")
               setProps put (msgHeadMessageAssignedKey, groupCode)
-              if (transdata containsKey (transactionImplConventionRef)) setProps put (msgHeadImplIdentKey,
-                transdata get (transactionImplConventionRef))
+              if (transdata containsKey (implementationConventionReference)) setProps put (msgHeadImplIdentKey,
+                transdata get (implementationConventionReference))
               openSet(transet ident, setProps)
               writeTransaction(transdata, schema transactions (transet ident))
               closeSet(setProps)

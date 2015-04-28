@@ -1,21 +1,38 @@
 package com.anypoint.df.edi.schema
 
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
-import java.io.StringReader
-import java.io.StringWriter
+import java.util.Calendar
+import java.util.GregorianCalendar
+
+import scala.io.Source
+import scala.util.Success
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
-import scala.io.Source
-import java.io.ByteArrayInputStream
-import java.util.GregorianCalendar
-import scala.util.Success
-import java.util.Calendar
-import java.io.ByteArrayOutputStream
-import java.io.FileInputStream
-import java.io.File
-import com.anypoint.df.edi.lexical.EdiConstants._
-import com.anypoint.df.edi.lexical.X12Lexer.InterchangeStartStatus._
-import com.anypoint.df.edi.schema.tools.{ DefaultX12NumberProvider, DefaultX12NumberValidator }
+
+import com.anypoint.df.edi.lexical.EdiConstants.ASCII_CHARSET
+import com.anypoint.df.edi.lexical.X12Constants.ACK_REQUESTED
+import com.anypoint.df.edi.lexical.X12Constants.AUTHORIZATION_INFO
+import com.anypoint.df.edi.lexical.X12Constants.AUTHORIZATION_QUALIFIER
+import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction
+import com.anypoint.df.edi.lexical.X12Constants.INTERCHANGE_DATE
+import com.anypoint.df.edi.lexical.X12Constants.INTERCHANGE_TIME
+import com.anypoint.df.edi.lexical.X12Constants.INTER_CONTROL
+import com.anypoint.df.edi.lexical.X12Constants.RECEIVER_ID
+import com.anypoint.df.edi.lexical.X12Constants.RECEIVER_ID_QUALIFIER
+import com.anypoint.df.edi.lexical.X12Constants.SECURITY_INFO
+import com.anypoint.df.edi.lexical.X12Constants.SECURITY_QUALIFIER
+import com.anypoint.df.edi.lexical.X12Constants.SENDER_ID
+import com.anypoint.df.edi.lexical.X12Constants.SENDER_ID_QUALIFIER
+import com.anypoint.df.edi.lexical.X12Constants.TEST_INDICATOR
+import com.anypoint.df.edi.lexical.X12Constants.VERSION_ID
+import com.anypoint.df.edi.lexical.X12Lexer.InterchangeStartStatus.VALID
+import com.anypoint.df.edi.schema.tools.DefaultX12NumberProvider
+import com.anypoint.df.edi.schema.tools.DefaultX12NumberValidator
+
+import EdiSchema.X12
 
 class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs with X12SchemaDefs {
 
@@ -71,19 +88,19 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val props = new ValueMapImpl
     parser.init(props) should be (VALID)
     val gprops = parser.openGroup
-    gprops.get(functionalIdentifierKey) should be("PO")
-    gprops.get(applicationSendersKey) should be("006927180")
-    gprops.get(applicationReceiversKey) should be("IAIYUCAFOO")
+    gprops.get(groupFunctionalIdentifierKey) should be("PO")
+    gprops.get(groupApplicationSenderKey) should be("006927180")
+    gprops.get(groupApplicationReceiverKey) should be("IAIYUCAFOO")
     gprops.get(groupDateKey) should be(new GregorianCalendar(2008, 5, 4))
     gprops.get(groupTimeKey) should be((12 * 60 + 5) * 60000)
-    gprops.get(groupControlKey) should be(Integer.valueOf(168))
-    gprops.get(responsibleAgencyKey) should be("X")
-    gprops.get(versionIdentifierKey) should be("004010")
+    gprops.get(groupControlNumberHeaderKey) should be(Integer.valueOf(168))
+    gprops.get(groupResponsibleAgencyKey) should be("X")
+    gprops.get(groupVersionReleaseIndustryKey) should be("004010")
     val (transid, sprops) = parser.openSet
     transid should be("850")
-    sprops.get(transactionSetIdentifierKey) should be("850")
-    sprops.get(transactionSetControlKey) should be("000000176")
-    sprops.containsKey(implementationConventionKey) should be(false)
+    sprops.get(setIdentifierCodeKey) should be("850")
+    sprops.get(setControlNumberHeaderKey) should be("000000176")
+    sprops.containsKey(setImplementationConventionKey) should be(false)
     parser.closeSet(sprops)
     parser.isGroupClose should be(true)
     parser.closeGroup(gprops)

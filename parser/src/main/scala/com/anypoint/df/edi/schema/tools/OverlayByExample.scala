@@ -149,8 +149,9 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     def stripMeta(trans: ValueMap) = trans.asScala.foreach {
       case (_, list: MapList) => list.asScala.foreach {
         case m: ValueMap => {
-          m.remove(transactionSet)
-          m.remove(transactionGroup)
+          m.remove(setKey)
+          m.remove(groupKey)
+          m.remove(interchangeKey)
         }
         case _ => throw new IllegalStateException("transaction list items must be maps")
       }
