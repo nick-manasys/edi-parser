@@ -17,12 +17,11 @@ import java.io.File
 import org.scalactic.Equality
 import scala.annotation.tailrec
 
-class ParserErrorTests extends FlatSpec with Matchers with SchemaJavaDefs with X12SchemaDefs {
+class ParserErrorTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
   import EdiSchema._
   import com.anypoint.df.edi.lexical.X12Constants._
   import SchemaJavaValues._
-  import X12SchemaValues._
 
   implicit val mapEq = new Equality[ValueMap] {
     def areEqual(jmap: ValueMap, b: Any) = b match {

@@ -93,7 +93,9 @@ trait EdifactNumberValidator {
 
 /** Parser for EDIFACT EDI documents. */
 case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNumberValidator, config: EdifactParserConfig)
-  extends SchemaParser(new EdifactLexer(in, config.charSet, config.substitutionChar), sc) with EdifactSchemaDefs {
+  extends SchemaParser(new EdifactLexer(in, config.charSet, config.substitutionChar), sc) {
+  
+  import EdifactSchemaDefs._
 
   /** Actual version set after reading interchange headers. */
   var schemaDefs: EdifactVersionDefs = ControlV4Defs

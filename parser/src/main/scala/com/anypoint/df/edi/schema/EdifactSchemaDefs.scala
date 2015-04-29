@@ -1,7 +1,7 @@
 package com.anypoint.df.edi.schema
 
 /** Base control definitions for EDIFACT EDI schemas. */
-trait EdifactSchemaDefs {
+object EdifactSchemaDefs {
   import EdiSchema._
   import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion
   

@@ -17,7 +17,6 @@ import com.anypoint.df.edi.lexical.X12Constants._
 import com.anypoint.df.edi.lexical.X12Lexer._
 import EdiSchema._
 import SchemaJavaValues._
-import X12SchemaValues._
 import X12Acknowledgment._
 
 /** Entity identity information. Interchange qualifier and id are used for one direction of an interchange, while type
@@ -75,7 +74,9 @@ trait X12NumberValidator {
 
 /** Parser for X12 EDI documents. */
 case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberValidator, config: X12ParserConfig)
-  extends SchemaParser(new X12Lexer(in, config charSet, config.substitutionChar, config.strChar), sc) with X12SchemaDefs {
+  extends SchemaParser(new X12Lexer(in, config charSet, config.substitutionChar, config.strChar), sc) {
+  
+  import X12SchemaDefs._
 
   /** Set of functional groups supported by schema. */
   val functionalGroups = (schema.transactions.values.map { t => t.group.getOrElse("") } toSet) + trans997.group
@@ -549,7 +550,6 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       if (receivers.length == 0 && config.receiverIds.length > 0)
         throw new LexicalException("Interchange receiver information does not match configuration")
       map put (delimiterCharacters, buildDelims)
-      map put (interchangeVersionId, getRequiredString(VERSION_ID, interchange))
       var ackId = 1
       var interNote: InterchangeNoteCode = InterchangeNoError
       while (lexer.currentType != END && !isInterchangeEnvelope) {
@@ -557,7 +557,6 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           val group = openGroup
           groupStartSegment = lexer.getSegmentNumber - 2
           groupNumber = getRequiredInt(groupControlNumberHeaderKey, group)
-          group put (interchangeKey, interchange)
           lexer.countGroup
           val ackroot = buildAckRoot(interchange)
           val groupcopy = new ValueMapImpl(group)

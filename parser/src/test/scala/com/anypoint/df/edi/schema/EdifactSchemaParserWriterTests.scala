@@ -18,11 +18,12 @@ import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdifactConstants._
 import com.anypoint.df.edi.schema.tools.{ DefaultEdifactNumberProvider, DefaultEdifactNumberValidator }
 
-class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs with EdifactSchemaDefs {
+class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
   import com.anypoint.df.edi.lexical.EdifactConstants._
   import EdiSchema._
   import SchemaJavaValues._
+  import EdifactSchemaDefs._
 
   val DATETIME = "090604:1205"
   val UNA = "UNA:+.? '"

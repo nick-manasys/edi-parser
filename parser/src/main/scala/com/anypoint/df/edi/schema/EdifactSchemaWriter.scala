@@ -32,10 +32,11 @@ trait EdifactNumberProvider {
   */
 case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
   extends SchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax, config.delims,
-    config.suffix, config.subChar, config.decimalMark), sc) with EdifactSchemaDefs {
+    config.suffix, config.subChar, config.decimalMark), sc) {
 
   import EdiSchema._
   import SchemaJavaValues._
+  import EdifactSchemaDefs._
 
   val schemaDefs = versions(config.version)
 

@@ -1,18 +1,18 @@
 package com.anypoint.df.edi.schema
 
 /** Definitions for X12 EDI schemas. */
-trait X12SchemaDefs {
+object X12SchemaDefs {
 
   import EdiSchema._
-  import X12SchemaValues._
+
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
-
+  
   val elemI05 = Element("I05", "Interchange ID Qualifier", ID, 2, 2)
   val elemI12 = Element("I12", "Interchange Control Number", INTEGER, 9, 9)
 
-  val segISA = Segment("ISA", "Interchange Control Header", List[SegmentComponent](
+  val ISASegment = Segment("ISA", "Interchange Control Header", List[SegmentComponent](
     ElementComponent(Element("I01", "Authorization Information Qualifier", ID, 2, 2), None, "ISA01", 1, MandatoryUsage, 1),
     ElementComponent(Element("I02", "Authorization Information", ALPHANUMERIC, 10, 10), None, "ISA02", 2, MandatoryUsage, 1),
     ElementComponent(Element("I03", "Security Information Qualifier", ID, 2, 2), None, "ISA03", 3, MandatoryUsage, 1),
@@ -30,9 +30,22 @@ trait X12SchemaDefs {
     ElementComponent(Element("I14", "Interchange Usage Indicator", ID, 1, 1), None, "ISA15", 15, MandatoryUsage, 1),
     ElementComponent(Element("I15", "Component Element Separator", ALPHANUMERIC, 1, 1), None, "ISA16", 16, MandatoryUsage, 1)), Nil)
 
-  val segIEA = Segment("IEA", "Interchange Control Trailer", List[SegmentComponent](
+  val IEASegment = Segment("IEA", "Interchange Control Trailer", List[SegmentComponent](
     ElementComponent(Element("I16", "Number of Included Functional Groups", INTEGER, 1, 5), None, "IEA01", 1, MandatoryUsage, 1),
     ElementComponent(elemI12, None, "IEA02", 2, MandatoryUsage, 1)), Nil)
+
+  // group properties from GS segment
+  val functionalIdentifierName = "Functional identifier code"
+  val applicationSendersName = "Application sender's code"
+  val applicationReceiversName = "Application receiver's code"
+  val groupDateName = "Group date"
+  val groupTimeName = "Group time"
+  val groupControlName = "Group control number"
+  val responsibleAgencyName = "Responsible agency code"
+  val versionIdentifierName = "Version / release / industry identifier code"
+
+  // group properties from GE segment
+  val numberOfSetsName = "Number of transaction sets included"
 
   val GSSegment = Segment("GS", "Functional group header", List[SegmentComponent](
     ElementComponent(Element("479", "", ID, 2, 2), Some(functionalIdentifierName), "GS01", 1, MandatoryUsage, 1),
@@ -48,6 +61,14 @@ trait X12SchemaDefs {
     ElementComponent(Element("97", "", INTEGER, 1, 6), Some(numberOfSetsName), "GE01", 1, MandatoryUsage, 1),
     ElementComponent(Element("28", "", INTEGER, 1, 9), Some(groupControlName), "GE02", 2, MandatoryUsage, 1)), Nil)
 
+  // transaction set properties from ST segment
+  val transactionSetIdentifierName = "Transaction set identifier code"
+  val transactionSetControlName = "Transaction set control number"
+  val implementationConventionName = "Implementation convention reference"
+
+  // transaction set properties from SE segment
+  val numberOfSegmentsName = "Number of included segments"
+
   val STSegment = Segment("ST", "Transaction set header", List[SegmentComponent](
     ElementComponent(Element("143", "", ID, 3, 3), Some(transactionSetIdentifierName), "ST01", 1, MandatoryUsage, 1),
     ElementComponent(Element("329", "", ALPHANUMERIC, 4, 9), Some(transactionSetControlName), "ST02", 2, MandatoryUsage, 1),
@@ -57,8 +78,8 @@ trait X12SchemaDefs {
     ElementComponent(Element("96", "", INTEGER, 1, 10), Some(numberOfSegmentsName), "SE01", 1, MandatoryUsage, 1),
     ElementComponent(Element("329", "", ALPHANUMERIC, 4, 9), Some(transactionSetControlName), "SE02", 2, MandatoryUsage, 1)), Nil)
 
-  val InterchangeStartSegment = segISA.ident
-  val InterchangeEndSegment = segIEA.ident
+  val InterchangeStartSegment = ISASegment.ident
+  val InterchangeEndSegment = IEASegment.ident
   
   // value keys for GS segment
   val groupFunctionalIdentifierKey = GSSegment.components(0).key
@@ -327,35 +348,4 @@ object X12Acknowledgment {
     ElementComponent(Element("I09", "Interchange Time", TIME, 4, 4), None, "TA103", 3, MandatoryUsage, 1),
     ElementComponent(Element("I17", "Interchange Acknowledgment Code", ID, 1, 1), None, "TA104", 4, MandatoryUsage, 1),
     ElementComponent(Element("I18", "Interchange Note Code", ID, 3, 3), None, "TA105", 5, MandatoryUsage, 1)), Nil)
-}
-
-object X12SchemaValues {
-
-  // root properties
-  val interchangeVersionId = "InterchangeVersion"
-  val acknowledgmentRequested = "AcknowledgmentRequested"
-  
-  // transaction set properties
-  val implementationConventionReference = "ImplementationConventionOverride"
-
-  // group properties from GS segment
-  val functionalIdentifierName = "Functional identifier code"
-  val applicationSendersName = "Application sender's code"
-  val applicationReceiversName = "Application receiver's code"
-  val groupDateName = "Group date"
-  val groupTimeName = "Group time"
-  val groupControlName = "Group control number"
-  val responsibleAgencyName = "Responsible agency code"
-  val versionIdentifierName = "Version / release / industry identifier code"
-
-  // group properties from GE segment
-  val numberOfSetsName = "Number of transaction sets included"
-
-  // transaction set properties from ST segment
-  val transactionSetIdentifierName = "Transaction set identifier code"
-  val transactionSetControlName = "Transaction set control number"
-  val implementationConventionName = "Implementation convention reference"
-
-  // transaction set properties from SE segment
-  val numberOfSegmentsName = "Number of included segments"
 }

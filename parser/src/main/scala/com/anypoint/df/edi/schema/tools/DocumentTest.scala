@@ -91,14 +91,14 @@ sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs
   def printAck(map: ValueMap): String
 }
 
-case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends DocumentTest(es) with X12SchemaDefs {
+case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends DocumentTest(es) {
 
   def this(sch: EdiSchema) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true, -1,
     CharacterRestriction.EXTENDED, ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]()))
 
   import com.anypoint.df.edi.schema.SchemaJavaValues._
   import com.anypoint.df.edi.schema.X12Acknowledgment._
-  import com.anypoint.df.edi.schema.X12SchemaValues._
+  import com.anypoint.df.edi.schema.X12SchemaDefs._
 
   /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found.
     */
@@ -145,20 +145,19 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     transactions put ("997", acks)
     outmap put (transactionsMap, transactions)
-    outmap put (delimiterCharacters, "*>U~")
-    outmap put (characterEncoding, "UTF-8")
     writer.write(outmap).get
     os.toString
   }
 }
 
-case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es) with EdifactSchemaDefs {
+case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es) {
 
   def this(sch: EdiSchema) = this(sch, EdifactParserConfig(true, true, true, true, true, true, true, -1,
     ASCII_CHARSET, Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]()))
 
   import com.anypoint.df.edi.schema.EdifactAcknowledgment._
   import com.anypoint.df.edi.schema.SchemaJavaValues._
+  import com.anypoint.df.edi.schema.EdifactSchemaDefs._
 
   /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found.
     */
@@ -237,8 +236,6 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     }
     transactions put ("997", acks)
     outmap put (transactionsMap, transactions)
-    outmap put (delimiterCharacters, "*>U~")
-    outmap put (characterEncoding, "UTF-8")
     writer.write(outmap).get
     os.toString
   }

@@ -8,7 +8,10 @@ import com.anypoint.df.edi.schema.X12Acknowledgment._
 /** X12 997 functional acknowledgment decoder. This is set up for received 997, with the interchange information linked
  * from the transaction map.
   */
-object Decode997 extends X12SchemaDefs with SchemaJavaDefs {
+object Decode997 extends SchemaJavaDefs {
+  
+  import X12SchemaDefs._
+
   def decode(root: ValueMap) = {
     if (getRequiredString(transactionId, root) != trans997.ident) throw new IllegalArgumentException("Not a 997 transaction")
     val builder = new StringBuilder

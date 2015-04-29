@@ -34,12 +34,12 @@ import com.anypoint.df.edi.schema.tools.DefaultX12NumberValidator
 
 import EdiSchema.X12
 
-class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs with X12SchemaDefs {
+class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
   import com.anypoint.df.edi.lexical.X12Constants._
   import EdiSchema._
   import SchemaJavaValues._
-  import X12SchemaValues._
+  import X12SchemaDefs._
 
   val DATETIME = "090604*1205"
   val ISA = s"ISA*00*ABC       *00*DEF       *01*013227180      *ZZ*IJDIECAFOX     *$DATETIME*U*00401*000001244*0*P*>~"

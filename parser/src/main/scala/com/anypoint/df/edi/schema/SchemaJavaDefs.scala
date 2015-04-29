@@ -97,24 +97,23 @@ trait SchemaJavaDefs {
 
 object SchemaJavaValues {
 
-  // value keys for configuration
+  // value keys for configuration information in read root map (latest interchange only)
   val delimiterCharacters = "Delimiters"
   val characterEncoding = "Encoding"
 
-  // value keys for parse output map
+  // value keys for root map
   val functionalAcksGenerated = "FunctionalAcksGenerated"
-  val functionalAcksReceived = "FunctionalAcksReceived"
   val interchangeAcksGenerated = "InterchangeAcksGenerated"
   val interchangeAcksReceived = "InterchangeAcksReceived"
   val interchangeAcksToSend = "InterchangeAcksToSend"
   val transactionsMap = "Transactions"
   
-  // value keys for envelope data maps
+  // value keys for envelope data maps in root and transaction set maps
   val interchangeKey = "Interchange"
   val groupKey = "Group"
   val setKey = "Set"
 
-  // value keys for top-level transaction parse result map
+  // value keys for top-level transaction set map
   val transactionId = "Id"
   val transactionName = "Name"
   val transactionHeading = "Heading"

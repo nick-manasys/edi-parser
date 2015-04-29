@@ -33,11 +33,11 @@ trait X12NumberProvider {
 case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberProvider, config: X12WriterConfig)
   extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
     config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars),
-    sc.merge(X12Acknowledgment.trans997)) with X12SchemaDefs {
+    sc.merge(X12Acknowledgment.trans997)) {
 
   import EdiSchema._
   import SchemaJavaValues._
-  import X12SchemaValues._
+  import X12SchemaDefs._
 
   case class TransactionSet(val ident: String, val index: Int, val selfId: String, val partnerId: String,
     val agencyCode: String, val versionId: String, val data: ValueMap) {
@@ -107,26 +107,29 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
   def transactionInterchanges(rootMap: ValueMap) = {
     val interDflt = getAsMap(interchangeKey, rootMap)
     val groupDflt = getAsMap(groupKey, rootMap)
-    val transMap = getAsMap(transactionsMap, rootMap)
-    def getInterchangeString(key: String, specific: ValueMap) =
+    def getInterchangeString(key: String, specific: ValueMap, dflt: String) =
       if (specific != null && specific.containsKey(key)) getAsString(key, specific)
-      else getAsString(key, interDflt)
+      else if (interDflt != null && interDflt.containsKey(key)) getAsString(key, interDflt)
+      else dflt
     def getGroupString(key: String, specific: ValueMap) =
       if (specific != null && specific.containsKey(key)) getAsString(key, specific)
       else if (groupDflt == null) null
       else getAsString(key, groupDflt)
     def tupleKey(transet: TransactionSet) = try {
       val specific = getAsMap(interchangeKey, transet.data)
-      (getInterchangeString(SENDER_ID_QUALIFIER, specific),
-        getInterchangeString(SENDER_ID, specific),
-        getInterchangeString(RECEIVER_ID_QUALIFIER, specific),
-        getInterchangeString(RECEIVER_ID, specific),
-        getInterchangeString(TEST_INDICATOR, specific))
+      (getInterchangeString(SENDER_ID_QUALIFIER, specific, null),
+        getInterchangeString(SENDER_ID, specific, null),
+        getInterchangeString(RECEIVER_ID_QUALIFIER, specific, null),
+        getInterchangeString(RECEIVER_ID, specific, null),
+        getInterchangeString(TEST_INDICATOR, specific, null),
+        getInterchangeString(VERSION_ID, specific, "00501"),
+        getInterchangeString(ACK_REQUESTED, specific, "1"))
     } catch {
       case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
     }
-    val scalaTrans = JavaConversions.mapAsScalaMap(transMap)
-    val result = scalaTrans.foldLeft(TreeMap[(String, String, String, String, String), List[TransactionSet]]()) {
+    val scalaTrans = JavaConversions.mapAsScalaMap(getAsMap(transactionsMap, rootMap))
+    val result = scalaTrans.foldLeft(TreeMap[(String, String, String, String, String, String, String),
+      List[TransactionSet]]()) {
       case (acc, (transnum, transets)) => {
         val transbuff = JavaConversions.asScalaBuffer(transets.asInstanceOf[MapList])
         val sequence = (0 until transbuff.size) map { i =>
@@ -164,7 +167,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
     val interDflt = getAsMap(interchangeKey, map)
     val groupDflt = getAsMap(groupKey, map)
     interchanges foreach {
-      case ((senderQual, senderId, receiverQual, receiverId, useIndicator), interlist) => {
+      case ((senderQual, senderId, receiverQual, receiverId, useIndicator, versionId, ackRequested), interlist) => {
         val interProps = new ValueMapImpl
         val providerId = numprov interchangIdentifier (senderQual, senderId, receiverQual, receiverId)
         interProps put (INTER_CONTROL, Integer valueOf (numprov nextInterchange (providerId)))
@@ -172,8 +175,8 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
         interProps put (RECEIVER_ID, receiverId)
         interProps put (SENDER_ID_QUALIFIER, senderQual)
         interProps put (SENDER_ID, senderId)
-        interProps put (VERSION_ID, getAs(interchangeVersionId, "00501", map))
-        interProps put (ACK_REQUESTED, getAs(acknowledgmentRequested, "1", map))
+        interProps put (VERSION_ID, versionId)
+        interProps put (ACK_REQUESTED, ackRequested)
         interProps put (TEST_INDICATOR, useIndicator)
         writer.init(interProps)
         if (map.containsKey(interchangeAcksToSend)) {
@@ -202,8 +205,6 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
               val transdata = transet.data
               val setProps = new ValueMapImpl
               setProps put (setControlNumberHeaderKey, zeroPad(numprov nextSet (providerId, senderGroup, receiverGroup), 4))
-              if (transdata containsKey (implementationConventionReference)) setProps put (setImplementationConventionKey,
-                transdata get (implementationConventionReference))
               openSet(transet ident, setProps)
               writeTransaction(transdata, schema transactions (transet ident))
               closeSet(setProps)
