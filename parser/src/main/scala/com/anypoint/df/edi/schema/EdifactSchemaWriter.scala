@@ -189,19 +189,13 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
         setStrings(List(config.syntax.code, config.version.code), schemaDefs.interHeadSyntax.components, interProps)
         setStrings(List(partnerId, partnerQual), schemaDefs.interHeadSender.components, interProps)
         setStrings(List(selfId, selfQual), schemaDefs.interHeadRecipient.components, interProps)
-        if (!map.containsKey(interHeadDateKey)) {
-          val calendar = new GregorianCalendar
-          val date = ((calendar.get(Calendar.DAY_OF_MONTH)) * 100 + (calendar.get(Calendar.MONTH) + 1)) * 10000 + calendar.get(Calendar.YEAR)
-//          val builder = new StringBuilder
-//          builder append (WriterBase.padZeroes(calendar.get(Calendar.DAY_OF_MONTH).toString, 2))
-//          builder append (WriterBase.padZeroes((calendar.get(Calendar.MONTH) + 1).toString, 2))
-//          if (config.syntax == SyntaxVersion.VERSION4) {
-//            builder append (WriterBase.padZeroes(calendar.get(Calendar.YEAR).toString, 4))
-//          } else {
-//            builder append (WriterBase.padZeroes((calendar.get(Calendar.YEAR) % 100).toString, 2))
-//          }
-          interProps put (interHeadDateKey, Integer.valueOf(date))
-        }
+        val calendar = new GregorianCalendar
+        val datetime = schemaDefs.segUNB.components(3).asInstanceOf[CompositeComponent]
+        val dateelem = datetime.composite.components(0).asInstanceOf[ElementComponent].element
+        val yearnum = calendar.get(Calendar.YEAR)
+        val basedate = calendar.get(Calendar.DAY_OF_MONTH) * 100 + calendar.get(Calendar.MONTH) + 1
+        val date = if(dateelem.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
+        interProps put (interHeadDateKey, Integer.valueOf(date))
         if (!map.containsKey(interHeadTimeKey)) {
           val calendar = new GregorianCalendar
           val time = Integer.valueOf(calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE))

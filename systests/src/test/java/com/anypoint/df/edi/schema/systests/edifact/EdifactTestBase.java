@@ -199,5 +199,4 @@ public abstract class EdifactTestBase extends TestBase {
             return e.getMessage();
         }
     }
-
 }

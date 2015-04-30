@@ -439,9 +439,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       val builder = new StringBuilder
       builder append (lexer.getDataSeparator)
       builder append (lexer.getComponentSeparator)
-      builder append (if (lexer.getRepetitionSeparator < 0) 'U' else lexer.getRepetitionSeparator.asInstanceOf[Char])
+      builder append (if (lexer.getRepetitionSeparator < 0) ' ' else lexer.getRepetitionSeparator.asInstanceOf[Char])
       builder append (lexer.getSegmentTerminator)
-      builder append (if (lexer.getReleaseIndicator < 0) 'U' else lexer.getReleaseIndicator.asInstanceOf[Char])
+      builder append (if (lexer.getReleaseIndicator < 0) ' ' else lexer.getReleaseIndicator.asInstanceOf[Char])
       builder toString
     }
 
@@ -506,7 +506,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         lexer.setHandler(null)
         val version = init(interchange)
         schemaDefs = versions(version)
+        map put (delimiterCharacters, buildDelims)
         parseCompList(schemaDefs.segUNB.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, interchange)
+        map put (interchangeKey, interchange)
       } catch {
         case e: LexicalException => {
           logger.error(s"Unable to process message due to error in interchange header: ${e.getMessage}")

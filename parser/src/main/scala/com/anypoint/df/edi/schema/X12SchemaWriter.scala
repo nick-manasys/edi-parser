@@ -199,9 +199,6 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
             openGroup(groupCode, groupProps)
             writer.countGroup
             grouplist foreach (transet => try {
-              @tailrec
-              def zeroPad(text: String, length: Int): String =
-                if (text.length < length) zeroPad("0" + text, length) else text
               val transdata = transet.data
               val setProps = new ValueMapImpl
               setProps put (setControlNumberHeaderKey, zeroPad(numprov nextSet (providerId, senderGroup, receiverGroup), 4))

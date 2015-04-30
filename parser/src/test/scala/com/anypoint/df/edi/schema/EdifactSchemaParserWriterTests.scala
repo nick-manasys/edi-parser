@@ -109,7 +109,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   it should "write the UNB/UNZ envelope when initialized and then terminated" in {
     val out = new ByteArrayOutputStream
-    val config = EdifactWriterConfig(SyntaxIdentifier.LEVELC, SyntaxVersion.VERSION3, -1, '.', ASCII_CHARSET, "+: '?", "")
+    val config = EdifactWriterConfig(LEVELC, SyntaxVersion.VERSION3, -1, '.', ASCII_CHARSET, "+: '?", "")
     val writer = EdifactSchemaWriter(out, EdiSchema(EdiFact, "ORDERS", Map.empty, Map.empty, Map.empty, Map.empty),
       new DefaultEdifactNumberProvider, config)
     val initprops = new ValueMapImpl
@@ -142,7 +142,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val parseResult = parser.parse
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
     val out = new ByteArrayOutputStream
-    val config = EdifactWriterConfig(SyntaxIdentifier.LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
+    val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
     val writer = EdifactSchemaWriter(out, schema, new DefaultEdifactNumberProvider, config)
     val props = parseResult.get
     val message = getRequiredMapList("ORDERS", getRequiredValueMap(transactionsMap, props)).get(0)

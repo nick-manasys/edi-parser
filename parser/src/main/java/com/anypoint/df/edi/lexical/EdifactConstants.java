@@ -18,14 +18,6 @@ public final class EdifactConstants extends EdiConstants
     public static final String SERVICE_CODE_LIST = "UNB0103";
     public static final String CHARACTER_ENCODING = "UNB0104";
     
-    private static Charset charsetOrNull(String name) {
-        try {
-            return Charset.forName(name);
-        } catch (Throwable e) {
-            return null;
-        }
-    }
-    
     /** EDIFACT Level A character set. */
     public static final boolean[] levelACharacterSet;
     
@@ -46,25 +38,9 @@ public final class EdifactConstants extends EdiConstants
     // standard character sets
     public static final Charset UTF8 = Charset.forName("UTF-8");
     
-    public static final Map<String,SyntaxIdentifier> EDIFACT_CHARSETS = new HashMap<>();
-    
     /** Syntax identifiers. */
-    public enum SyntaxIdentifier
+    public static class SyntaxIdentifier
     {
-        LEVELA("UNOA", ASCII_CHARSET, levelACharacterSet),
-        LEVELB("UNOB", ASCII_CHARSET, levelBCharacterSet),
-        LEVELC("UNOC", charsetOrNull("ISO8859_1"), levelBCharacterSet),
-        LEVELD("UNOD", charsetOrNull("ISO8859_2"), levelBCharacterSet),
-        LEVELE("UNOE", charsetOrNull("ISO8859_5"), levelBCharacterSet),
-        LEVELF("UNOF", charsetOrNull("ISO8859_7"), levelBCharacterSet),
-        LEVELG("UNOG", charsetOrNull("ISO8859_3"), levelBCharacterSet),
-        LEVELH("UNOH", charsetOrNull("ISO8859_4"), levelBCharacterSet),
-        LEVELI("UNOI", charsetOrNull("ISO8859_6"), levelBCharacterSet),
-        LEVELJ("UNOJ", charsetOrNull("ISO8859_8"), levelBCharacterSet),
-        LEVELK("UNOK", charsetOrNull("ISO8859_9"), levelBCharacterSet),
-        LEVELX("UNOX", charsetOrNull("ISO2375"), levelBCharacterSet),
-        LEVELY("UNOY", UTF8, levelBCharacterSet);
-        
         private final String syntaxCode;
         private final Charset defaultCharset;
         private final boolean[] characterFlags;
@@ -73,7 +49,6 @@ public final class EdifactConstants extends EdiConstants
             syntaxCode = code;
             defaultCharset = chset;
             characterFlags = flags;
-            EDIFACT_CHARSETS.put(syntaxCode, this);
         }
         
         public String code() {
@@ -87,6 +62,34 @@ public final class EdifactConstants extends EdiConstants
         public boolean[] flags() {
             return characterFlags;
         }
+    }
+    public static final SyntaxIdentifier LEVELA = new SyntaxIdentifier("UNOA", ASCII_CHARSET, levelACharacterSet);
+    public static final SyntaxIdentifier LEVELB = new SyntaxIdentifier("UNOB", ASCII_CHARSET, levelBCharacterSet);
+    public static final SyntaxIdentifier LEVELC = new SyntaxIdentifier("UNOC", Charset.forName("ISO8859_1"),
+        levelBCharacterSet);
+    public static final SyntaxIdentifier LEVELY = new SyntaxIdentifier("UNOY", ASCII_CHARSET, levelBCharacterSet);
+    public static final Map<String,SyntaxIdentifier> EDIFACT_CHARSETS;
+    static {
+        EDIFACT_CHARSETS = new HashMap<>();
+        EDIFACT_CHARSETS.put(LEVELA.syntaxCode, LEVELA);
+        EDIFACT_CHARSETS.put(LEVELB.syntaxCode, LEVELB);
+        EDIFACT_CHARSETS.put(LEVELY.syntaxCode, LEVELY);
+        addSyntax("UNOD", "ISO8859_2", levelBCharacterSet);
+        addSyntax("UNOE", "ISO8859_5", levelBCharacterSet);
+        addSyntax("UNOF", "ISO8859_7", levelBCharacterSet);
+        addSyntax("UNOG", "ISO8859_3", levelBCharacterSet);
+        addSyntax("UNOH", "ISO8859_4", levelBCharacterSet);
+        addSyntax("UNOI", "ISO8859_6", levelBCharacterSet);
+        addSyntax("UNOJ", "ISO8859_8", levelBCharacterSet);
+        addSyntax("UNOK", "ISO8859_9", levelBCharacterSet);
+        addSyntax("UNOX", "ISO2375", levelBCharacterSet);
+    }
+    public static void addSyntax(String code, String chname, boolean[] flags) {
+        try {
+            Charset chset = Charset.forName(chname);
+            SyntaxIdentifier synid = new SyntaxIdentifier(code, chset, flags);
+            EDIFACT_CHARSETS.put(code, synid);
+        } catch (Throwable e) { /* unsupported encoding, ignore */ }
     }
     
     // delimiters: data separator, subelement separator, repetition separator, segment terminator, release
@@ -117,7 +120,7 @@ public final class EdifactConstants extends EdiConstants
             if (this == VERSION4) {
                 return version4Delimiters;
             }
-            if (sid == SyntaxIdentifier.LEVELA) {
+            if (sid == LEVELA) {
                 return basicDelimiters;
             }
             return alternateDelimiters;

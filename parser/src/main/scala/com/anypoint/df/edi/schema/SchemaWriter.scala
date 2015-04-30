@@ -4,18 +4,16 @@ import java.io.OutputStream
 import java.math.BigDecimal
 import java.util.Calendar
 import java.util.Date
-
 import scala.collection.JavaConversions
 import scala.util.Try
-
 import org.apache.log4j.Logger
-
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.WriteException
 import com.anypoint.df.edi.lexical.WriterBase
 import com.anypoint.df.edi.schema.EdiSchema._
+import scala.annotation.tailrec
 
 /** Write EDI document based on schema. */
 
@@ -24,6 +22,14 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   import SchemaJavaValues._
 
   val logger = Logger.getLogger(getClass.getName)
+
+  /** Pad a string with leading zeroes to specified length. */
+  def zeroPad(text: String, length: Int) = {
+    @tailrec
+    def zeroPadr(t: String): String =
+      if (t.length < length) zeroPadr("0" + t) else t
+    zeroPadr(text)
+  }
 
   /** Write a segment from a map of values. */
   protected def writeSegment(map: ValueMap, segment: Segment): Unit = {
@@ -100,10 +106,10 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 
     writer.writeToken(segment.ident)
     try {
-        writeCompList(map, DATA_ELEMENT, false, segment.components)
+      writeCompList(map, DATA_ELEMENT, false, segment.components)
     } catch {
-        case e @ (_ : IllegalArgumentException | _ : WriteException) =>
-          throw new WriteException(s"${e.getMessage} for segment ${segment.ident}")
+      case e@(_: IllegalArgumentException | _: WriteException) =>
+        throw new WriteException(s"${e.getMessage} for segment ${segment.ident}")
     }
     writer.writeSegmentTerminator
   }
