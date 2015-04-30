@@ -199,7 +199,7 @@ object EdiSchema {
     })
   
   /** Key for a transaction component. */
-  def componentKey(ident: String, pos: SegmentPosition) = pos.position + ":" + ident
+  def componentKey(ident: String, pos: SegmentPosition) = pos.position + " " + ident
 
   /** Segment reference.
     * @param segment
@@ -208,7 +208,7 @@ object EdiSchema {
     * @param cnt
     */
   case class ReferenceComponent(val segment: Segment, pos: SegmentPosition, use: Usage, cnt: Int)
-    extends TransactionComponent(segment.ident, pos, use, cnt)
+    extends TransactionComponent(componentKey(segment.ident, pos), pos, use, cnt)
 
   /** Loop wrapper component.
     * @param open
@@ -270,7 +270,7 @@ object EdiSchema {
     */
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, itms: List[TransactionComponent],
     val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None)
-    extends GroupBase(ky.getOrElse(ident), leadReference(ident, itms).position, use, cnt, itms) {
+    extends GroupBase(ky.getOrElse(componentKey(ident, leadReference(ident, itms).position)), leadReference(ident, itms).position, use, cnt, itms) {
 
     /** Group start position and lead segment. */
     val leadSegment = leadReference(ident, items).segment

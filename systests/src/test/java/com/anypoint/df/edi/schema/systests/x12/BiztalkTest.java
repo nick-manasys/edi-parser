@@ -40,7 +40,7 @@ public class BiztalkTest extends X12TestBase {
         Map<String, Object> transset = translist.get(0);
         Map<String, Object> heading = (Map<String, Object>)transset.get(SchemaJavaValues.transactionHeading());
         assertNotNull(heading);
-        Map<String, Object> begseg = (Map<String, Object>)heading.get("BEG");
+        Map<String, Object> begseg = (Map<String, Object>)heading.get("0200 BEG");
         assertNotNull(begseg);
         Calendar calendar = (Calendar)begseg.get("BEG05");
         assertNotNull(calendar);

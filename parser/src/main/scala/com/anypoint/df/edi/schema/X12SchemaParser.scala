@@ -258,8 +258,8 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       ak3data put (segAK3 components (1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
       group.foreach(gcomp => ak3data put (segAK3 components (2) key, gcomp ident))
       ak3data put (segAK3 components (3) key, DataErrorsSegment.code.toString)
-      ak3 put (segAK3 ident, ak3data)
-      ak3 put (segAK4 ident, JavaConversions.bufferAsJavaList(dataErrors.reverse))
+      ak3 put (groupAK3Keys(0), ak3data)
+      ak3 put (groupAK3Keys(1), JavaConversions.bufferAsJavaList(dataErrors.reverse))
       segmentErrors += ak3
       oneOrMoreSegmentsInError = true
     }
@@ -274,7 +274,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       if (config.reportDataErrors) {
         val ak3 = new ValueMapImpl
         val ak3data = new ValueMapImpl
-        ak3 put (segAK3 ident, ak3data)
+        ak3 put (groupAK3Keys(0), ak3data)
         ak3data put (segAK3 components (0) key, ident)
         ak3data put (segAK3 components (1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
         group.foreach(ident => ak3data put (segAK3 components (2) key, ident))
@@ -411,7 +411,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         data put (setKey, setprops)
         if (segmentErrors.nonEmpty) {
           val ak3s = JavaConversions.bufferAsJavaList(segmentErrors)
-          setack put (segAK3 ident, ak3s)
+          setack put (groupAK3 key, ak3s)
         }
         data
       } else {
@@ -426,14 +426,14 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         transactionNumber = getRequiredString(setControlNumberHeaderKey, setprops)
         val setack = new ValueMapImpl
         val ak2data = new ValueMapImpl
-        setack put (segAK2 ident, ak2data)
+        setack put (groupAK2Keys(0), ak2data)
         ak2data put (segAK2.components(0) key, setprops get (setIdentifierCodeKey))
         ak2data put (segAK2.components(1) key, transactionNumber)
         if (schema.version == "005010" && setprops.containsKey(setImplementationConventionKey)) {
           ak2data put (segAK2.components(2) key, setprops get (setImplementationConventionKey))
         }
         val ak5data = new ValueMapImpl
-        setack put (segAK5 ident, ak5data)
+        setack put (groupAK2Keys(2), ak5data)
         rejectTransaction = false
         var data: ValueMap = null
         if (numval.validateSet(providerId, groupSender, groupReceiver, transactionNumber)) {
@@ -471,7 +471,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         discardSegment
       }
     }
-    if (setacks.size > 0) ackhead put (segAK2.ident, setacks)
+    if (setacks.size > 0) ackhead put (groupAK2 key, setacks)
   }
 
   def init(data: ValueMap): X12Lexer.InterchangeStartStatus = lexer.asInstanceOf[X12Lexer].init(data)
@@ -567,11 +567,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           ackroot put (transactionDetail, new ValueMapImpl)
           ackroot put (transactionSummary, new ValueMapImpl)
           val stdata = new ValueMapImpl
-          ackhead put (segST ident, stdata)
+          ackhead put (trans997Keys(0), stdata)
           stdata put (segST.components(0) key, trans997 ident)
           stdata put (segST.components(1) key, ackId toString)
           val ak1data = new ValueMapImpl
-          ackhead put (segAK1 ident, ak1data)
+          ackhead put (trans997Keys(1), ak1data)
           ak1data put (segAK1.components(0) key, group get (groupFunctionalIdentifierKey))
           ak1data put (segAK1.components(1) key, group get (groupControlNumberHeaderKey))
           if (schema.version == "005010") ak1data put (segAK1.components(2) key, group get (groupVersionReleaseIndustryKey))
@@ -590,7 +590,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           val countPresent = closeGroup(group)
           val ak9data = new ValueMapImpl
           val error = ackhead.containsKey(segAK2 ident)
-          ackhead put (segAK9 ident, ak9data)
+          ackhead put (trans997Keys(3), ak9data)
           val result =
             if (groupErrors.nonEmpty) RejectedGroup
             else if (groupTransactionCount == groupAcceptCount) if (error) AcceptedWithErrorsGroup else AcceptedGroup
@@ -603,7 +603,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           val limit = math.min(segAK9.components.length - 5, groupErrors.length)
           (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
           val sedata = new ValueMapImpl
-          ackhead put (segSE ident, sedata)
+          ackhead put (trans997Keys(4), sedata)
           sedata put (segSE.components(1) key, ackId toString)
           if (Some(groupCode) != trans997.group) funcAckList add (ackroot)
           ackId += 1

@@ -8,7 +8,7 @@ object X12SchemaDefs {
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
-  
+
   val elemI05 = Element("I05", "Interchange ID Qualifier", ID, 2, 2)
   val elemI12 = Element("I12", "Interchange Control Number", INTEGER, 9, 9)
 
@@ -80,7 +80,7 @@ object X12SchemaDefs {
 
   val InterchangeStartSegment = ISASegment.ident
   val InterchangeEndSegment = IEASegment.ident
-  
+
   // value keys for GS segment
   val groupFunctionalIdentifierKey = GSSegment.components(0).key
   val groupApplicationSenderKey = GSSegment.components(1).key
@@ -90,16 +90,16 @@ object X12SchemaDefs {
   val groupControlNumberHeaderKey = GSSegment.components(5).key
   val groupResponsibleAgencyKey = GSSegment.components(6).key
   val groupVersionReleaseIndustryKey = GSSegment.components(7).key
-  
+
   // value keys for GE segment
   val groupNumberSetsIncludedKey = GESegment.components(0).key
   val groupControlNumberTrailerKey = GESegment.components(1).key
-  
+
   // value keys for ST segment
   val setIdentifierCodeKey = STSegment.components(0).key
   val setControlNumberHeaderKey = STSegment.components(1).key
   val setImplementationConventionKey = STSegment.components(2).key
-  
+
   // value keys for SE segment
   val setNumberSegmentsIncludedKey = SESegment.components(0).key
   val setControlNumberTrailerKey = SESegment.components(1).key
@@ -328,19 +328,26 @@ object X12Acknowledgment {
     ElementComponent(elem329, None, "ST02", 2, MandatoryUsage, 1),
     ElementComponent(elem1705, None, "ST03", 3, OptionalUsage, 1)), Nil)
 
+  val groupAK3 = GroupComponent("AK3", OptionalUsage, -1, List[TransactionComponent](
+    ReferenceComponent(segAK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
+    ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99)), None, Nil)
+  val groupAK2 = GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](
+    ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
+    groupAK3,
+    ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1)), None, Nil)
   val trans997 = Transaction("997", "Functional Acknowledgment", Some("FA"), List[TransactionComponent](
     ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
     ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
-    GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](
-      ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
-      GroupComponent("AK3", OptionalUsage, -1, List[TransactionComponent](
-        ReferenceComponent(segAK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
-        ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99)), None, Nil),
-      ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1)), None, Nil),
+    groupAK2,
     ReferenceComponent(segAK9, SegmentPosition(0, "0700"), MandatoryUsage, 1),
     ReferenceComponent(segSE, SegmentPosition(0, "0800"), MandatoryUsage, 1)),
     List[TransactionComponent](), List[TransactionComponent]())
-
+  
+  // random access arrays of keys
+  val groupAK3Keys = groupAK3.items map { comp => comp.key } toArray
+  val groupAK2Keys = groupAK2.items map { comp => comp.key } toArray
+  val trans997Keys = trans997.heading map { comp => comp.key } toArray
+  
   // TA1 acknowledgment data (generated code)
   val segTA1 = Segment("TA1", "Interchange Acknowledgment", List[SegmentComponent](
     ElementComponent(Element("I12", "Interchange Control Number", INTEGER, 9, 9), None, "TA101", 1, MandatoryUsage, 1),

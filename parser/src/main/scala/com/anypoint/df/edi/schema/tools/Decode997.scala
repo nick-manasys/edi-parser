@@ -19,26 +19,26 @@ object Decode997 extends SchemaJavaDefs {
     builder ++= s"From ${getRequiredString(SENDER_ID_QUALIFIER, inter)}:${getRequiredString(SENDER_ID, inter)}\n"
     builder ++= s"To ${getRequiredString(RECEIVER_ID_QUALIFIER, inter)}:${getRequiredString(RECEIVER_ID, inter)}\n"
     val ackhead = getRequiredValueMap(transactionHeading, root)
-    val stdata = getRequiredValueMap(segST ident, ackhead)
+    val stdata = getRequiredValueMap(trans997Keys(0), ackhead)
     builder ++= s"Control number ${getRequiredString(segST.components(1) key, stdata)}\n"
-    val ak1data = getRequiredValueMap(segAK1 ident, ackhead)
+    val ak1data = getRequiredValueMap(trans997Keys(1), ackhead)
     builder ++= s"Acknowledged group code ${getRequiredString(segAK1.components(0) key, ak1data)} with control number ${getRequiredInt(segAK1.components(1) key, ak1data)}"
     applyIfPresent[String](segAK1.components(2) key, ak1data, value => builder ++= s", version $value")
     builder ++= "\n"
-    applyIfPresent[MapList](segAK2 ident, ackhead, list =>
+    applyIfPresent[MapList](groupAK2 key, ackhead, list =>
       foreachMapInList(list, { map => {
-          val ak2data = getRequiredValueMap(segAK2 ident, map)
+          val ak2data = getRequiredValueMap(groupAK2Keys(0), map)
           builder ++= s" Transaction ${getRequiredString(segAK2.components(0) key, ak2data)} with control number ${getRequiredString(segAK2.components(1) key, ak2data)}"
           applyIfPresent[String](segAK2.components(2) key, ak2data, value => builder ++= s", implementation reference $value")
           builder ++= "\n"
-          applyIfPresent[MapList](segAK3 ident, map, list =>
+          applyIfPresent[MapList](groupAK3 key, map, list =>
             foreachMapInList(list, { map => {
-              val ak3data = getRequiredValueMap(segAK3 ident, map)
+              val ak3data = getRequiredValueMap(groupAK3Keys(0), map)
               builder ++= s"  Segment ${getRequiredString(segAK3.components(0) key, ak3data)} at position ${getRequiredInt(segAK3.components(1) key, ak3data)}"
               applyIfPresent[String](segAK3.components(2) key, ak3data, value => builder ++= s" (loop $value)")
               applyIfPresent[String](segAK3.components(3) key, ak3data, value => builder ++= s" has syntax error ${SegmentSyntaxErrors(value)}")
               builder ++= "\n"
-              applyIfPresent[MapList](segAK4 ident, map, list =>
+              applyIfPresent[MapList](groupAK3Keys(1), map, list =>
                 foreachMapInList(list, { ak4data => {
                   val comps = segAK4.components(0).asInstanceOf[EdiSchema.CompositeComponent].composite.components
                   builder ++= s"   Element ${ak4data.get(comps(0) key)}"
@@ -50,7 +50,7 @@ object Decode997 extends SchemaJavaDefs {
                   builder ++= "\n"
                 }}))
             }}))
-          val ak5data = getRequiredValueMap(segAK5 ident, map)
+          val ak5data = getRequiredValueMap(groupAK2Keys(2), map)
           builder ++= s" Transaction ${TransactionAcknowledgmentCodes(getRequiredString(segAK5.components(0) key, ak5data))}\n"
           applyIfPresent[String](segAK5.components(1) key, ak5data, value => {
             builder ++= " Error codes: "
@@ -59,7 +59,7 @@ object Decode997 extends SchemaJavaDefs {
             builder ++= "\n"
           })
         }}))
-    val ak9data = getRequiredValueMap(segAK9 ident, ackhead)
+    val ak9data = getRequiredValueMap(trans997Keys(3), ackhead)
     builder ++= s"Group result: ${GroupAcknowledgmentCodes(getRequiredString(segAK9.components(0) key, ak9data))}, contained ${getRequiredInt(segAK9.components(1) key, ak9data)} transaction set(s) with ${getRequiredInt(segAK9.components(2) key, ak9data)} received and ${getRequiredInt(segAK9.components(3) key, ak9data)} accepted\n"
     applyIfPresent[String](segAK9.components(4) key, ak9data, value => {
       builder ++= " Error codes: "
