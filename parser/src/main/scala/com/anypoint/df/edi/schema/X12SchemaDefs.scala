@@ -183,6 +183,8 @@ object X12Acknowledgment {
     (InterchangeStartStatus.INTER_CONTROL_ERROR -> InterchangeInvalidControlNumber),
     (InterchangeStartStatus.ACK_REQUESTED_ERROR -> InterchangeInvalidAcknowledgmentRequested),
     (InterchangeStartStatus.TEST_INDICATOR_ERROR -> InterchangeInvalidTestIndicator))
+
+  /** Associate lexer end status codes from IEA segment with interchange note codes. */
   import com.anypoint.df.edi.lexical.X12Lexer.InterchangeEndStatus
   val LexerEndStatusInterchangeNote = Map(
     (InterchangeEndStatus.CONTROL_NUMBER_ERROR -> InterchangeControlNumberMismatch),

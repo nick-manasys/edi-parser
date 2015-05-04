@@ -622,6 +622,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
             (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
             ": " + code.text
           logger error text
+          interNote = code
         })
         interNote
       } else {
@@ -639,7 +640,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         if (result == InterchangeStartStatus.NO_DATA) done = true
         else {
           LexerStartStatusInterchangeNote get (result) foreach (code => {
-            val text = s"Irrecoverable error in $InterchangeStartSegment at ${lexer.getSegmentNumber}" +
+            val text = s"Irrecoverable error in $InterchangeStartSegment at ${lexer.getSegmentNumber - 1}" +
               (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
               ": " + code
             logger error text
@@ -668,9 +669,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           }
         }
       } catch {
-        case InterchangeException(note, text) => {
-          buildTA1(AcknowledgedRejected, note, interchange)
+        case e: InterchangeException => {
+          buildTA1(AcknowledgedRejected, e.note, interchange)
           discardInterchange
+          throw e
         }
         case e: IOException => {
           buildTA1(AcknowledgedRejected, InterchangeEndOfFile, interchange)
