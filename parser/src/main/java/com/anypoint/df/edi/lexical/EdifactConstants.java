@@ -60,7 +60,7 @@ public final class EdifactConstants extends EdiConstants
         }
         
         public boolean[] flags() {
-            return characterFlags;
+            return null;
         }
     }
     public static final SyntaxIdentifier LEVELA = new SyntaxIdentifier("UNOA", ASCII_CHARSET, levelACharacterSet);
@@ -97,6 +97,8 @@ public final class EdifactConstants extends EdiConstants
     private static final String alternateDelimiters = "\035\037 \034 ";
     private static final String version4Delimiters = "+:*'?";
     
+    public static final Map<String,SyntaxVersion> EDIFACT_VERSIONS = new HashMap<>();
+    
     public enum SyntaxVersion {
         VERSION3("3"), VERSION4("4");
         
@@ -104,6 +106,7 @@ public final class EdifactConstants extends EdiConstants
         
         SyntaxVersion(String code) {
             codeValue = code;
+            EDIFACT_VERSIONS.put(code, this);
         }
         
         public String code() {
@@ -120,10 +123,10 @@ public final class EdifactConstants extends EdiConstants
             if (this == VERSION4) {
                 return version4Delimiters;
             }
-            if (sid == LEVELA) {
-                return basicDelimiters;
+            if (this == VERSION3 && sid == LEVELB) {
+                return alternateDelimiters;
             }
-            return alternateDelimiters;
+            return basicDelimiters;
         }
     }
     

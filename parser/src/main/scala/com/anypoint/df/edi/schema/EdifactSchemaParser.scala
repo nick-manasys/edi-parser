@@ -94,7 +94,7 @@ trait EdifactNumberValidator {
 /** Parser for EDIFACT EDI documents. */
 case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNumberValidator, config: EdifactParserConfig)
   extends SchemaParser(new EdifactLexer(in, config.charSet, config.substitutionChar), sc) {
-  
+
   import EdifactSchemaDefs._
 
   /** Actual version set after reading interchange headers. */
@@ -241,9 +241,12 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
+    def isPresent(comp: SegmentComponent) = {
+      lexer.token.length > 0 || (comp.isInstanceOf[CompositeComponent] && lexer.nextType == QUALIFIER)
+    }
     def checkParse(comp: SegmentComponent, of: ItemType) =
       if (of == lexer.currentType) {
-        if (lexer.token.length > 0) parseComponent(comp, map)
+        if (isPresent(comp)) parseComponent(comp, map)
         else {
           if (comp.usage == MandatoryUsage) addElementError(MissingRequiredValue)
           lexer.advance

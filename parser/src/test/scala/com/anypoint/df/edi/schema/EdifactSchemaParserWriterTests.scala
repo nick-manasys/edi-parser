@@ -26,9 +26,8 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   import EdifactSchemaDefs._
 
   val DATETIME = "090604:1205"
-  val UNA = "UNA:+.? '"
   val UNB = s"UNB+UNOC:3+5790001086626:14+7611937000723:14+$DATETIME+8'"
-  val lead = s"$UNA$UNB"
+  val lead = UNB
   val UNH = "UNH+800001+INVOIC:D:01B:UN:EAN010'"
   val UNT = "UNT+43+800001'"
   val UNZ = "UNZ+1+8'"

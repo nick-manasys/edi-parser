@@ -1,0 +1,76 @@
+form: EDIFACT
+version: 'd98b'
+imports: [ '/edifact/d98b/basedefs.esl' ]
+structures:
+- id: 'IFTERA'
+  name: Instruction contract status message
+  heading:
+  - { idRef: 'BGM', position: '0020', usage: M }
+  - { idRef: 'DTM', position: '0030', usage: M }
+  - { idRef: 'INP', position: '0040', usage: C }  
+  - groupId: 'Segment group 1'
+    usage: C
+    count: 2
+    items:
+    - { idRef: 'NAD', position: '0050', usage: M }
+    - groupId: 'Segment group 2'
+      usage: C
+      count: 1
+      items:
+      - { idRef: 'CTA', position: '0060', usage: C }
+      - { idRef: 'COM', position: '0070', usage: C, count: 3 }  
+  - groupId: 'Segment group 3'
+    usage: C
+    count: 99
+    items:
+    - { idRef: 'RFF', position: '0080', usage: M }
+  - groupId: 'Segment group 4'
+    usage: C
+    count: 99
+    items:
+    - { idRef: 'TDT', position: '0090', usage: M }
+    - groupId: 'Segment group 5'
+      usage: C
+      count: 99
+      items:
+      - { idRef: 'LOC', position: '0100', usage: M, count: 3 }
+      - { idRef: 'DTM', position: '0110', usage: C, count: 9 }
+    - groupId: 'Segment group 6'
+      usage: C
+      count: 999
+      items:
+      - { idRef: 'EQD', position: '0120', usage: M }
+      - { idRef: 'HAN', position: '0130', usage: C }
+      - { idRef: 'NAD', position: '0140', usage: C, count: 3  }
+      - { idRef: 'MEA', position: '0150', usage: C, count: 9 }
+      - { idRef: 'DIM', position: '0160', usage: C, count: 9 }
+      - { idRef: 'SEL', position: '0170', usage: C, count: 99 }
+      - { idRef: 'FTX', position: '0180', usage: C, count: 9 }
+      - { idRef: 'RFF', position: '0190', usage: C, count: 9 }
+      - groupId: 'Segment group 7'
+        usage: C
+        count: 99
+        items:
+        - { idRef: 'DGS', position: '0200', usage: M }
+        - { idRef: 'FTX', position: '0210', usage: C }
+        - groupId: 'Segment group 8'
+          usage: C
+          count: 1
+          items:
+          - { idRef: 'CTA', position: '0220', usage: M }
+          - { idRef: 'COM', position: '0230', usage: M }
+        - groupId: 'Segment group 9'
+          usage: C
+          count: 1
+          items:
+          - { idRef: 'MEA', position: '0240', usage: M }
+      - groupId: 'Segment group 10'
+        usage: C
+        count: 9
+        items:
+        - { idRef: 'TMP', position: '0250', usage: M }
+      - groupId: 'Segment group 11'
+        usage: C
+        count: 99
+        items:
+        - { idRef: 'EQA', position: '0260', usage: M }

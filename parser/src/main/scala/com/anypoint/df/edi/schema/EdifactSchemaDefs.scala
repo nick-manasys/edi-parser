@@ -252,8 +252,8 @@ object ControlV3Defs extends EdifactVersionDefs {
     CompositeComponent(compS011_0, Some("DATA ELEMENT IDENTIFICATION"), "UCF07", 70, ConditionalUsage, 1)), Nil)
   val segUCI = Segment("UCI", "INTERCHANGE RESPONSE", List[SegmentComponent](
     ElementComponent(Element("0020", "Interchange control reference", ALPHANUMERIC, 0, 14), Some("INTERCHANGE CONTROL REFERENCE"), "UCI01", 10, MandatoryUsage, 1),
-    CompositeComponent(compS002, Some("INTERCHANGE SENDER"), "UCI02", 20, MandatoryUsage, 1),
-    CompositeComponent(compS003, Some("INTERCHANGE RECIPIENT"), "UCI03", 30, MandatoryUsage, 1),
+    CompositeComponent(compS002.rewrite("UCI02", EdiFact), Some("INTERCHANGE SENDER"), "UCI02", 20, MandatoryUsage, 1),
+    CompositeComponent(compS003.rewrite("UCI03", EdiFact), Some("INTERCHANGE RECIPIENT"), "UCI03", 30, MandatoryUsage, 1),
     ElementComponent(elem0083, Some("ACTION, CODED"), "UCI04", 40, MandatoryUsage, 1),
     ElementComponent(elem0085, Some("SYNTAX ERROR, CODED"), "UCI05", 50, ConditionalUsage, 1),
     ElementComponent(elem0013, Some("SERVICE SEGMENT TAG, CODED"), "UCI06", 60, ConditionalUsage, 1),
@@ -455,8 +455,8 @@ object ControlV4Defs extends EdifactVersionDefs {
     ElementComponent(elem0138, None, "UCF09", 90, ConditionalUsage, 1)), Nil)
   val segUCI = Segment("UCI", "INTERCHANGE RESPONSE", List[SegmentComponent](
     ElementComponent(Element("0020", "Interchange control reference", ALPHANUMERIC, 0, 14), Some("INTERCHANGE CONTROL REFERENCE"), "UCI01", 10, MandatoryUsage, 1),
-    CompositeComponent(compS002, Some("INTERCHANGE SENDER"), "UCI02", 20, MandatoryUsage, 1),
-    CompositeComponent(compS003, Some("INTERCHANGE RECIPIENT"), "UCI03", 30, MandatoryUsage, 1),
+    CompositeComponent(compS002.rewrite("UCI02", EdiFact), Some("INTERCHANGE SENDER"), "UCI02", 20, MandatoryUsage, 1),
+    CompositeComponent(compS003.rewrite("UCI03", EdiFact), Some("INTERCHANGE RECIPIENT"), "UCI03", 30, MandatoryUsage, 1),
     ElementComponent(elem0083, Some("ACTION, CODED"), "UCI04", 40, MandatoryUsage, 1),
     ElementComponent(elem0085, Some("SYNTAX ERROR, CODED"), "UCI05", 50, ConditionalUsage, 1),
     ElementComponent(elem0013, Some("SERVICE SEGMENT TAG, CODED"), "UCI06", 60, ConditionalUsage, 1),

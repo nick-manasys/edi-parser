@@ -111,21 +111,15 @@ public abstract class WriterBase
         segmentSeparator = segsep;
         releaseIndicator = release;
         substitutionChar = subst;
-        boolean[] allowed;
-        if (chars == null) {
-            int limit = Math.max(datasep, Math.max(subsep, Math.max(repsep, Math.max(segterm, release))));
-            allowed = new boolean[limit];
-            for (int i = 0; i < limit; i++) {
-                allowed[i] = true;
-            }
-        } else {
+        boolean[] allowed = null;
+        if (chars != null) {
             allowed = new boolean[chars.length];
             System.arraycopy(chars, 0, allowed, 0, chars.length);
+            clearFlag(datasep, allowed);
+            clearFlag(subsep, allowed);
+            clearFlag(repsep, allowed);
+            clearFlag(segterm, allowed);
         }
-        clearFlag(datasep, allowed);
-        clearFlag(subsep, allowed);
-        clearFlag(repsep, allowed);
-        clearFlag(segterm, allowed);
         allowedChars = allowed;
         writer = new OutputStreamWriter(new BufferedOutputStream(os), encoding);
     }
@@ -372,7 +366,7 @@ public abstract class WriterBase
     public void writeAlphaNumeric(String text, int minl, int maxl) throws IOException {
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
-            if (chr > allowedChars.length || !allowedChars[chr]) {
+            if (allowedChars != null && (chr > allowedChars.length || !allowedChars[chr])) {
                 if (substitutionChar >= 0) {
                     text = text.replace(chr, (char)substitutionChar);
                 } else {
