@@ -4,12 +4,13 @@ import java.io.FileInputStream
 import java.io.PrintWriter
 import java.io.InputStreamReader
 import java.io.File
+import com.anypoint.df.edi.schema.EdiSchema
 import com.anypoint.df.edi.schema.EdiSchema._
 import com.anypoint.df.edi.schema.YamlReader
 import scala.annotation.migration
 
 /** Print the code to create a segment or transaction. Note that this does not handle variant groups. */
-class SchemaDump(writer: PrintWriter) {
+class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
 
   val BREAK_LINE_LENGTH = 100
 
@@ -47,7 +48,7 @@ class SchemaDump(writer: PrintWriter) {
   def genName(comp: Composite) = s"comp${comp.ident}"
 
   def genName(segment: Segment) = s"seg${segment.ident}"
-  
+
   def optionText(option: Option[String]) = if (option.isDefined) s"""Some("${option.get}")""" else "None"
 
   /** Build element inline definition. */
@@ -63,7 +64,11 @@ class SchemaDump(writer: PrintWriter) {
         s"""ElementComponent($ref, $name, "${comp.key}", ${elem.position}, ${elem.usage}, ${elem.count})"""
       }
       case comp: CompositeComponent =>
-        s"""CompositeComponent(${compnames(comp.composite)}, Some("${comp.name}"), "${comp.key}", ${comp.position}, ${comp.usage}, ${comp.count})"""
+        if (comp.count > 1) {
+          s"""CompositeComponent(${compnames(comp.composite)}, Some("${comp.name}"), "${comp.key}", ${comp.position}, ${comp.usage}, ${comp.count})"""
+        } else {
+          s"""CompositeComponent(${compnames(comp.composite)}.rewrite("${comp.key}", convertEdiForm("${schema.ediForm}")), Some("${comp.name}"), "${comp.key}", ${comp.position}, ${comp.usage}, ${comp.count})"""
+        }
     }
 
   /** Build segment components code. */
@@ -142,22 +147,11 @@ class SchemaDump(writer: PrintWriter) {
           case ccomp: CompositeComponent => acc + ccomp.composite
           case _ => acc
         }))
-    val compgroups = composites.toList.groupBy { comp => comp.ident }
-    val compnames = compgroups.keys.toList.sorted.foldLeft(Map[Composite, String]()) {
-      case (map, id) => {
-        val list = compgroups(id)
-        val first = list.head
-        val basename = genName(first)
-        if (list.tail.isEmpty) {
-          defineComposite(first, basename, map, elemreps)
-          map + (first -> basename)
-        } else list.zipWithIndex.foldLeft(map) {
-          case (map, (comp, index)) => {
-            val name = basename + "_" + index
-            defineComposite(comp, name, map, elemreps)
-            map + (comp -> name)
-          }
-        }
+    val compnames = composites.toList.sortBy(_.ident).foldLeft(Map[Composite, String]()) {
+      case (map, comp) => {
+        val name = genName(comp)
+        defineComposite(comp, name, map, elemreps)
+        map + (comp -> name)
       }
     }
     segments.toList.sortBy(segment => segment.ident).foreach(segment => defineSegment(segment, compnames, elemreps))
@@ -204,7 +198,7 @@ object SegmentsToCode {
     val yamlin = new InputStreamReader(new FileInputStream(new File(args(0))), "UTF-8")
     val schema = new YamlReader().loadYaml(yamlin, Array())
     val writer = new PrintWriter(System.out)
-    new SchemaDump(writer).toCode(args.toList.tail.map { ident => schema.segments(ident) })
+    new SchemaDump(schema, writer).toCode(args.toList.tail.map { ident => schema.segments(ident) })
     writer.flush
     writer.close
   }
@@ -218,7 +212,7 @@ object SchemaToCode {
     val yamlin = new InputStreamReader(new FileInputStream(new File(args(0))), "UTF-8")
     val schema = new YamlReader().loadYaml(yamlin, Array())
     val writer = new PrintWriter(System.out)
-    val dumper = new SchemaDump(writer)
+    val dumper = new SchemaDump(schema, writer)
     schema.transactions.values.foreach(transact => dumper.toCode(transact))
     writer.flush
     writer.close
