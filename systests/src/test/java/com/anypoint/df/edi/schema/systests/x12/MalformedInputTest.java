@@ -21,6 +21,9 @@ import com.anypoint.df.edi.schema.tools.Decode997;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestX12;
 
+/**
+ * Tests documents generating 997 errors.
+ */
 @RunWith(Parameterized.class)
 public class MalformedInputTest extends X12TestBase {
 
@@ -57,12 +60,10 @@ public class MalformedInputTest extends X12TestBase {
 		
 		return Arrays.asList(new Object[][]{
 				{BadInputFiles.MISSING_ST, BadInputFiles.MISSING_ST_EX}, 
-//				{BadInputFiles.MISSING_GROUP, BadInputFiles.MISSING_GROUP_EX},
 				{BadInputFiles.MISSING_BEG, BadInputFiles.MISSING_BEG_EX}, 
 				{BadInputFiles.MISSING_PO1, BadInputFiles.MISSING_PO1_EX}, 
 				{BadInputFiles.MISSING_SE, BadInputFiles.MISSING_SE_EX},
-                {BadInputFiles.MISSING_GE, BadInputFiles.MISSING_GE_EX},
-//				{BadInputFiles.WRONG_HEADER, BadInputFiles.WRONG_HEADER_EX}
+                {BadInputFiles.MISSING_GE, BadInputFiles.MISSING_GE_EX}
 		});
 	}
 	
