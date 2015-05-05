@@ -7,17 +7,22 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import com.anypoint.df.edi.lexical.EdiConstants;
+import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
+import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.EdifactIdentityInformation;
 import com.anypoint.df.edi.schema.EdifactParserConfig;
+import com.anypoint.df.edi.schema.EdifactSchemaDefs;
+import com.anypoint.df.edi.schema.EdifactVersionDefs;
+import com.anypoint.df.edi.schema.EdiSchema.*;
 import com.anypoint.df.edi.schema.IdentityInformation;
-import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.systests.TestBase;
-import com.anypoint.df.edi.schema.tools.Decode997;
+import com.anypoint.df.edi.schema.tools.DecodeContrl;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestEdifact;
 
@@ -153,8 +158,12 @@ public abstract class EdifactTestBase extends TestBase {
         List<Map<String, Object>> acks = (List<Map<String, Object>>) result.get(SchemaJavaValues
             .functionalAcksGenerated());
         if (acks != null) {
+            Map<String, Object> inter = new HashMap<>();
+            EdifactVersionDefs verdefs = EdifactSchemaDefs.versions().apply(SyntaxVersion.VERSION4);
+            inter.put(((CompositeComponent)verdefs.segUNB().components().head()).composite().components().apply(1).key(), "4");
             for (Map<String, Object> ack : acks) {
-                System.out.println(Decode997.decode(ack));
+                ack.put(SchemaJavaValues.interchangeKey(), inter);
+                System.out.println(DecodeContrl.decode(ack));
             }
         }
     }

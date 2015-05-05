@@ -123,6 +123,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Number of messages in interchange. */
   var interchangeMessageCount = 0
+  
+  /** Interchange acknowledgment under construction. */
+  var interchangeUCI: ValueMap = null
 
   /** Flag for currently in a group. */
   var inGroup = false
@@ -344,8 +347,12 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     logErrorInMessage(true, false, error.text)
   }
 
-  def interchangeError(error: SyntaxError) = {
+  def interchangeError(error: SyntaxError, text: String) = {
     logInterchangeEnvelopeError(true, error.text)
+    interchangeUCI put (schemaDefs.segUCI.components(3).key, AcknowledgedRejected.code)
+    interchangeUCI put (schemaDefs.segUCI.components(4).key, error.code)
+    discardInterchange
+    throw new InterchangeException(error, text)
   }
 
   /** Check if at message set open segment. */
@@ -411,8 +418,23 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Discard input past end of current interchange. */
   def discardInterchange = {
-    while (lexer.currentType != SEGMENT || lexer.token != "UNZ") discardSegment
+    while (lexer.currentType != END && (lexer.currentType != SEGMENT || lexer.token != "UNZ")) discardSegment
     discardSegment
+  }
+
+  /** Copy all values for a composite in one map to a composite in another map. */
+  def copyComposite(fromcomp: Composite, frommap: ValueMap, tocomp: Composite, tomap: ValueMap) = {
+    @tailrec
+    def copyr(from: List[SegmentComponent], to: List[SegmentComponent]): Unit = from match {
+      case h :: t =>
+        if (to.nonEmpty) {
+          val key = from.head.key
+          if (frommap.containsKey(key)) tomap put (to.head.key, frommap.get(key))
+          copyr(t, to.tail)
+        }
+      case _ =>
+    }
+    copyr(fromcomp.components, tocomp.components)
   }
 
   def init(data: ValueMap) = lexer.asInstanceOf[EdifactLexer].init(data)
@@ -466,27 +488,15 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       }
     }
 
-    def buildCONTRL(interchange: ValueMap) = {
-      val ta1map = new ValueMapImpl
-      //      ta1map put (segTA1.components(0) key, interchange get (INTER_CONTROL))
-      val calendar = new GregorianCalendar
-      //      ta1map put (segTA1.components(1) key, calendar)
-      //      val milli = (calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000
-      //      ta1map put (segTA1.components(2) key, Integer valueOf (milli))
-      //      ta1map put (segTA1.components(3) key, ack code)
-      //      ta1map put (segTA1.components(4) key, note code)
-      interAckList add ta1map
-    }
-
-    def buildAckRoot(interchange: ValueMap) = {
-      val ackroot = new ValueMapImpl
-      //      ackroot put (messageId, trans997 ident)
-      //      ackroot put (messageName, trans997 name)
-      //      ackroot put (messageInterSelfQualId, getRequiredValue(RECEIVER_ID_QUALIFIER, interchange))
-      //      ackroot put (messageInterSelfId, getRequiredValue(RECEIVER_ID, interchange))
-      //      ackroot put (messageInterPartnerQualId, getRequiredValue(SENDER_ID_QUALIFIER, interchange))
-      //      ackroot put (messageInterPartnerId, getRequiredValue(SENDER_ID, interchange))
-      ackroot
+    def buildFuncCONTRL(interchange: ValueMap) = {
+      val ctrlmap = new ValueMapImpl
+      ctrlmap put (transactionId, schemaDefs.transCONTRL.ident)
+      ctrlmap put (transactionName, schemaDefs.transCONTRL.name)
+      val intercopy = new ValueMapImpl(interchange)
+      swap(interHeadSenderQualKey, interHeadRecipientQualKey, intercopy)
+      swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, intercopy)
+      ctrlmap put (interchangeKey, intercopy)
+      ctrlmap
     }
 
     /** Builds array of string values matching the simple value components. */
@@ -500,8 +510,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       getr(comps, Nil).toArray
     }
 
-    var done = false
-    while (!done) {
+    while (lexer.nextType != END) {
 
       // parse the interchange header segment(s)
       val interchange = new ValueMapImpl
@@ -549,18 +558,29 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         // initialize for interchange
         interchangeSegmentNumber = lexer.getSegmentNumber - 1
         interchangeReference = getRequiredString(interHeadReferenceKey, interchange)
-        val sender = getStrings(schemaDefs.interHeadSender.components, interchange)
-        val recipient = getStrings(schemaDefs.interHeadRecipient.components, interchange)
+        val ackroot = buildFuncCONTRL(interchange)
+        val ackhead = new ValueMapImpl
+        ackroot put (transactionHeading, ackhead)
+        ackroot put (transactionDetail, new ValueMapImpl)
+        ackroot put (transactionSummary, new ValueMapImpl)
+        funcAckList add(ackroot)
+        interchangeUCI = new ValueMapImpl
+        interchangeUCI put (schemaDefs.segUCI.components(0).key, interchangeReference)
+        copyComposite(schemaDefs.unbSender, interchange, schemaDefs.uciSender, interchangeUCI)
+        copyComposite(schemaDefs.unbRecipient, interchange, schemaDefs.uciRecipient, interchangeUCI)
+        ackhead put (schemaDefs.contrlComps(1).key, interchangeUCI)
+        val sender = getStrings(schemaDefs.unbSender.components, interchange)
+        val recipient = getStrings(schemaDefs.unbRecipient.components, interchange)
         val context = numval.contextToken(valueOrNull(0, sender), valueOrNull(1, sender), valueOrNull(2, sender),
           valueOrNull(3, sender), valueOrNull(0, recipient), valueOrNull(1, recipient), valueOrNull(2, recipient),
           valueOrNull(3, recipient))
         if (numval.validateInterchange(interchangeReference, context)) {
+          val receivers = matchIdentity(buildIdentity(recipient), config.receiverIds)
+              if (receivers.length == 0 && config.receiverIds.length > 0)
+                  interchangeError(UnknownInterchangeRecipient, "Interchange recipient information does not match configuration")
           val senders = matchIdentity(buildIdentity(sender), config.senderIds)
           if (senders.length == 0 && config.senderIds.length > 0)
-            throw new InterchangeException(UnknownInterchangeSender, "Interchange sender infromation does not match configuration")
-          val receivers = matchIdentity(buildIdentity(recipient), config.receiverIds)
-          if (receivers.length == 0 && config.receiverIds.length > 0)
-            throw InterchangeException(UnknownInterchangeRecipient, "Interchange recipient information does not match configuration")
+            interchangeError(UnknownInterchangeSender, "Interchange sender information does not match configuration")
           var ackId = 1
           while (lexer.currentType != END && !isInterchangeEnvelope) {
             if (isGroupEnvelope) {
@@ -579,24 +599,22 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
           }
           val typ = lexer.currentType
           if (lexer.currentType == END) {
-            logger.error(s"end of file with missing $interchangeEndSegment")
-            interchangeError(InvalidOccurrence)
+            interchangeError(InvalidOccurrence, s"end of file with missing $interchangeEndSegment")
           } else if (lexer.token == interchangeEndSegment) {
             val interend = parseSegment(schemaDefs.segUNZ, None, outsidePosition)
-            if (getRequiredInt(interTrailCountKey, interend) != interchangeMessageCount) interchangeError(ControlCountMismatch)
-            if (getRequiredString(interTrailReferenceKey, interend) != interchangeReference) interchangeError(ControlReferenceMismatch)
-            done = lexer.nextType == END
+            if (getRequiredInt(interTrailCountKey, interend) != interchangeMessageCount) interchangeError(ControlCountMismatch, ControlCountMismatch.text)
+            if (getRequiredString(interTrailReferenceKey, interend) != interchangeReference) interchangeError(ControlReferenceMismatch, ControlReferenceMismatch.text)
+            interchangeUCI put (schemaDefs.segUCI.components(3).key, AcknowledgedAllLevels.code)
           } else {
-            logger.error(s"expected $interchangeEndSegment, found ${lexer.token}")
+            interchangeError(InvalidOccurrence, s"expected $interchangeEndSegment, found ${lexer.token}")
           }
         } else {
-          val text = s"Duplicate interchange control number $interchangeReference in UNB at ${lexer.getSegmentNumber}"
-          logger error text
-          throw InterchangeException(DuplicateDetected, text)
+          interchangeError(DuplicateDetected, s"Duplicate interchange control number $interchangeReference in UNB at ${lexer.getSegmentNumber}")
         }
       } catch {
-        case InterchangeException(error, text) => {
+        case e: InterchangeException => {
           discardInterchange
+          throw e
         }
         case e: IOException => {
           throw e

@@ -33,7 +33,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   val UNZ = "UNZ+1+8'"
 
   def buildUNT(count: Int) = s"UNT+$count+800001'"
-  
+
   def buildUNZ(count: Int) = s"UNZ+$count+8'"
 
   val parserConfig = EdifactParserConfig(true, true, true, true, true, true, true, -1,
@@ -66,11 +66,6 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     props.get(interHeadRecipientQualKey) should be ("14")
     props.get(interHeadDateKey) should be (90604)
     props.get(interHeadTimeKey) should be (1205)
-//    val calendar = props.get(interHeadDateKey).asInstanceOf[java.util.Calendar]
-//    calendar.get(Calendar.YEAR) should be (2009)
-//    calendar.get(Calendar.MONTH) should be (5)
-//    calendar.get(Calendar.DAY_OF_MONTH) should be (4)
-//    props.get(interHeadTimeKey) should be((12 * 60 + 5) * 60 * 1000)
     props.get(interHeadReferenceKey) should be ("8")
     val (transid, sprops) = parser.openSet
     transid should be("INVOIC")
@@ -103,6 +98,17 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     result.isInstanceOf[Success[ValueMap]] should be (true)
     val map = result.get
   }
+  
+  it should "generate an error when partner id doesn't match" in {
+    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")
+    val config = EdifactParserConfig(true, true, true, true, true, true, true, -1,
+      ASCII_CHARSET, Array[EdifactIdentityInformation](), Array(EdifactIdentityInformation("ABCDEF", "01", null, null)))
+    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, config)
+    val result = parser.parse
+    result.isFailure should be (true)
+  }
 
   behavior of "EdifactSchemaWriter"
 
@@ -132,7 +138,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     text.substring(0, start) should be (compare.substring(0, start))
     text.substring(end) should be (compare.substring(end))
   }
-
+  
   it should "roundtrip a parsed document" in {
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
     val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
@@ -145,15 +151,17 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val writer = EdifactSchemaWriter(out, schema, new DefaultEdifactNumberProvider, config)
     val props = parseResult.get
     val message = getRequiredMapList("ORDERS", getRequiredValueMap(transactionsMap, props)).get(0)
+    val inter = getRequiredValueMap(interchangeKey, message)
+    swap(interHeadSenderQualKey, interHeadRecipientQualKey, inter)
+    swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, inter)
     move(interchangeKey, message, props)
-    move(groupKey, message, props)
-    writer.write(props).get   //isSuccess should be (true)
+    writer.write(props).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")).getLines
     val builder = new StringBuilder
     lines.foreach(line => builder.append(line))
-    
+
     // TODO: fix comparison to ignore date/times
-    //    text should be (builder.toString)
+//    text should be (builder.toString)
   }
 }

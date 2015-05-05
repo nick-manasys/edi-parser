@@ -84,8 +84,6 @@ object DecodeContrl extends SchemaJavaDefs {
     val schemaDefs = versions(EDIFACT_VERSIONS.get(getRequiredString(interHeadSyntaxVersionKey, intermap)))
     if (getRequiredString(transactionId, rootmap) != schemaDefs.transCONTRL.ident) throw new IllegalArgumentException("Not a CONTRL message")
     val builder = new StringBuilder
-    builder ++= s"CONTRL sender ${buildIdentity(schemaDefs.interHeadSender, intermap)}\n"
-    builder ++= s"CONTRL receipient ${buildIdentity(schemaDefs.interHeadRecipient, intermap)}\n"
     val headmap = getRequiredValueMap(transactionHeading, rootmap)
     val msgcomps = schemaDefs.transCONTRL.heading.toArray
     

@@ -102,10 +102,26 @@ trait EdifactVersionDefs {
   val CONTRLsg4: GroupComponent
   val CONTRLsg5: GroupComponent
   val transCONTRL: Transaction
+  val contrlComps: Array[TransactionComponent]
 
-  val interHeadSyntax: Composite
-  val interHeadSender: Composite
-  val interHeadRecipient: Composite
+  val unbSyntax: Composite
+  val unbSender: Composite
+  val unbRecipient: Composite
+  
+  val ucdDataElement: Composite
+  
+  val ucfAppSender: Composite
+  val ucfAppRecipient: Composite
+  val ucfDataElement: Composite
+  
+  val uciSender: Composite
+  val uciRecipient: Composite
+  val uciDataElement: Composite
+  
+  val ucmIdentifier: Composite
+  val ucmDataElement: Composite
+  
+  val unhIdentifier: Composite
 }
 
 object ControlV3Defs extends EdifactVersionDefs {
@@ -176,11 +192,6 @@ object ControlV3Defs extends EdifactVersionDefs {
   val segUNZ = Segment("UNZ", "INTERCHANGE TRAILER", List[SegmentComponent](
     ElementComponent(Element("0036", "INTERCHANGE CONTROL COUNT", INTEGER, 0, 6), None, "UNZ01", 10, MandatoryUsage, 1),
     ElementComponent(elem0020, Some("INTERCHANGE CONTROL REFERENCE"), "UNZ02", 20, MandatoryUsage, 1)), Nil)
-
-  // defined values
-  val interHeadSyntax = compS001
-  val interHeadSender = compS002
-  val interHeadRecipient = compS003
 
   // v4 CONTRL acknowledgment schema (generated code, with modifications to separate out the groups within CONTRL)
   val elem0013 = Element("0013", "Service segment tag, coded", ALPHA, 3, 3)
@@ -299,6 +310,22 @@ object ControlV3Defs extends EdifactVersionDefs {
       CONTRLsg3,
       ReferenceComponent(segUNT, SegmentPosition(0, "0150"), MandatoryUsage, 1)),
     List[TransactionComponent](), List[TransactionComponent]())
+  val contrlComps = transCONTRL.heading.toArray
+  
+  // defined values
+  val unbSyntax = segUNB.components(0).asInstanceOf[CompositeComponent].composite
+  val unbSender = segUNB.components(1).asInstanceOf[CompositeComponent].composite
+  val unbRecipient = segUNB.components(2).asInstanceOf[CompositeComponent].composite
+  val ucdDataElement = segUCD.components(1).asInstanceOf[CompositeComponent].composite
+  val ucfAppSender = segUCF.components(1).asInstanceOf[CompositeComponent].composite
+  val ucfAppRecipient = segUCF.components(2).asInstanceOf[CompositeComponent].composite
+  val ucfDataElement = segUCF.components(6).asInstanceOf[CompositeComponent].composite
+  val uciSender = segUCI.components(1).asInstanceOf[CompositeComponent].composite
+  val uciRecipient = segUCI.components(2).asInstanceOf[CompositeComponent].composite
+  val uciDataElement = segUCI.components(6).asInstanceOf[CompositeComponent].composite
+  val ucmIdentifier = segUCM.components(1).asInstanceOf[CompositeComponent].composite
+  val ucmDataElement = segUCM.components(5).asInstanceOf[CompositeComponent].composite
+  val unhIdentifier = segUNH.components(1).asInstanceOf[CompositeComponent].composite
 }
 
 object ControlV4Defs extends EdifactVersionDefs {
@@ -373,11 +400,6 @@ object ControlV4Defs extends EdifactVersionDefs {
   val segUNZ = Segment("UNZ", "INTERCHANGE TRAILER", List[SegmentComponent](
     ElementComponent(Element("0036", "INTERCHANGE CONTROL COUNT", INTEGER, 0, 6), None, "UNZ01", 10, MandatoryUsage, 1),
     ElementComponent(elem0020, Some("INTERCHANGE CONTROL REFERENCE"), "UNZ02", 20, MandatoryUsage, 1)), Nil)
-
-  // defined values
-  val interHeadSyntax = compS001
-  val interHeadSender = compS002
-  val interHeadRecipient = compS003
 
   // v4 CONTRL acknowledgment schema (generated code, with modifications to separate out the groups within CONTRL)
   val elem0013 = Element("0013", "Service segment tag, coded", ALPHA, 3, 3)
@@ -511,6 +533,22 @@ object ControlV4Defs extends EdifactVersionDefs {
       CONTRLsg3,
       ReferenceComponent(segUNT, SegmentPosition(0, "0150"), MandatoryUsage, 1)),
     List[TransactionComponent](), List[TransactionComponent]())
+  val contrlComps = transCONTRL.heading.toArray
+
+  // defined values
+  val unbSyntax = segUNB.components(0).asInstanceOf[CompositeComponent].composite
+  val unbSender = segUNB.components(1).asInstanceOf[CompositeComponent].composite
+  val unbRecipient = segUNB.components(2).asInstanceOf[CompositeComponent].composite
+  val ucdDataElement = segUCD.components(1).asInstanceOf[CompositeComponent].composite
+  val ucfAppSender = segUCF.components(1).asInstanceOf[CompositeComponent].composite
+  val ucfAppRecipient = segUCF.components(2).asInstanceOf[CompositeComponent].composite
+  val ucfDataElement = segUCF.components(6).asInstanceOf[CompositeComponent].composite
+  val uciSender = segUCI.components(1).asInstanceOf[CompositeComponent].composite
+  val uciRecipient = segUCI.components(2).asInstanceOf[CompositeComponent].composite
+  val uciDataElement = segUCI.components(6).asInstanceOf[CompositeComponent].composite
+  val ucmIdentifier = segUCM.components(1).asInstanceOf[CompositeComponent].composite
+  val ucmDataElement = segUCM.components(5).asInstanceOf[CompositeComponent].composite
+  val unhIdentifier = segUNH.components(1).asInstanceOf[CompositeComponent].composite
 }
 
 object EdifactAcknowledgment {
@@ -537,8 +575,9 @@ object EdifactAcknowledgment {
   case object AcknowledgedUnbUnzRejected extends AcknowledgmentActionCode("6", "UNB/UNZ rejected (deprecated)")
   case object AcknowledgedLevel extends AcknowledgmentActionCode("7", "This level acknowledged, next lower level acknowledged if not explicitly rejected")
   case object AcknowledgedInterchangeReceived extends AcknowledgmentActionCode("8", "Interchange received")
-  val AcknowledgmentActionCodes = instanceMap[String, AcknowledgmentActionCode](AcknowledgedRejected,
-    AcknowledgedLevel, AcknowledgedInterchangeReceived)
+  val AcknowledgmentActionCodes = instanceMap[String, AcknowledgmentActionCode](AcknowledgedAllLevels,
+    AcknowledgedWithErrors, AcknowledgedWithRejections, AcknowledgedRejected, AcknowledgedUnbUnzAccepted,
+    AcknowledgedUnbUnzRejected, AcknowledgedLevel, AcknowledgedInterchangeReceived)
 
   /** Syntax error codes (0085 element codes). */
   sealed abstract class SyntaxError(val code: String, val text: String) extends Coded[String]

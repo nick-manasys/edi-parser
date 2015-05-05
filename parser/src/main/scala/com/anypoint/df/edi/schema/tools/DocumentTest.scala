@@ -155,7 +155,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
   }
 }
 
-case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es) {
+case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es.merge(ControlV4Defs.transCONTRL)) {
 
   def this(sch: EdiSchema) = this(sch, EdifactParserConfig(true, true, true, true, true, true, true, -1,
     ASCII_CHARSET, Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]()))
@@ -202,7 +202,8 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val os = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELC, SyntaxVersion.VERSION3, -1, '.', ASCII_CHARSET, getRequiredString(delimiterCharacters, map), "")
     val writer = EdifactSchemaWriter(os, schema, new DefaultEdifactNumberProvider, config)
-    val outmap = new ValueMapImpl(map)
+    val outmap = new ValueMapImpl
+    outmap put(interchangeKey, map.get(interchangeKey))
     val transactions = new ValueMapImpl
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     transactions put ("CONTRL", acks)
