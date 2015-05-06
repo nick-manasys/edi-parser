@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.mule.edi</groupId>
     <artifactId>edi</artifactId>
-    <version>1.0-beta-3-SNAPSHOT</version>
+    <version>1.0-beta-3</version>
     <relativePath>..</relativePath>
   </parent>
 
