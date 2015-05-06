@@ -203,7 +203,7 @@ object X12TablesConverter {
               if (segment.ident == "LS") acc match {
                 case (group: GroupComponent) :: (leref: ReferenceComponent) :: t => {
                   val wrap = LoopWrapperComponent(segment, leref.segment, position, leref.position,
-                    OptionalUsage, group.leadSegment.ident, group)
+                    OptionalUsage, group.leadSegmentRef.segment.ident, group)
                   buildr(tail, wrap :: t)
                 }
                 case _ => throw new IllegalStateException("Malformed LS/LE loop")

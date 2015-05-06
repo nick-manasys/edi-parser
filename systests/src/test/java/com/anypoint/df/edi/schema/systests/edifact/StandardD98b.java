@@ -17,8 +17,8 @@ public class StandardD98b extends EdifactTestBase {
     @Test
     public void verifyIFTERA() throws Exception {
         loadSchema("/edifact/d98b/IFTERA.esl");
-        //        parseAndCheckWrite("/edifact/d98b/PRA-IFTERA.edi");
-//        parseAndCheckWrite("/edifact/d98b/IFTERA_original.edi");
+//        parseAndCheckWrite("/edifact/d98b/PRA-IFTERA.edi");
+        parseAndCheckWrite("/edifact/d98b/IFTERA_original.edi");
     }
     
 //    @Test

@@ -99,7 +99,6 @@ object SchemaJavaValues {
 
   // value keys for configuration information in read root map (latest interchange only)
   val delimiterCharacters = "Delimiters"
-  val characterEncoding = "Encoding"
 
   // value keys for root map
   val functionalAcksGenerated = "FunctionalAcksGenerated"

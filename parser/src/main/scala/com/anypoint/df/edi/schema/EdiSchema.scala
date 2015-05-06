@@ -194,7 +194,7 @@ object EdiSchema {
     comps.foldLeft(Map[String, TransactionComponent]())((acc, comp) => comp match {
       case ref: ReferenceComponent => acc + (ref.segment.ident -> ref)
       case wrap: LoopWrapperComponent => acc + (wrap.open.ident + wrap.ident -> wrap)
-      case grp: GroupComponent => acc + (grp.leadSegment.ident -> grp)
+      case grp: GroupComponent => acc + (grp.leadSegmentRef.segment.ident -> grp)
       case _ => acc
     })
   
@@ -272,8 +272,8 @@ object EdiSchema {
     val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None)
     extends GroupBase(ky.getOrElse(componentKey(ident, leadReference(ident, itms).position)), leadReference(ident, itms).position, use, cnt, itms) {
 
-    /** Group start position and lead segment. */
-    val leadSegment = leadReference(ident, items).segment
+    /** Group head segment reference. */
+    val leadSegmentRef = leadReference(ident, items)
 
     /** End position. */
     val endPosition: SegmentPosition = itms.last match {
