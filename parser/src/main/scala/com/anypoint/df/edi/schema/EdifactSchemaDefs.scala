@@ -624,5 +624,4 @@ object EdifactAcknowledgment {
     TooManySegmentRepetitions, TooManyGroupRepetitions, InvalidCharacterType, MissingDigitBeforeDecimal,
     ElementTooLong, ElementTooShort, PermanentCommunicationError, TemporaryCommunicationError,
     UnknownInterchangeRecipient)
-
 }
