@@ -71,7 +71,10 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 
       comp match {
         case cc: CompositeComponent if (cc.count == 1) =>
-          if (cc.composite.components.exists { ccc => map containsKey ccc.key }) writeComponent(map)
+          if (cc.composite.components.exists { ccc => map containsKey ccc.key }) {
+            writeComponent(map)
+          }
+          else writer.skipElement
         case _ =>
           if (map.containsKey(comp.key)) {
             val value = map.get(comp.key)
@@ -85,7 +88,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
             } else writeComponent(value)
           } else comp.usage match {
             case MandatoryUsage => throw new WriteException(s"missing required value '${comp.name}'")
-            case _ => typ match {
+            case _ => if (!skip) typ match {
               case SEGMENT => writer.writeSegmentTerminator
               case DATA_ELEMENT => writer.skipElement
               case QUALIFIER => writer.skipSubElement
