@@ -2,7 +2,6 @@ package com.anypoint.df.edi.schema.systests.edifact;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -17,8 +16,12 @@ public class StandardD98b extends EdifactTestBase {
     @Test
     public void verifyIFTERA() throws Exception {
         loadSchema("/edifact/d98b/IFTERA.esl");
-//        parseAndCheckWrite("/edifact/d98b/PRA-IFTERA.edi");
+        parseAndCheckWrite("/edifact/d98b/PRA-IFTERA.edi");
+        parseAndCheckWrite("/edifact/d98b/IFTERA_attached-corrected.edi");
+        parseAndCheckWrite("/edifact/d98b/IFTERA_fixed.edi");
+        parseAndCheckWrite("/edifact/d98b/IFTERA_hazardous.edi");
         parseAndCheckWrite("/edifact/d98b/IFTERA_original.edi");
+        parseAndCheckWrite("/edifact/d98b/IFTERA_refrigerated.edi");
     }
     
 //    @Test
