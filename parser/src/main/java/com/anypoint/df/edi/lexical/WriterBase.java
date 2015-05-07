@@ -112,7 +112,7 @@ public abstract class WriterBase
         releaseIndicator = release;
         substitutionChar = subst;
         boolean[] allowed = null;
-        if (chars != null) {
+        if (chars != null && releaseIndicator < 0) {
             allowed = new boolean[chars.length];
             System.arraycopy(chars, 0, allowed, 0, chars.length);
             clearFlag(datasep, allowed);
@@ -263,13 +263,27 @@ public abstract class WriterBase
     
     /**
      * Write token text with no checks on content or length.
+     * TODO: cleanup with array of bit flags for better performance
+     * TODO: enforce restrictions when no release character defined
      *
      * @param text
      * @throws IOException
      */
     public void writeToken(String text) throws IOException {
         checkSegmentStart();
-        writer.write(text);
+        if (releaseIndicator >= 0) {
+            StringBuilder builder = new StringBuilder(text);
+            for (int i = 0; i < builder.length(); i++) {
+                char chr = builder.charAt(i);
+                if (chr == dataSeparator || chr == subElement || chr == repetitionSeparator || chr == segmentTerminator
+                    || chr == releaseIndicator) {
+                    builder.insert(i++, (char)releaseIndicator);
+                }
+            }
+            writer.write(builder.toString());
+        } else {
+            writer.write(text);
+        }
     }
     
     /**
