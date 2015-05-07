@@ -33,13 +33,13 @@ public abstract class X12TestBase extends TestBase {
      */
     protected String maskIsaVariableValues(int offset, char datasep, String message) {
         String text = message;
-        int isaDate = nthOffset(datasep, offset, 9, text);
-        int isaTime = nthOffset(datasep, isaDate, 1, text);
-        int isaLimit = nthOffset(datasep, isaTime, 1, text);
+        int isaDate = nthOffset(datasep, false, offset, 9, text);
+        int isaTime = nthOffset(datasep, false, isaDate, 1, text);
+        int isaLimit = nthOffset(datasep, false, isaTime, 1, text);
         text = replaceRange('X', isaDate + 1, isaTime, text);
         text = replaceRange('X', isaTime + 1, isaLimit, text);
-        int isaControlNum = nthOffset(datasep, isaLimit, 2, text);
-        int isaAckRequested = nthOffset('*', isaControlNum, 1, text);
+        int isaControlNum = nthOffset(datasep, false, isaLimit, 2, text);
+        int isaAckRequested = nthOffset('*', false, isaControlNum, 1, text);
         text = replaceRange('X', isaControlNum + 1, isaAckRequested, text);
         return replaceRange('X', isaAckRequested + 1, isaAckRequested + 2, text);
     }
@@ -55,9 +55,9 @@ public abstract class X12TestBase extends TestBase {
      */
     protected String maskGsVariableValues(int offset, char datasep, String message) {
         String text = message;
-        int gsDate = nthOffset(datasep, offset, 4, text);
-        int gsTime = nthOffset(datasep, gsDate, 1, text);
-        int gsControlNum = nthOffset(datasep, gsTime, 1, text);
+        int gsDate = nthOffset(datasep, false, offset, 4, text);
+        int gsTime = nthOffset(datasep, false, gsDate, 1, text);
+        int gsControlNum = nthOffset(datasep, false, gsTime, 1, text);
         text = replaceRange('X', gsDate + 1, gsTime, text);
         text = replaceRange('X', gsTime + 1, gsControlNum, text);
         int timeLength = gsControlNum - gsTime - 1;
@@ -65,7 +65,7 @@ public abstract class X12TestBase extends TestBase {
             text = text.substring(0, gsTime + 1) + text.substring(gsTime + timeLength - 3);
             gsControlNum -= timeLength - 4;
         }
-        int numEnd = nthOffset(datasep, gsControlNum, 1, text);
+        int numEnd = nthOffset(datasep, false, gsControlNum, 1, text);
         return text.substring(0, gsControlNum + 1) + text.substring(numEnd);
     }
 
@@ -79,7 +79,7 @@ public abstract class X12TestBase extends TestBase {
      */
     protected String maskNthValue(int offset, int count, char datasep, String message) {
         String text = message;
-        int controlNum = nthOffset(datasep, offset, count, text) + 1;
+        int controlNum = nthOffset(datasep, false, offset, count, text) + 1;
         int scan = controlNum;
         while (Character.isLetterOrDigit(text.charAt(scan)) || Character.isWhitespace(text.charAt(scan)))
             scan++;

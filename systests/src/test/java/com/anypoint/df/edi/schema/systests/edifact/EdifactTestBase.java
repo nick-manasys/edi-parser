@@ -28,6 +28,10 @@ import com.anypoint.df.edi.schema.tools.DocumentTestEdifact;
 
 public abstract class EdifactTestBase extends TestBase {
 
+    private static String deleteRange(int from, int to, String text) {
+        return text.substring(0, from) + text.substring(to);
+    }
+    
     /**
      * Mask variable values in a UNB segment by replacing them with 'X' characters.
      * 
@@ -36,17 +40,30 @@ public abstract class EdifactTestBase extends TestBase {
      * @param message
      * @return masked
      */
-    protected String maskIsaVariableValues(int offset, char datasep, String message) {
+    protected String maskUnbVariableValues(int offset, char datasep, String message) {
         String text = message;
-        int isaDate = nthOffset(datasep, offset, 9, text);
-        int isaTime = nthOffset(datasep, isaDate, 1, text);
-        int isaLimit = nthOffset(datasep, isaTime, 1, text);
-        text = replaceRange('X', isaDate + 1, isaTime, text);
-        text = replaceRange('X', isaTime + 1, isaLimit, text);
-        int isaControlNum = nthOffset(datasep, isaLimit, 2, text);
-        int isaAckRequested = nthOffset('*', isaControlNum, 1, text);
-        text = replaceRange('X', isaControlNum + 1, isaAckRequested, text);
-        return replaceRange('X', isaAckRequested + 1, isaAckRequested + 2, text);
+        int unbDatetime = nthOffset(datasep, false, offset, 4, text);
+        int unbControlNum = nthOffset(datasep, false, unbDatetime, 1, text);
+        text = replaceRange('X', unbDatetime + 1, unbControlNum, text);
+        int unbLimit = nthOffset(datasep, true, unbControlNum, 1, text);
+        return deleteRange(unbControlNum + 1, unbLimit, text);
+    }
+
+    /**
+     * Mask variable values in a UNG segment by replacing them with 'X' characters.
+     * 
+     * @param offset
+     * @param datasep
+     * @param message
+     * @return masked
+     */
+    protected String maskUngVariableValues(int offset, char datasep, String message) {
+        String text = message;
+        int unbDatetime = nthOffset(datasep, false, offset, 4, text);
+        int unbControlNum = nthOffset(datasep, false, unbDatetime, 1, text);
+        text = replaceRange('X', unbDatetime + 1, unbControlNum, text);
+        int unbLimit = nthOffset(datasep, true, unbControlNum, 1, text);
+        return deleteRange(unbControlNum + 1, unbLimit, text);
     }
 
     /**
@@ -59,7 +76,7 @@ public abstract class EdifactTestBase extends TestBase {
      */
     protected String maskNthValue(int offset, int count, char datasep, String message) {
         String text = message;
-        int controlNum = nthOffset(datasep, offset, count, text) + 1;
+        int controlNum = nthOffset(datasep, true, offset, count, text) + 1;
         int scan = controlNum;
         while (Character.isLetterOrDigit(text.charAt(scan)) || Character.isWhitespace(text.charAt(scan)))
             scan++;
@@ -80,14 +97,15 @@ public abstract class EdifactTestBase extends TestBase {
         int split;
         while ((split = message.indexOf(segterm, base)) > 0) {
             String seg = message.substring(base, split + 1);
-//            if (seg.startsWith("ISA" + datasep)) {
-//                seg = maskIsaVariableValues(0, datasep, seg);
-//            } else if (seg.startsWith("GS" + datasep)) {
-//                seg = maskGsVariableValues(0, datasep, seg);
-//            } else if (seg.startsWith("ST" + datasep) || seg.startsWith("SE" + datasep)
-//                | seg.startsWith("GE" + datasep) | seg.startsWith("IEA" + datasep)) {
-//                seg = maskNthValue(0, 2, datasep, seg);
-//            }
+            if (seg.startsWith("UNB" + datasep)) {
+                seg = maskUnbVariableValues(0, datasep, seg);
+            } else if (seg.startsWith("UNG" + datasep)) {
+                seg = maskUngVariableValues(0, datasep, seg);
+            } else if (seg.startsWith("UNH" + datasep)) {
+                seg = maskNthValue(0, 1, datasep, seg);
+            } else if (seg.startsWith("UNT" + datasep) || seg.startsWith("UNE" + datasep) || seg.startsWith("UNZ" + datasep)) {
+                seg = maskNthValue(0, 2, datasep, seg);
+            }
             segs.add(seg);
             base = split + 1;
             while (base < message.length() && Character.isWhitespace(message.charAt(base)))
@@ -106,14 +124,15 @@ public abstract class EdifactTestBase extends TestBase {
      */
     protected void checkWrite(DocumentTest test, String text, Map<String, Object> result) {
         String output = test.printDoc(result);
-        List<String> segsin = prepareSegments('~', '*', text);
-        List<String> segsout = prepareSegments('~', '*', output);
+        System.out.println(output);
+        List<String> segsin = prepareSegments('\'', '+', text);
+        List<String> segsout = prepareSegments('\'', '+', output);
         Iterator<String> iterin = segsin.iterator();
         Iterator<String> iterout = segsout.iterator();
         while (iterin.hasNext() && iterout.hasNext()) {
             String is = iterin.next();
             String os = iterout.next();
-            assertEquals(is, os);
+            assertEquals(os, is);
             System.out.println(is + " = " + os);
         }
         assertFalse(iterin.hasNext());
@@ -130,23 +149,8 @@ public abstract class EdifactTestBase extends TestBase {
         DocumentTest test = new DocumentTestEdifact(schema);
         String text = readAsString(path);
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
+        test.prepareOutput(result);
         checkWrite(test, text, result);
-    }
-
-    /**
-     * Replace date/time fields in an acknowledgment with X characters, allowing it to be compared with a static string.
-     * 
-     * @param ack
-     * @return replaced
-     */
-    protected String stripAckDates(String ack) {
-        String working = maskIsaVariableValues(0, '*', ack);
-        int scan = 0;
-        while ((scan = working.indexOf("~GS*", scan)) > 0) {
-            scan++;
-//            working = maskGsVariableValues(scan, '*', working);
-        }
-        return working;
     }
 
     /**

@@ -24,11 +24,14 @@ public abstract class TestBase {
         }
     }
     
-    protected int nthOffset(char ch, int start, int count, String str) {
+    protected int nthOffset(char ch, boolean last, int start, int count, String str) {
         int scan = start;
         for (int i = 0; i < count; i++) {
             scan = str.indexOf(ch, scan + 1);
             if (scan < 0) {
+                if (last && i == count - 1) {
+                    return str.length() - 1;
+                }
                 throw new IllegalArgumentException("Expected " + i + "th occurrence of '" + ch + "' not found");
             }
         }

@@ -190,7 +190,10 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     */
   override def printDoc(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val config = EdifactWriterConfig(LEVELC, SyntaxVersion.VERSION3, -1, '.', ASCII_CHARSET, getRequiredString(delimiterCharacters, map), "")
+    val inter = getRequiredValueMap(interchangeKey, map)
+    val syntax = EDIFACT_CHARSETS.get(getAs(ControlV4Defs.unbSyntax.components(0).key, "UNOC", inter))
+    val version = EDIFACT_VERSIONS.get(getAs(ControlV4Defs.unbSyntax.components(1).key, "4", inter))
+    val config = EdifactWriterConfig(syntax, version, -1, '.', ASCII_CHARSET, getRequiredString(delimiterCharacters, map), "")
     val writer = EdifactSchemaWriter(os, schema, new DefaultEdifactNumberProvider, config)
     val transacts = getRequiredValueMap(transactionsMap, map)
     writer.write(map).get
