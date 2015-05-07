@@ -21,7 +21,7 @@ object DecodeContrl extends SchemaJavaDefs {
 
   /** Build identity composite description. */
   def buildIdentity(comp: Composite, map: ValueMap) = {
-      val comps = comp.components
+    val comps = comp.components
     val builder = new StringBuilder
     builder ++= getRequiredString(comps.head.key, map)
     val rest = comps.tail
@@ -36,7 +36,7 @@ object DecodeContrl extends SchemaJavaDefs {
     }
     builder toString
   }
-  
+
   /** Build identity description for segment component (which must be an identity composite). */
   def buildIdentity(comp: SegmentComponent, map: ValueMap): String =
     buildIdentity(comp.asInstanceOf[CompositeComponent].composite, map)
@@ -46,13 +46,13 @@ object DecodeContrl extends SchemaJavaDefs {
     if (map.containsKey(ccomp.asInstanceOf[CompositeComponent].composite.components.head.key)) {
       val comps = ccomp.asInstanceOf[CompositeComponent].composite.components
       val builder = new StringBuilder
-      builder ++= s" element #${getRequiredString(comps.head.key, map)}"
+      builder ++= s"element #${getRequiredInt(comps.head.key, map)}"
       val t1 = comps.tail
       if (map.containsKey(t1.head.key)) {
-        builder ++= s" component ${getRequiredString(t1.head.key, map)}"
+        builder ++= s":component ${getRequiredInt(t1.head.key, map)}"
         val t2 = comps.tail
         if (map.containsKey(t2.head.key)) {
-          builder ++= s" repeat ${getRequiredString(t2.head.key, map)}"
+          builder ++= s":repeat ${getRequiredInt(t2.head.key, map)}"
         }
       }
       builder toString
@@ -60,24 +60,35 @@ object DecodeContrl extends SchemaJavaDefs {
 
   /** Build message identifier for segment component (which must be a message identifier composite). */
   def buildMessageIdentifier(ccomp: SegmentComponent, map: ValueMap) = {
-      val comps = ccomp.asInstanceOf[CompositeComponent].composite.components
-      s"(${getRequiredString(comps(0).key, map)} ${getRequiredString(comps(1).key, map)}${getRequiredString(comps(2).key, map)} ${getRequiredString(comps(3).key, map)})"
-    }
-  
+    val comps = ccomp.asInstanceOf[CompositeComponent].composite.components
+    s"(${getRequiredString(comps(0).key, map)} ${getRequiredString(comps(1).key, map)}${getRequiredString(comps(2).key, map)} ${getRequiredString(comps(3).key, map)})"
+  }
+
   /** Build description of UCM/UCS+UCD group. */
   def buildMessageGroup(schemaDefs: EdifactVersionDefs, ucmgroup: GroupComponent, grpmap: ValueMap) = {
-      val ucmmap = getRequiredValueMap(ucmgroup.items(0).key, grpmap)
-      val ucmcomps = schemaDefs.segUCM.components
-      val builder = new StringBuilder
-      builder ++= s" Message #${getRequiredString(ucmcomps(0).key, ucmmap)} ${buildMessageIdentifier(ucmcomps(1), ucmmap)}\n"
-      if (grpmap.containsKey(ucmgroup.items(1).key)) {
-        val grpcomps = ucmgroup.items(1).asInstanceOf[GroupComponent].items
-        foreachMapInList(getRequiredMapList(ucmgroup.items(1).key, grpmap), map => {
-          val ucsmap = getRequiredValueMap(ucmgroup.items(0).key, grpmap)
+    val ucmmap = getRequiredValueMap(ucmgroup.items(0).key, grpmap)
+    val ucmcomps = schemaDefs.segUCM.components
+    val builder = new StringBuilder
+    builder ++= s" Message #${getRequiredString(ucmcomps(0).key, ucmmap)} ${buildMessageIdentifier(ucmcomps(1), ucmmap)}\n"
+    if (grpmap.containsKey(ucmgroup.items(1).key)) {
+      val grpcomps = ucmgroup.items(1).asInstanceOf[GroupComponent].items
+      foreachMapInList(getRequiredMapList(ucmgroup.items(1).key, grpmap), segmap => {
+        val segcomps = ucmgroup.items(1).asInstanceOf[GroupComponent].items
+        val ucsmap = getRequiredValueMap(segcomps(0).key, segmap)
+        builder ++= s"  Segment #${getRequiredInt(schemaDefs.segUCS.components(0).key, ucsmap)}"
+        val code = getAsString(schemaDefs.segUCS.components(1).key, ucsmap)
+        if (code != null) builder ++= s" error ${SyntaxErrors(code).text}"
+        val ucdlist = getAs[MapList](segcomps(1).key, segmap)
+        val dataelem = schemaDefs.segUCD.components(1).asInstanceOf[CompositeComponent]
+        foreachMapInList(ucdlist, ucdmap => {
+          val error = SyntaxErrors(getRequiredString(schemaDefs.segUCD.components(0).key, ucdmap))
+          builder ++= s" ${error.text} on ${buildOptionalDataElement(dataelem, ucdmap)} "
         })
-      }
-      builder toString
+        builder ++= "\n"
+      })
     }
+    builder toString
+  }
 
   def decode(rootmap: ValueMap) = {
     val intermap = getRequiredValueMap(interchangeKey, rootmap)
@@ -86,7 +97,7 @@ object DecodeContrl extends SchemaJavaDefs {
     val builder = new StringBuilder
     val headmap = getRequiredValueMap(transactionHeading, rootmap)
     val msgcomps = schemaDefs.transCONTRL.heading.toArray
-    
+
     // interpret the required UCI segment
     val ucimap = getRequiredValueMap(msgcomps(1).key, headmap)
     val ucicomps = schemaDefs.segUCI.components
@@ -103,18 +114,18 @@ object DecodeContrl extends SchemaJavaDefs {
       }
       builder ++= "\n"
     }
-    
+
     // interpret Group 1, if present
     if (headmap.containsKey(msgcomps(2).key)) {
       val ucmgroup = msgcomps(2).asInstanceOf[GroupComponent]
       foreachMapInList(getRequiredMapList(msgcomps(2).key, headmap), map => builder ++= buildMessageGroup(schemaDefs, ucmgroup, map))
     }
-    
+
     // interpret Group 3, if present
     if (headmap.containsKey(msgcomps(3).key)) {
-      
+      // TODO: needed when support for groups added to parser/writer
+      builder ++= "\n"
     }
-    builder ++= "\n"
     builder toString
   }
 
