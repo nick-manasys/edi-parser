@@ -73,6 +73,7 @@ public final class EdifactConstants extends EdiConstants
         EDIFACT_CHARSETS = new HashMap<>();
         EDIFACT_CHARSETS.put(LEVELA.syntaxCode, LEVELA);
         EDIFACT_CHARSETS.put(LEVELB.syntaxCode, LEVELB);
+        EDIFACT_CHARSETS.put(LEVELC.syntaxCode, LEVELC);
         EDIFACT_CHARSETS.put(LEVELY.syntaxCode, LEVELY);
         addSyntax("UNOD", "ISO8859_2", levelBCharacterSet);
         addSyntax("UNOE", "ISO8859_5", levelBCharacterSet);
