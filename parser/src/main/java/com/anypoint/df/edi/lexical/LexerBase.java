@@ -611,11 +611,12 @@ public abstract class LexerBase
         String text = token;
         int length = 0;
         boolean decimal = false;
+        boolean replace = false;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
                 length++;
-            } else if (!decimal && chr == '.') {
+            } else if (!decimal && (chr == '.' || (replace = chr == altDecimalMark))) {
                 decimal = true;
             } else if (i != 0 || chr != '-') {
                 handleError(DataType.REAL, ErrorCondition.INVALID_CHARACTER, "character '" + chr
@@ -624,7 +625,7 @@ public abstract class LexerBase
         }
         checkLength(DataType.REAL, length, minl, maxl);
         advance();
-        return new BigDecimal(text);
+        return new BigDecimal(replace ? text.replace((char)altDecimalMark, '.') : text);
     }
     
     /**

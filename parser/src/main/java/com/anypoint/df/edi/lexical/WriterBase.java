@@ -523,7 +523,7 @@ public abstract class WriterBase
         }
         
         // write with leading zeroes if needed to reach minimum length
-        writeToken(padZeroes(text, minl + 1));
+        writeToken(padZeroes(decimalMark == '.' ? text : text.replace('.', decimalMark), minl + 1));
     }
     
     /**
