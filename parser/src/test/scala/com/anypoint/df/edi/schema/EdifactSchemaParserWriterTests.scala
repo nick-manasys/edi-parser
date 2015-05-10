@@ -59,6 +59,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
       new DefaultEdifactNumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (SyntaxVersion.VERSION3)
+    parser.schemaDefs = ControlV3Defs
     parser.parseCompList(ControlV3Defs.segUNB.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, props)
     props.get(interHeadSenderIdentKey) should be ("5790001086626")
     props.get(interHeadSenderQualKey) should be ("14")
@@ -83,6 +84,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
       new DefaultEdifactNumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props) should be (SyntaxVersion.VERSION3)
+    parser.schemaDefs = ControlV3Defs
     parser.parseCompList(ControlV3Defs.segUNB.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, props)
     intercept[IllegalStateException] { parser.openGroup }
     parser.openSet

@@ -18,6 +18,10 @@ public final class EdifactConstants extends EdiConstants
     public static final String SERVICE_CODE_LIST = "UNB0103";
     public static final String CHARACTER_ENCODING = "UNB0104";
     
+    // UNZ message values stored in map
+    public static final String INTER_CONTROL_COUNT = "UNZ01";
+    public static final String INTER_CONTROL_REF = "UNZ02";
+    
     /** EDIFACT Level A character set. */
     public static final boolean[] levelACharacterSet;
     

@@ -97,8 +97,11 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   import EdifactSchemaDefs._
 
+  /** First interchange read. All interchanges sent in a block must use same delimiters, control and syntax versions. */
+  var firstInterchange: ValueMap = null
+
   /** Actual version set after reading interchange headers. */
-  var schemaDefs: EdifactVersionDefs = ControlV4Defs
+  var schemaDefs: EdifactVersionDefs = null
 
   /** Flag for currently in a message. */
   var inMessage = false
@@ -196,7 +199,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     case TooManyGroupRepetitions => config countFail
     case _ => true
   }
-  
+
   def describeSegment = if (currentSegment == null) "" else s" (${currentSegment.ident})"
 
   def positionGroupNumber = if (inGroup) s" in group $groupReference" else ""
@@ -548,23 +551,35 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       getr(comps, Nil).toArray
     }
 
+    def openInterchange =
+      if (firstInterchange == null) {
+        try {
+          firstInterchange = new ValueMapImpl()
+          val version = init(firstInterchange)
+          schemaDefs = versions(version)
+          map put (delimiterCharacters, buildDelims)
+          parseCompList(schemaDefs.segUNB.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, firstInterchange)
+          firstInterchange
+        } catch {
+          case e: LexicalException => {
+            logger.error(s"Unable to process message due to error in interchange header: ${e.getMessage}")
+            throw e
+          }
+        }
+      } else parseSegment(schemaDefs.segUNB, None, outsidePosition)
+
     while (lexer.nextType != END) {
 
       // parse the interchange header segment(s)
-      val interchange = new ValueMapImpl
-      try {
-        lexer.setHandler(null)
-        val version = init(interchange)
-        schemaDefs = versions(version)
-        map put (delimiterCharacters, buildDelims)
-        parseCompList(schemaDefs.segUNB.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, interchange)
-        map put (interchangeKey, interchange)
-      } catch {
-        case e: LexicalException => {
-          logger.error(s"Unable to process message due to error in interchange header: ${e.getMessage}")
-          throw e
-        }
+      val inter = openInterchange
+      if (getRequiredString(SYNTAX_IDENTIFIER, firstInterchange) != getRequiredString(SYNTAX_IDENTIFIER, inter) ||
+        getRequiredString(SYNTAX_VERSION_NUMBER, firstInterchange) != getRequiredString(SYNTAX_VERSION_NUMBER, inter)) {
+        throw new InterchangeException(UnspecifiedError, "Multiple interchanges sent in a single transfer unit must use the same syntax and version")
       }
+      interchangeSegmentNumber = lexer.getSegmentNumber
+      interchangeGroupCount = 0
+      interchangeMessageCount = 0
+      map put (interchangeKey, inter)
       try {
 
         def parseMessage(context: String, group: Option[ValueMap]) = {
@@ -583,7 +598,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
                 if (isSetClose) {
                   closeSet(setprops)
                   group.foreach { gmap => data.put(groupKey, gmap) }
-                  data.put(interchangeKey, interchange)
+                  data.put(interchangeKey, inter)
                   data.put(setKey, setprops)
                   interchangeMessageCount = interchangeMessageCount + 1
                   transLists.get(setid).add(data)
@@ -596,10 +611,10 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
         // initialize for interchange
         interchangeSegmentNumber = lexer.getSegmentNumber - 1
-        interchangeReference = getRequiredString(interHeadReferenceKey, interchange)
+        interchangeReference = getRequiredString(interHeadReferenceKey, inter)
         contrlGroup1s.clear
         contrlGroup3s.clear
-        val ackroot = buildFuncCONTRL(interchange)
+        val ackroot = buildFuncCONTRL(inter)
         val ackhead = new ValueMapImpl
         ackroot put (transactionHeading, ackhead)
         ackroot put (transactionDetail, new ValueMapImpl)
@@ -607,8 +622,8 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         funcAckList add (ackroot)
         val interack = new ValueMapImpl
         interack put (schemaDefs.segUCI.components(0).key, interchangeReference)
-        copyComposite(schemaDefs.unbSender, interchange, schemaDefs.uciSender, interack)
-        copyComposite(schemaDefs.unbRecipient, interchange, schemaDefs.uciRecipient, interack)
+        copyComposite(schemaDefs.unbSender, inter, schemaDefs.uciSender, interack)
+        copyComposite(schemaDefs.unbRecipient, inter, schemaDefs.uciRecipient, interack)
         ackhead put (schemaDefs.contrlComps(1).key, interack)
 
         def interchangeError(error: SyntaxError, text: String) = {
@@ -619,8 +634,8 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
           throw new InterchangeException(error, text)
         }
 
-        val sender = getStrings(schemaDefs.unbSender.components, interchange)
-        val recipient = getStrings(schemaDefs.unbRecipient.components, interchange)
+        val sender = getStrings(schemaDefs.unbSender.components, inter)
+        val recipient = getStrings(schemaDefs.unbRecipient.components, inter)
         val context = numval.contextToken(valueOrNull(0, sender), valueOrNull(1, sender), valueOrNull(2, sender),
           valueOrNull(3, sender), valueOrNull(0, recipient), valueOrNull(1, recipient), valueOrNull(2, recipient),
           valueOrNull(3, recipient))

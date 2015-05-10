@@ -1,13 +1,8 @@
 package com.anypoint.df.edi.lexical;
 
 import static com.anypoint.df.edi.lexical.EdiConstants.ASCII_CHARSET;
-import static com.anypoint.df.edi.lexical.EdifactConstants.CHARACTER_ENCODING;
-import static com.anypoint.df.edi.lexical.EdifactConstants.EDIFACT_CHARSETS;
-import static com.anypoint.df.edi.lexical.EdifactConstants.SERVICE_CODE_LIST;
-import static com.anypoint.df.edi.lexical.EdifactConstants.SYNTAX_IDENTIFIER;
-import static com.anypoint.df.edi.lexical.EdifactConstants.SYNTAX_VERSION_NUMBER;
+import static com.anypoint.df.edi.lexical.EdifactConstants.*;
 import static com.anypoint.df.edi.lexical.EdifactConstants.UTF8;
-import static com.anypoint.df.edi.lexical.EdifactConstants.charNonBlank;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -194,6 +189,27 @@ public class EdifactLexer extends LexerBase
             
         } catch (IOException e) {
             throw new LexicalException("Interchange aborted due to error reading header", e);
+        }
+    }
+
+    /**
+     * Finish interchange parse. The end of this interchange may be followed by another interchange, so this only parses
+     * up to and including the UNZ segment terminator.
+     * 
+     * @param props
+     * @throws IOException
+     */
+    public void term(Map<String, Object> props) throws IOException {
+        if (!"UNZ".equals(token())) {
+            throw new IllegalStateException("not at trailer");
+        }
+        if (nextType() == ItemType.DATA_ELEMENT) {
+            advance();
+            props.put(INTER_CONTROL_COUNT, parseInteger(1, 6));
+            if (nextType() == ItemType.DATA_ELEMENT) {
+                advance();
+                props.put(INTER_CONTROL_REF, parseAlphaNumeric(0, 14));
+            }
         }
     }
 }
