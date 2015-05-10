@@ -154,6 +154,22 @@ public abstract class EdifactTestBase extends TestBase {
     }
 
     /**
+     * Replace date/time fields in an acknowledgment with X characters, allowing it to be compared with a static string.
+     * 
+     * @param ack
+     * @return replaced
+     */
+    protected String stripAckDates(String ack) {
+        String working = maskUnbVariableValues(0, '+', ack);
+        int scan = 0;
+        while ((scan = working.indexOf("'UNH+", scan)) > 0) {
+            scan++;
+            working = maskNthValue(scan, 1, '+', working);
+        }
+        return working;
+    }
+
+    /**
      * Print acknowledgment information from parse result map.
      *
      * @param result
@@ -195,21 +211,16 @@ public abstract class EdifactTestBase extends TestBase {
 
     }
 
-    protected String parseWithSenderIdentityInformation(String inputFilePath, String interchangeQualifier,
-        String interchangeId, String interchangeType) {
-        IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
-        IdentityInformation[] senders = new IdentityInformation[1];
-        senders[0] = identity;
+    protected String parseWithSenderIdentityInformation(String inputFilePath, String interchangeId,
+        String interchangeQualifier) {
+        EdifactIdentityInformation identity =
+            new EdifactIdentityInformation(interchangeId, interchangeQualifier, null, null);
         EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, -1,
-            EdiConstants.ASCII_CHARSET, new EdifactIdentityInformation[0], new EdifactIdentityInformation[0]);
+            EdiConstants.ASCII_CHARSET, new EdifactIdentityInformation[0], new EdifactIdentityInformation[] { identity });
 
         DocumentTest test = new DocumentTestEdifact(schema, config);
         InputStream is = EdifactTestBase.class.getResourceAsStream(inputFilePath);
-        try {
-            Map<String, Object> result = test.parse(is);
-            return test.printAck(result);
-        } catch (Exception e) {
-            return e.getMessage();
-        }
+        Map<String, Object> result = test.parse(is);
+        return test.printAck(result);
     }
 }
