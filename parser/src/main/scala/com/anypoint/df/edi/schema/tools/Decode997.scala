@@ -19,8 +19,6 @@ object Decode997 extends SchemaJavaDefs {
     builder ++= s"From ${getRequiredString(SENDER_ID_QUALIFIER, inter)}:${getRequiredString(SENDER_ID, inter)}\n"
     builder ++= s"To ${getRequiredString(RECEIVER_ID_QUALIFIER, inter)}:${getRequiredString(RECEIVER_ID, inter)}\n"
     val ackhead = getRequiredValueMap(transactionHeading, root)
-    val stdata = getRequiredValueMap(trans997Keys(0), ackhead)
-    builder ++= s"Control number ${getRequiredString(segST.components(1) key, stdata)}\n"
     val ak1data = getRequiredValueMap(trans997Keys(1), ackhead)
     builder ++= s"Acknowledged group code ${getRequiredString(segAK1.components(0) key, ak1data)} with control number ${getRequiredInt(segAK1.components(1) key, ak1data)}"
     applyIfPresent[String](segAK1.components(2) key, ak1data, value => builder ++= s", version $value")

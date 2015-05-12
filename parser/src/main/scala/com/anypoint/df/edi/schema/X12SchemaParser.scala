@@ -550,7 +550,6 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       if (receivers.length == 0 && config.receiverIds.length > 0)
         throw new LexicalException("Interchange receiver information does not match configuration")
       map put (delimiterCharacters, buildDelims)
-      var ackId = 1
       var interNote: InterchangeNoteCode = InterchangeNoError
       while (lexer.currentType != END && !isInterchangeEnvelope) {
         if (isGroupOpen) {
@@ -566,10 +565,6 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           ackroot put (transactionHeading, ackhead)
           ackroot put (transactionDetail, new ValueMapImpl)
           ackroot put (transactionSummary, new ValueMapImpl)
-          val stdata = new ValueMapImpl
-          ackhead put (trans997Keys(0), stdata)
-          stdata put (segST.components(0) key, trans997 ident)
-          stdata put (segST.components(1) key, ackId toString)
           val ak1data = new ValueMapImpl
           ackhead put (trans997Keys(1), ak1data)
           ak1data put (segAK1.components(0) key, group get (groupFunctionalIdentifierKey))
@@ -602,11 +597,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
           ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
           val limit = math.min(segAK9.components.length - 5, groupErrors.length)
           (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
-          val sedata = new ValueMapImpl
-          ackhead put (trans997Keys(4), sedata)
-          sedata put (segSE.components(1) key, ackId toString)
           if (Some(groupCode) != trans997.group) funcAckList add (ackroot)
-          ackId += 1
         } else {
           logger.error(s"discarding $positionInInterchange (${lexer.token}) found when looking for group start")
           interNote = InterchangeInvalidContent
