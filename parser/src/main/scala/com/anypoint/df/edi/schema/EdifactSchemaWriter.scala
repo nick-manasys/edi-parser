@@ -5,13 +5,11 @@ import java.nio.charset.Charset
 import java.util.Calendar
 import java.util.GregorianCalendar
 import scala.annotation.tailrec
-import scala.collection.JavaConversions
+import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.util.Try
-import com.anypoint.df.edi.lexical.WriteException
+import com.anypoint.df.edi.lexical.{ WriteException, EdifactWriter, WriterBase }
 import com.anypoint.df.edi.lexical.EdifactConstants._
-import com.anypoint.df.edi.lexical.EdifactWriter
-import com.anypoint.df.edi.lexical.WriterBase
 
 /** Configuration parameters for EDIFACT schema writer.
   */
@@ -140,10 +138,10 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     } catch {
       case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
     }
-    val scalaTrans = JavaConversions.mapAsScalaMap(transMap)
+    val scalaTrans = transMap.asScala
     val result = scalaTrans.foldLeft(TreeMap[(Option[String], String, Option[String], String, Option[String], Option[String], Option[Int], Option[String], Option[Int]), List[Message]]()) {
       case (acc, (transnum, transets)) => {
-        val transbuff = JavaConversions.asScalaBuffer(transets.asInstanceOf[MapList])
+        val transbuff = transets.asInstanceOf[MapList].asScala
         val sequence = (0 until transbuff.size) map { i =>
           val transdata = transbuff(i)
           try {

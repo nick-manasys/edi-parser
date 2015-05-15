@@ -4,13 +4,11 @@ import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.util.{ Calendar, GregorianCalendar }
 import scala.annotation.tailrec
-import scala.collection.JavaConversions
 import scala.collection.mutable.Buffer
 import scala.util.Try
 import scala.util.Success
 import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, EdifactLexer }
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.lexical.EdiConstants.ItemType
+import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._

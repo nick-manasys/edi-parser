@@ -5,7 +5,7 @@ import java.nio.charset.Charset
 import java.util.Calendar
 import java.util.GregorianCalendar
 import scala.annotation.tailrec
-import scala.collection.JavaConversions
+import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.util.Try
 import com.anypoint.df.edi.lexical.WriteException
@@ -127,11 +127,11 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
     } catch {
       case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
     }
-    val scalaTrans = JavaConversions.mapAsScalaMap(getAsMap(transactionsMap, rootMap))
+    val scalaTrans = getAsMap(transactionsMap, rootMap).asScala
     val result = scalaTrans.foldLeft(TreeMap[(String, String, String, String, String, String, String),
       List[TransactionSet]]()) {
       case (acc, (transnum, transets)) => {
-        val transbuff = JavaConversions.asScalaBuffer(transets.asInstanceOf[MapList])
+        val transbuff = transets.asInstanceOf[MapList].asScala
         val sequence = (0 until transbuff.size) map { i =>
           val transdata = transbuff(i)
           try {
@@ -181,7 +181,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
         writer.init(interProps)
         if (map.containsKey(interchangeAcksToSend)) {
           val ta1list = getRequiredMapList(interchangeAcksToSend, map)
-          JavaConversions.asScalaIterator(ta1list iterator).foreach { ta1map => writeSegment(ta1map, X12Acknowledgment.segTA1) }
+          ta1list.asScala.foreach { ta1map => writeSegment(ta1map, X12Acknowledgment.segTA1) }
           map.remove(interchangeAcksToSend)
         }
         val groups = interlist.groupBy(transet => {

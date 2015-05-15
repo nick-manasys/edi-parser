@@ -3,13 +3,12 @@ package com.anypoint.df.edi.schema
 import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.util.{ Calendar, GregorianCalendar }
-import scala.collection.JavaConversions
+import scala.collection.JavaConverters._
 import scala.collection.mutable.Buffer
 import scala.util.Try
 import scala.util.Success
 import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, X12Lexer }
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.lexical.EdiConstants.ItemType
+import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
@@ -259,7 +258,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       group.foreach(gcomp => ak3data put (segAK3 components (2) key, gcomp ident))
       ak3data put (segAK3 components (3) key, DataErrorsSegment.code.toString)
       ak3 put (groupAK3Keys(0), ak3data)
-      ak3 put (groupAK3Keys(1), JavaConversions.bufferAsJavaList(dataErrors.reverse))
+      ak3 put (groupAK3Keys(1), dataErrors.reverse.asJava)
       segmentErrors += ak3
       oneOrMoreSegmentsInError = true
     }
@@ -410,7 +409,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         data put (groupKey, group)
         data put (setKey, setprops)
         if (segmentErrors.nonEmpty) {
-          val ak3s = JavaConversions.bufferAsJavaList(segmentErrors)
+          val ak3s = segmentErrors.asJava
           setack put (groupAK3 key, ak3s)
         }
         data

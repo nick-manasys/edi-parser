@@ -4,7 +4,7 @@ import java.io.OutputStream
 import java.math.BigDecimal
 import java.util.Calendar
 import java.util.Date
-import scala.collection.JavaConversions
+import scala.collection.JavaConverters._
 import scala.util.Try
 import org.apache.log4j.Logger
 import com.anypoint.df.edi.lexical.EdiConstants._
@@ -29,6 +29,28 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     def zeroPadr(t: String): String =
       if (t.length < length) zeroPadr("0" + t) else t
     zeroPadr(text)
+  }
+  
+  /** Map from interchange and/or group values to list of maps using those values. */
+  type SendMap = Map[(Option[ValueMap], Option[ValueMap]), List[ValueMap]]
+  
+  /** Group maps of data to be sent based on equality of envelope maps. This assumes two maps of envelope data may be
+   *  linked from the send data maps, but either or both can be missing.
+   *  @param sends list of send data maps
+   *  @param key1 primary sort key map name
+   *  @param key2 secondary sort key map name
+   *  @param groups accumulated map to lists of send data maps
+   */
+  def mergeSends(sends: MapList, key1: String, key2: String, groups: SendMap) = {
+    sends.asScala.foldLeft(groups)((acc, map) => {
+      val value1 = if (map.containsKey(key1)) Some(map.get(key1).asInstanceOf[ValueMap]) else None
+      val value2 = if (map.containsKey(key2)) Some(map.get(key2).asInstanceOf[ValueMap]) else None
+      val key = (value1, value2)
+      acc.get(key) match {
+        case Some(list) => acc + (key -> (map :: list))
+        case None => acc + (key -> (map :: Nil))
+      }
+    })
   }
 
   /** Write a segment from a map of values. */
@@ -81,10 +103,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
             if (value == null) throw new WriteException(s"Value cannot be null for key ${comp.key}")
             if (comp.count > 1) {
               if (!value.isInstanceOf[SimpleList]) throw new WriteException(s"expected list of values for property ${comp.name}")
-              else {
-                val iter = JavaConversions.asScalaIterator(value.asInstanceOf[SimpleList].iterator)
-                iter.foreach(value => writeComponent(value))
-              }
+              else value.asInstanceOf[SimpleList].asScala.foreach { value => writeComponent(value) }
             } else writeComponent(value)
           } else comp.usage match {
             case MandatoryUsage => throw new WriteException(s"missing required value '${comp.name}'")
@@ -128,16 +147,12 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   def writeTransaction(map: ValueMap, transaction: Transaction) = {
 
     /** Write a (potentially) repeating segment from a list of maps. */
-    def writeRepeatingSegment(list: MapList, segment: Segment, limit: Int): Unit = {
-      val iter = JavaConversions.asScalaIterator(list.iterator)
-      iter.foreach(map => writeSegment(map, segment))
-    }
+    def writeRepeatingSegment(list: MapList, segment: Segment, limit: Int): Unit =
+      list.asScala.foreach { map => writeSegment(map, segment) }
 
     /** Write a (potentially) repeating group from a list of maps. */
-    def writeRepeatingGroup(list: MapList, group: GroupBase): Unit = {
-      val iter = JavaConversions.asScalaIterator(list.iterator)
-      iter.foreach(map => writeSection(map, group.items))
-    }
+    def writeRepeatingGroup(list: MapList, group: GroupBase): Unit =
+      list.asScala.foreach { map => writeSection(map, group.items) }
 
     /** Write a portion of transaction data represented by a list of components (which may be segment references or
       * loops) from a map.
