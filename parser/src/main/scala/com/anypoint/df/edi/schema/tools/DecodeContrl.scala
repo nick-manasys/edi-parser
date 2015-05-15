@@ -146,7 +146,7 @@ UNZ+1+50'"""
       Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]()).merge(ControlV3Defs.transCONTRL)
     val parser = EdifactSchemaParser(is, schema, new DefaultEdifactNumberValidator, config)
     parser.parse match {
-      case Success(root) => println(decode(getRequiredMapList("CONTRL", getRequiredValueMap(transactionsMap, root)).get(0)))
+      case Success(root) => println(decode(getRequiredMapList("CONTRL", getRequiredValueMap(messagesMap, root)).get(0)))
       case Failure(e) => throw e
     }
   }

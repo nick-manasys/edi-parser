@@ -5,8 +5,14 @@ object EdifactSchemaDefs {
   import EdiSchema._
   import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion
   
+  /** Key for map of message type lists in root map of send or receive. */
+  val messagesMap = "Transactions"
+  
+  /** Key for message header information in message data map. */
+  val messageHeaderKey = "MessageHeader"
+  
   // transaction set properties
-  val implementationConventionReference = "ImplementationConventionOverride"
+//  val implementationConventionReference = "ImplementationConventionOverride"
   
   val interchangeStartSegment = "UNB"
   val interchangeEndSegment = "UNZ"

@@ -516,7 +516,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     map put (functionalAcksGenerated, funcAckList)
     val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
     schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
-    map put (transactionsMap, transLists)
+    map put (messagesMap, transLists)
 
     /** Parse messages in group. */
     def parseGroup(group: ValueMap, groupCode: String, providerId: String, groupSender: String, groupReceiver: String) = {
@@ -597,7 +597,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
                   closeSet(setprops)
                   group.foreach { gmap => data.put(groupKey, gmap) }
                   data.put(interchangeKey, inter)
-                  data.put(setKey, setprops)
+                  data.put(messageHeaderKey, setprops)
                   interchangeMessageCount = interchangeMessageCount + 1
                   transLists.get(setid).add(data)
                 } else messageError(NotSupportedInPosition)

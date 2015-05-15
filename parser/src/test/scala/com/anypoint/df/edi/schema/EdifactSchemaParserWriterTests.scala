@@ -152,7 +152,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
     val writer = EdifactSchemaWriter(out, schema, new DefaultEdifactNumberProvider, config)
     val props = parseResult.get
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(transactionsMap, props)).get(0)
+    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, props)).get(0)
     val inter = getRequiredValueMap(interchangeKey, message)
     swap(interHeadSenderQualKey, interHeadRecipientQualKey, inter)
     swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, inter)

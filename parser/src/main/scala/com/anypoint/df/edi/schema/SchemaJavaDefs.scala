@@ -105,12 +105,10 @@ object SchemaJavaValues {
   val interchangeAcksGenerated = "InterchangeAcksGenerated"
   val interchangeAcksReceived = "InterchangeAcksReceived"
   val interchangeAcksToSend = "InterchangeAcksToSend"
-  val transactionsMap = "Transactions"
   
   // value keys for envelope data maps in root and transaction set maps
   val interchangeKey = "Interchange"
   val groupKey = "Group"
-  val setKey = "Set"
 
   // value keys for top-level transaction set map
   val transactionId = "Id"

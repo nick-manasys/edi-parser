@@ -195,7 +195,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val version = EDIFACT_VERSIONS.get(getAs(ControlV4Defs.unbSyntax.components(1).key, "4", inter))
     val config = EdifactWriterConfig(syntax, version, -1, '.', ASCII_CHARSET, getRequiredString(delimiterCharacters, map), "")
     val writer = EdifactSchemaWriter(os, schema, new DefaultEdifactNumberProvider, config)
-    val transacts = getRequiredValueMap(transactionsMap, map)
+    val transacts = getRequiredValueMap(messagesMap, map)
     writer.write(map).get
     os.toString
   }
@@ -210,7 +210,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val transactions = new ValueMapImpl
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     transactions put ("CONTRL", acks)
-    outmap put (transactionsMap, transactions)
+    outmap put (messagesMap, transactions)
     writer.write(outmap).get
     os.toString
   }

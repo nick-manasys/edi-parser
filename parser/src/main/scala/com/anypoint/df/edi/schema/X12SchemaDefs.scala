@@ -4,10 +4,15 @@ package com.anypoint.df.edi.schema
 object X12SchemaDefs {
 
   import EdiSchema._
-
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+  
+  /** Key for map of transaction lists in root map of send or receive. */
+  val transactionsMap = "Transactions"
+  
+  /** Key for transaction set header information in transaction data map. */
+  val setKey = "SetHeader"
 
   val elemI05 = Element("I05", "Interchange ID Qualifier", ID, 2, 2)
   val elemI12 = Element("I12", "Interchange Control Number", INTEGER, 9, 9)

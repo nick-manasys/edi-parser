@@ -12,6 +12,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.anypoint.df.edi.schema.SchemaJavaValues;
+import com.anypoint.df.edi.schema.X12SchemaDefs;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestX12;
 
@@ -32,7 +33,7 @@ public class BiztalkTest extends X12TestBase {
         DocumentTest test = new DocumentTestX12(schema);
         String text = readAsString("/x12/005010/biztalk-interop/850x1.edi");
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
-        Map<String, Object> transmap = (Map<String, Object>)result.get(SchemaJavaValues.transactionsMap());
+        Map<String, Object> transmap = (Map<String, Object>)result.get(X12SchemaDefs.transactionsMap());
         assertNotNull(transmap);
         List<Map<String, Object>> translist = (List<Map<String, Object>>)transmap.get("850");
         assertNotNull(translist);

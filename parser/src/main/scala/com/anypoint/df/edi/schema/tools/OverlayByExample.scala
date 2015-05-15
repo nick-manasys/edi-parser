@@ -137,6 +137,8 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     * arguments are the documents to be parsed and used as examples.
     */
   def main(args: Array[String]): Unit = {
+    
+    import com.anypoint.df.edi.schema.X12SchemaDefs.{ transactionsMap, setKey}
 
     val yaml = new YamlReader()
     val is = yaml.findSchema(args(0), Array())

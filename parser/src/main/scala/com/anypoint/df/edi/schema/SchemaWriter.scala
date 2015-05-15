@@ -30,28 +30,23 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       if (t.length < length) zeroPadr("0" + t) else t
     zeroPadr(text)
   }
-  
+
   /** Map from interchange and/or group values to list of maps using those values. */
-  type SendMap = Map[(Option[ValueMap], Option[ValueMap]), List[ValueMap]]
-  
-  /** Group maps of data to be sent based on equality of envelope maps. This assumes two maps of envelope data may be
-   *  linked from the send data maps, but either or both can be missing.
-   *  @param sends list of send data maps
-   *  @param key1 primary sort key map name
-   *  @param key2 secondary sort key map name
-   *  @param groups accumulated map to lists of send data maps
-   */
-  def mergeSends(sends: MapList, key1: String, key2: String, groups: SendMap) = {
+  type SendMap = Map[Option[ValueMap], List[ValueMap]]
+
+  /** Group maps of data to be sent based on equality of an envelope map, which may or may not be present.
+    * @param sends list of send data maps
+    * @param key sort map name
+    * @param groups accumulated map to lists of send data maps
+    */
+  def groupSends(sends: MapList, key: String, groups: SendMap) =
     sends.asScala.foldLeft(groups)((acc, map) => {
-      val value1 = if (map.containsKey(key1)) Some(map.get(key1).asInstanceOf[ValueMap]) else None
-      val value2 = if (map.containsKey(key2)) Some(map.get(key2).asInstanceOf[ValueMap]) else None
-      val key = (value1, value2)
-      acc.get(key) match {
-        case Some(list) => acc + (key -> (map :: list))
-        case None => acc + (key -> (map :: Nil))
+      val value = if (map.containsKey(key)) Some(map.get(key).asInstanceOf[ValueMap]) else None
+      acc.get(value) match {
+        case Some(list) => acc + (value -> (map :: list))
+        case None => acc + (value -> (map :: Nil))
       }
     })
-  }
 
   /** Write a segment from a map of values. */
   protected def writeSegment(map: ValueMap, segment: Segment): Unit = {
@@ -95,8 +90,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         case cc: CompositeComponent if (cc.count == 1) =>
           if (cc.composite.components.exists { ccc => map containsKey ccc.key }) {
             writeComponent(map)
-          }
-          else writer.skipElement
+          } else writer.skipElement
         case _ =>
           if (map.containsKey(comp.key)) {
             val value = map.get(comp.key)

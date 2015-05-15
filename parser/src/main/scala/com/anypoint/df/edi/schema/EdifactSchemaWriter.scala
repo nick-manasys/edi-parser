@@ -113,7 +113,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     def optionalInt(value: Integer) = if (value == null) None else Some(value.intValue)
     val interDflt = getRequiredValueMap(interchangeKey, rootMap)
     val groupDflt = getAsMap(groupKey, rootMap)
-    val transMap = getRequiredValueMap(transactionsMap, rootMap)
+    val transMap = getRequiredValueMap(messagesMap, rootMap)
     def getInterchangeString(key: String, specific: ValueMap) =
       if (specific != null && specific.containsKey(key)) getAsString(key, specific)
       else getAsString(key, interDflt)
@@ -228,7 +228,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
             grouplist foreach (transet => try {
               val transdata = transet.data
               val setProps =
-                if (transdata.containsKey(setKey)) new ValueMapImpl(getRequiredValueMap(setKey, transdata))
+                if (transdata.containsKey(messageHeaderKey)) new ValueMapImpl(getRequiredValueMap(messageHeaderKey, transdata))
                 else new ValueMapImpl
               setProps put (msgHeadReferenceKey, numprov.nextMessage(context, transet.ident, "D", schema.version, "UN"))
               setProps put (msgHeadMessageTypeKey, transet.ident)
