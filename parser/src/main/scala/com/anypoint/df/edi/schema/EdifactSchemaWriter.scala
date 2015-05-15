@@ -229,7 +229,9 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
           case ((selfGroup, partnerGroup, groupCode), grouplist) => {
             grouplist foreach (transet => try {
               val transdata = transet.data
-              val setProps = if (transdata.containsKey(setKey)) new ValueMapImpl(getRequiredValueMap(setKey, transdata)) else new ValueMapImpl
+              val setProps =
+                if (transdata.containsKey(setKey)) new ValueMapImpl(getRequiredValueMap(setKey, transdata))
+                else new ValueMapImpl
               setProps put (msgHeadReferenceKey, numprov.nextMessage(context, transet.ident, "D", schema.version, "UN"))
               setProps put (msgHeadMessageTypeKey, transet.ident)
               val version = schema.version.toUpperCase

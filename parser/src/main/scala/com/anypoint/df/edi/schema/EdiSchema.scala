@@ -22,6 +22,9 @@ object EdiSchema {
     case OptionalUsage.code => OptionalUsage
     case ConditionalUsage.code => ConditionalUsage
     case UnusedUsage.code => UnusedUsage
+    // TODO: backward compatibility in HL7, treat as optional for now
+    case "B" => OptionalUsage
+    case "R" | "" => MandatoryUsage
     case _ => throw new IllegalArgumentException("'" + value + "' is not an allowed usage code")
   }
 
@@ -37,15 +40,21 @@ object EdiSchema {
   case class DependencyNote(val kind: DependencyType, val items: Seq[Int])
   // TODO: add dependency rules to schema representation
 
-  /** Element definition.
-    * @param ident unique identifier (actually a number)
+  /** Component base definition.
+    * @param ident unique identifier
     * @param name readable name
+    */
+  sealed abstract class ComponentBase(val ident: String, val name: String)
+
+  /** Element definition.
+    * @param id unique identifier
+    * @param nm readable name
     * @param dataType type
     * @param minLength minimum value length
     * @param maxLength maximum value length
     */
-  case class Element(val ident: String, val name: String, val dataType: DataType, val minLength: Int,
-    val maxLength: Int)
+  case class Element(id: String, nm: String, val dataType: DataType, val minLength: Int, val maxLength: Int)
+    extends ComponentBase(id, nm)
 
   /** Segment (or composite) component, either an element or a composite reference.
     * @param name readable name
@@ -139,13 +148,16 @@ object EdiSchema {
   }
 
   /** Composite definition.
-    * @param ident
-    * @param name
+    * @param id unique identifier
+    * @param nm readable name
     * @param components
     * @param rules
+    * @param maxLength maximum length for entire value (0 if no limit)
     */
-  case class Composite(val ident: String, val name: String, val components: List[SegmentComponent],
-    val rules: List[OccurrenceRule]) {
+  case class Composite(id: String, nm: String, val components: List[SegmentComponent], val rules: List[OccurrenceRule],
+    val maxLength: Int) extends ComponentBase(id, nm) {
+    def this(id: String, nm: String, comps: List[SegmentComponent], rules: List[OccurrenceRule]) =
+      this(id, nm, comps, rules, 0)
     def rewrite(prefix: String, form: EdiForm) = Composite(ident, name,
       components.map { comp =>
         val rekey = form.keyName(prefix, comp.position)
@@ -156,7 +168,7 @@ object EdiSchema {
             CompositeComponent(cc.composite, Some(cc.name), rekey, cc.position, cc.usage, cc.count)
         }
       },
-      rules)
+      rules, maxLength)
   }
 
   /** Segment definition.
@@ -197,7 +209,7 @@ object EdiSchema {
       case grp: GroupComponent => acc + (grp.leadSegmentRef.segment.ident -> grp)
       case _ => acc
     })
-  
+
   /** Key for a transaction component. */
   def componentKey(ident: String, pos: SegmentPosition) = pos.position + " " + ident
 

@@ -309,7 +309,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
           val data = getRequiredMapList(rulesKey, compmap)
           parseRules(data, comps)
         } else Nil
-        map + (ident -> Composite(ident, name, comps, rules))
+        val max = if (compmap.containsKey(maxLengthKey)) getRequiredInt(maxLengthKey, compmap) else 0
+        map + (ident -> Composite(ident, name, comps, rules, max))
       })
 
   /** Convert segment definitions. */

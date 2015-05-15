@@ -1,21 +1,22 @@
 package com.anypoint.df.edi.schema.convert
 
-import scala.collection.breakOut
-import scala.io.Source
+import java.io.BufferedReader
 import java.io.File
-import java.io.InputStream
-import scala.annotation.tailrec
 import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.io.OutputStreamWriter
+
+import scala.annotation.tailrec
+import scala.io.Source
+
+import com.anypoint.df.edi.lexical.EdiConstants
+import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import com.anypoint.df.edi.schema.EdiSchema
 import com.anypoint.df.edi.schema.EdiSchema._
-import java.io.FileOutputStream
-import com.anypoint.df.edi.schema.YamlWriter
-import java.io.OutputStreamWriter
-import java.io.InputStreamReader
 import com.anypoint.df.edi.schema.YamlReader
-import com.anypoint.df.edi.lexical.EdiConstants
-import com.anypoint.df.edi.lexical.EdiConstants._
-import java.io.BufferedReader
+import com.anypoint.df.edi.schema.YamlWriter
 
 /** Application to generate EDIFACT transaction schemas from table data.
   */
@@ -260,7 +261,7 @@ object EdifactTablesConverter {
         lines.skipToLead
         val items = collectItems(heads(1))
         if (items.isEmpty) throw new IllegalArgumentException(s"No values defined for composite ${heads(1)}")
-        buildr(Composite(heads(1), heads(2), items, Nil) :: acc)
+        buildr(Composite(heads(1), heads(2), items, Nil, 0) :: acc)
       } else acc reverse
     }
 

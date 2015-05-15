@@ -17,29 +17,31 @@ import com.anypoint.df.edi.schema.EdiSchema._
 import com.anypoint.df.edi.schema.YamlReader
 import com.anypoint.df.edi.schema.YamlWriter
 
-/** Application to generate X12 transaction schemas from table data.
+/** Application to generate HL7 message schemas from table data.
   */
-object X12TablesConverter {
+object HL7TablesConverter {
 
   // YAML file extension
   val yamlExtension = ".esl"
 
   // file names
-  val transHeadersName = "sethead.txt"
-  val transDetailsName = "setdetl.txt"
-  val segmentHeadersName = "seghead.txt"
-  val segmentDetailsName = "segdetl.txt"
-  val compositeHeadersName = "comhead.txt"
-  val compositeDetailsName = "comdetl.txt"
-  val elementHeadersName = "elehead.txt"
-  val elementDetailsName = "eledetl.txt"
+  val messageNames = "message_types.txt"
+  val eventCodes = "events.txt"
+  val eventMessages = "event_message_types.txt"
+  val messageStructures = "msg_struct_id_segments.txt"
+  val segmentNames = "segments.txt"
+  val segmentStructures = "segment_data_elements.txt"
+  val dataElements = "data_elements.txt"
+  val dataStructureNames = "data_structures.txt"
+  val dataStructureComponents = "data_structure_components.txt"
+  val componentDetails = "components.txt"
 
   /** Split comma-separated quoted values from string into list. */
   def splitValues(s: String) = {
     def stripComma(remain: Seq[Char], acc: List[String]): List[String] =
       if (remain.isEmpty) acc reverse
       else if (remain.head == ',') splitQuotes(remain.tail, acc)
-      else throw new IllegalArgumentException(s"missing expected comma after closing quote: $s")
+      else throw new IllegalArgumentException(s"missing expected comma after closing quote: $s ($remain)")
     def splitQuotes(remain: Seq[Char], acc: List[String]): List[String] =
       if (remain.head == '"') {
         val (text, rest) = remain.tail span (c => c != '"')
@@ -59,10 +61,13 @@ object X12TablesConverter {
     Source.fromInputStream(in, "ISO-8859-1").getLines.filter(line => line.length > 0).foldLeft(z)((z, line) =>
       f(z, splitValues(line)))
 
-  /** Generate map from id to name from an input with two columns. */
-  def nameMap(in: InputStream) = foldInput(in, Map.empty[String, String])((map, list) =>
+  /** Convert input to list of arrays of strings (list reverse ordered). */
+  def lineList(in: InputStream) = foldInput(in, List[Array[String]]()) ((list, line) => line.toArray :: list)
+
+  /** Generate map from first column of data to list of remaining values in row. */
+  def nameMap(in: InputStream) = foldInput(in, Map.empty[String, Array[String]])((map, list) =>
     list match {
-      case number :: name :: Nil => map + (number -> name)
+      case name :: t => map + (name -> t.toArray)
       case _ => throw new IllegalArgumentException("wrong number of values in file")
     })
 
@@ -101,20 +106,20 @@ object X12TablesConverter {
   /** Build map from composite ids to definitions. This assumes composites are only defined in terms of elements, which
     * appears to be correct for X12.
     */
-  def defineComposites(elemNames: Map[String, String], elements: Map[String, Element], compNames: Map[String, String],
-    groups: ListOfKeyedLists) =
-    groups.foldLeft(Map.empty[String, Composite])((map, pair) =>
-      pair match {
-        case (key, list) => {
-          val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
-            case pos :: elem :: req :: Nil =>
-              val position = pos.toInt
-              ElementComponent(elements(elem), None, X12.keyName(key, position), position, convertUsage(req), 1) :: acc
-            case _ => throw new IllegalStateException("wrong number of items in list")
-          }).reverse
-          map + (key -> Composite(key, compNames(key), comps, Nil, 0))
-        }
-      })
+  //  def defineComposites(elemNames: Map[String, String], elements: Map[String, Element], compNames: Map[String, String],
+  //    groups: ListOfKeyedLists) =
+  //    groups.foldLeft(Map.empty[String, Composite])((map, pair) =>
+  //      pair match {
+  //        case (key, list) => {
+  //          val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
+  //            case pos :: elem :: req :: Nil =>
+  //              val position = pos.toInt
+  //              ElementComponent(elements(elem), None, X12.keyName(key, position), position, convertUsage(req), 1) :: acc
+  //            case _ => throw new IllegalStateException("wrong number of items in list")
+  //          }).reverse
+  //          map + (key -> Composite(key, compNames(key), comps, Nil))
+  //        }
+  //      })
 
   /** Build map from segment ids to definitions. */
   def defineSegments(elemNames: Map[String, String], elements: Map[String, Element], compNames: Map[String, String],
@@ -238,19 +243,6 @@ object X12TablesConverter {
     }
   }
 
-  /** Convert length value, which may use exponential notation. */
-  def convertLength(text: String) = {
-    val split = text.indexOf("E+")
-    if (split < 0) text.toInt
-    else {
-      val value: Long = text.substring(0, split).toInt
-      val exponent: Long = text.substring(split + 2).toInt
-      val result = value * 10 ^ exponent
-      if (result > Int.MaxValue) Int.MaxValue
-      else result.asInstanceOf[Int]
-    }
-  }
-
   /** Convert element data type, extending base conversion to allow empty type. */
   def convertType(text: String) = if (text.length > 0) EdiConstants.toX12Type(text) else DataType.ALPHANUMERIC
 
@@ -270,13 +262,66 @@ object X12TablesConverter {
     //    if (baseSchema != readSchema) throw new IllegalStateException(s"Verification error on schema $name")
   }
 
-  /** Builds schemas from X12 table data and outputs the schemas in YAML form. The arguments are 1) path to the
-    * directory containing the X12 table data files, and 2) path to the directory for the YAML output files. All
-    * existing files are deleted from the output directory before writing any output files. Each transaction is output
+  /** Build composite definition from data structure components list. */
+  def buildComposite(lines: List[Array[String]], names: Map[String, String], elems: Map[String, Array[String]], comps: Map[String, ComponentBase]) = {
+    val ident = lines.head(0)
+    println(s"building composite $ident")
+    val compList = lines.map { line =>
+      {
+        println(s"looking for key ${line(2)}")
+        comps(elems(line(2))(2)) match {
+          case Element(id, nm, typ, mn, mx) => {
+            val max = if (line(5).length > 0) line(5).toInt else mx
+            val elem = Element(id, nm, typ, mn, max)
+            ElementComponent(elem, None, "", line(1).toInt, EdiSchema.convertUsage(line(6)), 1)
+          }
+          case c: Composite => CompositeComponent(c, None, "", line(1).toInt, EdiSchema.convertUsage(line(6)), 1)
+        }
+      }
+    }
+    comps + (ident -> Composite(ident, names(ident), compList, Nil, 0))
+  }
+
+  @tailrec
+  def buildComposites(grouped: Map[String, List[Array[String]]], names: Map[String, String],
+    elems: Map[String, Array[String]], built: Map[String, ComponentBase]): Map[String, ComponentBase] = {
+
+    /** Build composite definition from data structure components list. */
+    def buildComposite(lines: List[Array[String]], comps: Map[String, ComponentBase]) = {
+      val ident = lines.head(0)
+      println(s"building composite $ident")
+      val compList = lines.map { line =>
+        {
+          println(s"looking for key ${line(2)}")
+          comps(elems(line(2))(2)) match {
+            case Element(id, nm, typ, mn, mx) => {
+              val max = if (line(5).length > 0) line(5).toInt else mx
+              val elem = Element(id, nm, typ, mn, max)
+              ElementComponent(elem, None, "", line(1).toInt, EdiSchema.convertUsage(line(6)), 1)
+            }
+            case c: Composite => CompositeComponent(c, None, "", line(1).toInt, EdiSchema.convertUsage(line(6)), 1)
+          }
+        }
+      }
+      Composite(ident, names(ident), compList, Nil, 0)
+    }
+    
+    val building = grouped.filter { case (ident, lines) =>
+        lines.forall { line => built.contains(elems(line(2))(3)) }
+    }.map{ case (ident, lines) => ident }.toSet
+    val merged = building.foldLeft(built)((acc, ident) => acc + (ident -> buildComposite(grouped(ident), acc)))
+    val remain = grouped.filter { case (ident, lines) => !building.contains(ident) }
+    if (remain.isEmpty) merged
+    else buildComposites(remain, names, elems, merged)
+  }
+
+  /** Builds schemas from HL7 table data and outputs the schemas in YAML form. The arguments are 1) path to the
+    * directory containing the HL7 table data files, and 2) path to the directory for the YAML output files. All
+    * existing files are deleted from the output directory before writing any output files. Each message is output
     * as a separate file, with the transaction ID used as the file name (with extension ".yaml").
     */
   def main(args: Array[String]): Unit = {
-    val x12dir = new File(args(0))
+    val hl7dir = new File(args(0))
     val yamldir = new File(args(1))
     if (yamldir.exists) yamldir.listFiles.foreach { version =>
       if (version.exists && version.isDirectory) {
@@ -286,42 +331,76 @@ object X12TablesConverter {
     }
     else yamldir.mkdirs
     val yamlrdr = new YamlReader()
-    x12dir.listFiles.foreach (version => {
+    hl7dir.listFiles.foreach (version => {
       println(s"Processing ${version.getName}")
-      val elemNames = nameMap(fileInput(version, elementHeadersName))
-      val elemDefs = foldInput(fileInput(version, elementDetailsName), Map.empty[String, Element])((map, list) =>
-        list match {
-          case number :: typ :: min :: max :: Nil =>
-            map + (number -> Element(number, elemNames(number), convertType(typ), convertLength(min), convertLength(max)))
-          case _ => throw new IllegalArgumentException("wrong number of values in file")
-        })
-      val compNames = nameMap(fileInput(version, compositeHeadersName))
-      val compGroups = gatherGroups(compositeDetailsName, fileInput(version, compositeDetailsName), 4, None)
-      val compDefs = defineComposites(elemNames, elemDefs, compNames, compGroups)
-      val segNames = nameMap(fileInput(version, segmentHeadersName))
-      val segGroups = gatherGroups(segmentDetailsName, fileInput(version, segmentDetailsName), 5, Some("1"))
-      val segDefs = defineSegments(elemNames, elemDefs, compNames, compDefs, segNames, segGroups)
-      val setHeads = foldInput(fileInput(version, transHeadersName), Map.empty[String, (String, String)])((map, list) =>
-        list match {
-          case number :: name :: group :: Nil => map + (number -> (name, group))
-          case _ => throw new IllegalArgumentException("wrong number of values in file")
-        })
-      val setGroups = gatherGroups(transDetailsName, fileInput(version, transDetailsName), 9, None)
-      val vnum = version.getName
-      val baseSchema = EdiSchema(X12, vnum, elemDefs, compDefs, segDefs, Map[String, Transaction]())
-      val outdir = new File(yamldir, version.getName)
-      outdir.mkdirs
-      writeSchema(baseSchema, "basedefs", Array(), outdir)
-      verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
-      val binSegs = segDefs.get("BIN").toSet ++ segDefs.get("BDS").toSet
-      val transactions = defineTransactions(segDefs, setHeads, setGroups, binSegs).values.filter {
-        trans => binSegs.forall { seg => !trans.segmentsUsed.contains(seg) }
-      }
-      transactions foreach (transact => {
-        val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
-          Map(transact.ident -> transact))
-        writeSchema(schema, transact.ident, Array(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)
-      })
+
+      // comp_no, description, table_id, data_type_code, data_structure
+      val compDetails = nameMap(fileInput(version, componentDetails))
+      // data_structure, description, data_type_code, repeating, elementary
+      val dataStructs = lineList(fileInput(version, dataStructureNames))
+      val structNames = dataStructs.foldLeft(Map[String, String]())((acc, line) => acc + (line(0) -> line(1)))
+
+      // build element definitions for elementary components
+      val elemDefs = dataStructs.filter { line => line(4) == "1" }.foldLeft(Map.empty[String, ComponentBase])((map, line) =>
+        map + (line(0) -> Element(line(0), line(1), EdiConstants.toHL7Type(line(2)), 0, 0)))
+      println("Generated element definitions:")
+      elemDefs.keys.foreach { ident => println(ident) }
+      val simpleComps = compDetails.filter { case (ident, line) => elemDefs.contains(line(3)) }
+      // (data_structure, seq_no), comp_no, table_id, min_length, max_length, req_opt
+      val groupedStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { line => line(0) }
+      val compMap = buildComposites(groupedStructs, structNames, compDetails, elemDefs)
+//      val compMap1 = simpleIdents.foldLeft(elemDefs)((acc, ident) =>
+//        buildComposite(groupedStructs(ident), structNames, compDetails, acc))
+//      val compMap2 = groupedStructs.filter {
+//        case (ident, lines) =>
+//          !simpleIdents.contains(ident)
+//      }.foldLeft(compMap1){
+//        case (acc, (ident, lines)) =>
+//          buildComposite(lines, structNames, compDetails, acc)
+//      }
+//      println(compMap2)
+
+      // data_item, description, data_structure, min_length, max_length
+      val dataElems = nameMap(fileInput(version, dataElements))
+
+      //      simpleIdents.map { x => ??? }
+      //      println(simpleIdents)
+      //      println(groupedStructs.keys.filter { !simpleIdents.contains(_) })
+      //      lineList(fileInput(version, dataStructureComponents)).filter { line => line(5).length > 0 }.foreach(line => println(line(0)))
+
+      //      val elemDefs = foldInput(fileInput(version, elementDetailsName), Map.empty[String, Element])((map, list) =>
+      //        list match {
+      //          case number :: typ :: min :: max :: Nil =>
+      //            map + (number -> Element(number, elemNames(number), convertType(typ), convertLength(min), convertLength(max)))
+      //          case _ => throw new IllegalArgumentException("wrong number of values in file")
+      //        })
+      //      val compNames = nameMap(fileInput(version, compositeHeadersName))
+      //      val compGroups = gatherGroups(compositeDetailsName, fileInput(version, compositeDetailsName), 4, None)
+      //      val compDefs = defineComposites(elemNames, elemDefs, compNames, compGroups)
+      //      val segNames = nameMap(fileInput(version, segmentHeadersName))
+      //      val segGroups = gatherGroups(segmentDetailsName, fileInput(version, segmentDetailsName), 5, Some("1"))
+      //      val segDefs = defineSegments(elemNames, elemDefs, compNames, compDefs, segNames, segGroups)
+      //      val setHeads = foldInput(fileInput(version, transHeadersName), Map.empty[String, (String, String)])((map, list) =>
+      //        list match {
+      //          case number :: name :: group :: Nil => map + (number -> (name, group))
+      //          case _ => throw new IllegalArgumentException("wrong number of values in file")
+      //        })
+      //      val setGroups = gatherGroups(transDetailsName, fileInput(version, transDetailsName), 9, None)
+      //      val vnum = version.getName
+      //      val baseSchema = EdiSchema(X12, vnum, elemDefs, compDefs, segDefs, Map[String, Transaction]())
+      //      val outdir = new File(yamldir, version.getName)
+      //      outdir.mkdirs
+      //      writeSchema(baseSchema, "basedefs", Array(), outdir)
+      //      verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
+      //      val binSegs = segDefs.get("BIN").toSet ++ segDefs.get("BDS").toSet
+      //      val transactions = defineTransactions(segDefs, setHeads, setGroups, binSegs).values.filter {
+      //        trans => binSegs.forall { seg => !trans.segmentsUsed.contains(seg) }
+      //      }
+      //      transactions foreach (transact => {
+      //        val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
+      //          Map(transact.ident -> transact))
+      //        writeSchema(schema, transact.ident, Array(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)
+      //      })
     })
   }
 }

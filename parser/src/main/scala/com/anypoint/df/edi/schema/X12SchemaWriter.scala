@@ -200,7 +200,9 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
             writer.countGroup
             grouplist foreach (transet => try {
               val transdata = transet.data
-              val setProps = new ValueMapImpl
+              val setProps =
+                if (transdata.containsKey(setKey)) new ValueMapImpl(getRequiredValueMap(setKey, transdata))
+                else new ValueMapImpl
               setProps put (setControlNumberHeaderKey, zeroPad(numprov nextSet (providerId, senderGroup, receiverGroup), 4))
               openSet(transet ident, setProps)
               writeTransaction(transdata, schema transactions (transet ident))

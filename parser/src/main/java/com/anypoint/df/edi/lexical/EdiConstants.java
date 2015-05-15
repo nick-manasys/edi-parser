@@ -24,41 +24,51 @@ public abstract class EdiConstants
     /** Token delimiter types. */
     public enum ItemType {  SEGMENT, DATA_ELEMENT, QUALIFIER, REPETITION, END }
     
+    // flags for EDI forms using a data type
+    private static final int X12_FLAG = 1;
+    private static final int EDIFACT_FLAG = 2;
+    private static final int HL7_FLAG = 3;
+    
     /** Data types. */
     public enum DataType
     {
-        REAL("R", false),
-        ID("ID", true),
-        ALPHANUMERIC("AN", true),
-        ALPHA("A", true),
-        DATE("DT", false),
-        TIME("TM", false),
-        BINARY("B", false),
-        NUMBER("N", true),
-        INTEGER("N0", false),
-        DECIMAL1("N1", false, 1),
-        DECIMAL2("N2", false, 2),
-        DECIMAL3("N3", false, 3),
-        DECIMAL4("N4", false, 4),
-        DECIMAL5("N5", false, 5),
-        DECIMAL6("N6", false, 6),
-        DECIMAL7("N7", false, 7),
-        DECIMAL8("N8", false, 8),
-        DECIMAL9("N9", false, 9);
+        REAL("R", X12_FLAG),
+        ID("ID", X12_FLAG | EDIFACT_FLAG),
+        ALPHANUMERIC("AN", X12_FLAG | EDIFACT_FLAG),
+        ALPHA("A", X12_FLAG | EDIFACT_FLAG),
+        DATE("DT", X12_FLAG | EDIFACT_FLAG | HL7_FLAG),
+        TIME("TM", X12_FLAG | HL7_FLAG),
+        BINARY("B", X12_FLAG),
+        DATETIME("DTM", HL7_FLAG),
+        NUMBER("N", X12_FLAG | EDIFACT_FLAG),
+        NUMERIC("NM", HL7_FLAG),
+        INTEGER("N0", X12_FLAG),
+        DECIMAL1("N1", X12_FLAG, 1),
+        DECIMAL2("N2", X12_FLAG, 2),
+        DECIMAL3("N3", X12_FLAG, 3),
+        DECIMAL4("N4", X12_FLAG, 4),
+        DECIMAL5("N5", X12_FLAG, 5),
+        DECIMAL6("N6", X12_FLAG, 6),
+        DECIMAL7("N7", X12_FLAG, 7),
+        DECIMAL8("N8", X12_FLAG, 8),
+        DECIMAL9("N9", X12_FLAG, 9),
+        SEQID("SI", HL7_FLAG),
+        STRINGDATA("ST", HL7_FLAG),
+        VARIES("varies", HL7_FLAG);
         
         private final String typeCode;
         private final int decimalPlaces;
-        private final boolean edifactType;
+        private final int formFlags;
         
-        private DataType(String code, boolean edifact, int places) {
+        private DataType(String code, int flags, int places) {
             typeCode = code;
-            edifactType = edifact;
+            formFlags = flags;
             decimalPlaces = places;
             NAMETYPES.put(code, this);
         }
         
-        private DataType(String code, boolean edifact) {
-            this(code, edifact, -1);
+        private DataType(String code, int flags) {
+            this(code, flags, -1);
         }
         
         /**
@@ -97,10 +107,13 @@ public abstract class EdiConstants
      */
     public static DataType toX12Type(String code) {
         if (NAMETYPES.containsKey(code)) {
-            return NAMETYPES.get(code);
-        } else {
-            throw new IllegalArgumentException("Unknown type code " + code);
+            DataType type = NAMETYPES.get(code);
+            if ((type.formFlags & X12_FLAG) == 0) {
+                throw new IllegalArgumentException("Not an X12 type code " + code);
+            }
+            return type;
         }
+        throw new IllegalArgumentException("Unknown type code " + code);
     }
     
     /**
@@ -112,15 +125,46 @@ public abstract class EdiConstants
     public static DataType toEdifactType(String code) {
         if (NAMETYPES.containsKey(code)) {
             DataType type = NAMETYPES.get(code);
-            if (!type.edifactType) {
+            if ((type.formFlags & EDIFACT_FLAG) == 0) {
                 throw new IllegalArgumentException("Not an EDIFACT type code " + code);
             }
             return type;
-        } else {
-            throw new IllegalArgumentException("Unknown type code " + code);
         }
+        throw new IllegalArgumentException("Unknown type code " + code);
     }
     
+    private static final Map<String, DataType> HL7Mapping = new HashMap<>();
+    static {
+        // treat specialized HL7 types as variations on string data types
+        HL7Mapping.put("FT", DataType.STRINGDATA);
+        HL7Mapping.put("GTS", DataType.ALPHANUMERIC);
+        HL7Mapping.put("ID", DataType.STRINGDATA);
+        HL7Mapping.put("IS", DataType.STRINGDATA);
+        HL7Mapping.put("TX", DataType.STRINGDATA);
+        HL7Mapping.put("DTM", DataType.STRINGDATA);
+        HL7Mapping.put("var", DataType.VARIES);
+    }
+    
+    /**
+     * Get data type from HL7 type code. This throws an exception if the type code is unknown.
+     *
+     * @param code
+     * @return
+     */
+    public static DataType toHL7Type(String code) {
+        if (HL7Mapping.containsKey(code)) {
+            return HL7Mapping.get(code);
+        }
+        if (NAMETYPES.containsKey(code)) {
+            DataType type = NAMETYPES.get(code);
+            if ((type.formFlags & HL7_FLAG) == 0) {
+                throw new IllegalArgumentException("Not an HL7 type code " + code);
+            }
+            return type;
+        }
+        throw new IllegalArgumentException("Unknown type code " + code);
+    }
+   
     // combinations of types
     public static final DataType[] REAL_TYPES = new DataType[] {
         DataType.REAL, DataType.NUMBER, DataType.DECIMAL1, DataType.DECIMAL2, DataType.DECIMAL3, DataType.DECIMAL4,
