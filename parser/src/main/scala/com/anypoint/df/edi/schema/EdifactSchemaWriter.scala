@@ -38,11 +38,6 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
 
   val schemaDefs = versions(config.version)
 
-  case class Message(val ident: String, val index: Int, val selfId: Option[String], val partnerId: Option[String],
-    val data: ValueMap) {
-    override def toString = s"message $ident at index $index"
-  }
-
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
@@ -101,73 +96,6 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment) = segment.ident == "UNH" || segment.ident == "UNT"
 
-  /** Group messages into lists for one or more interchanges based on the self and partner identification
-    * information. This also verifies that the data for each message matches the message type of the containing
-    * list, and saves information in the message to refer back to the position in the input data. Note that the
-    * list of message for each interchange is in reverse order relative to the original order of the message.
-    * @param rootMap message root
-    * @return List(((interSelfQual, interSelf, interPartQual, interPart, interUsage), List(Message))
-    */
-  def messageInterchanges(rootMap: ValueMap) = {
-    def optionalString(value: String) = if (value == null) None else Some(value)
-    def optionalInt(value: Integer) = if (value == null) None else Some(value.intValue)
-    val interDflt = getRequiredValueMap(interchangeKey, rootMap)
-    val groupDflt = getAsMap(groupKey, rootMap)
-    val transMap = getRequiredValueMap(messagesMap, rootMap)
-    def getInterchangeString(key: String, specific: ValueMap) =
-      if (specific != null && specific.containsKey(key)) getAsString(key, specific)
-      else getAsString(key, interDflt)
-    def getInterchangeInt(key: String, specific: ValueMap) =
-      if (specific != null && specific.containsKey(key)) getAs[Integer](key, specific)
-      else getAs[Integer](key, interDflt)
-    def getGroupString(key: String, specific: ValueMap) =
-      if (specific != null && specific.containsKey(key)) getAsString(key, specific)
-      else if (groupDflt == null) null
-      else getAsString(key, groupDflt)
-    def tupleKey(transet: Message) = try {
-      val specific = getAsMap(interchangeKey, transet.data)
-      (optionalString(getInterchangeString(interHeadSenderQualKey, specific)),
-        getInterchangeString(interHeadSenderIdentKey, specific),
-        optionalString(getInterchangeString(interHeadRecipientQualKey, specific)),
-        getInterchangeString(interHeadRecipientIdentKey, specific),
-        optionalString(getInterchangeString(interHeadApplicationKey, specific)),
-        optionalString(getInterchangeString(interHeadPriorityKey, specific)),
-        optionalInt(getInterchangeInt(interHeadAckreqKey, specific)),
-        optionalString(getInterchangeString(interHeadAgreementKey, specific)),
-        optionalInt(getInterchangeInt(interHeadTestKey, specific)))
-    } catch {
-      case e: IllegalArgumentException => logAndThrow(s"$transet ${e.getMessage}", None)
-    }
-    val scalaTrans = transMap.asScala
-    val result = scalaTrans.foldLeft(TreeMap[(Option[String], String, Option[String], String, Option[String], Option[String], Option[Int], Option[String], Option[Int]), List[Message]]()) {
-      case (acc, (transnum, transets)) => {
-        val transbuff = transets.asInstanceOf[MapList].asScala
-        val sequence = (0 until transbuff.size) map { i =>
-          val transdata = transbuff(i)
-          try {
-            val transid = getRequiredString(transactionId, transdata)
-            if (transid != transnum) throw new IllegalArgumentException(s"$transactionId value '$transid'' does not match containing type")
-            val specific = getAsMap(interchangeKey, transdata)
-            val selfid = optionalString(getGroupString(groupHeadSenderIdentKey, specific))
-            val partnerid = optionalString(getGroupString(groupHeadRecipientIdentKey, specific))
-            Message(transnum, i, selfid, partnerid, transdata)
-          } catch {
-            case e: IllegalArgumentException => logAndThrow(s"transaction $transnum at index $i ${e.getMessage}", None)
-          }
-        }
-        sequence.foldLeft(acc) ((acc, tset) => {
-          val key = tupleKey(tset)
-          val list = acc get (key) match {
-            case Some(l) => l
-            case None => Nil
-          }
-          acc + (key -> (tset :: list))
-        })
-      }
-    }
-    result map { case (tupkey, translist) => (tupkey, translist reverse) } toList
-  }
-
   /** Stores list of string values matching the simple value components. */
   def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
     @tailrec
@@ -180,20 +108,40 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     }
     setr(values, comps)
   }
-
+  
+  val msgIndexKey = "$index$"
+  
   /** Write the output message. */
   def write(map: ValueMap) = Try({
-    val interchanges = messageInterchanges(map)
-    if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
+    val interchanges = getRequiredValueMap(messagesMap, map).asScala.foldLeft(EmptySendMap) {
+      case (acc, (ident, list)) => {
+        val msgMaps = list.asInstanceOf[MapList].asScala
+        (0 until msgMaps.size) map { i =>
+          val msgMap = msgMaps(i)
+          msgMap put (msgIndexKey, Integer.valueOf(i))
+          if (msgMap.containsKey(transactionId)) {
+            if (ident != msgMap.get(transactionId)) throw new WriteException("$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)") 
+          } else msgMap put (transactionId, ident)
+        }
+        groupSends(msgMaps, SchemaJavaValues.interchangeKey, acc)
+      }
+    }
+    if (interchanges.isEmpty) throw new WriteException("no messages to be sent")
+    val interRoot = getRequiredValueMap(interchangeKey, map)
     interchanges foreach {
-      case ((selfQual, selfId, partnerQual, partnerId, appRef, priorityCode, ackReq, interAgree, useIndicator), interlist) => {
-        val interProps = new ValueMapImpl
-        val context = numprov contextToken (selfId, selfQual.getOrElse(null), partnerId, partnerQual.getOrElse(null))
+      case (key, msgs) => {
+        val interProps = new ValueMapImpl(interRoot)
+        key.foreach(interProps.putAll(_))
+        val selfId = getRequiredString(interHeadSenderIdentKey, interProps)
+        val selfQual = getAsString(interHeadSenderQualKey, interProps)
+        val partnerId = getRequiredString(interHeadRecipientIdentKey, interProps)
+        val partnerQual = getAsString(interHeadRecipientQualKey, interProps)
+        val context = numprov contextToken (selfId, selfQual, partnerId, partnerQual)
         val interref = numprov nextInterchange (context)
         interProps put (interHeadReferenceKey, interref)
         setStrings(List(config.syntax.code, config.version.code), schemaDefs.unbSyntax.components, interProps)
-        setStrings(List(partnerId, partnerQual.getOrElse(null)), schemaDefs.unbSender.components, interProps)
-        setStrings(List(selfId, selfQual.getOrElse(null)), schemaDefs.unbRecipient.components, interProps)
+        setStrings(List(partnerId, partnerQual), schemaDefs.unbSender.components, interProps)
+        setStrings(List(selfId, selfQual), schemaDefs.unbRecipient.components, interProps)
         if (!map.containsKey(interHeadDateKey)) {
           val calendar = new GregorianCalendar
           val yearnum = calendar.get(Calendar.YEAR)
@@ -208,41 +156,32 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
           val time = Integer.valueOf(calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE))
           interProps put (interHeadTimeKey, time)
         }
-        if (appRef.isDefined) interProps put (interHeadApplicationKey, appRef.get)
-        if (priorityCode.isDefined) interProps put (interHeadPriorityKey, priorityCode.get)
-        if (ackReq.isDefined) interProps put (interHeadAckreqKey, Integer.valueOf(ackReq.get))
-        if (interAgree.isDefined) interProps put (interHeadAgreementKey, interAgree.get)
-        if (useIndicator.isDefined) interProps put (interHeadTestKey, Integer.valueOf(useIndicator.get))
-        if (appRef.isDefined) interProps put (interHeadApplicationKey, appRef.get)
-        if (appRef.isDefined) interProps put (interHeadApplicationKey, appRef.get)
-        if (appRef.isDefined) interProps put (interHeadApplicationKey, appRef.get)
-        if (appRef.isDefined) interProps put (interHeadApplicationKey, appRef.get)
         init(interProps)
         setCount = 0
-        val groups = interlist.groupBy(transet => {
-          val transdef = schema.transactions(transet.ident)
-          (transet selfId, transet partnerId, transdef.group.getOrElse(""))
-        })
-        groups foreach {
-          case ((selfGroup, partnerGroup, groupCode), grouplist) => {
-            grouplist foreach (transet => try {
-              val transdata = transet.data
+        groupSends(msgs, SchemaJavaValues.groupKey, EmptySendMap) foreach {
+          case (key, msgs) => {
+            msgs foreach (msgData => try {
               val setProps =
-                if (transdata.containsKey(messageHeaderKey)) new ValueMapImpl(getRequiredValueMap(messageHeaderKey, transdata))
+                if (msgData.containsKey(messageHeaderKey)) new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
                 else new ValueMapImpl
-              setProps put (msgHeadReferenceKey, numprov.nextMessage(context, transet.ident, "D", schema.version, "UN"))
-              setProps put (msgHeadMessageTypeKey, transet.ident)
-              val version = schema.version.toUpperCase
-              setProps put (msgHeadMessageVersionKey, version.substring(0, 1))
-              setProps put (msgHeadMessageReleaseKey, version.substring(1))
+              val msgType = getRequiredString(transactionId, msgData)
+              setProps put (msgHeadMessageTypeKey, msgType)
               if (!setProps.containsKey(msgHeadMessageAgencyKey)) setProps put (msgHeadMessageAgencyKey, "UN")
-              openSet(transet ident, setProps)
-              writeTransaction(transdata, schema transactions (transet ident))
+              val msgAgency = getAsString(msgHeadMessageVersionKey, setProps)
+              val fullVersion = schema.version.toUpperCase
+              val msgVersion = fullVersion.substring(0, 1)
+              val msgRelease = fullVersion.substring(1)
+              setProps put (msgHeadReferenceKey,
+                numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency))
+              setProps put (msgHeadMessageVersionKey, msgVersion)
+              setProps put (msgHeadMessageReleaseKey, msgRelease)
+              openSet(msgType, setProps)
+              writeTransaction(msgData, schema transactions (msgType))
               closeSet(setProps)
               setCount += 1
             } catch {
               case e@(_: IllegalArgumentException | _: WriteException) => {
-                logAndThrow(s"transaction ${transet ident} at index ${transet index} ${e.getMessage}", Some(e))
+                logAndThrow(s"${msgData.get(transactionId)} at index ${msgData.get(msgIndexKey)} ${e.getMessage}", Some(e))
               }
             })
           }

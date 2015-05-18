@@ -133,6 +133,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     */
   def printDoc(map: ValueMap) = {
     val os = new ByteArrayOutputStream
+    if (!map.containsKey(interchangeKey)) map put (interchangeKey, new ValueMapImpl)
     val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
     val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, config)
     val transacts = getRequiredValueMap(transactionsMap, map)
@@ -150,6 +151,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     transactions put ("997", acks)
     outmap put (transactionsMap, transactions)
+    if (!outmap.containsKey(interchangeKey)) outmap put (interchangeKey, new ValueMapImpl)
     writer.write(outmap).get
     os.toString
   }

@@ -45,6 +45,8 @@ trait SchemaJavaDefs {
   
   def getAsString(key: String, map: ValueMap) = getAs[String](key, map)
   
+  def getAsInt(key: String, map: ValueMap) = getAs[Integer](key, map).intValue()
+  
   def getAsMap(key: String, map: ValueMap) = getAs[ValueMap](key, map)
   
   def getAs[T](key: String, dflt: T, map: ValueMap): T =

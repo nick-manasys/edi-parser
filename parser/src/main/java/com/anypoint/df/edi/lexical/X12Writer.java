@@ -69,11 +69,20 @@ public class X12Writer extends WriterBase
         writeProperty(SENDER_ID, props, null, 15, 15);
         writeProperty(RECEIVER_ID_QUALIFIER, props, "00", 2, 2);
         writeProperty(RECEIVER_ID, props, null, 15, 15);
-        Calendar calendar = new GregorianCalendar();
+        Calendar calendar = (Calendar)props.get(INTERCHANGE_DATE);
+        if (calendar == null) {
+            calendar = new GregorianCalendar();
+        }
         writeDate(calendar, 6, 6);
         writeDataSeparator();
-        int time = (calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000;
-        writeTime(time, 4, 4);
+        Integer time = (Integer)props.get(INTERCHANGE_TIME);
+        int millis;
+        if (time == null) {
+            millis = (calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000;
+        } else {
+            millis = time.intValue();
+        }
+        writeTime(millis, 4, 4);
         writeDataSeparator();
         Object version = getRequired(VERSION_ID, props);
         if (!(version instanceof String)) {

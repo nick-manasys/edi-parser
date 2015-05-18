@@ -33,15 +33,17 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 
   /** Map from interchange and/or group values to list of maps using those values. */
   type SendMap = Map[Option[ValueMap], List[ValueMap]]
+  
+  val EmptySendMap = Map[Option[ValueMap], List[ValueMap]]()
 
   /** Group maps of data to be sent based on equality of an envelope map, which may or may not be present.
-    * @param sends list of send data maps
+    * @param sends send data maps
     * @param key sort map name
     * @param groups accumulated map to lists of send data maps
     */
-  def groupSends(sends: MapList, key: String, groups: SendMap) =
-    sends.asScala.foldLeft(groups)((acc, map) => {
-      val value = if (map.containsKey(key)) Some(map.get(key).asInstanceOf[ValueMap]) else None
+  def groupSends(sends: Iterable[ValueMap], key: String, groups: SendMap) =
+    sends.foldLeft(groups)((acc, map) => {
+      val value = if (map.containsKey(key)) Some(getAsMap(key, map)) else None
       acc.get(value) match {
         case Some(list) => acc + (value -> (map :: list))
         case None => acc + (value -> (map :: Nil))
