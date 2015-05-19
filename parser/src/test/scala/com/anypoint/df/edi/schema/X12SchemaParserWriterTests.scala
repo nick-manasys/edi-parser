@@ -167,16 +167,19 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val parseResult = parser.parse
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
     val out = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterRestriction.BASIC, -1, ASCII_CHARSET, "*>U~", null)
-    val writer = X12SchemaWriter(out, schema, new DefaultX12NumberProvider, config)
+    val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, "*>U~", null)
+    val provider = new DefaultX12NumberProvider
+    val writer = X12SchemaWriter(out, schema, provider, config)
     val props = parseResult.get
+    props put (interchangeKey, new ValueMapImpl)
+    provider.interNum = 1243
+    provider.groupNum = 167
+    provider.setNum = 175
     writer.write(props)
     val text = new String(out.toByteArray)
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")).getLines
     val builder = new StringBuilder
     lines.foreach(line => builder.append(line))
-    
-    // TODO: fix comparison to ignore date/times in ISA and GS
-    //    text should be (builder.toString)
+    text should be (builder.toString)
   }
 }
