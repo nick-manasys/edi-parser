@@ -22,9 +22,6 @@ object EdiSchema {
     case OptionalUsage.code => OptionalUsage
     case ConditionalUsage.code => ConditionalUsage
     case UnusedUsage.code => UnusedUsage
-    // TODO: backward compatibility in HL7, treat as optional for now
-    case "B" => OptionalUsage
-    case "R" | "" => MandatoryUsage
     case _ => throw new IllegalArgumentException("'" + value + "' is not an allowed usage code")
   }
 
@@ -221,6 +218,15 @@ object EdiSchema {
     */
   case class ReferenceComponent(val segment: Segment, pos: SegmentPosition, use: Usage, cnt: Int)
     extends TransactionComponent(componentKey(segment.ident, pos), pos, use, cnt)
+  
+  /** Any segment reference.
+    * @param ident
+    * @param position
+    * @param use
+    * @param cnt
+    */
+  case class WildcardComponent(val ident: String, pos: SegmentPosition, use: Usage, cnt: Int)
+    extends TransactionComponent(componentKey(ident, pos), pos, use, cnt)
 
   /** Loop wrapper component.
     * @param open
@@ -245,7 +251,7 @@ object EdiSchema {
     * @param cnt
     * @param items
     */
-  sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int,
+  sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int, val choice: Boolean,
     val items: List[TransactionComponent]) extends TransactionComponent(ky, pos, use, cnt) {
 
     /** Components in group by segment identifier. */
@@ -259,7 +265,8 @@ object EdiSchema {
     * @param itms
     */
   case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
-    itms: List[TransactionComponent]) extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, itms)
+    itms: List[TransactionComponent])
+    extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, itms)
 
   /** Get lead reference from list of transaction components. If the first component is not a reference this throws an
     * exception.
@@ -281,8 +288,9 @@ object EdiSchema {
     * @param ky explicit key value (ident used by default)
     */
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, itms: List[TransactionComponent],
-    val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None)
-    extends GroupBase(ky.getOrElse(componentKey(ident, leadReference(ident, itms).position)), leadReference(ident, itms).position, use, cnt, itms) {
+    val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None, ch: Boolean = false)
+    extends GroupBase(ky.getOrElse(componentKey(ident, leadReference(ident, itms).position)),
+      leadReference(ident, itms).position, use, cnt, ch, itms) {
 
     /** Group head segment reference. */
     val leadSegmentRef = leadReference(ident, items)
@@ -384,9 +392,16 @@ object EdiSchema {
     val loopWrapperEnd = "LE"
     def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
   }
+  case object HL7 extends EdiForm("HL7") {
+    def isEnvelopeSegment(ident: String) = "MSH" == ident
+    val loopWrapperStart = ""
+    val loopWrapperEnd = ""
+    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+  }
   def convertEdiForm(value: String) = value match {
     case EdiFact.text => EdiFact
     case X12.text => X12
+    case HL7.text => HL7
   }
 }
 

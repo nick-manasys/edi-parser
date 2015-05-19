@@ -159,4 +159,3 @@
 "URS","Unsolicited Selection","1"
 "VAR","Variance","1"
 "VTQ","Virtual Table Query Request","1"
-"ZL7","(proposed example only)","1"

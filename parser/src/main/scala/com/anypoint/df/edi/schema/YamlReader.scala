@@ -297,21 +297,45 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         result
       })
 
-  /** Convert composite definitions. */
-  private def convertComposites(input: ValueMap, form: EdiForm, elements: Map[String, Element], basedefs: Map[String, Composite]) =
-    getRequiredMapList(compositesKey, input).asScala.toList.foldLeft(basedefs)(
-      (map, compmap) => {
-        val ident = getRequiredString(idKey, compmap)
-        val name = getRequiredString(nameKey, compmap)
-        val list = getRequiredMapList(valuesKey, compmap)
-        val comps = parseSegmentComponents(ident, list, elements, map, form)
-        val rules = if (compmap.containsKey(rulesKey)) {
-          val data = getRequiredMapList(rulesKey, compmap)
-          parseRules(data, comps)
-        } else Nil
-        val max = if (compmap.containsKey(maxLengthKey)) getRequiredInt(maxLengthKey, compmap) else 0
-        map + (ident -> Composite(ident, name, comps, rules, max))
-      })
+  /** Convert composite definitions. To work with HL7 this makes multiple passes through the input, each time processing
+    * definitions which only use already-defined values. That's not the most efficient approach since it could
+    * theoretically require may passes, but it's easy to implement and should be fine for actual schemas.
+    */
+  private def convertComposites(input: ValueMap, form: EdiForm, elements: Map[String, Element],
+    basedefs: Map[String, Composite]) = {
+
+    /** Build dependency set for composite, as set of component idents. */
+    def depSet(compmap: ValueMap) = getRequiredMapList(valuesKey, compmap).asScala.
+      foldLeft(Set[String]())((set, item) => set + getRequiredString(idRefKey, item))
+
+    type MapsWithDeps = List[(ValueMap, Set[String])]
+
+    /** Recursively build composites which only use already-defined composites until all are built. */
+    @tailrec
+    def convertr(remain: MapsWithDeps, deferred: MapsWithDeps, done: Map[String, Composite]): Map[String, Composite] =
+      remain match {
+        case h :: t =>
+          if (h._2.forall { ident => done.contains(ident) || elements.contains(ident) }) {
+            val compmap = h._1
+            val ident = getRequiredString(idKey, compmap)
+            println(s"processing composite $ident")
+            val name = getRequiredString(nameKey, compmap)
+            val list = getRequiredMapList(valuesKey, compmap)
+            val comps = parseSegmentComponents(ident, list, elements, done, form)
+            val rules = if (compmap.containsKey(rulesKey)) {
+              val data = getRequiredMapList(rulesKey, compmap)
+              parseRules(data, comps)
+            } else Nil
+            val max = if (compmap.containsKey(maxLengthKey)) getRequiredInt(maxLengthKey, compmap) else 0
+            convertr(t, deferred, done + (ident -> Composite(ident, name, comps, rules, max)))
+          } else convertr(t, h :: deferred, done)
+        case _ =>
+          if (deferred.isEmpty) done else convertr(deferred, Nil, done)
+      }
+
+    val compList = getRequiredMapList(compositesKey, input).asScala.toList.map(map => (map, depSet(map)))
+    convertr(compList, Nil, basedefs)
+  }
 
   /** Convert segment definitions. */
   private def convertSegments(input: ValueMap, form: EdiForm, elements: Map[String, Element],
@@ -333,8 +357,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     getRequiredMapList(segmentsKey, input).asScala.toList.
       foldLeft(basedefs)((map, segmap) => if (segmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, segmap)
-        val list = getRequiredMapList(valuesKey, segmap)
-        val comps = parseSegmentComponents(ident, list, elements, composites, form)
+        val list = getAs[MapList](valuesKey, segmap)
+        val comps = if (list == null) Nil else parseSegmentComponents(ident, list, elements, composites, form)
         val name = getRequiredString(nameKey, segmap)
         map + (ident -> Segment(ident, name, comps, getRules(segmap, comps)))
       } else if (segmap.containsKey(idRefKey)) {
@@ -416,7 +440,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     */
   def loadYaml(reader: Reader, basePaths: Array[String]) = {
     val snake = new Yaml(new IgnoringConstructor)
-    
+
     /** Read schema from YAML document, recursively reading and building on imported schemas. */
     def loadFully(reader: Reader): EdiSchema = {
       val input = snake.loadAs(reader, classOf[ValueMap]).asInstanceOf[ValueMap];

@@ -35,6 +35,15 @@ object HL7TablesConverter {
   val dataStructureNames = "data_structures.txt"
   val dataStructureComponents = "data_structure_components.txt"
   val componentDetails = "components.txt"
+  // (data_structure, seq_no), comp_no, table_id, min_length, max_length, req_opt
+
+  /** Specialized usage code conversion for HL7. */
+  def convertUsage(code: String) = code match {
+    case "B" | "(B) R" => OptionalUsage
+    case "W" => UnusedUsage
+    case "R" | "" => MandatoryUsage
+    case _ => EdiSchema.convertUsage(code)
+  }
 
   /** Split comma-separated quoted values from string into list. */
   def splitValues(s: String) = {
@@ -267,16 +276,13 @@ object HL7TablesConverter {
     val ident = lines.head(0)
     println(s"building composite $ident")
     val compList = lines.map { line =>
-      {
-        println(s"looking for key ${line(2)}")
-        comps(elems(line(2))(2)) match {
-          case Element(id, nm, typ, mn, mx) => {
-            val max = if (line(5).length > 0) line(5).toInt else mx
-            val elem = Element(id, nm, typ, mn, max)
-            ElementComponent(elem, None, "", line(1).toInt, EdiSchema.convertUsage(line(6)), 1)
-          }
-          case c: Composite => CompositeComponent(c, None, "", line(1).toInt, EdiSchema.convertUsage(line(6)), 1)
+      comps(elems(line(2))(2)) match {
+        case Element(id, nm, typ, mn, mx) => {
+          val max = if (line(5).length > 0) line(5).toInt else mx
+          val elem = Element(id, nm, typ, mn, max)
+          ElementComponent(elem, None, "", line(1).toInt, convertUsage(line(6)), 1)
         }
+        case c: Composite => CompositeComponent(c, None, "", line(1).toInt, convertUsage(line(6)), 1)
       }
     }
     comps + (ident -> Composite(ident, names(ident), compList, Nil, 0))
@@ -289,30 +295,49 @@ object HL7TablesConverter {
     /** Build composite definition from data structure components list. */
     def buildComposite(lines: List[Array[String]], comps: Map[String, ComponentBase]) = {
       val ident = lines.head(0)
-      println(s"building composite $ident")
       val compList = lines.map { line =>
-        {
-          println(s"looking for key ${line(2)}")
-          comps(elems(line(2))(2)) match {
-            case Element(id, nm, typ, mn, mx) => {
-              val max = if (line(5).length > 0) line(5).toInt else mx
-              val elem = Element(id, nm, typ, mn, max)
-              ElementComponent(elem, None, "", line(1).toInt, EdiSchema.convertUsage(line(6)), 1)
-            }
-            case c: Composite => CompositeComponent(c, None, "", line(1).toInt, EdiSchema.convertUsage(line(6)), 1)
+        comps(elems(line(2))(2)) match {
+          case Element(id, nm, typ, mn, mx) => {
+            val max = if (line(5).length > 0) line(5).toInt else mx
+            val elem = Element(id, nm, typ, mn, max)
+            ElementComponent(elem, None, "", line(1).toInt, convertUsage(line(6)), 1)
           }
+          case c: Composite => CompositeComponent(c, None, "", line(1).toInt, convertUsage(line(6)), 1)
         }
       }
       Composite(ident, names(ident), compList, Nil, 0)
     }
-    
-    val building = grouped.filter { case (ident, lines) =>
+
+    val building = grouped.filter {
+      case (ident, lines) =>
         lines.forall { line => built.contains(elems(line(2))(3)) }
     }.map{ case (ident, lines) => ident }.toSet
     val merged = building.foldLeft(built)((acc, ident) => acc + (ident -> buildComposite(grouped(ident), acc)))
     val remain = grouped.filter { case (ident, lines) => !building.contains(ident) }
     if (remain.isEmpty) merged
     else buildComposites(remain, names, elems, merged)
+  }
+
+  def buildSegments(grouped: Map[String, List[Array[String]]], names: Map[String, String],
+    comps: Map[String, ComponentBase]) = {
+    names.keys.foldLeft(Map[String, Segment]())((map, ident) => {
+      val compList = grouped.get(ident) match {
+        case Some(list) => list.foldLeft(List[SegmentComponent]())((acc, line) =>
+          {
+            val repeats = if (line(4) == "Y") line(5).toInt else 1
+            comps(line(2)) match {
+              case Element(id, nm, typ, mn, mx) => {
+                val max = if (line(5).length > 0) line(5).toInt else mx
+                val elem = Element(id, nm, typ, mn, max)
+                ElementComponent(elem, None, "", line(1).toInt, convertUsage(line(3)), 1) :: acc
+              }
+              case c: Composite => CompositeComponent(c, None, "", line(1).toInt, convertUsage(line(3)), 1) :: acc
+            }
+          })
+        case None => Nil
+      }
+      map + (ident -> Segment(ident, names(ident), compList.reverse, Nil))
+    })
   }
 
   /** Builds schemas from HL7 table data and outputs the schemas in YAML form. The arguments are 1) path to the
@@ -341,27 +366,49 @@ object HL7TablesConverter {
       val structNames = dataStructs.foldLeft(Map[String, String]())((acc, line) => acc + (line(0) -> line(1)))
 
       // build element definitions for elementary components
-      val elemDefs = dataStructs.filter { line => line(4) == "1" }.foldLeft(Map.empty[String, ComponentBase])((map, line) =>
+      val elemDefs = dataStructs.filter { _(4) == "1" }.foldLeft(Map.empty[String, Element])((map, line) =>
         map + (line(0) -> Element(line(0), line(1), EdiConstants.toHL7Type(line(2)), 0, 0)))
       println("Generated element definitions:")
       elemDefs.keys.foreach { ident => println(ident) }
       val simpleComps = compDetails.filter { case (ident, line) => elemDefs.contains(line(3)) }
       // (data_structure, seq_no), comp_no, table_id, min_length, max_length, req_opt
-      val groupedStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { line => line(0) }
+      val groupedStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { _(0) }
       val compMap = buildComposites(groupedStructs, structNames, compDetails, elemDefs)
-//      val compMap1 = simpleIdents.foldLeft(elemDefs)((acc, ident) =>
-//        buildComposite(groupedStructs(ident), structNames, compDetails, acc))
-//      val compMap2 = groupedStructs.filter {
-//        case (ident, lines) =>
-//          !simpleIdents.contains(ident)
-//      }.foldLeft(compMap1){
-//        case (acc, (ident, lines)) =>
-//          buildComposite(lines, structNames, compDetails, acc)
-//      }
-//      println(compMap2)
+      compMap.foreach {
+        case (key, elem: Element) => println(s"$key => ${elem.name} (element)")
+        case (key, comp: Composite) => println(s"$key => ${comp.name} (composite with ${comp.components.length} components)")
+      }
 
       // data_item, description, data_structure, min_length, max_length
-      val dataElems = nameMap(fileInput(version, dataElements))
+      val elemMap = lineList(fileInput(version, dataElements)).foldLeft(Map[String, ComponentBase]())((acc, line) =>
+        compMap.get(line(2)) match {
+          case Some(c) => acc + (line(0) -> c)
+          case None if (line(2) == "-") => acc + (line(0) -> compMap("varies"))
+          case _ => throw new IllegalStateException(s"failed lookup for ident ${line(2)}")
+        })
+
+      // seg_code, seq_no, data_item, req_opt, repetitional, repetitions
+      val groupedSegStructs = lineList(fileInput(version, segmentStructures)).reverse.groupBy { _(0) }
+      // seg_code, description, visible
+      val segNames = lineList(fileInput(version, segmentNames)).filter { line => (line(2) == "1" && line(0) != "Hxx") }.
+        foldLeft(Map[String, String]()) {
+          (acc, line) => acc + (line(0) -> line(1))
+        }
+      val segments = buildSegments(groupedSegStructs, segNames, elemMap)
+      println("Segments:")
+      segments.foreach {
+        case (key, comp) => println(s" $key => ${comp.name} with ${comp.components.size} top-level components")
+      }
+      
+      val compDefs = compMap.foldLeft(Map[String, Composite]()) {
+        case (acc, (key, value: Composite)) => acc + (key -> value)
+        case (acc, _) => acc
+      }
+      val baseSchema = EdiSchema(HL7, version.getName, elemDefs, compDefs, segments, Map[String, Transaction]())
+      val outdir = new File(yamldir, version.getName)
+      outdir.mkdirs
+      writeSchema(baseSchema, "basedefs", Array(), outdir)
+      verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
 
       //      simpleIdents.map { x => ??? }
       //      println(simpleIdents)
