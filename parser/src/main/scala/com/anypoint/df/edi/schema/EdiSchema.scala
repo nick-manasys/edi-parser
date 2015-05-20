@@ -268,13 +268,14 @@ object EdiSchema {
     itms: List[TransactionComponent])
     extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, itms)
 
-  /** Get lead reference from list of transaction components. If the first component is not a reference this throws an
-    * exception.
+  /** Get lead reference from list of transaction components. If the first component is not a reference this recursively
+   *  descends until a first component reference is found.
     * @param ident
     * @param comps
     */
-  def leadReference(ident: String, comps: List[TransactionComponent]) = comps match {
+  def leadReference(ident: String, comps: List[TransactionComponent]): ReferenceComponent = comps match {
     case (ref: ReferenceComponent) :: t => ref
+    case (grp: GroupBase) :: t => leadReference(ident, grp.items)
     case _ => throw new IllegalStateException(s"first item in group $ident is not a segment reference")
   }
 

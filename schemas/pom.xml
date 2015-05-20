@@ -110,6 +110,31 @@
               <goal>run</goal>
             </goals>
           </execution>
+          <execution>
+            <id>build-hl7-schemas</id>
+            <phase>prepare-package</phase>
+            <configuration>
+              <recompileMode>incremental</recompileMode>
+              <source>${jdk.version}</source>
+              <target>${jdk.version}</target>
+              <launchers>
+                <launcher>
+                  <mainClass>com.anypoint.df.edi.schema.convert.HL7TablesConverter</mainClass>
+                  <args>
+                    <arg>${basedir}/src/main/build-resources/hl7</arg>
+                    <arg>${project.build.directory}/schemas/hl7</arg>
+                  </args>
+                  <jvmArgs>
+                    <jvmArg>-Xms256m</jvmArg>
+                    <jvmArg>-Xmx256m</jvmArg>
+                  </jvmArgs>
+                </launcher>
+              </launchers>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
         </executions>
       </plugin>
       <plugin>

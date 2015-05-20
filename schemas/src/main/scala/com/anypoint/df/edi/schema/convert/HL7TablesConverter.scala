@@ -70,8 +70,9 @@ object HL7TablesConverter {
     Source.fromInputStream(in, "ISO-8859-1").getLines.filter(line => line.length > 0).foldLeft(z)((z, line) =>
       f(z, splitValues(line)))
 
+  type LineFields = List[Array[String]]
   /** Convert input to list of arrays of strings (list reverse ordered). */
-  def lineList(in: InputStream) = foldInput(in, List[Array[String]]()) ((list, line) => line.toArray :: list)
+  def lineList(in: InputStream) = foldInput(in, Nil.asInstanceOf[LineFields]) ((list, line) => line.toArray :: list)
 
   /** Generate map from first column of data to list of remaining values in row. */
   def nameMap(in: InputStream) = foldInput(in, Map.empty[String, Array[String]])((map, list) =>
@@ -112,149 +113,6 @@ object HL7TablesConverter {
     })
   }
 
-  /** Build map from composite ids to definitions. This assumes composites are only defined in terms of elements, which
-    * appears to be correct for X12.
-    */
-  //  def defineComposites(elemNames: Map[String, String], elements: Map[String, Element], compNames: Map[String, String],
-  //    groups: ListOfKeyedLists) =
-  //    groups.foldLeft(Map.empty[String, Composite])((map, pair) =>
-  //      pair match {
-  //        case (key, list) => {
-  //          val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
-  //            case pos :: elem :: req :: Nil =>
-  //              val position = pos.toInt
-  //              ElementComponent(elements(elem), None, X12.keyName(key, position), position, convertUsage(req), 1) :: acc
-  //            case _ => throw new IllegalStateException("wrong number of items in list")
-  //          }).reverse
-  //          map + (key -> Composite(key, compNames(key), comps, Nil))
-  //        }
-  //      })
-
-  /** Build map from segment ids to definitions. */
-  def defineSegments(elemNames: Map[String, String], elements: Map[String, Element], compNames: Map[String, String],
-    composites: Map[String, Composite], segNames: Map[String, String], groups: ListOfKeyedLists) =
-    groups.foldLeft(Map.empty[String, Segment])((map, pair) =>
-      pair match {
-        case (key, list) => {
-          val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
-            case pos :: ident :: req :: reps :: Nil => {
-              val count = reps.toInt
-              val usage = convertUsage(req)
-              val position = pos.toInt
-              val ckey = X12.keyName(key, position)
-              if (elements.contains(ident)) ElementComponent(elements(ident), None, ckey, position, usage, count) :: acc
-              else CompositeComponent(composites(ident), None, ckey, position, usage, count) :: acc
-            }
-            case _ => throw new IllegalStateException("wrong number of items in list")
-          }).reverse
-          map + (key -> Segment(key, segNames(key), comps, Nil))
-        }
-      })
-
-  /** Build map from transaction ids to definitions. */
-  def defineTransactions(segments: Map[String, Segment], transHeads: Map[String, (String, String)],
-    groups: ListOfKeyedLists, excludeSegs: Set[Segment]) = {
-
-    /** Converted form of component information from transaction details row. */
-    case class ComponentInfo(segment: Segment, seq: String, usage: Usage, repeat: Int, loop: List[ComponentInfo])
-
-    /** Map from area name to component information list. */
-    type AreaMap = Map[String, List[ComponentInfo]]
-
-    /** Convert transaction components from lists of strings to trees of data tuples, grouping them by area. */
-    def convertComponents(rows: List[List[String]]): AreaMap = {
-
-      /** Convert string values to component information structure. */
-      def info(segid: String, seq: String, req: String, max: String, nested: List[ComponentInfo]) = {
-        val segment = segments(segid)
-        val usage = convertUsage(req)
-        val repeat = if (max == ">1") 0 else max.toInt
-        ComponentInfo(segment, seq, usage, repeat, nested)
-      }
-
-      /** Start a new loop (need separate function to keep convertr tail recursive). */
-      def descend(remain: List[List[String]], depth: Int): (List[List[String]], List[ComponentInfo]) =
-        convertr(remain, depth, true, Nil)
-
-      /** Recursively convert lists of strings to data tuples, checking and handling loops.
-        * @param remain list of lists of strings from input lines still to be processed
-        * @param depth current nesting depth, corresponding to sixth value in input line
-        * @param loop first line of loop flag, set on recursive call to collect components in the loop
-        * @param acc information for components representing lines processed so far
-        * @return (list of strings still to be processed, list of components at level in reverse order)
-        */
-      @tailrec
-      def convertr(remain: List[List[String]], depth: Int, loop: Boolean,
-        acc: List[ComponentInfo]): (List[List[String]], List[ComponentInfo]) = remain match {
-        case (areaid :: seq :: segid :: req :: max :: level :: repeat :: loopid :: Nil) :: tail => {
-          val at = level.toInt
-          if (depth > at || (!loop && depth == at && loopid != "")) {
-            // loop closed (either back to containing level, or starting another loop at same level)
-            (remain, acc)
-          } else if (depth == at) {
-            // continuing at current loop level
-            convertr(tail, at, false, info(segid, seq, req, max, Nil) :: acc)
-          } else {
-            // starting a nested loop
-            val (rest, nested) = descend(remain, depth + 1)
-            convertr(rest, depth, false, info(segid, seq, req, repeat, nested) :: acc)
-          }
-        }
-        case Nil => (Nil, acc)
-        case _ => throw new IllegalArgumentException("wrong number of values")
-      }
-
-      rows.groupBy(_.head) map { case (key, list) => key -> convertr(list, 0, false, Nil)._2 }
-    }
-
-    /** Recursively convert component information list into transaction component list. */
-    def buildComps(table: Int, infos: List[ComponentInfo]) = {
-      def descend(remain: List[ComponentInfo]) = buildr(remain, Nil)
-      @tailrec
-      def buildr(remain: List[ComponentInfo], acc: List[TransactionComponent]): List[TransactionComponent] =
-        remain match {
-          case ComponentInfo(segment, seq, usage, repeat, loop) :: tail =>
-            if (loop.isEmpty) {
-              val position = SegmentPosition(table, seq)
-              if (segment.ident == "LS") acc match {
-                case (group: GroupComponent) :: (leref: ReferenceComponent) :: t => {
-                  val wrap = LoopWrapperComponent(segment, leref.segment, position, leref.position,
-                    OptionalUsage, group.leadSegmentRef.segment.ident, group)
-                  buildr(tail, wrap :: t)
-                }
-                case _ => throw new IllegalStateException("Malformed LS/LE loop")
-              }
-              else if (excludeSegs.contains(segment)) {
-                if (usage == MandatoryUsage) Nil
-                else buildr(tail, acc)
-              } else buildr(tail, ReferenceComponent(segment, position, usage, repeat) :: acc)
-            } else {
-              val comps = descend(loop)
-              if (comps.isEmpty) buildr(tail, acc)
-              else buildr(tail, GroupComponent(segment ident, usage, repeat, comps, None, Nil) :: acc)
-            }
-          case _ => acc
-        }
-      buildr(infos, Nil)
-    }
-
-    groups.foldLeft(Map.empty[String, Transaction]) {
-      case (map, (key, list)) => map + (key -> {
-        val tables = convertComponents(list).map {
-          case (key, list) => {
-            val table = key.toInt
-            table -> buildComps(table, list)
-          }
-        }
-        val (name, group) = transHeads(key)
-        Transaction(key, name, Some(group), tables.getOrElse(1, Nil), tables.getOrElse(2, Nil), tables.getOrElse(3, Nil))
-      })
-    }
-  }
-
-  /** Convert element data type, extending base conversion to allow empty type. */
-  def convertType(text: String) = if (text.length > 0) EdiConstants.toX12Type(text) else DataType.ALPHANUMERIC
-
   /** Write schema to file. */
   def writeSchema(schema: EdiSchema, name: String, imports: Array[String], outdir: File) = {
     println(s"writing schema $name")
@@ -272,7 +130,8 @@ object HL7TablesConverter {
   }
 
   /** Build composite definition from data structure components list. */
-  def buildComposite(lines: List[Array[String]], names: Map[String, String], elems: Map[String, Array[String]], comps: Map[String, ComponentBase]) = {
+  def buildComposite(lines: LineFields, names: Map[String, String], elems: Map[String, Array[String]],
+    comps: Map[String, ComponentBase]) = {
     val ident = lines.head(0)
     println(s"building composite $ident")
     val compList = lines.map { line =>
@@ -289,7 +148,7 @@ object HL7TablesConverter {
   }
 
   @tailrec
-  def buildComposites(grouped: Map[String, List[Array[String]]], names: Map[String, String],
+  def buildComposites(grouped: Map[String, LineFields], names: Map[String, String],
     elems: Map[String, Array[String]], built: Map[String, ComponentBase]): Map[String, ComponentBase] = {
 
     /** Build composite definition from data structure components list. */
@@ -318,7 +177,7 @@ object HL7TablesConverter {
     else buildComposites(remain, names, elems, merged)
   }
 
-  def buildSegments(grouped: Map[String, List[Array[String]]], names: Map[String, String],
+  def buildSegments(grouped: Map[String, LineFields], names: Map[String, String],
     comps: Map[String, ComponentBase]) = {
     names.keys.foldLeft(Map[String, Segment]())((map, ident) => {
       val compList = grouped.get(ident) match {
@@ -338,6 +197,66 @@ object HL7TablesConverter {
       }
       map + (ident -> Segment(ident, names(ident), compList.reverse, Nil))
     })
+  }
+
+  def buildStructures(grouped: Map[String, LineFields], segs: Map[String, Segment]) = {
+    @tailrec
+    def zeroPad(value: String, length: Int): String = if (value.length < length) zeroPad("0" + value, length) else value
+    def buildGroup(lines: LineFields, close: String) = {
+      val (remain, nested) = buildr(lines, Nil)
+      remain match {
+        case close :: t => (t, nested)
+        case _ => throw new IllegalArgumentException(s"Missing expected segment group close '$close'")
+      }
+    }
+    def buildr(remain: LineFields, comps: List[TransactionComponent]): (LineFields, List[TransactionComponent]) =
+      remain match {
+        case h :: t => {
+          val code = h(2)
+          segs.get(code) match {
+            case Some(seg) => {
+              val segpos = SegmentPosition(0, zeroPad(h(1), 2))
+              val count = h(4) match {
+                case "0" => 1
+                case "1" => 0
+              }
+              val usage = h(5) match {
+                case "0" => MandatoryUsage
+                case "1" => OptionalUsage
+              }
+              buildr(t, ReferenceComponent(seg, segpos, usage, count) :: comps)
+            }
+            case None => code match {
+              case "{" => {
+                val (rest, nested) = buildGroup(t, "}")
+                buildr(rest, new GroupComponent(h(3), MandatoryUsage, 0, nested, None, Nil) :: comps)
+              }
+              case "[" => {
+                val (rest, nested) = buildGroup(t, "]")
+                buildr(rest, new GroupComponent(h(3), OptionalUsage, 1, nested, None, Nil) :: comps)
+              }
+              case "[{" => {
+                val (rest, nested) = buildGroup(t, "}]")
+                buildr(rest, new GroupComponent(h(3), OptionalUsage, 0, nested, None, Nil) :: comps)
+              }
+              case "<" => {
+                val (rest, nested) = buildGroup(t, "}")
+                buildr(rest, new GroupComponent(h(3), MandatoryUsage, 0, nested, None, Nil, ch = true) :: comps)
+              }
+              case "|" => buildr(t, comps)
+              case "}" | "]" | "}]" | ">" => (remain, comps.reverse)
+              case _ => throw new IllegalArgumentException(s"Unknown segment ${h(2)}")
+            }
+          }
+        }
+        case _ => (Nil, comps.reverse)
+      }
+
+    grouped.foldLeft(List[Transaction]()){
+      case (list, (ident, lines)) => {
+        Transaction(ident, ident, None, buildr(lines, Nil)._2, Nil, Nil)
+      } :: list
+    }
   }
 
   /** Builds schemas from HL7 table data and outputs the schemas in YAML form. The arguments are 1) path to the
@@ -372,8 +291,8 @@ object HL7TablesConverter {
       elemDefs.keys.foreach { ident => println(ident) }
       val simpleComps = compDetails.filter { case (ident, line) => elemDefs.contains(line(3)) }
       // (data_structure, seq_no), comp_no, table_id, min_length, max_length, req_opt
-      val groupedStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { _(0) }
-      val compMap = buildComposites(groupedStructs, structNames, compDetails, elemDefs)
+      val groupedDataStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { _(0) }
+      val compMap = buildComposites(groupedDataStructs, structNames, compDetails, elemDefs)
       compMap.foreach {
         case (key, elem: Element) => println(s"$key => ${elem.name} (element)")
         case (key, comp: Composite) => println(s"$key => ${comp.name} (composite with ${comp.components.length} components)")
@@ -390,7 +309,7 @@ object HL7TablesConverter {
       // seg_code, seq_no, data_item, req_opt, repetitional, repetitions
       val groupedSegStructs = lineList(fileInput(version, segmentStructures)).reverse.groupBy { _(0) }
       // seg_code, description, visible
-      val segNames = lineList(fileInput(version, segmentNames)).filter { line => (line(2) == "1" && line(0) != "Hxx") }.
+      val segNames = lineList(fileInput(version, segmentNames)).filter { line => (line(2) == "1" ) }.
         foldLeft(Map[String, String]()) {
           (acc, line) => acc + (line(0) -> line(1))
         }
@@ -399,55 +318,26 @@ object HL7TablesConverter {
       segments.foreach {
         case (key, comp) => println(s" $key => ${comp.name} with ${comp.components.size} top-level components")
       }
-      
       val compDefs = compMap.foldLeft(Map[String, Composite]()) {
         case (acc, (key, value: Composite)) => acc + (key -> value)
         case (acc, _) => acc
       }
+
+      // message_structure, seq_no, seg_code, groupname, repetitional, optional
+      val groupedMsgStructs = lineList(fileInput(version, messageStructures)).reverse.groupBy { _(0) }
+      val structures = buildStructures(groupedMsgStructs, segments)
+
       val baseSchema = EdiSchema(HL7, version.getName, elemDefs, compDefs, segments, Map[String, Transaction]())
       val outdir = new File(yamldir, version.getName)
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
       verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
-
-      //      simpleIdents.map { x => ??? }
-      //      println(simpleIdents)
-      //      println(groupedStructs.keys.filter { !simpleIdents.contains(_) })
-      //      lineList(fileInput(version, dataStructureComponents)).filter { line => line(5).length > 0 }.foreach(line => println(line(0)))
-
-      //      val elemDefs = foldInput(fileInput(version, elementDetailsName), Map.empty[String, Element])((map, list) =>
-      //        list match {
-      //          case number :: typ :: min :: max :: Nil =>
-      //            map + (number -> Element(number, elemNames(number), convertType(typ), convertLength(min), convertLength(max)))
-      //          case _ => throw new IllegalArgumentException("wrong number of values in file")
-      //        })
-      //      val compNames = nameMap(fileInput(version, compositeHeadersName))
-      //      val compGroups = gatherGroups(compositeDetailsName, fileInput(version, compositeDetailsName), 4, None)
-      //      val compDefs = defineComposites(elemNames, elemDefs, compNames, compGroups)
-      //      val segNames = nameMap(fileInput(version, segmentHeadersName))
-      //      val segGroups = gatherGroups(segmentDetailsName, fileInput(version, segmentDetailsName), 5, Some("1"))
-      //      val segDefs = defineSegments(elemNames, elemDefs, compNames, compDefs, segNames, segGroups)
-      //      val setHeads = foldInput(fileInput(version, transHeadersName), Map.empty[String, (String, String)])((map, list) =>
-      //        list match {
-      //          case number :: name :: group :: Nil => map + (number -> (name, group))
-      //          case _ => throw new IllegalArgumentException("wrong number of values in file")
-      //        })
-      //      val setGroups = gatherGroups(transDetailsName, fileInput(version, transDetailsName), 9, None)
-      //      val vnum = version.getName
-      //      val baseSchema = EdiSchema(X12, vnum, elemDefs, compDefs, segDefs, Map[String, Transaction]())
-      //      val outdir = new File(yamldir, version.getName)
-      //      outdir.mkdirs
-      //      writeSchema(baseSchema, "basedefs", Array(), outdir)
-      //      verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
-      //      val binSegs = segDefs.get("BIN").toSet ++ segDefs.get("BDS").toSet
-      //      val transactions = defineTransactions(segDefs, setHeads, setGroups, binSegs).values.filter {
-      //        trans => binSegs.forall { seg => !trans.segmentsUsed.contains(seg) }
-      //      }
-      //      transactions foreach (transact => {
-      //        val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
-      //          Map(transact.ident -> transact))
-      //        writeSchema(schema, transact.ident, Array(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)
-      //      })
+      
+      structures foreach (struct => {
+        val schema = EdiSchema(HL7, version.getName, Map[String, Element](), Map[String, Composite](),
+          Map[String, Segment](), Map(struct.ident -> struct))
+        writeSchema(schema, struct.ident, Array(s"/hl7/${version.getName}/basedefs$yamlExtension"), outdir)
+      })
     })
   }
 }
