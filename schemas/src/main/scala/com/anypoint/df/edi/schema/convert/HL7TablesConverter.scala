@@ -1,21 +1,14 @@
 package com.anypoint.df.edi.schema.convert
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
+import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStream, InputStreamReader, OutputStreamWriter }
 
 import scala.annotation.tailrec
 import scala.io.Source
 
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.schema.EdiSchema
+import com.anypoint.df.edi.schema.{ EdiSchema, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
-import com.anypoint.df.edi.schema.YamlReader
-import com.anypoint.df.edi.schema.YamlWriter
 
 /** Application to generate HL7 message schemas from table data.
   */
@@ -333,11 +326,14 @@ object HL7TablesConverter {
       writeSchema(baseSchema, "basedefs", Array(), outdir)
       verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
       
+      val listWriter = new FileWriter(new File(outdir, "structures.txt"))
       structures foreach (struct => {
         val schema = EdiSchema(HL7, version.getName, Map[String, Element](), Map[String, Composite](),
           Map[String, Segment](), Map(struct.ident -> struct))
         writeSchema(schema, struct.ident, Array(s"/hl7/${version.getName}/basedefs$yamlExtension"), outdir)
+        listWriter.write(struct.ident + '\n')
       })
+      listWriter.close
     })
   }
 }

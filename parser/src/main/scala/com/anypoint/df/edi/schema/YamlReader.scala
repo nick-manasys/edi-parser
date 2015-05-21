@@ -318,7 +318,6 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
           if (h._2.forall { ident => done.contains(ident) || elements.contains(ident) }) {
             val compmap = h._1
             val ident = getRequiredString(idKey, compmap)
-            println(s"processing composite $ident")
             val name = getRequiredString(nameKey, compmap)
             val list = getRequiredMapList(valuesKey, compmap)
             val comps = parseSegmentComponents(ident, list, elements, done, form)

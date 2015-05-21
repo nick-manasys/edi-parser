@@ -1,21 +1,14 @@
 package com.anypoint.df.edi.schema.convert
 
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
+import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStream, InputStreamReader, OutputStreamWriter }
 
 import scala.annotation.tailrec
 import scala.io.Source
 
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.schema.EdiSchema
+import com.anypoint.df.edi.schema.{ EdiSchema, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
-import com.anypoint.df.edi.schema.YamlReader
-import com.anypoint.df.edi.schema.YamlWriter
 
 /** Application to generate X12 transaction schemas from table data.
   */
@@ -317,11 +310,14 @@ object X12TablesConverter {
       val transactions = defineTransactions(segDefs, setHeads, setGroups, binSegs).values.filter {
         trans => binSegs.forall { seg => !trans.segmentsUsed.contains(seg) }
       }
+      val listWriter = new FileWriter(new File(outdir, "structures.txt"))
       transactions foreach (transact => {
         val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
           Map(transact.ident -> transact))
         writeSchema(schema, transact.ident, Array(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)
+        listWriter.write(transact.ident + '\n')
       })
+      listWriter.close
     })
   }
 }

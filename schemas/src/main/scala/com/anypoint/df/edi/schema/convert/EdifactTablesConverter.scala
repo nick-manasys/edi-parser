@@ -1,22 +1,14 @@
 package com.anypoint.df.edi.schema.convert
 
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.InputStream
-import java.io.InputStreamReader
-import java.io.OutputStreamWriter
+import java.io.{ BufferedReader, File, FileInputStream, FileOutputStream, FileWriter, InputStream, InputStreamReader, OutputStreamWriter }
 
 import scala.annotation.tailrec
 import scala.io.Source
 
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.schema.EdiSchema
+import com.anypoint.df.edi.schema.{ EdiSchema, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
-import com.anypoint.df.edi.schema.YamlReader
-import com.anypoint.df.edi.schema.YamlWriter
 
 /** Application to generate EDIFACT transaction schemas from table data.
   */
@@ -500,6 +492,7 @@ object EdifactTablesConverter {
       val msgtmpl = processFile(messageTemplateName, iter => buildTemplate(iter.next))
       val messagesdir = new File(version, messagesDirName)
       if (!messagesdir.exists) throw new IllegalArgumentException(s"Missing required $messagesDirName directory")
+      val listWriter = new FileWriter(new File(outdir, "structures.txt"))
       val transacts = messagesdir.listFiles.map { f =>
         try {
           val stream = new FileInputStream(f)
@@ -509,12 +502,14 @@ object EdifactTablesConverter {
             val schema = EdiSchema(EdiFact, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
               Map(transact.ident -> transact))
             writeSchema(schema, transact.ident, Array(s"/edifact/${version.getName}/basedefs$yamlExtension"), outdir)
+            listWriter.write(transact.ident + '\n')
           } finally { stream close }
           println(s"Processed ${f.getName}")
         } catch {
           case t: Throwable => throw new IllegalArgumentException(s"Error processing message ${f.getName}: ${t.getMessage}", t)
         }
       }
+      listWriter.close
       println(s"Read ${transacts.size} message definitions")
     })
   }
