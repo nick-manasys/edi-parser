@@ -168,11 +168,13 @@ public abstract class EdiConstants
     // combinations of types
     public static final DataType[] REAL_TYPES = new DataType[] {
         DataType.REAL, DataType.NUMBER, DataType.DECIMAL1, DataType.DECIMAL2, DataType.DECIMAL3, DataType.DECIMAL4,
-        DataType.DECIMAL5, DataType.DECIMAL6, DataType.DECIMAL7, DataType.DECIMAL8, DataType.DECIMAL9
+        DataType.DECIMAL5, DataType.DECIMAL6, DataType.DECIMAL7, DataType.DECIMAL8, DataType.DECIMAL9, DataType.NUMERIC
     };
-    public static final DataType[] INTEGER_TYPES = new DataType[] { DataType.INTEGER, DataType.TIME};
+    public static final DataType[] INTEGER_TYPES = new DataType[] { DataType.INTEGER, DataType.TIME, DataType.SEQID };
     public static final DataType[] DATE_TYPES = new DataType[] { DataType.DATE };
-    public static final DataType[] STRING_TYPES = new DataType[] { DataType.ID, DataType.ALPHANUMERIC, DataType.ALPHA };
+    public static final DataType[] STRING_TYPES = new DataType[] {
+        DataType.ID, DataType.ALPHANUMERIC, DataType.ALPHA, DataType.DATETIME, DataType.STRINGDATA
+    };
     
     /**
      * Set flags for range of characters in array.
