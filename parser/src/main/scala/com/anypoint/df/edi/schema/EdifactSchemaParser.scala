@@ -97,9 +97,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** First interchange read. All interchanges sent in a block must use same delimiters, control and syntax versions. */
   var firstInterchange: ValueMap = null
-
-  /** Actual version set after reading interchange headers. */
-  var schemaDefs: EdifactVersionDefs = null
+  
+  /** Syntax version in use. */
+  var syntaxVersion: SyntaxVersion = null
 
   /** Flag for currently in a message. */
   var inMessage = false
@@ -303,16 +303,18 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, NotSupportedInPosition)
     }
   }
+  
+  /** Get the UNB segment definition for the syntax version. */
+  def unbSegment(version: SyntaxVersion) = if (syntaxVersion == SyntaxVersion.VERSION4) segUNBv4 else segUNBv3
 
   /** Check if at interchange envelope segment. */
-  def isInterchangeEnvelope = lexer.currentType == SEGMENT &&
-    (lexer.token == schemaDefs.segUNB.ident || lexer.token == schemaDefs.segUNZ.ident)
+  def isInterchangeEnvelope = lexer.currentType == SEGMENT && (lexer.token == "UNB" || lexer.token == "UNZ")
 
   /** Check if at functional group envelope segment. */
-  def isGroupEnvelope = checkSegment(schemaDefs.segUNG) || checkSegment(schemaDefs.segUNE)
+  def isGroupEnvelope = checkSegment("UNG") || checkSegment("UNE")
 
   /** Check if at functional group open segment. */
-  def isGroupOpen = checkSegment(schemaDefs.segUNG)
+  def isGroupOpen = checkSegment("UNG")
 
   def groupError(error: SyntaxError) = {
     logGroupEnvelopeError(true, false, error.text)
@@ -320,22 +322,22 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Parse start of a functional group. */
   def openGroup =
-    if (checkSegment(schemaDefs.segUNG)) {
+    if (checkSegment("UNG")) {
       groupStartSegment = lexer.getSegmentNumber
       groupMessageCount = 0
-      val map = parseSegment(schemaDefs.segUNG, None, outsidePosition)
+      val map = parseSegment(ungSegment(syntaxVersion), None, outsidePosition)
       inGroup = true
       map
     } else throw new IllegalStateException("not at UNG segment")
 
   /** Check if at functional group close segment. */
-  def isGroupClose = checkSegment(schemaDefs.segUNE)
+  def isGroupClose = checkSegment(segUNE)
 
   /** Parse close of a functional group. Returns number of message sets included in group. */
   def closeGroup(props: ValueMap) = {
     inGroup = false
-    if (checkSegment(schemaDefs.segUNE)) {
-      val endprops = parseSegment(schemaDefs.segUNE, None, SegmentPosition(0, "9999"))
+    if (checkSegment(segUNE)) {
+      val endprops = parseSegment(segUNE, None, SegmentPosition(0, "9999"))
       if (props.get(groupHeadReferenceKey) != endprops.get(groupTrailReferenceKey)) groupError(ControlReferenceMismatch)
       if (endprops.get(groupTrailCountKey) != groupMessageCount) groupError(ControlCountMismatch)
       endprops.get(groupTrailCountKey).asInstanceOf[Integer]
@@ -354,32 +356,34 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   }
 
   /** Check if at message set open segment. */
-  def isSetOpen = checkSegment(schemaDefs.segUNH)
+  def isSetOpen = checkSegment("UNH")
 
   /** Parse start of a message set. */
   def openSet =
-    if (checkSegment(schemaDefs.segUNH)) {
+    if (checkSegment("UNH")) {
       messageErrors.clear
       inMessage = true
       rejectMessage = false
       messageErrorCode = null
       currentUCM = new ValueMapImpl
       messageStartSegment = lexer.getSegmentNumber
-      val values = parseSegment(schemaDefs.segUNH, None, outsidePosition)
-      messageReference = getAsString(schemaDefs.segUNH.components(0).key, values)
-      currentUCM put (schemaDefs.segUCM.components(0).key, messageReference)
-      copyComposite(schemaDefs.segUNH.components(1), values, schemaDefs.segUCM.components(1), currentUCM)
+      val unhSeg = unhSegment(syntaxVersion)
+      val values = parseSegment(unhSeg, None, outsidePosition)
+      messageReference = getAsString(unhSeg.components(0).key, values)
+      val ucmSeg = ucmSegment(syntaxVersion)
+      currentUCM put (ucmSeg.components(0).key, messageReference)
+      copyComposite(unhSeg.components(1), values, ucmSeg.components(1), currentUCM)
       groupMessageCount += 1
       (values.get(msgHeadMessageTypeKey).asInstanceOf[String], values)
-    } else throw new IllegalStateException(s"not positioned at ${schemaDefs.segUNH.ident} segment")
+    } else throw new IllegalStateException(s"not positioned at UNH segment")
 
   /** Check if at message set close segment. */
-  def isSetClose = checkSegment(schemaDefs.segUNT)
+  def isSetClose = checkSegment(segUNT)
 
   /** Parse close of a message set. */
   def closeSet(props: ValueMap) = {
-    if (checkSegment(schemaDefs.segUNT)) {
-      val endprops = parseSegment(schemaDefs.segUNT, None, SegmentPosition(0, "9999"))
+    if (checkSegment(segUNT)) {
+      val endprops = parseSegment(segUNT, None, SegmentPosition(0, "9999"))
       if (props.get(msgHeadReferenceKey) != endprops.get(msgTrailReferenceKey)) {
         messageError(ControlReferenceMismatch)
       }
@@ -392,21 +396,23 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       if (rejectMessage) AcknowledgedRejected
       else if (messageErrors.size == 0) AcknowledgedWithErrors
       else AcknowledgedAllLevels
-    currentUCM put (schemaDefs.segUCM.components(2).key, ackcode.code)
-    if (messageErrorCode != null) currentUCM put (schemaDefs.segUCM.components(3).key, messageErrorCode.code)
+    val ucmSeg = ucmSegment(syntaxVersion)
+    currentUCM put (ucmSeg.components(2).key, ackcode.code)
+    if (messageErrorCode != null) currentUCM put (ucmSeg.components(3).key, messageErrorCode.code)
     messageErrors.foreach (segerr => {
       val sg1 = new ValueMapImpl
       val ucs = new ValueMapImpl
-      ucs put (schemaDefs.segUCS.components(0).key, Integer.valueOf(segerr.segmentPosition))
-      ucs put (schemaDefs.segUCS.components(1).key, segerr.errorCode)
-      sg1 put (schemaDefs.CONTRLsg1.items(0).key, ucs)
+      ucs put (segUCS.components(0).key, Integer.valueOf(segerr.segmentPosition))
+      ucs put (segUCS.components(1).key, segerr.errorCode)
+      val msg = contrlMsg(syntaxVersion)
+      sg1 put (msg.heading(2).asInstanceOf[GroupComponent].items(0).key, ucs)
       if (!segerr.dataErrors.isEmpty) {
         val ucdlist = new MapListImpl
-        sg1 put (schemaDefs.CONTRLsg2.key, ucdlist)
+        sg1 put (CONTRLsg2.key, ucdlist)
         segerr.dataErrors.foreach (dataerr => {
           val ucd = new ValueMapImpl
-          ucd put (schemaDefs.segUCD.components(0).key, dataerr.error.code)
-          def elems = schemaDefs.segUCD.components(1).asInstanceOf[CompositeComponent].composite.components
+          ucd put (segUCD.components(0).key, dataerr.error.code)
+          def elems = segUCD.components(1).asInstanceOf[CompositeComponent].composite.components
           ucd put (elems(0).key, Integer.valueOf(dataerr.elementPosition))
           if (dataerr.componentPosition >= 0) {
             ucd put (elems(1).key, Integer.valueOf(dataerr.componentPosition))
@@ -423,8 +429,8 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Convert section control segment to next section number. If not at a section control, this just returns None. */
   def convertSectionControl =
-    if (checkSegment(schemaDefs.segUNS)) {
-      val values = parseSegment(schemaDefs.segUNS, None, outsidePosition)
+    if (checkSegment(segUNS)) {
+      val values = parseSegment(segUNS, None, outsidePosition)
       getRequiredString(sectionControlIdent, values) match {
         case "D" => Some(1)
         case "S" => Some(2)
@@ -440,7 +446,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Discard input past end of current message. */
   def discardTransaction = {
-    while (lexer.currentType != SEGMENT || lexer.token != schemaDefs.segUNT.ident) discardSegment
+    while (lexer.currentType != SEGMENT || lexer.token != segUNT.ident) discardSegment
     discardSegment
   }
 
@@ -529,8 +535,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
     def buildFuncCONTRL(interchange: ValueMap) = {
       val ctrlmap = new ValueMapImpl
-      ctrlmap put (transactionId, schemaDefs.transCONTRL.ident)
-      ctrlmap put (transactionName, schemaDefs.transCONTRL.name)
+      val msg = contrlMsg(syntaxVersion)
+      ctrlmap put (transactionId, msg.ident)
+      ctrlmap put (transactionName, msg.name)
       val intercopy = new ValueMapImpl(interchange)
       swap(interHeadSenderQualKey, interHeadRecipientQualKey, intercopy)
       swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, intercopy)
@@ -553,10 +560,10 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       if (firstInterchange == null) {
         try {
           firstInterchange = new ValueMapImpl()
-          val version = init(firstInterchange)
-          schemaDefs = versions(version)
+          syntaxVersion = init(firstInterchange)
           map put (delimiterCharacters, buildDelims)
-          parseCompList(schemaDefs.segUNB.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, firstInterchange)
+          parseCompList(unbSegment(syntaxVersion).components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT,
+            firstInterchange)
           firstInterchange
         } catch {
           case e: LexicalException => {
@@ -564,7 +571,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
             throw e
           }
         }
-      } else parseSegment(schemaDefs.segUNB, None, outsidePosition)
+      } else parseSegment(unbSegment(syntaxVersion), None, outsidePosition)
 
     while (lexer.nextType != END) {
 
@@ -619,21 +626,23 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         ackroot put (transactionSummary, new ValueMapImpl)
         funcAckList add (ackroot)
         val interack = new ValueMapImpl
-        interack put (schemaDefs.segUCI.components(0).key, interchangeReference)
-        copyComposite(schemaDefs.unbSender, inter, schemaDefs.uciSender, interack)
-        copyComposite(schemaDefs.unbRecipient, inter, schemaDefs.uciRecipient, interack)
-        ackhead put (schemaDefs.contrlComps(1).key, interack)
+        val segUCI = uciSegment(syntaxVersion)
+        interack put (segUCI.components(0).key, interchangeReference)
+        copyComposite(unbSender, inter, segUCI.components(1).asInstanceOf[CompositeComponent].composite, interack)
+        copyComposite(unbRecipient, inter, segUCI.components(2).asInstanceOf[CompositeComponent].composite, interack)
+        val contrl = contrlMsg(syntaxVersion)
+        ackhead put (contrlMsg(syntaxVersion).heading(1).key, interack)
 
         def interchangeError(error: SyntaxError, text: String) = {
           logInterchangeEnvelopeError(true, error.text)
-          interack put (schemaDefs.segUCI.components(3).key, AcknowledgedRejected.code)
-          interack put (schemaDefs.segUCI.components(4).key, error.code)
+          interack put (segUCI.components(3).key, AcknowledgedRejected.code)
+          interack put (segUCI.components(4).key, error.code)
           discardInterchange
           throw new InterchangeException(error, text)
         }
 
-        val sender = getStrings(schemaDefs.unbSender.components, inter)
-        val recipient = getStrings(schemaDefs.unbRecipient.components, inter)
+        val sender = getStrings(unbSender.components, inter)
+        val recipient = getStrings(unbRecipient.components, inter)
         val context = numval.contextToken(valueOrNull(0, sender), valueOrNull(1, sender), valueOrNull(2, sender),
           valueOrNull(3, sender), valueOrNull(0, recipient), valueOrNull(1, recipient), valueOrNull(2, recipient),
           valueOrNull(3, recipient))
@@ -664,10 +673,10 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
           if (lexer.currentType == END) {
             interchangeError(InvalidOccurrence, s"end of file with missing $interchangeEndSegment")
           } else if (lexer.token == interchangeEndSegment) {
-            val interend = parseSegment(schemaDefs.segUNZ, None, outsidePosition)
+            val interend = parseSegment(segUNZ, None, outsidePosition)
             if (getRequiredInt(interTrailCountKey, interend) != interchangeMessageCount) interchangeError(ControlCountMismatch, ControlCountMismatch.text)
             if (getRequiredString(interTrailReferenceKey, interend) != interchangeReference) interchangeError(ControlReferenceMismatch, ControlReferenceMismatch.text)
-            interack put (schemaDefs.segUCI.components(3).key, AcknowledgedAllLevels.code)
+            interack put (segUCI.components(3).key, AcknowledgedAllLevels.code)
           } else {
             interchangeError(InvalidOccurrence, s"expected $interchangeEndSegment, found ${lexer.token}")
           }
@@ -677,12 +686,12 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         if (!contrlGroup1s.isEmpty) {
           val g1list = new MapListImpl
           contrlGroup1s.foreach(map => g1list.add(map))
-          ackhead put (schemaDefs.contrlComps(1).key, g1list)
+          ackhead put (contrlMsg(syntaxVersion).detail(1).key, g1list)
         }
         if (!contrlGroup3s.isEmpty) {
           val g3list = new MapListImpl
           contrlGroup3s.foreach(map => g3list.add(map))
-          ackhead put (schemaDefs.contrlComps(2).key, g3list)
+          ackhead put (contrlMsg(syntaxVersion).detail(2).key, g3list)
         }
       } catch {
         case e: InterchangeException => {

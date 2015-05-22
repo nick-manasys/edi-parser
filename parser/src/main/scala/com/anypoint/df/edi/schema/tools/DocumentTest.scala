@@ -8,10 +8,11 @@ import java.io.InputStreamReader
 import scala.collection.mutable.Set
 import scala.util.Failure
 import scala.util.Success
-import com.anypoint.df.edi.schema._
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.X12Constants._
 import com.anypoint.df.edi.lexical.EdifactConstants._
+import com.anypoint.df.edi.schema._
+import com.anypoint.df.edi.schema.EdifactSchemaDefs._
 
 class DefaultX12NumberProvider extends X12NumberProvider {
   var interNum = 0
@@ -157,14 +158,13 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
   }
 }
 
-case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es.merge(ControlV4Defs.transCONTRL)) {
+case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es) {
 
   def this(sch: EdiSchema) = this(sch, EdifactParserConfig(true, true, true, true, true, true, true, -1,
     ASCII_CHARSET, Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]()))
 
   import com.anypoint.df.edi.schema.EdifactAcknowledgment._
   import com.anypoint.df.edi.schema.SchemaJavaValues._
-  import com.anypoint.df.edi.schema.EdifactSchemaDefs._
 
   /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found. */
   override def parse(is: InputStream): ValueMap = {
@@ -193,10 +193,10 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
   override def printDoc(map: ValueMap) = {
     val os = new ByteArrayOutputStream
     val inter = getRequiredValueMap(interchangeKey, map)
-    val syntax = EDIFACT_CHARSETS.get(getAs(ControlV4Defs.unbSyntax.components(0).key, "UNOC", inter))
-    val version = EDIFACT_VERSIONS.get(getAs(ControlV4Defs.unbSyntax.components(1).key, "4", inter))
+    val syntax = EDIFACT_CHARSETS.get(getAs(unbSyntax.components(0).key, "UNOC", inter))
+    val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", inter))
     val config = EdifactWriterConfig(syntax, version, -1, '.', ASCII_CHARSET, getRequiredString(delimiterCharacters, map), "")
-    val writer = EdifactSchemaWriter(os, schema, new DefaultEdifactNumberProvider, config)
+    val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val transacts = getRequiredValueMap(messagesMap, map)
     writer.write(map).get
     os.toString
@@ -205,8 +205,10 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
   /** Write CONTRL acknowledgement information from parse as output document. */
   override def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val config = EdifactWriterConfig(LEVELC, SyntaxVersion.VERSION3, -1, '.', ASCII_CHARSET, getRequiredString(delimiterCharacters, map), "")
-    val writer = EdifactSchemaWriter(os, schema, new DefaultEdifactNumberProvider, config)
+    val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", getAsMap(interchangeKey, map)))
+    val config = EdifactWriterConfig(LEVELC, SyntaxVersion.VERSION3, -1, '.', ASCII_CHARSET,
+      getRequiredString(delimiterCharacters, map), "")
+    val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val outmap = new ValueMapImpl
     outmap put(interchangeKey, map.get(interchangeKey))
     val transactions = new ValueMapImpl

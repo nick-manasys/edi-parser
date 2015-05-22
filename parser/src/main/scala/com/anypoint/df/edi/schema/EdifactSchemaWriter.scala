@@ -36,8 +36,6 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   import SchemaJavaValues._
   import EdifactSchemaDefs._
 
-  val schemaDefs = versions(config.version)
-
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
@@ -56,19 +54,19 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     props put (interHeadSyntaxVersionKey, config.version.code)
     // TODO: set character encoding for v4, if it doesn't match syntax
     writer.init(props)
-    writeSegment(props, schemaDefs.segUNB)
+    writeSegment(props, unbSegment(config.version))
   }
 
   /** Output interchange trailer segment(s). */
   def term(props: ValueMap) = {
-    writeSegment(props, schemaDefs.segUNZ)
+    writeSegment(props, segUNZ)
     writer.term(props)
   }
 
   /** Write start of a functional group (modifies passed in map). */
   def openGroup(functId: String, props: ValueMap) = {
     props put (groupHeadReferenceKey, functId)
-    writeSegment(props, schemaDefs.segUNG)
+    writeSegment(props, ungSegment(config.version))
     setCount = 0
   }
 
@@ -76,21 +74,21 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   def closeGroup(props: ValueMap) = {
     props put (groupTrailCountKey, Integer.valueOf(setCount))
     props put (groupTrailReferenceKey, props.get(groupHeadReferenceKey))
-    writeSegment(props, schemaDefs.segUNE)
+    writeSegment(props, segUNE)
   }
 
   /** Write start of a transaction set (modifies passed in map). */
   def openSet(ident: String, props: ValueMap) = {
     props put (msgHeadReferenceKey, ident)
     setSegmentBase = writer.getSegmentCount
-    writeSegment(props, schemaDefs.segUNH)
+    writeSegment(props, unhSegment(config.version))
   }
 
   /** Write close of a transaction set (modifies passed in map). */
   def closeSet(props: ValueMap) = {
     props put (msgTrailCountKey, Integer.valueOf(writer.getSegmentCount - setSegmentBase + 1))
     props put (msgTrailReferenceKey, props.get(msgHeadReferenceKey))
-    writeSegment(props, schemaDefs.segUNT)
+    writeSegment(props, segUNT)
   }
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
@@ -139,14 +137,14 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
         val context = numprov contextToken (selfId, selfQual, partnerId, partnerQual)
         val interref = numprov nextInterchange (context)
         interProps put (interHeadReferenceKey, interref)
-        setStrings(List(config.syntax.code, config.version.code), schemaDefs.unbSyntax.components, interProps)
-        setStrings(List(partnerId, partnerQual), schemaDefs.unbSender.components, interProps)
-        setStrings(List(selfId, selfQual), schemaDefs.unbRecipient.components, interProps)
+        setStrings(List(config.syntax.code, config.version.code), unbSyntax.components, interProps)
+        setStrings(List(partnerId, partnerQual), unbSender.components, interProps)
+        setStrings(List(selfId, selfQual), unbRecipient.components, interProps)
         if (!map.containsKey(interHeadDateKey)) {
           val calendar = new GregorianCalendar
           val yearnum = calendar.get(Calendar.YEAR)
           val basedate = calendar.get(Calendar.DAY_OF_MONTH) * 100 + calendar.get(Calendar.MONTH) + 1
-          val datetime = schemaDefs.segUNB.components(3).asInstanceOf[CompositeComponent]
+          val datetime = unbSegment(config.version).components(3).asInstanceOf[CompositeComponent]
           val dateelem = datetime.composite.components(0).asInstanceOf[ElementComponent].element
           val date = if (dateelem.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
           interProps put (interHeadDateKey, Integer.valueOf(date))

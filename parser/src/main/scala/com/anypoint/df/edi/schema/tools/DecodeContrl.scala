@@ -2,7 +2,7 @@ package com.anypoint.df.edi.schema.tools
 
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdifactConstants._
-import com.anypoint.df.edi.schema.{ SchemaJavaDefs, EdiSchema, EdifactSchemaDefs, EdifactVersionDefs }
+import com.anypoint.df.edi.schema.{ SchemaJavaDefs, EdiSchema, EdifactSchemaDefs }
 import com.anypoint.df.edi.schema.SchemaJavaValues._
 import com.anypoint.df.edi.schema.EdifactAcknowledgment._
 import com.anypoint.df.edi.schema.EdifactIdentityInformation
@@ -11,7 +11,6 @@ import com.anypoint.df.edi.schema.EdifactParserConfig
 import scala.util.Failure
 import scala.util.Success
 import java.io.ByteArrayInputStream
-import com.anypoint.df.edi.schema.ControlV3Defs
 
 /** EDIFACT CONTRL functional acknowledgment decoder. */
 object DecodeContrl extends SchemaJavaDefs {
@@ -65,9 +64,8 @@ object DecodeContrl extends SchemaJavaDefs {
   }
 
   /** Build description of UCM/UCS+UCD group. */
-  def buildMessageGroup(schemaDefs: EdifactVersionDefs, ucmgroup: GroupComponent, grpmap: ValueMap) = {
+  def buildMessageGroup(ucmgroup: GroupComponent, ucmcomps: List[SegmentComponent], grpmap: ValueMap) = {
     val ucmmap = getRequiredValueMap(ucmgroup.items(0).key, grpmap)
-    val ucmcomps = schemaDefs.segUCM.components
     val builder = new StringBuilder
     builder ++= s" Message #${getRequiredString(ucmcomps(0).key, ucmmap)} ${buildMessageIdentifier(ucmcomps(1), ucmmap)}\n"
     if (grpmap.containsKey(ucmgroup.items(1).key)) {
@@ -75,13 +73,13 @@ object DecodeContrl extends SchemaJavaDefs {
       foreachMapInList(getRequiredMapList(ucmgroup.items(1).key, grpmap), segmap => {
         val segcomps = ucmgroup.items(1).asInstanceOf[GroupComponent].items
         val ucsmap = getRequiredValueMap(segcomps(0).key, segmap)
-        builder ++= s"  Segment #${getRequiredInt(schemaDefs.segUCS.components(0).key, ucsmap)}"
-        val code = getAsString(schemaDefs.segUCS.components(1).key, ucsmap)
+        builder ++= s"  Segment #${getRequiredInt(segUCS.components(0).key, ucsmap)}"
+        val code = getAsString(segUCS.components(1).key, ucsmap)
         if (code != null) builder ++= s" error ${SyntaxErrors(code).text}"
         val ucdlist = getAs[MapList](segcomps(1).key, segmap)
-        val dataelem = schemaDefs.segUCD.components(1).asInstanceOf[CompositeComponent]
+        val dataelem = segUCD.components(1).asInstanceOf[CompositeComponent]
         foreachMapInList(ucdlist, ucdmap => {
-          val error = SyntaxErrors(getRequiredString(schemaDefs.segUCD.components(0).key, ucdmap))
+          val error = SyntaxErrors(getRequiredString(segUCD.components(0).key, ucdmap))
           builder ++= s" ${error.text} on ${buildOptionalDataElement(dataelem, ucdmap)} "
         })
         builder ++= "\n"
@@ -92,15 +90,17 @@ object DecodeContrl extends SchemaJavaDefs {
 
   def decode(rootmap: ValueMap) = {
     val intermap = getRequiredValueMap(interchangeKey, rootmap)
-    val schemaDefs = versions(EDIFACT_VERSIONS.get(getRequiredString(interHeadSyntaxVersionKey, intermap)))
-    if (getRequiredString(transactionId, rootmap) != schemaDefs.transCONTRL.ident) throw new IllegalArgumentException("Not a CONTRL message")
+    val version = EDIFACT_VERSIONS.get(getRequiredString(interHeadSyntaxVersionKey, intermap))
+    val transCONTRL = contrlMsg(version)
+//    val schemaDefs = versions(EDIFACT_VERSIONS.get(getRequiredString(interHeadSyntaxVersionKey, intermap)))
+    if (getRequiredString(transactionId, rootmap) != transCONTRL.ident) throw new IllegalArgumentException("Not a CONTRL message")
     val builder = new StringBuilder
     val headmap = getRequiredValueMap(transactionHeading, rootmap)
-    val msgcomps = schemaDefs.transCONTRL.heading.toArray
+    val msgcomps = transCONTRL.heading.toArray
 
     // interpret the required UCI segment
     val ucimap = getRequiredValueMap(msgcomps(1).key, headmap)
-    val ucicomps = schemaDefs.segUCI.components
+    val ucicomps = uciSegment(version).components
     builder ++= s"Interchange control reference ${getRequiredString(ucicomps(0).key, ucimap)}\n"
     builder ++= s"Interchange sender ${buildIdentity(ucicomps(1).asInstanceOf[CompositeComponent], ucimap)}\n"
     builder ++= s"Interchange receipient ${buildIdentity(ucicomps(2).asInstanceOf[CompositeComponent], ucimap)}\n"
@@ -118,7 +118,9 @@ object DecodeContrl extends SchemaJavaDefs {
     // interpret Group 1, if present
     if (headmap.containsKey(msgcomps(2).key)) {
       val ucmgroup = msgcomps(2).asInstanceOf[GroupComponent]
-      foreachMapInList(getRequiredMapList(msgcomps(2).key, headmap), map => builder ++= buildMessageGroup(schemaDefs, ucmgroup, map))
+      val ucmcomps = ucmSegment(version).components
+      foreachMapInList(getRequiredMapList(msgcomps(2).key, headmap), map =>
+        builder ++= buildMessageGroup(ucmgroup, ucmcomps, map))
     }
 
     // interpret Group 3, if present
@@ -143,7 +145,7 @@ UNZ+1+50'"""
       ASCII_CHARSET, Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
     val is = new ByteArrayInputStream(testMsg.getBytes)
     val schema = EdiSchema(EdiSchema.EdiFact, "D01A", Map[String, EdiSchema.Element](), Map[String, EdiSchema.Composite](),
-      Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]()).merge(ControlV3Defs.transCONTRL)
+      Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]()).merge(transCONTRLv4)
     val parser = EdifactSchemaParser(is, schema, new DefaultEdifactNumberValidator, config)
     parser.parse match {
       case Success(root) => println(decode(getRequiredMapList("CONTRL", getRequiredValueMap(messagesMap, root)).get(0)))

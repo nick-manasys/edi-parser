@@ -73,6 +73,9 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   /** Check if at segment start. */
   def checkSegment(segment: Segment) = lexer.currentType == SEGMENT && lexer.token == segment.ident
 
+  /** Check if at segment start. */
+  def checkSegment(ident: String) = lexer.currentType == SEGMENT && lexer.token == ident
+
   object ComponentErrors {
     sealed trait ComponentError
     case object TooManyLoops extends ComponentError

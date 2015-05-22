@@ -18,7 +18,6 @@ import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.EdifactIdentityInformation;
 import com.anypoint.df.edi.schema.EdifactParserConfig;
 import com.anypoint.df.edi.schema.EdifactSchemaDefs;
-import com.anypoint.df.edi.schema.EdifactVersionDefs;
 import com.anypoint.df.edi.schema.EdiSchema.*;
 import com.anypoint.df.edi.schema.IdentityInformation;
 import com.anypoint.df.edi.schema.systests.TestBase;
@@ -179,8 +178,7 @@ public abstract class EdifactTestBase extends TestBase {
             .functionalAcksGenerated());
         if (acks != null) {
             Map<String, Object> inter = new HashMap<>();
-            EdifactVersionDefs verdefs = EdifactSchemaDefs.versions().apply(SyntaxVersion.VERSION4);
-            inter.put(((CompositeComponent)verdefs.segUNB().components().head()).composite().components().apply(1).key(), "4");
+            inter.put(((CompositeComponent)EdifactSchemaDefs.segUNBv4().components().head()).composite().components().apply(1).key(), "4");
             for (Map<String, Object> ack : acks) {
                 ack.put(SchemaJavaValues.interchangeKey(), inter);
                 System.out.println(DecodeContrl.decode(ack));
