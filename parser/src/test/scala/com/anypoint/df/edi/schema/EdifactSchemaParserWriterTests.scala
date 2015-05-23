@@ -148,7 +148,10 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
-    val writer = EdifactSchemaWriter(out, schema, new DefaultEdifactNumberProvider, config)
+    val provider = new DefaultEdifactNumberProvider
+    provider.interNum = 581
+    provider.setNum = 6423
+    val writer = EdifactSchemaWriter(out, schema, provider, config)
     val props = parseResult.get
     val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, props)).get(0)
     val inter = getRequiredValueMap(interchangeKey, message)
@@ -159,9 +162,10 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val text = new String(out.toByteArray)
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")).getLines
     val builder = new StringBuilder
-    lines.foreach(line => builder.append(line))
-
-    // TODO: fix comparison to ignore date/times
-//    text should be (builder.toString)
+    lines.foreach(line => {
+      if (!builder.isEmpty) builder.append('\n')
+      builder.append(line)
+    })
+    text should be (builder.toString)
   }
 }
