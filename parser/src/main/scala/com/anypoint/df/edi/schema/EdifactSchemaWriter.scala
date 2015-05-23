@@ -140,7 +140,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
         setStrings(List(config.syntax.code, config.version.code), unbSyntax.components, interProps)
         setStrings(List(partnerId, partnerQual), unbSender.components, interProps)
         setStrings(List(selfId, selfQual), unbRecipient.components, interProps)
-        if (!map.containsKey(interHeadDateKey)) {
+        if (!interProps.containsKey(interHeadDateKey)) {
           val calendar = new GregorianCalendar
           val yearnum = calendar.get(Calendar.YEAR)
           val basedate = calendar.get(Calendar.DAY_OF_MONTH) * 100 + calendar.get(Calendar.MONTH) + 1
@@ -149,7 +149,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
           val date = if (dateelem.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
           interProps put (interHeadDateKey, Integer.valueOf(date))
         }
-        if (!map.containsKey(interHeadTimeKey)) {
+        if (!interProps.containsKey(interHeadTimeKey)) {
           val calendar = new GregorianCalendar
           val time = Integer.valueOf(calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE))
           interProps put (interHeadTimeKey, time)
