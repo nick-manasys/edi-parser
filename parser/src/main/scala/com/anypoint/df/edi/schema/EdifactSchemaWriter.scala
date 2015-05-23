@@ -169,11 +169,9 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
               val fullVersion = schema.version.toUpperCase
               val msgVersion = fullVersion.substring(0, 1)
               val msgRelease = fullVersion.substring(1)
-              setProps put (msgHeadReferenceKey,
-                numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency))
               setProps put (msgHeadMessageVersionKey, msgVersion)
               setProps put (msgHeadMessageReleaseKey, msgRelease)
-              openSet(msgType, setProps)
+              openSet(numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency), setProps)
               writeTransaction(msgData, schema transactions (msgType))
               closeSet(setProps)
               setCount += 1
