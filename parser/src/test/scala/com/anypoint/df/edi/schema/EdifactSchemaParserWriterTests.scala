@@ -216,7 +216,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).asScala.foreach {
       map => map.remove(interchangeKey)
     }
-    input.remove(interchangeKey)
+    input remove(interchangeKey)
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   
@@ -238,6 +238,13 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
     val list = getRequiredMapList("0030 DTM", getRequiredValueMap(transactionHeading, message))
     list.clear
+    intercept[WriteException] { oneshotWriter.write(input).get }
+  }
+  it should "throw an exception when missing required component value" in {
+    val input = parseTestDoc
+    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val segment = getRequiredMapList("0030 DTM", getRequiredValueMap(transactionHeading, message)).get(0)
+    segment remove("DTM0101")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
 }
