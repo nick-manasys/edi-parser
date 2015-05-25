@@ -23,6 +23,25 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 
   val logger = Logger.getLogger(getClass.getName)
 
+  /** Log error and throw as WriteException.
+   */
+  def logAndThrow(text: String) = {
+    val e = new WriteException(text)
+    logger error e
+    throw e
+  }
+
+  /** Log error and throw as WriteException. If the cause is already a WriteException this appends the text to the
+   *  existing exception text and throws a new WriteException.
+   */
+  def logAndThrow(text: String, cause: Throwable) = {
+    logger error (text, cause)
+    cause match {
+      case e: WriteException => throw new WriteException(e.getMessage + ' ' + text)
+      case e: Throwable => throw new WriteException(text, e)
+    }
+  }
+
   /** Pad a string with leading zeroes to specified length. */
   def zeroPad(text: String, length: Int) = {
     @tailrec

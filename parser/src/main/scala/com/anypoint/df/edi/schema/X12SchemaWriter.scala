@@ -43,14 +43,6 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
   var setSegmentBase = 0
   var inGroup = false
 
-  def logAndThrow(text: String, cause: Option[Throwable]) = {
-    logger error text
-    cause match {
-      case Some(e) => throw new WriteException(text, e)
-      case _ => throw new WriteException(text)
-    }
-  }
-
   /** Output interchange trailer segment(s) and finish with stream. */
   def term(props: ValueMap) = {
     writer.term(props)
@@ -97,7 +89,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
   val transIndexKey = "$index$"
 
   /** Write the output message. */
-  def write(map: ValueMap) = Try({
+  def write(map: ValueMap) = Try( try {
     val interchanges = getRequiredValueMap(transactionsMap, map).asScala.foldLeft(EmptySendMap) {
       case (acc, (ident, list)) => {
         val transMaps = list.asInstanceOf[MapList].asScala
@@ -105,14 +97,16 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
           val transMap = transMaps(i)
           transMap put (transIndexKey, Integer.valueOf(i))
           if (transMap.containsKey(transactionId)) {
-            if (ident != transMap.get(transactionId)) throw new WriteException("$ident at position $i has type ${transMap.get(transactionId)} (wrong message list)")
+            if (ident != transMap.get(transactionId)) {
+              throw new WriteException("$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)")
+            }
           } else transMap put (transactionId, ident)
         }
         groupSends(transMaps, SchemaJavaValues.interchangeKey, acc)
       }
     }
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
-    val interRoot = getRequiredValueMap(interchangeKey, map)
+    val interRoot = if (map.containsKey(interchangeKey)) getRequiredValueMap(interchangeKey, map) else new ValueMapImpl
     val groupRoot = getAsMap(groupKey, map)
     interchanges foreach {
       case (key, trans) => {
@@ -142,8 +136,8 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
                 case None => throw new WriteException("$ident at position $i has type ${transMap.get(transactionId)} (wrong message list)")
               }
             }
-            transGroups.foreach{
-              case (groupCode, transList) =>
+            transGroups.foreach {
+              case (groupCode, transList) => try {
                 val groupProps = if (groupRoot == null) new ValueMapImpl else new ValueMapImpl(groupRoot)
                 key.foreach(groupProps.putAll(_))
                 val senderGroup = getRequiredString(groupApplicationSenderKey, groupProps)
@@ -161,16 +155,22 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
                   writeTransaction(transet, schema transactions (ident))
                   closeSet(setProps)
                 } catch {
-                  case e@(_: IllegalArgumentException | _: WriteException) => {
-                    logAndThrow(s"transaction ${getAsString(transactionId, transet)} at index ${getAsInt(transIndexKey, transet)} ${e.getMessage}", Some(e))
+                  case e: Throwable => {
+                    logAndThrow(s"transaction ${getAsString(transactionId, transet)} at index ${getAsInt(transIndexKey, transet)} ${e.getMessage}", e)
                   }
                 })
                 closeGroup(groupProps)
+              } catch {
+                case e: Throwable => logAndThrow(s"group $groupCode ${e.getMessage}", e)
+              }
             }
         }
         term(interProps)
       }
     }
     writer close
+  } catch {
+    case e: WriteException => throw e
+    case e: Throwable => logAndThrow("Writer error ", e)
   })
 }

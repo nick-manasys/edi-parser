@@ -35,18 +35,10 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   import EdiSchema._
   import SchemaJavaValues._
   import EdifactSchemaDefs._
-
+  
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
-
-  def logAndThrow(text: String, cause: Option[Throwable]) = {
-    logger error text
-    cause match {
-      case Some(e) => throw new WriteException(text, e)
-      case _ => throw new WriteException(text)
-    }
-  }
 
   /** Output interchange header segment(s). */
   def init(props: ValueMap) = {
@@ -110,7 +102,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   val msgIndexKey = "$index$"
   
   /** Write the output message. */
-  def write(map: ValueMap) = Try({
+  def write(map: ValueMap) = Try( try {
     val interchanges = getRequiredValueMap(messagesMap, map).asScala.foldLeft(EmptySendMap) {
       case (acc, (ident, list)) => {
         val msgMaps = list.asInstanceOf[MapList].asScala
@@ -118,14 +110,16 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
           val msgMap = msgMaps(i)
           msgMap put (msgIndexKey, Integer.valueOf(i))
           if (msgMap.containsKey(transactionId)) {
-            if (ident != msgMap.get(transactionId)) throw new WriteException("$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)") 
+            if (ident != msgMap.get(transactionId)) {
+              logAndThrow(s"$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)")
+              }
           } else msgMap put (transactionId, ident)
         }
         groupSends(msgMaps, SchemaJavaValues.interchangeKey, acc)
       }
     }
     if (interchanges.isEmpty) throw new WriteException("no messages to be sent")
-    val interRoot = getRequiredValueMap(interchangeKey, map)
+    val interRoot = if (map.containsKey(interchangeKey)) getRequiredValueMap(interchangeKey, map) else new ValueMapImpl
     interchanges foreach {
       case (key, msgs) => {
         val interProps = new ValueMapImpl(interRoot)
@@ -176,8 +170,8 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
               closeSet(setProps)
               setCount += 1
             } catch {
-              case e@(_: IllegalArgumentException | _: WriteException) => {
-                logAndThrow(s"${msgData.get(transactionId)} at index ${msgData.get(msgIndexKey)} ${e.getMessage}", Some(e))
+              case e: Throwable => {
+                logAndThrow(s"${msgData.get(transactionId)} at index ${msgData.get(msgIndexKey)} ${e.getMessage}", e)
               }
             })
           }
@@ -189,5 +183,8 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
       }
     }
     writer close
+  } catch {
+    case e: WriteException => throw e
+    case e: Throwable => logAndThrow("Writer error ", e)
   })
 }

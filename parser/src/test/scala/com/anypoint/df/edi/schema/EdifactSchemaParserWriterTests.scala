@@ -6,6 +6,7 @@ import java.io.StringWriter
 import java.math.BigDecimal
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
+import collection.JavaConverters._
 import scala.io.Source
 import java.io.ByteArrayInputStream
 import java.util.GregorianCalendar
@@ -14,9 +15,11 @@ import java.util.Calendar
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.File
+import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdifactConstants._
 import com.anypoint.df.edi.schema.tools.{ DefaultEdifactNumberProvider, DefaultEdifactNumberValidator }
+import com.anypoint.df.edi.lexical.WriteException
 
 class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
@@ -38,6 +41,26 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   val parserConfig = EdifactParserConfig(true, true, true, true, true, true, true, -1,
     ASCII_CHARSET, Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
+  
+  /** Reads a copy of the test document into memory, standardizing line endings. */
+  val testDoc = {
+    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")).getLines
+    val builder = new StringBuilder
+    lines.foreach(line => {
+      if (!builder.isEmpty) builder.append('\n')
+      builder.append(line)
+    })
+    builder.toString
+  }
+  
+  val testSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/ORDERS.esl"), "UTF-8"), Array())
+  
+  def parseTestDoc = {
+    val ins = new ByteArrayInputStream(testDoc.getBytes(ASCII_CHARSET))
+    val parser = EdifactSchemaParser(ins, testSchema, new DefaultEdifactNumberValidator, parserConfig)
+    parser.parse.get
+  }
 
   behavior of "EdifactSchemaParser"
 
@@ -109,6 +132,20 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val result = parser.parse
     result.isFailure should be (true)
   }
+  
+  val writerConfig = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
+  
+  /** Prepare a test input message to be output as the same mesaage. Removes the interchange information from the
+   *  actual message(s) and swaps interchange sender and receipient information in the root interchange map.
+   */
+  def prepareToSend(input: ValueMap) = {
+    getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).asScala.foreach {
+      map => map.remove(interchangeKey)
+    }
+    val inter = getRequiredValueMap(interchangeKey, input)
+    swap(interHeadSenderQualKey, interHeadRecipientQualKey, inter)
+    swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, inter)
+  }
 
   behavior of "EdifactSchemaWriter"
 
@@ -140,32 +177,63 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   }
   
   it should "roundtrip a parsed document" in {
-    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
-    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
-    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")
-    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, parserConfig)
-    val parseResult = parser.parse
-    parseResult.isInstanceOf[Success[ValueMap]] should be (true)
+    val input = parseTestDoc
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
     val provider = new DefaultEdifactNumberProvider
     provider.interNum = 581
     provider.setNum = 6423
-    val writer = EdifactSchemaWriter(out, schema, provider, config)
-    val props = parseResult.get
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, props)).get(0)
-    val inter = getRequiredValueMap(interchangeKey, message)
-    swap(interHeadSenderQualKey, interHeadRecipientQualKey, inter)
-    swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, inter)
-    move(interchangeKey, message, props)
-    writer.write(props).get //isSuccess should be (true)
+    val writer = EdifactSchemaWriter(out, testSchema, provider, config)
+    prepareToSend(input)
+    writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")).getLines
-    val builder = new StringBuilder
-    lines.foreach(line => {
-      if (!builder.isEmpty) builder.append('\n')
-      builder.append(line)
-    })
-    text should be (builder.toString)
+    text should be (testDoc)
+  }
+  
+  it should "use interchange data at message level to override root level" in {
+    val input = parseTestDoc
+    val out = new ByteArrayOutputStream
+    val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
+    val provider = new DefaultEdifactNumberProvider
+    provider.interNum = 581
+    provider.setNum = 6423
+    val writer = EdifactSchemaWriter(out, testSchema, provider, config)
+    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val interMsg = getRequiredValueMap(interchangeKey, message)
+    val interRoot = new ValueMapImpl(interMsg)
+    swap(interHeadSenderQualKey, interHeadRecipientQualKey, interMsg)
+    swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, interMsg)
+    input put(interchangeKey, interRoot)
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray)
+    text should be (testDoc)
+  }
+  
+  def oneshotWriter = EdifactSchemaWriter(new ByteArrayOutputStream, testSchema, new DefaultEdifactNumberProvider, writerConfig)
+  
+  it should "throw an exception when missing required interchange data" in {
+    val input = parseTestDoc
+    getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).asScala.foreach {
+      map => map.remove(interchangeKey)
+    }
+    input.remove(interchangeKey)
+    intercept[WriteException] { oneshotWriter.write(input).get }
+  }
+  
+  /** Data- and schema-dependent test. */
+  it should "throw an exception when missing required message data" in {
+    val input1 = parseTestDoc
+    val message1 = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input1)).get(0)
+    getRequiredValueMap(transactionHeading, message1).remove("0020 BGM")
+    intercept[WriteException] { oneshotWriter.write(input1).get }
+    val input2 = parseTestDoc
+    val message2 = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input2)).get(0)
+    getRequiredValueMap(transactionHeading, message2).remove("0030 DTM")
+    intercept[WriteException] { oneshotWriter.write(input2).get }
+    val input3 = parseTestDoc
+    val message3 = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input3)).get(0)
+    val list3 = getRequiredMapList("0030 DTM", getRequiredValueMap(transactionHeading, message3))
+    list3.clear
+    intercept[WriteException] { oneshotWriter.write(input3).get }
   }
 }
