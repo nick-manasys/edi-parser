@@ -117,8 +117,15 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
             val value = map.get(comp.key)
             if (value == null) throw new WriteException(s"Value cannot be null for key ${comp.key}")
             if (comp.count > 1) {
-              if (!value.isInstanceOf[SimpleList]) throw new WriteException(s"expected list of values for property ${comp.name}")
-              else value.asInstanceOf[SimpleList].asScala.foreach { value => writeComponent(value) }
+              if (!value.isInstanceOf[SimpleList]) {
+                throw new WriteException(s"expected list of values for property ${comp.name}")
+              } else {
+                val list = value.asInstanceOf[SimpleList]
+                if (list.isEmpty()) comp.usage match {
+                  case MandatoryUsage => throw new WriteException(s"no values present for property ${comp.name}")
+                  case _ =>
+                } else list.asScala.foreach { value => writeComponent(value) }
+              }
             } else writeComponent(value)
           } else comp.usage match {
             case MandatoryUsage => throw new WriteException(s"missing required value '${comp.name}'")
@@ -186,8 +193,13 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
           if (!isEnvelopeSegment(ref.segment)) {
             if (map.containsKey(key)) {
               val value = map.get(key)
-              if (ref.count != 1) writeRepeatingSegment(getRequiredMapList(key, map), ref.segment, ref.count)
-              else writeSegment(getRequiredValueMap(key, map), ref.segment)
+              if (ref.count != 1) {
+                val list = getRequiredMapList(key, map)
+                if (list.isEmpty) ref.usage match {
+                  case MandatoryUsage => throw new WriteException(s"no values present for segment ${ref.key}")
+                  case _ =>
+                } else writeRepeatingSegment(list, ref.segment, ref.count)
+              } else writeSegment(getRequiredValueMap(key, map), ref.segment)
             } else checkMissing
           }
         case wrap: LoopWrapperComponent =>

@@ -220,20 +220,24 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   
-  /** Data- and schema-dependent test. */
-  it should "throw an exception when missing required message data" in {
-    val input1 = parseTestDoc
-    val message1 = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input1)).get(0)
-    getRequiredValueMap(transactionHeading, message1).remove("0020 BGM")
-    intercept[WriteException] { oneshotWriter.write(input1).get }
-    val input2 = parseTestDoc
-    val message2 = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input2)).get(0)
-    getRequiredValueMap(transactionHeading, message2).remove("0030 DTM")
-    intercept[WriteException] { oneshotWriter.write(input2).get }
-    val input3 = parseTestDoc
-    val message3 = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input3)).get(0)
-    val list3 = getRequiredMapList("0030 DTM", getRequiredValueMap(transactionHeading, message3))
-    list3.clear
-    intercept[WriteException] { oneshotWriter.write(input3).get }
+  /** Data- and schema-dependent tests. */
+  it should "throw an exception when missing required segment" in {
+    val input = parseTestDoc
+    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    getRequiredValueMap(transactionHeading, message).remove("0020 BGM")
+    intercept[WriteException] { oneshotWriter.write(input).get }
+  }
+  it should "throw an exception when missing required segment list" in {
+    val input = parseTestDoc
+    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    getRequiredValueMap(transactionHeading, message).remove("0030 DTM")
+    intercept[WriteException] { oneshotWriter.write(input).get }
+  }
+  it should "throw an exception when missing instance of required repeated segment" in {
+    val input = parseTestDoc
+    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val list = getRequiredMapList("0030 DTM", getRequiredValueMap(transactionHeading, message))
+    list.clear
+    intercept[WriteException] { oneshotWriter.write(input).get }
   }
 }
