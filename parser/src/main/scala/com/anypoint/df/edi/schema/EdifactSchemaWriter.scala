@@ -35,7 +35,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   import EdiSchema._
   import SchemaJavaValues._
   import EdifactSchemaDefs._
-  
+
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
@@ -98,11 +98,11 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     }
     setr(values, comps)
   }
-  
+
   val msgIndexKey = "$index$"
-  
+
   /** Write the output message. */
-  def write(map: ValueMap) = Try( try {
+  def write(map: ValueMap) = Try(try {
     val interchanges = getRequiredValueMap(messagesMap, map).asScala.foldLeft(EmptySendMap) {
       case (acc, (ident, list)) => {
         val msgMaps = list.asInstanceOf[MapList].asScala
@@ -112,7 +112,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
           if (msgMap.containsKey(transactionId)) {
             if (ident != msgMap.get(transactionId)) {
               logAndThrow(s"$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)")
-              }
+            }
           } else msgMap put (transactionId, ident)
         }
         groupSends(msgMaps, SchemaJavaValues.interchangeKey, acc)

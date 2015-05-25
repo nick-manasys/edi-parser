@@ -89,7 +89,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
   val transIndexKey = "$index$"
 
   /** Write the output message. */
-  def write(map: ValueMap) = Try( try {
+  def write(map: ValueMap) = Try(try {
     val interchanges = getRequiredValueMap(transactionsMap, map).asScala.foldLeft(EmptySendMap) {
       case (acc, (ident, list)) => {
         val transMaps = list.asInstanceOf[MapList].asScala

@@ -24,7 +24,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   val logger = Logger.getLogger(getClass.getName)
 
   /** Log error and throw as WriteException.
-   */
+    */
   def logAndThrow(text: String) = {
     val e = new WriteException(text)
     logger error e
@@ -32,8 +32,8 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   }
 
   /** Log error and throw as WriteException. If the cause is already a WriteException this appends the text to the
-   *  existing exception text and throws a new WriteException.
-   */
+    * existing exception text and throws a new WriteException.
+    */
   def logAndThrow(text: String, cause: Throwable) = {
     logger error (text, cause)
     cause match {
@@ -52,7 +52,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 
   /** Map from interchange and/or group values to list of maps using those values. */
   type SendMap = Map[Option[ValueMap], List[ValueMap]]
-  
+
   val EmptySendMap = Map[Option[ValueMap], List[ValueMap]]()
 
   /** Group maps of data to be sent based on equality of an envelope map, which may or may not be present.
@@ -124,7 +124,8 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
                 if (list.isEmpty()) comp.usage match {
                   case MandatoryUsage => throw new WriteException(s"no values present for property ${comp.name}")
                   case _ =>
-                } else list.asScala.foreach { value => writeComponent(value) }
+                }
+                else list.asScala.foreach { value => writeComponent(value) }
               }
             } else writeComponent(value)
           } else comp.usage match {
@@ -198,7 +199,8 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
                 if (list.isEmpty) ref.usage match {
                   case MandatoryUsage => throw new WriteException(s"no values present for segment ${ref.key}")
                   case _ =>
-                } else writeRepeatingSegment(list, ref.segment, ref.count)
+                }
+                else writeRepeatingSegment(list, ref.segment, ref.count)
               } else writeSegment(getRequiredValueMap(key, map), ref.segment)
             } else checkMissing
           }
