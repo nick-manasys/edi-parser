@@ -1,0 +1,34 @@
+Audit Statement for the UN/EDIFACT Directory D.02A
+    
+This directory set is the official approved version of UN/EDIFACT 
+Directory D.02A.
+     
+Following the preparation of the directory by the UN/Secretariat, 
+it was examined by the Directory Audit Team (DAT) which has 
+confirmed in a report to the UN/EDIFACT Working Group (EWG) Chair
+and the UN/CEFACT Steering Group (CSG) that the content was 
+prepared in accordance with approved procedures and is considered 
+satisfactory for implementation.
+     
+A copy of the full audit report is available from the UNECE, 
+ e-mail: <cefact@unece.org>. A copy  of the report can also 
+be found on the UNECE website, WWW.UNEDIFACT.ORG.
+     
+The directory is the final version of D.02A for user 
+implementation. Under no circumstances will any corrigenda, 
+addenda or revisions be issued.
+     
+If during implementation a user identifies what is considered to 
+be an error, this should be notified in a Data Maintenance 
+Request (DMR) to allow possible amendments in a subsequent official
+approved version of UN/EDIFACT Directory.
+     
+A DMR form can be obtained from the nearest UN/EDIFACT Processing 
+Point in either Brussels, Sydney, Tokyo or Washington D.C., who 
+will advise the process to be followed for its submission and may 
+assist in the completion of the form.
+
+     
+Michael D. Conroy
+Chair, Directory Audit Team
+15th May 2002
