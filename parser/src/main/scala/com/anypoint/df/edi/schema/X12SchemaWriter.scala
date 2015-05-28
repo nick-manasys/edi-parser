@@ -156,7 +156,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
                   closeSet(setProps)
                 } catch {
                   case e: Throwable => {
-                    logAndThrow(s"transaction ${getAsString(transactionId, transet)} at index ${getAsInt(transIndexKey, transet)} ${e.getMessage}", e)
+                    logAndThrow(s"${e.getMessage} in transaction ${getAsString(transactionId, transet)} at index ${getAsInt(transIndexKey, transet)}", e)
                   }
                 })
                 closeGroup(groupProps)

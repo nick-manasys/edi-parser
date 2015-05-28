@@ -143,7 +143,12 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     /** Write a list of components (which may be the segment itself, a repeated set of values, or a composite). */
     def writeCompList(map: ValueMap, typ: ItemType, skip: Boolean, comps: List[SegmentComponent]): Unit = comps match {
       case h :: t => {
-        writeValue(map, typ, skip, h)
+        try {
+            writeValue(map, typ, skip, h)
+        } catch {
+          case e: WriteException => throw e
+          case e: Exception => throw new WriteException(s"${e.getMessage} on component ${h.key}")
+        }
         writeCompList(map, typ, false, t)
       }
       case _ =>
@@ -153,8 +158,8 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     try {
       writeCompList(map, DATA_ELEMENT, false, segment.components)
     } catch {
-      case e@(_: IllegalArgumentException | _: WriteException) =>
-        throw new WriteException(s"${e.getMessage} for segment ${segment.ident}")
+      case e: Exception =>
+        throw new WriteException(s"${e.getMessage} of segment ${segment.ident} at position ${writer.getSegmentCount}")
     }
     writer.writeSegmentTerminator
   }

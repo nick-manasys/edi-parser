@@ -171,7 +171,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
               setCount += 1
             } catch {
               case e: Throwable => {
-                logAndThrow(s"${msgData.get(transactionId)} at index ${msgData.get(msgIndexKey)} ${e.getMessage}", e)
+                logAndThrow(s"${e.getMessage} in ${msgData.get(transactionId)} at index ${msgData.get(msgIndexKey)}", e)
               }
             })
           }

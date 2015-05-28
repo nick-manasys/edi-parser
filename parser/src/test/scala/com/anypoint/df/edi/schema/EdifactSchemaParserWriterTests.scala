@@ -247,4 +247,18 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     segment remove("DTM0101")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
+  it should "throw an exception when a number value is given a string" in {
+    val input = parseTestDoc
+    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val segment = getRequiredMapList("2110 CNT", getRequiredValueMap(transactionSummary, message)).get(0)
+    segment put("CNT0102", "1")
+    intercept[WriteException] { oneshotWriter.write(input).get }
+  }
+  it should "throw an exception when a string value is given a number" in {
+    val input = parseTestDoc
+    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val segment = getRequiredMapList("2110 CNT", getRequiredValueMap(transactionSummary, message)).get(0)
+    segment put("CNT0101", Integer.valueOf(2))
+    intercept[WriteException] { oneshotWriter.write(input).get }
+  }
 }
