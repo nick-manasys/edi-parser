@@ -105,7 +105,7 @@ public final class EdifactConstants extends EdiConstants
     public static final Map<String,SyntaxVersion> EDIFACT_VERSIONS = new HashMap<>();
     
     public enum SyntaxVersion {
-        VERSION3("3"), VERSION4("4");
+        VERSION2("2"), VERSION3("3"), VERSION4("4");
         
         private final String codeValue;
         

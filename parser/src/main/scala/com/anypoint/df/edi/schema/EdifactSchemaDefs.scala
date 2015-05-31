@@ -392,16 +392,6 @@ object EdifactSchemaDefs {
   
   /** Get the CONTRL message definition for the syntax version. */
   def contrlMsg(version: SyntaxVersion) = if (version == SyntaxVersion.VERSION4) transCONTRLv4 else transCONTRLv3
-  
-//  val ucfAppSender = segUCF.components(1).asInstanceOf[CompositeComponent].composite
-//  val ucfAppRecipient = segUCF.components(2).asInstanceOf[CompositeComponent].composite
-//  val ucfDataElement = segUCF.components(6).asInstanceOf[CompositeComponent].composite
-//  val uciSender = segUCI.components(1).asInstanceOf[CompositeComponent].composite
-//  val uciRecipient = segUCI.components(2).asInstanceOf[CompositeComponent].composite
-//  val uciDataElement = segUCI.components(6).asInstanceOf[CompositeComponent].composite
-//  val ucmIdentifier = segUCM.components(1).asInstanceOf[CompositeComponent].composite
-//  val ucmDataElement = segUCM.components(5).asInstanceOf[CompositeComponent].composite
-//  val unhIdentifier = segUNH.components(1).asInstanceOf[CompositeComponent].composite
 }
 
 object EdifactAcknowledgment {

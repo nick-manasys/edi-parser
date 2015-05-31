@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import com.anypoint.df.edi.schema.EdifactSchemaParser.InterchangeException;
+import com.anypoint.df.edi.schema.EdifactInterchangeException;
 
 public class StandardD96a extends EdifactTestBase {
     
@@ -16,7 +16,7 @@ public class StandardD96a extends EdifactTestBase {
         try {
             parseWithSenderIdentityInformation("/edifact/d96a/DESADV.edi", "GEAPL", "XX");
             fail();
-        } catch (InterchangeException e) {
+        } catch (EdifactInterchangeException e) {
             assertTrue(e.getMessage().contains("Interchange sender information does not match configuration"));
         }
     }

@@ -96,6 +96,10 @@ public class EdifactLexer extends LexerBase
             SyntaxVersion version;
             int verch = stream.read();
             switch (verch) {
+                case '1':
+                case '2':
+                    version = SyntaxVersion.VERSION2;
+                    break;
                 case '3':
                     version = SyntaxVersion.VERSION3;
                     break;

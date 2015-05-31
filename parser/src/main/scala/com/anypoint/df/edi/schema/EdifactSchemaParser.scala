@@ -89,6 +89,11 @@ trait EdifactNumberValidator {
     associationCode: String, directoryVersion: String, subFunction: String, context: String): Boolean
 }
 
+/** Exception reporting problem in interchange. */
+case class EdifactInterchangeException(error: SyntaxError, text: String, cause: Throwable) extends RuntimeException(text, cause) {
+  def this(err: SyntaxError, txt: String) = this(err, txt, null)
+}
+
 /** Parser for EDIFACT EDI documents. */
 case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNumberValidator, config: EdifactParserConfig)
   extends SchemaParser(new EdifactLexer(in, config.charSet, config.substitutionChar), sc) {
@@ -113,7 +118,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   /** Current segment reference, used in error reporting. */
   var currentSegment: Segment = null
 
-  /** Error code for current segment. */
+  /** Error code for current segment (not data error). */
   var segmentError: SyntaxError = null
 
   /** Control reference for current interchange, used in error reporting. */
@@ -127,6 +132,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Number of messages in interchange. */
   var interchangeMessageCount = 0
+  
+  /** Flag for currently in an interchange. */
+  var inInterchange = false;
 
   /** Message acknowledgment (UCM) under construction. */
   var currentUCM: ValueMap = null
@@ -153,9 +161,6 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     * UCD segments.
     */
   case class DataError(error: SyntaxError, elementPosition: Int, componentPosition: Int, repeat: Int)
-
-  /** Exception reporting problem in interchange. */
-  case class InterchangeException(error: SyntaxError, text: String) extends RuntimeException(text)
 
   /** Accumulated data errors from segment. */
   val segmentErrors = Buffer[DataError]()
@@ -218,23 +223,24 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     logger.error(s"${describeError(fatal)} message error '$text'${describeComponent(incomp)} at $positionInMessage")
 
   def logMessageEnvelopeError(fatal: Boolean, incomp: Boolean, text: String) =
-    logger.error(s"${describeError(fatal)} message error '$text'${describeComponent(incomp)} at $positionInGroup")
+    logger.error(s"${describeError(fatal)} message envelope error '$text'${describeComponent(incomp)} at $positionInGroup")
 
   def logGroupEnvelopeError(fatal: Boolean, incomp: Boolean, text: String) =
-    logger.error(s"${describeError(fatal)} group error '$text'${describeComponent(incomp)} at $positionInInterchange")
+    logger.error(s"${describeError(fatal)} envelope error '$text'${describeComponent(incomp)} at $positionInInterchange")
 
   def logInterchangeEnvelopeError(fatal: Boolean, text: String) =
     logger.error(s"${describeError(fatal)} interchange error '$text'' at $positionInMessage")
 
   /** Accumulate element error, failing message if severe. */
   def addElementError(error: SyntaxError) = {
+    segmentErrors += DataError(error, lexer.getElementNumber, lexer.getComponentNumber, lexer.getRepetitionNumber)
     val fatal = checkFatal(error)
     if (inMessage) {
       logErrorInMessage(fatal, true, error.text)
       if (fatal) rejectMessage = true
-      segmentErrors += DataError(error, lexer.getElementNumber, lexer.getComponentNumber, lexer.getRepetitionNumber)
-    } else if (inGroup) logMessageEnvelopeError(true, true, error.text)
-    else logGroupEnvelopeError(false, true, error.text)
+    } else if (inGroup) logMessageEnvelopeError(fatal, true, error.text)
+    else if (inInterchange) logGroupEnvelopeError(fatal, true, error.text)
+    else logInterchangeEnvelopeError(fatal, error.text)
   }
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
@@ -562,13 +568,17 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
           firstInterchange = new ValueMapImpl()
           syntaxVersion = init(firstInterchange)
           map put (delimiterCharacters, buildDelims)
+          segmentError = null
+          segmentErrors.clear
           parseCompList(unbSegment(syntaxVersion).components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT,
             firstInterchange)
           firstInterchange
         } catch {
           case e: LexicalException => {
             logger.error(s"Unable to process message due to error in interchange header: ${e.getMessage}")
-            throw e
+            if (segmentError != null) throw EdifactInterchangeException(segmentError, e.getMessage, e)
+            else if (segmentErrors.isEmpty) throw EdifactInterchangeException(UnspecifiedError, e.getMessage, e)
+            else throw EdifactInterchangeException(segmentErrors(0).error, e.getMessage, e)
           }
         }
       } else parseSegment(unbSegment(syntaxVersion), None, outsidePosition)
@@ -579,7 +589,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       val inter = openInterchange
       if (getRequiredString(SYNTAX_IDENTIFIER, firstInterchange) != getRequiredString(SYNTAX_IDENTIFIER, inter) ||
         getRequiredString(SYNTAX_VERSION_NUMBER, firstInterchange) != getRequiredString(SYNTAX_VERSION_NUMBER, inter)) {
-        throw new InterchangeException(UnspecifiedError, "Multiple interchanges sent in a single transfer unit must use the same syntax and version")
+        throw new EdifactInterchangeException(UnspecifiedError, "Multiple interchanges sent in a single transfer unit must use the same syntax and version")
       }
       interchangeSegmentNumber = lexer.getSegmentNumber
       interchangeGroupCount = 0
@@ -638,7 +648,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
           interack put (segUCI.components(3).key, AcknowledgedRejected.code)
           interack put (segUCI.components(4).key, error.code)
           discardInterchange
-          throw new InterchangeException(error, text)
+          throw new EdifactInterchangeException(error, text)
         }
 
         val sender = getStrings(unbSender.components, inter)
@@ -666,7 +676,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
             } else {
               val text = s"Unexpected segment ${lexer.token} at ${lexer.getSegmentNumber}"
               logger error text
-              throw InterchangeException(InvalidOccurrence, text)
+              throw new EdifactInterchangeException(InvalidOccurrence, text)
             }
           }
           val typ = lexer.currentType
@@ -694,7 +704,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
           ackhead put (contrlMsg(syntaxVersion).detail(2).key, g3list)
         }
       } catch {
-        case e: InterchangeException => {
+        case e: EdifactInterchangeException => {
           discardInterchange
           throw e
         }
