@@ -32,20 +32,25 @@ public abstract class EdifactTestBase extends TestBase {
     }
     
     /**
-     * Mask variable values in a UNB segment by replacing them with 'X' characters.
+     * Mask date/time variable values in a UNB segment by replacing them with 'X' characters, and delete the control
+     * number, to allow comparisons.
      * 
      * @param offset
      * @param datasep
+     * @param segterm
      * @param message
      * @return masked
      */
-    protected String maskUnbVariableValues(int offset, char datasep, String message) {
+    protected String maskUnbVariableValues(int offset, char datasep, char segterm, String message) {
         String text = message;
         int unbDatetime = nthOffset(datasep, false, offset, 4, text);
         int unbControlNum = nthOffset(datasep, false, unbDatetime, 1, text);
         text = replaceRange('X', unbDatetime + 1, unbControlNum, text);
-        int unbLimit = nthOffset(datasep, true, unbControlNum, 1, text);
-        return deleteRange(unbControlNum + 1, unbLimit, text);
+        // handle either data separator or segment terminator following the control number field
+        int next = text.indexOf(datasep, unbControlNum + 1);
+        int end = text.indexOf(segterm, unbControlNum + 1);
+        int limit = next < 0 || next > end ? end : next;
+        return deleteRange(unbControlNum + 1, limit, text);
     }
 
     /**
@@ -58,11 +63,11 @@ public abstract class EdifactTestBase extends TestBase {
      */
     protected String maskUngVariableValues(int offset, char datasep, String message) {
         String text = message;
-        int unbDatetime = nthOffset(datasep, false, offset, 4, text);
-        int unbControlNum = nthOffset(datasep, false, unbDatetime, 1, text);
-        text = replaceRange('X', unbDatetime + 1, unbControlNum, text);
-        int unbLimit = nthOffset(datasep, true, unbControlNum, 1, text);
-        return deleteRange(unbControlNum + 1, unbLimit, text);
+        int ungDatetime = nthOffset(datasep, false, offset, 4, text);
+        int ungControlNum = nthOffset(datasep, false, ungDatetime, 1, text);
+        text = replaceRange('X', ungDatetime + 1, ungControlNum, text);
+        int ungLimit = nthOffset(datasep, true, ungControlNum, 1, text);
+        return deleteRange(ungControlNum + 1, ungLimit, text);
     }
 
     /**
@@ -77,8 +82,9 @@ public abstract class EdifactTestBase extends TestBase {
         String text = message;
         int controlNum = nthOffset(datasep, true, offset, count, text) + 1;
         int scan = controlNum;
-        while (Character.isLetterOrDigit(text.charAt(scan)) || Character.isWhitespace(text.charAt(scan)))
+        while (Character.isLetterOrDigit(text.charAt(scan)) || Character.isWhitespace(text.charAt(scan))) {
             scan++;
+        }
         return text.substring(0, controlNum) + text.substring(scan);
     }
 
@@ -97,7 +103,7 @@ public abstract class EdifactTestBase extends TestBase {
         while ((split = message.indexOf(segterm, base)) > 0) {
             String seg = message.substring(base, split + 1);
             if (seg.startsWith("UNB" + datasep)) {
-                seg = maskUnbVariableValues(0, datasep, seg);
+                seg = maskUnbVariableValues(0, datasep, segterm, seg);
             } else if (seg.startsWith("UNG" + datasep)) {
                 seg = maskUngVariableValues(0, datasep, seg);
             } else if (seg.startsWith("UNH" + datasep)) {
@@ -159,7 +165,7 @@ public abstract class EdifactTestBase extends TestBase {
      * @return replaced
      */
     protected String stripAckDates(String ack) {
-        String working = maskUnbVariableValues(0, '+', ack);
+        String working = maskUnbVariableValues(0, '+', '\'', ack);
         int scan = 0;
         while ((scan = working.indexOf("'UNH+", scan)) > 0) {
             scan++;

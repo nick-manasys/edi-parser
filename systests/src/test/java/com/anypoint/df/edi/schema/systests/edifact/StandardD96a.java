@@ -36,7 +36,7 @@ public class StandardD96a extends EdifactTestBase {
     @Test
     public void verifyGeneratedAcks() {
         loadSchema("/edifact/d96a/DESADV.esl");
-        assertEquals("UNB+UNOC:3+TNT001:ZZ+LGEAP:ZZ+XXXXXXXXXXX++CONTRL+CONTRL:D:96A:UN'UCI+15566+LGEAP:ZZ+TNT001:ZZ+1'UNT+3+CONTRL'UNZ+1+1'",
+        assertEquals("UNB+UNOC:3+TNT001:ZZ+LGEAP:ZZ+XXXXXXXXXXX+'UNH++CONTRL:D:96A:UN'UCI+15566+LGEAP:ZZ+TNT001:ZZ+1'UNT+3+1'UNZ+1+1'",
             stripAckDates(parseAndReturnAck("/edifact/d96a/DESADV.edi")));
     }
 }

@@ -14,6 +14,11 @@ public abstract class TestBase {
 
     protected static EdiSchema schema;
     
+    /**
+     * Load schema from file or resource path.
+     * 
+     * @param path
+     */
     protected static void loadSchema(String path) {
         try {
             YamlReader yamlrdr = new YamlReader();
@@ -24,6 +29,18 @@ public abstract class TestBase {
         }
     }
     
+    /**
+     * Find nth occurrence of character after start position. Throws an exception if the required count of the character
+     * is not found, unless the count is one short and the last flag is set (useful when following data in segment is
+     * optional).
+     * 
+     * @param ch character to be found
+     * @param last may be last field of segment flag
+     * @param start position before start of search
+     * @param count number of occurrences to be found
+     * @param str
+     * @return position
+     */
     protected int nthOffset(char ch, boolean last, int start, int count, String str) {
         int scan = start;
         for (int i = 0; i < count; i++) {
@@ -38,6 +55,15 @@ public abstract class TestBase {
         return scan;
     }
     
+    /**
+     * Replace substring with substitution character.
+     * 
+     * @param replace
+     * @param start
+     * @param limit
+     * @param str
+     * @return
+     */
     protected String replaceRange(char replace, int start, int limit, String str) {
         StringBuilder builder = new StringBuilder(str);
         for (int i = start; i < limit; i++) {
@@ -46,6 +72,13 @@ public abstract class TestBase {
         return builder.toString();
     }
     
+    /**
+     * Read a file as a string.
+     * 
+     * @param path file or resource path
+     * @return
+     * @throws IOException
+     */
     protected String readAsString(String path) throws IOException {
         InputStream is = TestBase.class.getResourceAsStream(path);
         if (is == null) {
