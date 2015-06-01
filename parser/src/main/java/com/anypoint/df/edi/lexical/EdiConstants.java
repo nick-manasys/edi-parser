@@ -21,8 +21,25 @@ public abstract class EdiConstants
     /** Map from type name to type. */
     private static final Map<String,DataType> NAMETYPES = new HashMap<>();
     
-    /** Token delimiter types. */
-    public enum ItemType {  SEGMENT, DATA_ELEMENT, QUALIFIER, REPETITION, END }
+    /**
+     * Token delimiter types. The types used for separating values are explicitly ordered by granularity, so that the
+     * next finer level of granularity can easily be found.
+     */
+    public enum ItemType {
+        SEGMENT, END, REPETITION, DATA_ELEMENT, QUALIFIER, SUB_ELEMENT;
+        
+        /**
+         * Get next finer level of granularity for separators.
+         * 
+         * @return
+         */
+        public ItemType nextLevel() {
+            if (ordinal() < DATA_ELEMENT.ordinal()) {
+                throw new IllegalStateException("No granularity defined for item type " + toString());
+            }
+            return values()[ordinal() + 1];
+        }
+    }
     
     // flags for EDI forms using a data type
     private static final int X12_FLAG = 1;

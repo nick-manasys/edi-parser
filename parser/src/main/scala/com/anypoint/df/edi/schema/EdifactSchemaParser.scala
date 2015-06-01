@@ -242,6 +242,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     else if (inInterchange) logGroupEnvelopeError(fatal, true, error.text)
     else logInterchangeEnvelopeError(fatal, error.text)
   }
+  
+  /** Report a repetition error on a composite component. */
+  def repetitionError(comp: CompositeComponent) = addElementError(TooManyConstituents)
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {

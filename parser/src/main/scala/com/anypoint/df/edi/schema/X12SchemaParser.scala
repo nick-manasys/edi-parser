@@ -213,7 +213,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
     } else if (inGroup) logTransactionEnvelopeError(true, true, error.text)
     else logGroupEnvelopeError(false, true, error.text)
   }
-
+  
+  /** Report a repetition error on a composite component. */
+  def repetitionError(comp: CompositeComponent) = addElementError(TooManyRepititions)
+  
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
     def checkParse(comp: SegmentComponent, of: ItemType) =

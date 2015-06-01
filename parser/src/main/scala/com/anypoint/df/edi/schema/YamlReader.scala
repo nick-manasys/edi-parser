@@ -1,8 +1,14 @@
 package com.anypoint.df.edi.schema
 
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileReader
+import java.io.InputStream
+import java.io.InputStreamReader
 import java.io.Reader
+import java.io.StringWriter
+import java.io.StringReader
+
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.AbstractConstruct
 import org.yaml.snakeyaml.constructor.Constructor
@@ -10,17 +16,14 @@ import org.yaml.snakeyaml.error.YAMLException
 import org.yaml.snakeyaml.nodes.Node
 import org.yaml.snakeyaml.nodes.Tag
 import org.yaml.snakeyaml.nodes.NodeId
+
 import collection.JavaConverters._
 import scala.annotation.tailrec
 import scala.collection.mutable.Buffer
-import java.io.StringWriter
-import java.io.StringReader
 import scala.collection.immutable.AbstractMap
 import scala.collection.mutable
+
 import com.anypoint.df.edi.lexical.EdiConstants
-import java.io.InputStreamReader
-import java.io.FileInputStream
-import java.io.InputStream
 
 /** Read YAML representation of EDI schema.
   *
@@ -113,7 +116,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       val count = getCountOverride(values, comp.count)
       comp match {
         case elem: ElementComponent => ElementComponent(elem.element, name, elem.key, elem.position, use, count)
-        case comp: CompositeComponent => CompositeComponent(comp.composite, name, comp.key, comp.position, use, count)
+        case comp: CompositeComponent => CompositeComponent(comp.composite, name, comp.key,
+          comp.position, use, count)
       }
     }
     @tailrec
@@ -348,8 +352,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     def trimComps(comps: List[SegmentComponent], trim: Int) = {
       val (keep, drop) = comps.splitAt(trim)
       keep ::: (drop.foldLeft(List[SegmentComponent]())((acc, comp) => comp match {
-        case ElementComponent(element, oname, key, pos, _, count) => ElementComponent(element, oname, key, pos, UnusedUsage, count) :: acc
-        case CompositeComponent(composite, oname, key, pos, _, count) => CompositeComponent(composite, oname, key, pos, UnusedUsage, count) :: acc
+        case ElementComponent(element, oname, key, pos, _, count) =>
+          ElementComponent(element, oname, key, pos, UnusedUsage, count) :: acc
+        case CompositeComponent(composite, oname, key, pos, _, count) =>
+          CompositeComponent(composite, oname, key, pos, UnusedUsage, count) :: acc
       }).reverse)
     }
 

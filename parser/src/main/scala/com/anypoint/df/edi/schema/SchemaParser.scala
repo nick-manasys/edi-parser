@@ -53,16 +53,28 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         if (comp.count > 1) {
           val complist = new MapListImpl
           map put (comp.key, complist)
-          // TODO: check this logic
-          (1 until comp.count) foreach (index => {
+          val baseType = compComp.itemType;
+          if (lexer.currentType == baseType) {
             val compmap = new ValueMapImpl
-            parseCompList(composite.components, lexer.currentType, QUALIFIER, compmap)
+            parseCompList(composite.components, baseType, baseType.nextLevel, compmap)
             complist add compmap
-          })
+            while (lexer.currentType == REPETITION) {
+              val repmap = new ValueMapImpl
+              parseCompList(composite.components, REPETITION, baseType.nextLevel, repmap)
+              complist add repmap
+            }
+            if (complist.size > comp.count) {
+              repetitionError(compComp)
+              while (complist.size > comp.count) complist.remove(comp.count)
+            }
+          }
         } else parseCompList(composite.components, lexer.currentType, QUALIFIER, map)
       }
     }
   }
+  
+  /** Report a repetition error on a composite component. This can probably be generalized in the future. */
+  def repetitionError(comp: CompositeComponent): Unit
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap): Unit

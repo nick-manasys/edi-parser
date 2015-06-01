@@ -1,9 +1,9 @@
 package com.anypoint.df.edi.schema
 
-import org.yaml.snakeyaml.Yaml
-import scala.beans.BeanProperty
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import scala.annotation.tailrec
+
+import com.anypoint.df.edi.lexical.EdiConstants.DataType
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 
 /** EDI schema representation.
   *
@@ -82,8 +82,10 @@ object EdiSchema {
     * @param use
     * @param cnt maximum repetition count
     */
-  case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int)
-    extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt)
+  case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage,
+    cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
+    val itemType = if (composite.isSimple) ItemType.DATA_ELEMENT else ItemType.SUB_ELEMENT
+  }
 
   /** Occurrence rule definition. Subclasses define the actual rule checking.
     * @param code
@@ -166,6 +168,7 @@ object EdiSchema {
         }
       },
       rules, maxLength)
+    val isSimple = components.forall { comp => comp.isInstanceOf[ElementComponent] }
   }
 
   /** Segment definition.

@@ -117,15 +117,14 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
             val value = map.get(comp.key)
             if (value == null) throw new WriteException(s"Value cannot be null for key ${comp.key}")
             if (comp.count > 1) {
-              if (!value.isInstanceOf[SimpleList]) {
-                throw new WriteException(s"expected list of values for property ${comp.name}")
-              } else {
-                val list = value.asInstanceOf[SimpleList]
+              value match {
+                case list: SimpleList =>
                 if (list.isEmpty()) comp.usage match {
                   case MandatoryUsage => throw new WriteException(s"no values present for property ${comp.name}")
                   case _ =>
                 }
                 else list.asScala.foreach { value => writeComponent(value) }
+                case _ => throw new WriteException(s"expected list of values for property ${comp.name}")
               }
             } else writeComponent(value)
           } else comp.usage match {
