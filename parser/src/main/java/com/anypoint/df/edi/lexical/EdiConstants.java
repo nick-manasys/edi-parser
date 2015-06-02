@@ -26,7 +26,7 @@ public abstract class EdiConstants
      * next finer level of granularity can easily be found.
      */
     public enum ItemType {
-        SEGMENT, END, REPETITION, DATA_ELEMENT, QUALIFIER, SUB_ELEMENT;
+        SEGMENT, END, REPETITION, DATA_ELEMENT, COMPONENT, SUB_COMPONENT;
         
         /**
          * Get next finer level of granularity for separators.

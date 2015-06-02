@@ -96,14 +96,15 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         if (!skip) typ match {
           case SEGMENT => writer.writeSegmentTerminator
           case DATA_ELEMENT => writer.writeDataSeparator
-          case QUALIFIER => writer.writeSubDelimiter
+          case COMPONENT => writer.writeComponentSeparator
+          case SUB_COMPONENT => writer.writeSubcomponentSeparator
           case REPETITION => writer.writeRepetitionSeparator
         }
         comp match {
           case ElementComponent(elem, _, _, _, _, _) =>
             writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
           case CompositeComponent(composite, _, _, _, _, _) =>
-            writeCompList(value.asInstanceOf[ValueMap], QUALIFIER, true, composite.components)
+            writeCompList(value.asInstanceOf[ValueMap], COMPONENT, true, composite.components)
         }
       }
 
@@ -132,7 +133,8 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
             case _ => if (!skip) typ match {
               case SEGMENT => writer.writeSegmentTerminator
               case DATA_ELEMENT => writer.skipElement
-              case QUALIFIER => writer.skipSubElement
+              case COMPONENT => writer.skipComponent
+              case SUB_COMPONENT => writer.skipSubcomponent
               case REPETITION =>
             }
           }

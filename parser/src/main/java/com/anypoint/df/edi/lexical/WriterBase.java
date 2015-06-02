@@ -49,8 +49,11 @@ public abstract class WriterBase
     /** Allowed character set for string data (<code>null</code> if unrestricted). */
     private final boolean[] allowedChars;
     
-    /** Sub-element delimiter. */
-    private final char subElement;
+    /** Sub-component delimiter (-1 if unused). */
+    private final int subCompSeparator;
+    
+    /** Sub-component delimiter. */
+    private final char componentSeparator;
     
     /** Data element delimiter. */
     private final char dataSeparator;
@@ -82,8 +85,11 @@ public abstract class WriterBase
     /** Number of skipped data elements. */
     private int skippedElementCount;
     
-    /** Number of skipped sub-elements. */
-    private int skippedSubCount;
+    /** Number of skipped components. */
+    private int skippedCompCount;
+    
+    /** Number of skipped sub-components. */
+    private int skippedSubCompCount;
     
     /**
      * Constructor.
@@ -91,7 +97,8 @@ public abstract class WriterBase
      * @param os output
      * @param encoding character set encoding
      * @param datasep data separator character
-     * @param subsep sub-element separator character
+     * @param compsep component separator character
+     * @param subsep sub-component separator character (-1 if unused)
      * @param repsep repetition separator character (-1 if unused)
      * @param segterm segment terminator character
      * @param segsep inter-segment separator (following segment terminator; <code>null</code> if none)
@@ -100,11 +107,12 @@ public abstract class WriterBase
      * @param mark decimal mark character
      * @param chars allowed character set flags for string data (<code>null</code> if unrestricted)
      */
-    protected WriterBase(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
+    protected WriterBase(OutputStream os, Charset encoding, char datasep, char compsep, int subsep, int repsep, char segterm,
         String segsep, int release, int subst, char mark, boolean[] chars) {
         stream = os;
         dataSeparator = datasep;
-        subElement = subsep;
+        componentSeparator = compsep;
+        subCompSeparator = subsep;
         repetitionSeparator = repsep;
         segmentTerminator = segterm;
         decimalMark = mark;
@@ -116,6 +124,7 @@ public abstract class WriterBase
             allowed = new boolean[chars.length];
             System.arraycopy(chars, 0, allowed, 0, chars.length);
             clearFlag(datasep, allowed);
+            clearFlag(compsep, allowed);
             clearFlag(subsep, allowed);
             clearFlag(repsep, allowed);
             clearFlag(segterm, allowed);
@@ -158,15 +167,23 @@ public abstract class WriterBase
      */
     public void skipElement() {
         skippedElementCount++;
-        skippedSubCount = 0;
+        skippedCompCount = 0;
     }
     
     /**
-     * Count a skipped sub-element in segment. This supports lazy writing of separators for skipped sub-elements to
+     * Count a skipped component in segment. This supports lazy writing of separators for skipped components to
      * avoid trailing separators.
      */
-    public void skipSubElement() {
-        skippedSubCount++;
+    public void skipComponent() {
+        skippedCompCount++;
+    }
+    
+    /**
+     * Count a skipped sub-component in segment. This supports lazy writing of separators for skipped sub-components to
+     * avoid trailing separators.
+     */
+    public void skipSubcomponent() {
+        skippedSubCompCount++;
     }
     
     /**
@@ -219,23 +236,41 @@ public abstract class WriterBase
             writer.write(dataSeparator);
         }
         skippedElementCount = 0;
-        skippedSubCount = 0;
+        skippedCompCount = 0;
+        skippedSubCompCount = 0;
     }
     
     /**
-     * Write sub-element delimiter(s). If any sub-element values have been skipped this also writes out the separators
+     * Write component separator(s). If any component values have been skipped this also writes out the separators
      * for those values.
      *
      * @param count
      * @throws IOException
      */
-    public void writeSubDelimiter() throws IOException {
+    public void writeComponentSeparator() throws IOException {
         checkSegmentStart();
-        writer.write(subElement);
-        for (int i = 0; i < skippedSubCount; i++) {
-            writer.write(subElement);
+        writer.write(componentSeparator);
+        for (int i = 0; i < skippedCompCount; i++) {
+            writer.write(componentSeparator);
         }
-        skippedSubCount = 0;
+        skippedCompCount = 0;
+        skippedSubCompCount = 0;
+    }
+    
+    /**
+     * Write sub-component separator(s). If any sub-component values have been skipped this also writes out the
+     * separators for those values.
+     *
+     * @param count
+     * @throws IOException
+     */
+    public void writeSubcomponentSeparator() throws IOException {
+        checkSegmentStart();
+        writer.write((char)subCompSeparator);
+        for (int i = 0; i < skippedSubCompCount; i++) {
+            writer.write(subCompSeparator);
+        }
+        skippedSubCompCount = 0;
     }
     
     /**
@@ -246,7 +281,8 @@ public abstract class WriterBase
     public void writeSegmentTerminator() throws IOException {
         writer.write(segmentTerminator);
         skippedElementCount = 0;
-        skippedSubCount = 0;
+        skippedCompCount = 0;
+        skippedSubCompCount = 0;
         segmentCount++;
         segmentStart = true;
     }
@@ -275,7 +311,7 @@ public abstract class WriterBase
             StringBuilder builder = new StringBuilder(text);
             for (int i = 0; i < builder.length(); i++) {
                 char chr = builder.charAt(i);
-                if (chr == dataSeparator || chr == subElement || chr == repetitionSeparator || chr == segmentTerminator
+                if (chr == dataSeparator || chr == componentSeparator || chr == repetitionSeparator || chr == segmentTerminator
                     || chr == releaseIndicator) {
                     builder.insert(i++, (char)releaseIndicator);
                 }

@@ -18,7 +18,7 @@ import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
 /**
  * Lexer variation for EDIFACT.
  */
-public class EdifactLexer extends LexerBase
+public class HL7Lexer extends LexerBase
 {
     /** Status returned by {@link EDIFACT#term(Map)} method. */
     public enum InterchangeEndStatus {
@@ -34,7 +34,7 @@ public class EdifactLexer extends LexerBase
      * @param charset agreed character set for partners (<code>null</code> if none)
      * @param subst substitution character for invalid character in string (-1 if unused)
      */
-    public EdifactLexer(InputStream is, Charset charset, int subst) {
+    public HL7Lexer(InputStream is, Charset charset, int subst) {
         super(is, subst, ',', null);
         componentSeparator = ':';
         dataSeparator = '+';

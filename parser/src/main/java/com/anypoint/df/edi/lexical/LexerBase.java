@@ -48,6 +48,9 @@ public abstract class LexerBase
     /** Component delimiter. */
     char componentSeparator;
     
+    /** Sub-component delimiter (-1 if unused). */
+    int subCompSeparator;
+    
     /** Release character (-1 if unused). */
     int releaseIndicator;
     
@@ -74,6 +77,9 @@ public abstract class LexerBase
     
     /** Component number (from start of composite). */
     private int componentNumber;
+    
+    /** Component number (from start of nested composite). */
+    private int subCompNumber;
     
     /** Type of current token (starting delimiter). */
     private ItemType currentType;
@@ -243,6 +249,15 @@ public abstract class LexerBase
     }
     
     /**
+     * Get subcomponent number within nested composite.
+     *
+     * @return number
+     */
+    public int getSubComponentNumber() {
+        return subCompNumber;
+    }
+    
+    /**
      * Get the current token.
      *
      * @return token
@@ -284,8 +299,15 @@ public abstract class LexerBase
         if (repetitionNumber > 0) {
             position = "repetition " + Integer.toString(repetitionNumber + 1) + " of " + position;
         }
-        if (currentType == ItemType.QUALIFIER) {
-            position = "component " + Integer.toString(componentNumber + 1) + " of " + position;
+        switch (currentType) {
+            case SUB_COMPONENT:
+            case COMPONENT:
+                position = "component " + Integer.toString(componentNumber + 1) + " of " + position;
+                if (currentType == ItemType.SUB_COMPONENT) {
+                    position = "subcomponent " + Integer.toString(subCompNumber + 1) + " of " + position;
+                }
+            default:
+                break;
         }
         String text = err.text() + " for data type " + typ.code() + " at " + position  + ": '" + token + "'";
         if (explain != null) {
@@ -341,8 +363,11 @@ public abstract class LexerBase
                 if (escape) {
                     builder.append(chr);
                     escape = false;
+                } else if (chr == subCompSeparator) {
+                    peekType = ItemType.SUB_COMPONENT;
+                    break;
                 } else if (chr == componentSeparator) {
-                    peekType = ItemType.QUALIFIER;
+                    peekType = ItemType.COMPONENT;
                     break;
                 } else if (chr == dataSeparator) {
                     peekType = ItemType.DATA_ELEMENT;
@@ -403,7 +428,11 @@ public abstract class LexerBase
                 repetitionNumber = 0;
                 break;
             
-            case QUALIFIER:
+            case SUB_COMPONENT:
+                subCompNumber++;
+                break;
+            
+            case COMPONENT:
                 componentNumber++;
                 break;
             

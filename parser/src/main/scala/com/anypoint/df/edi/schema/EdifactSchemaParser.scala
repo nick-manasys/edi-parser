@@ -249,7 +249,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
     def isPresent(comp: SegmentComponent) = {
-      lexer.token.length > 0 || (comp.isInstanceOf[CompositeComponent] && lexer.nextType == QUALIFIER)
+      lexer.token.length > 0 || (comp.isInstanceOf[CompositeComponent] && lexer.nextType == COMPONENT)
     }
     def checkParse(comp: SegmentComponent, of: ItemType) =
       if (of == lexer.currentType) {

@@ -14,7 +14,7 @@ import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
 /**
  * Writer variation for EDIFACT.
  */
-public class EdifactWriter extends WriterBase
+public class HL7Writer extends WriterBase
 {
     private final boolean needUna;
     private final String overrideDelimiters;
@@ -31,7 +31,7 @@ public class EdifactWriter extends WriterBase
      * @param subst substitution character for invalid character in string (-1 if unused)
      * @param mark decimal mark character
      */
-    public EdifactWriter(OutputStream os, Charset encoding, SyntaxVersion version, SyntaxIdentifier syntax,
+    public HL7Writer(OutputStream os, Charset encoding, SyntaxVersion version, SyntaxIdentifier syntax,
         String delims, String segsep, int subst, char mark) {
         super(os, encodingOrDefault(encoding, syntax), delimsOrDefault(delims, version, syntax).charAt(0),
             delimsOrDefault(delims, version, syntax).charAt(1), -1,

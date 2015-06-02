@@ -84,7 +84,7 @@ object EdiSchema {
     */
   case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage,
     cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
-    val itemType = if (composite.isSimple) ItemType.DATA_ELEMENT else ItemType.SUB_ELEMENT
+    val itemType = if (composite.isSimple) ItemType.DATA_ELEMENT else ItemType.SUB_COMPONENT
   }
 
   /** Occurrence rule definition. Subclasses define the actual rule checking.

@@ -27,7 +27,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   /** Discard current element. */
   def discardElement = {
     lexer.advance
-    while (lexer.currentType == QUALIFIER || lexer.currentType == REPETITION) lexer.advance
+    while (lexer.currentType == COMPONENT || lexer.currentType == REPETITION) lexer.advance
   }
 
   /** Parse a segment component, which is either an element or a composite. */
@@ -68,7 +68,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
               while (complist.size > comp.count) complist.remove(comp.count)
             }
           }
-        } else parseCompList(composite.components, lexer.currentType, QUALIFIER, map)
+        } else parseCompList(composite.components, lexer.currentType, COMPONENT, map)
       }
     }
   }

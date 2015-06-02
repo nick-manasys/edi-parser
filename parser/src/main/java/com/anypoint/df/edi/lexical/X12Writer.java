@@ -32,7 +32,7 @@ public class X12Writer extends WriterBase
      */
     public X12Writer(OutputStream os, Charset encoding, char datasep, char subsep, int repsep, char segterm,
         String segsep, int subst, CharacterRestriction chset) {
-        super(os, encoding, datasep, subsep, repsep, segterm, segsep, -1, subst, '.', chset.flags());
+        super(os, encoding, datasep, subsep, -1, repsep, segterm, segsep, -1, subst, '.', chset.flags());
     }
 
     /**
@@ -100,7 +100,7 @@ public class X12Writer extends WriterBase
         writeDataSeparator();
         writeProperty(ACK_REQUESTED, props, "1", 1, 1);
         writeProperty(TEST_INDICATOR, props, "P", 1, 1);
-        writeSubDelimiter();
+        writeComponentSeparator();
         writeSegmentTerminator();
         
         groupCount = 0;
