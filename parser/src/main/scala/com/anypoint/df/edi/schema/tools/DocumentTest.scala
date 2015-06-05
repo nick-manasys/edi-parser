@@ -216,7 +216,6 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     transactions put ("CONTRL", acks)
     outmap put (messagesMap, transactions)
     writer.write(outmap).get
-    println("ack: " + os.toString)
     os.toString
   }
 }

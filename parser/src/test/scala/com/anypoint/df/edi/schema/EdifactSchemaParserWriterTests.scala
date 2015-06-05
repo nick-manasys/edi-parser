@@ -122,17 +122,6 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val map = result.get
   }
   
-  it should "generate an error when partner id doesn't match" in {
-    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
-    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
-    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")
-    val config = EdifactParserConfig(true, true, true, true, true, true, true, -1,
-      ASCII_CHARSET, Array[EdifactIdentityInformation](), Array(EdifactIdentityInformation("ABCDEF", "01", null, null)))
-    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, config)
-    val result = parser.parse
-    result.isFailure should be (true)
-  }
-  
   it should "parse syntax version 1 as syntax version 2" in {
     val modDoc = testDoc.substring(0, 9) + '1' + testDoc.substring(10, 44) + testDoc.substring(46)
     val input = parseDoc(modDoc)

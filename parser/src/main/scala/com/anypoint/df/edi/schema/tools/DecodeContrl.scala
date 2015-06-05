@@ -49,7 +49,7 @@ object DecodeContrl extends SchemaJavaDefs {
       val t1 = comps.tail
       if (map.containsKey(t1.head.key)) {
         builder ++= s":component ${getRequiredInt(t1.head.key, map)}"
-        val t2 = comps.tail
+        val t2 = t1.tail
         if (map.containsKey(t2.head.key)) {
           builder ++= s":repeat ${getRequiredInt(t2.head.key, map)}"
         }
@@ -67,7 +67,10 @@ object DecodeContrl extends SchemaJavaDefs {
   def buildMessageGroup(ucmgroup: GroupComponent, ucmcomps: List[SegmentComponent], grpmap: ValueMap) = {
     val ucmmap = getRequiredValueMap(ucmgroup.items(0).key, grpmap)
     val builder = new StringBuilder
-    builder ++= s" Message #${getRequiredString(ucmcomps(0).key, ucmmap)} ${buildMessageIdentifier(ucmcomps(1), ucmmap)}\n"
+    builder ++= s" Message #${getRequiredString(ucmcomps(0).key, ucmmap)} ${buildMessageIdentifier(ucmcomps(1), ucmmap)} "
+    builder ++= AcknowledgmentActionCodes(getRequiredString(ucmcomps(2).key, ucmmap)).toString
+    if (ucmmap.containsKey(ucmcomps(3).key)) builder ++= s": Syntax error '${SyntaxErrors(getRequiredString(ucmcomps(3).key, ucmmap)).text}'"
+    builder ++= "\n"
     if (grpmap.containsKey(ucmgroup.items(1).key)) {
       val grpcomps = ucmgroup.items(1).asInstanceOf[GroupComponent].items
       foreachMapInList(getRequiredMapList(ucmgroup.items(1).key, grpmap), segmap => {
@@ -106,7 +109,7 @@ object DecodeContrl extends SchemaJavaDefs {
     builder ++= s"Interchange receipient ${buildIdentity(ucicomps(2).asInstanceOf[CompositeComponent], ucimap)}\n"
     builder ++= s"Interchange action: ${AcknowledgmentActionCodes(getRequiredString(ucicomps(3).key, ucimap))}\n"
     if (ucimap.containsKey(ucicomps(4).key)) {
-      builder ++= s"Syntax error ${SyntaxErrors(getRequiredString(ucicomps(4).key, ucimap)).text}"
+      builder ++= s"Syntax error '${SyntaxErrors(getRequiredString(ucicomps(4).key, ucimap)).text}'"
       if (ucimap.containsKey(ucicomps(5).key)) {
         builder ++= s" on segment ${getRequiredString(ucicomps(5).key, ucimap)}${buildOptionalDataElement(ucicomps(6), ucimap)}"
       } else if (ucimap.containsKey(ucicomps(7).key)) {

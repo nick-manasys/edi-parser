@@ -327,17 +327,22 @@ object EdifactSchemaDefs {
     
   val CONTRLsg5 = GroupComponent("Segment group 5", ConditionalUsage, 999, List[TransactionComponent](
     ReferenceComponent(segUCS, SegmentPosition(0, "0130"), MandatoryUsage, 1), ReferenceComponent(segUCD, SegmentPosition(0, "0140"), ConditionalUsage, 99)), None, Nil)
+  val contrlSg4Comps = CONTRLsg5.items.toArray
   val CONTRLsg4v3 = GroupComponent("Segment group 4", ConditionalUsage, 999999, List[TransactionComponent](
     ReferenceComponent(segUCMv3, SegmentPosition(0, "0110"), MandatoryUsage, 1),
     CONTRLsg5), None, Nil)
+  val contrlSg4Compsv3 = CONTRLsg4v3.items.toArray
   val CONTRLsg3v3 = GroupComponent("Segment group 3", ConditionalUsage, 999999, List[TransactionComponent](
     ReferenceComponent(segUCFv3, SegmentPosition(0, "0090"), MandatoryUsage, 1),
     CONTRLsg4v3), None, Nil)
+  val contrlSg3Compsv3 = CONTRLsg3v3.items.toArray
   val CONTRLsg2 = GroupComponent("Segment group 2", ConditionalUsage, 999, List[TransactionComponent](
     ReferenceComponent(segUCS, SegmentPosition(0, "0060"), MandatoryUsage, 1), ReferenceComponent(segUCD, SegmentPosition(0, "0070"), ConditionalUsage, 99)), None, Nil)
+  val contrlSg2Comps = CONTRLsg2.items.toArray
   val CONTRLsg1v3 = GroupComponent("Segment group 1", ConditionalUsage, 999999, List[TransactionComponent](
     ReferenceComponent(segUCMv3, SegmentPosition(0, "0040"), MandatoryUsage, 1),
     CONTRLsg2), None, Nil)
+  val contrlSg1Compsv3 = CONTRLsg1v3.items.toArray
 
   val transCONTRLv3 = Transaction("CONTRL", "Application error and acknowledgement message", None,
     List[TransactionComponent](
@@ -352,12 +357,15 @@ object EdifactSchemaDefs {
   val CONTRLsg4v4 = GroupComponent("Segment group 4", ConditionalUsage, 999999, List[TransactionComponent](
     ReferenceComponent(segUCMv4, SegmentPosition(0, "0110"), MandatoryUsage, 1),
     CONTRLsg5), None, Nil)
+  val contrlSg4Compsv4 = CONTRLsg4v4.items.toArray
   val CONTRLsg3v4 = GroupComponent("Segment group 3", ConditionalUsage, 999999, List[TransactionComponent](
     ReferenceComponent(segUCFv4, SegmentPosition(0, "0090"), MandatoryUsage, 1),
     CONTRLsg4v4), None, Nil)
+  val contrlSg3Compsv4 = CONTRLsg3v4.items.toArray
   val CONTRLsg1v4 = GroupComponent("Segment group 1", ConditionalUsage, 999999, List[TransactionComponent](
     ReferenceComponent(segUCMv4, SegmentPosition(0, "0040"), MandatoryUsage, 1),
     CONTRLsg2), None, Nil)
+  val contrlSg1Compsv4 = CONTRLsg1v4.items.toArray
 
   val transCONTRLv4 = Transaction("CONTRL", "Application error and acknowledgement message", None,
     List[TransactionComponent](
@@ -392,6 +400,21 @@ object EdifactSchemaDefs {
   
   /** Get the CONTRL message definition for the syntax version. */
   def contrlMsg(version: SyntaxVersion) = if (version == SyntaxVersion.VERSION4) transCONTRLv4 else transCONTRLv3
+  
+  /** Get the CONTRL message components for the syntax version. */
+  def contrlComps(version: SyntaxVersion) = if (version == SyntaxVersion.VERSION4) contrlCompsv4 else contrlCompsv3
+  
+  /** Get the CONTRL message segment group 1 components for the syntax version. */
+  def contrlSg1Comps(version: SyntaxVersion) =
+    if (version == SyntaxVersion.VERSION4) contrlSg1Compsv4 else contrlSg1Compsv3
+  
+  /** Get the CONTRL message segment group 3 components for the syntax version. */
+  def contrlSg3Comps(version: SyntaxVersion) =
+    if (version == SyntaxVersion.VERSION4) contrlSg3Compsv4 else contrlSg3Compsv3
+  
+  /** Get the CONTRL message segment group 4 components for the syntax version. */
+  def contrlSg4Comps(version: SyntaxVersion) =
+    if (version == SyntaxVersion.VERSION4) contrlSg4Compsv4 else contrlSg4Compsv3
 }
 
 object EdifactAcknowledgment {

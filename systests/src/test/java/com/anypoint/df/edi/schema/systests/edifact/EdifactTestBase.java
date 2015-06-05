@@ -138,7 +138,6 @@ public abstract class EdifactTestBase extends TestBase {
             String is = iterin.next();
             String os = iterout.next();
             assertEquals(os, is);
-            System.out.println(is + " = " + os);
         }
         assertFalse(iterin.hasNext());
         assertFalse(iterout.hasNext());
