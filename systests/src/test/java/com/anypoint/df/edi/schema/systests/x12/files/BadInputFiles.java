@@ -6,10 +6,6 @@ public final class BadInputFiles {
 	public static final String RANDOM_FILE = "/x12/005010/bad-input/random-file.edi";
 	public static final String RANDOM_FILE_EX = "missing ISA segment"; 
 	
-	/** Spaces in ISA header are not the Expected ones **/ 
-	public static final String WRONG_HEADER = "/x12/005010/bad-input/850-header.edi"; 
-	public static final String WRONG_HEADER_EX = "Irrecoverable error in ISA at 1 with control number 4: InterchangeAuthorizationInfo"; 
-	
 	/** Missing GS line **/ 
 	public static final String MISSING_GROUP = "/x12/005010/bad-input/850-group.edi"; 
 	public static final String MISSING_GROUP_EX = "not at trailer";

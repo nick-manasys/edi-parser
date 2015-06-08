@@ -156,6 +156,17 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     writer.write(outmap).get
     os.toString
   }
+  
+  /** Write interchange acknowledgement information from parse as output. */
+  def printInterchangeAcks(delims: String, list: MapList) = {
+    val os = new ByteArrayOutputStream
+    val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, delims, null)
+    val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, config)
+    foreachMapInList(list, map => writer.writeSegment(map, segTA1))
+    writer.close
+    os.close
+    os.toString
+  }
 }
 
 case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es) {

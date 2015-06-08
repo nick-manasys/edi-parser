@@ -193,7 +193,7 @@ object X12Acknowledgment {
   import com.anypoint.df.edi.lexical.X12Lexer.InterchangeEndStatus
   val LexerEndStatusInterchangeNote = Map(
     (InterchangeEndStatus.CONTROL_NUMBER_ERROR -> InterchangeControlNumberMismatch),
-    (InterchangeEndStatus.GROUP_COUNT_ERROR -> InterchangeInvalidContent))
+    (InterchangeEndStatus.GROUP_COUNT_ERROR -> InterchangeInvalidGroupCount))
 
   /** Functional group syntax error codes (X12 716 element codes). */
   sealed abstract class GroupSyntaxError(val code: String, val text: String) extends Coded[String]

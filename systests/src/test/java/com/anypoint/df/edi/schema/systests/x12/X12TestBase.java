@@ -14,6 +14,7 @@ import java.util.Map;
 import com.anypoint.df.edi.lexical.EdiConstants;
 import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 import com.anypoint.df.edi.schema.IdentityInformation;
+import com.anypoint.df.edi.schema.SchemaJavaDefs;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.X12ParserConfig;
 import com.anypoint.df.edi.schema.systests.TestBase;
@@ -199,14 +200,47 @@ public abstract class X12TestBase extends TestBase {
         try {
             Map<String, Object> result = test.parse(is);
             printAcknowledgments(result);
+            if (!result.containsKey(SchemaJavaValues.delimiterCharacters())) {
+                result.put(SchemaJavaValues.delimiterCharacters(), "*>U~");
+            }
             return test.printAck(result);
         } catch (Exception e) {
             e.printStackTrace();
             return e.getMessage();
         }
-
     }
 
+    /**
+     * Parse a document, then write out and return the generated TA1 acknowledgment(s).
+     * 
+     * @param path
+     * @throws IOException
+     */
+    protected String parseAndReturnInterchangeAcks(String path) {
+        DocumentTestX12 test = new DocumentTestX12(schema);
+        InputStream is = X12TestBase.class.getResourceAsStream(path);
+        if (is == null) {
+            throw new IllegalArgumentException("File " + path + " not found");
+        }
+        try {
+            Map<String, Object> result = test.parse(is);
+            return test.printInterchangeAcks("*>U~", (List<Map<String,Object>>)
+                result.get(SchemaJavaValues.interchangeAcksGenerated()));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return e.getMessage();
+        }
+    }
+
+    /**
+     * Parse document with sender identity and return generated acknowledgment.
+     * 
+     * @param inputFilePath
+     * @param interchangeQualifier
+     * @param interchangeId
+     * @param interchangeType
+     * @return acknowledgment
+     */
     protected String parseWithSenderIdentityInformation(String inputFilePath, String interchangeQualifier,
         String interchangeId, String interchangeType) {
         IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
@@ -225,5 +259,4 @@ public abstract class X12TestBase extends TestBase {
             return e.getMessage();
         }
     }
-
 }

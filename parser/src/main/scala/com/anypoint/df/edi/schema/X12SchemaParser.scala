@@ -37,7 +37,7 @@ case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val c
 
 /** Validator called by parser to check that received interchange/group/message identifiers are not duplicates. */
 trait X12NumberValidator {
-  
+
   /** Generate unique context identifier for interchange sender-receiver pair. The returned identifier is saved and
     * passed to the other methods in order to identify the context of the interchange, so the form of the identifier is
     * entirely up to the implementation.
@@ -47,13 +47,13 @@ trait X12NumberValidator {
     * @param receiverId interchange receiver identification
     */
   def contextToken(senderQual: String, senderId: String, receiverQual: String, receiverId: String): String
-    
+
   /** Validate receive interchange identification.
     * @param num interchange control number
     * @param context interchange sender-receiver pair context token
     */
   def validateInterchange(num: Int, context: String): Boolean
-  
+
   /** Validate receive group identification.
     * @param num group control number
     * @param senderCode application sender's code
@@ -61,7 +61,7 @@ trait X12NumberValidator {
     * @param context interchange sender-receiver pair context token
     */
   def validateGroup(num: Int, senderCode: String, receiverCode: String, context: String): Boolean
-  
+
   /** Validate transaction set identification.
     * @param control transaction set control number (string value, despite the name)
     * @param senderCode application sender's code (from group)
@@ -74,7 +74,7 @@ trait X12NumberValidator {
 /** Parser for X12 EDI documents. */
 case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberValidator, config: X12ParserConfig)
   extends SchemaParser(new X12Lexer(in, config charSet, config.substitutionChar, config.strChar), sc) {
-  
+
   import X12SchemaDefs._
 
   /** Set of functional groups supported by schema. */
@@ -213,10 +213,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
     } else if (inGroup) logTransactionEnvelopeError(true, true, error.text)
     else logGroupEnvelopeError(false, true, error.text)
   }
-  
+
   /** Report a repetition error on a composite component. */
   def repetitionError(comp: CompositeComponent) = addElementError(TooManyRepititions)
-  
+
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
     def checkParse(comp: SegmentComponent, of: ItemType) =
@@ -318,6 +318,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       groupErrors.clear
       groupStartSegment = lexer.getSegmentNumber
       groupTransactionCount = 0
+      groupAcceptCount = 0
       val map = parseSegment(GSSegment, None, outsidePosition)
       inGroup = true
       map
@@ -398,10 +399,10 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
 
   /** Discard input past end of current interchange. */
   def discardInterchange = {
-    while (lexer.currentType != SEGMENT || lexer.token != "IEA") discardSegment
-    discardSegment
+    while (lexer.currentType != END && (lexer.currentType != SEGMENT || lexer.token != "IEA")) discardSegment
+    while (lexer.nextType != SEGMENT && lexer.currentType != END) lexer.advance
   }
-  
+
   /** Parse transactions in group. */
   def parseGroup(interchange: ValueMap, group: ValueMap, groupCode: String, ackhead: ValueMap,
     transLists: java.util.Map[String, MapList], providerId: String, groupSender: String, groupReceiver: String) = {
@@ -513,13 +514,11 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
     schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
     map put (transactionsMap, transLists)
 
-    def buildTA1(ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode, interchange: ValueMap) = {
+    def buildTA1(ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode, inter: ValueMap) = {
       val ta1map = new ValueMapImpl
-      ta1map put (segTA1.components(0) key, interchange get (INTER_CONTROL))
-      val calendar = new GregorianCalendar
-      ta1map put (segTA1.components(1) key, calendar)
-      val milli = (calendar.get(Calendar.HOUR_OF_DAY) * 24 + calendar.get(Calendar.MINUTE)) * 60 * 1000
-      ta1map put (segTA1.components(2) key, Integer valueOf (milli))
+      ta1map put (segTA1.components(0) key, inter get (INTER_CONTROL))
+      ta1map put (segTA1.components(1) key, inter get (INTERCHANGE_DATE))
+      ta1map put (segTA1.components(2) key, inter get (INTERCHANGE_TIME))
       ta1map put (segTA1.components(3) key, ack code)
       ta1map put (segTA1.components(4) key, note code)
       interAckList add ta1map
@@ -541,7 +540,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
         config.versionIds.exists { _ == version }
       } else agency != "X" || version.startsWith(schema version)
 
-    def parseInterchange(interchange: ValueMap, providerId: String): InterchangeNoteCode = {
+    def parseInterchangeGroups(interchange: ValueMap, providerId: String) = {
       lexer.setHandler(X12ErrorHandler)
       val senders = matchIdentity(getRequiredString(SENDER_ID_QUALIFIER, interchange),
         getRequiredString(SENDER_ID, interchange), getRequiredString(TEST_INDICATOR, interchange), config.senderIds)
@@ -552,123 +551,127 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       if (receivers.length == 0 && config.receiverIds.length > 0)
         throw new LexicalException("Interchange receiver information does not match configuration")
       map put (delimiterCharacters, buildDelims)
-      var interNote: InterchangeNoteCode = InterchangeNoError
-      while (lexer.currentType != END && !isInterchangeEnvelope) {
-        if (isGroupOpen) {
-          val group = openGroup
-          groupStartSegment = lexer.getSegmentNumber - 2
-          groupNumber = getRequiredInt(groupControlNumberHeaderKey, group)
-          lexer.countGroup
-          val ackroot = buildAckRoot(interchange)
-          val groupcopy = new ValueMapImpl(group)
-          swap(groupApplicationSenderKey, groupApplicationReceiverKey, groupcopy)
-          ackroot put (groupKey, groupcopy)
-          val ackhead = new ValueMapImpl
-          ackroot put (transactionHeading, ackhead)
-          ackroot put (transactionDetail, new ValueMapImpl)
-          ackroot put (transactionSummary, new ValueMapImpl)
-          val ak1data = new ValueMapImpl
-          ackhead put (trans997Keys(1), ak1data)
-          ak1data put (segAK1.components(0) key, group get (groupFunctionalIdentifierKey))
-          ak1data put (segAK1.components(1) key, group get (groupControlNumberHeaderKey))
-          if (schema.version == "005010") ak1data put (segAK1.components(2) key, group get (groupVersionReleaseIndustryKey))
-          val groupSender = getRequiredString(groupApplicationSenderKey, group)
-          val groupReceiver = getRequiredString(groupApplicationReceiverKey, group)
-          val groupCode = getAs(groupFunctionalIdentifierKey, "", group)
-          if (numval.validateGroup(groupNumber, groupSender, groupReceiver, providerId)) {
-            if (functionalGroups.contains(groupCode)) {
-              val agency = getRequiredString(groupResponsibleAgencyKey, group)
-              val version = getRequiredString(groupVersionReleaseIndustryKey, group)
-              if (validateVersion(agency, version)) {
-                parseGroup(interchange, group, groupCode, ackhead, transLists, providerId, groupSender, groupReceiver)
-              } else skipGroup(NotSupportedGroupVersion)
-            } else skipGroup(NotSupportedGroup)
-          } else skipGroup(GroupControlNumberNotUnique)
-          val countPresent = closeGroup(group)
-          val ak9data = new ValueMapImpl
-          val error = ackhead.containsKey(segAK2 ident)
-          ackhead put (trans997Keys(3), ak9data)
-          val result =
+      var errored = false
+      while (isGroupOpen) {
+        val group = openGroup
+        if (group.containsKey(groupControlNumberHeaderKey) && group.containsKey(groupFunctionalIdentifierKey)) {
+            groupStartSegment = lexer.getSegmentNumber - 2
+                groupNumber = getRequiredInt(groupControlNumberHeaderKey, group)
+                lexer.countGroup
+                val ackroot = buildAckRoot(interchange)
+                val groupcopy = new ValueMapImpl(group)
+            swap(groupApplicationSenderKey, groupApplicationReceiverKey, groupcopy)
+            ackroot put (groupKey, groupcopy)
+            val ackhead = new ValueMapImpl
+            ackroot put (transactionHeading, ackhead)
+            ackroot put (transactionDetail, new ValueMapImpl)
+            ackroot put (transactionSummary, new ValueMapImpl)
+            val ak1data = new ValueMapImpl
+            ackhead put (trans997Keys(1), ak1data)
+            ak1data put (segAK1.components(0) key, group get (groupFunctionalIdentifierKey))
+            ak1data put (segAK1.components(1) key, group get (groupControlNumberHeaderKey))
+            if (schema.version == "005010") ak1data put (segAK1.components(2) key, group get (groupVersionReleaseIndustryKey))
+            val groupSender = getRequiredString(groupApplicationSenderKey, group)
+            val groupReceiver = getRequiredString(groupApplicationReceiverKey, group)
+            val groupCode = getAs(groupFunctionalIdentifierKey, "", group)
+            if (numval.validateGroup(groupNumber, groupSender, groupReceiver, providerId)) {
+                if (functionalGroups.contains(groupCode)) {
+                    val agency = getRequiredString(groupResponsibleAgencyKey, group)
+                        val version = getRequiredString(groupVersionReleaseIndustryKey, group)
+                        if (validateVersion(agency, version)) {
+                            parseGroup(interchange, group, groupCode, ackhead, transLists, providerId, groupSender, groupReceiver)
+                        } else skipGroup(NotSupportedGroupVersion)
+                } else skipGroup(NotSupportedGroup)
+            } else skipGroup(GroupControlNumberNotUnique)
+            val countPresent = closeGroup(group)
+            val ak9data = new ValueMapImpl
+            val error = ackhead.containsKey(segAK2 ident)
+            ackhead put (trans997Keys(3), ak9data)
+            val result =
             if (groupErrors.nonEmpty) RejectedGroup
             else if (groupTransactionCount == groupAcceptCount) if (error) AcceptedWithErrorsGroup else AcceptedGroup
             else if (groupAcceptCount > 0) PartiallyAcceptedGroup
             else RejectedGroup
-          ak9data put (segAK9.components(0) key, result code)
-          ak9data put (segAK9.components(1) key, Integer valueOf (countPresent))
-          ak9data put (segAK9.components(2) key, Integer valueOf (groupTransactionCount))
-          ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
-          val limit = math.min(segAK9.components.length - 5, groupErrors.length)
-          (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
-          if (Some(groupCode) != trans997.group) funcAckList add (ackroot)
+            ak9data put (segAK9.components(0) key, result code)
+            ak9data put (segAK9.components(1) key, Integer valueOf (countPresent))
+            ak9data put (segAK9.components(2) key, Integer valueOf (groupTransactionCount))
+            ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
+            val limit = math.min(segAK9.components.length - 5, groupErrors.length)
+            (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
+            if (Some(groupCode) != trans997.group) funcAckList add (ackroot)
         } else {
-          logger.error(s"discarding $positionInInterchange (${lexer.token}) found when looking for group start")
-          interNote = InterchangeInvalidContent
+          errored = true
+          discardToGroupEnd
           discardSegment
         }
       }
-      if (lexer.currentType == END) {
-        logger.error(s"end of file with missing $InterchangeEndSegment")
-        InterchangeEndOfFile
-      } else if (lexer.token == InterchangeEndSegment) {
-        LexerEndStatusInterchangeNote get term(interchange) foreach (code => {
-          val text = s"Irrecoverable error in $InterchangeEndSegment at ${lexer.getSegmentNumber}" +
-            (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
-            ": " + code.text
-          logger error text
-          interNote = code
-        })
-        interNote
-      } else {
-        logInterchangeEnvelopeError(true, s"Missing $InterchangeEndSegment")
-        InterchangeInvalidControlStructure
-      }
+      if (errored) throw InterchangeException(InterchangeInvalidContent, "One or more groups missing identification")
     }
 
     var done = false
     while (!done) {
-      val interchange = new ValueMapImpl
+      val inter = new ValueMapImpl
+      var interchangeAck: InterchangeAcknowledgmentCode = AcknowledgedRejected
       try {
         lexer.setHandler(null)
-        val result = init(interchange)
+        val result = init(inter)
         if (result == InterchangeStartStatus.NO_DATA) done = true
         else {
           LexerStartStatusInterchangeNote get (result) foreach (code => {
             val text = s"Irrecoverable error in $InterchangeStartSegment at ${lexer.getSegmentNumber - 1}" +
-              (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
+              (if (inter.containsKey(INTER_CONTROL)) " with control number " + inter.get(INTER_CONTROL)) +
               ": " + code
             logger error text
             throw InterchangeException(code, text)
           })
           interchangeStartSegment = lexer.getSegmentNumber - 1
-          interchangeNumber = getRequiredInt(INTER_CONTROL, interchange)
-          val token = numval.contextToken(getRequiredString(SENDER_ID_QUALIFIER, interchange),
-            getRequiredString(SENDER_ID, interchange), getRequiredString(RECEIVER_ID_QUALIFIER, interchange),
-            getRequiredString(RECEIVER_ID, interchange))
+          interchangeNumber = getRequiredInt(INTER_CONTROL, inter)
+          val token = numval.contextToken(getRequiredString(SENDER_ID_QUALIFIER, inter),
+            getRequiredString(SENDER_ID, inter), getRequiredString(RECEIVER_ID_QUALIFIER, inter),
+            getRequiredString(RECEIVER_ID, inter))
           if (numval.validateInterchange(interchangeNumber, token)) {
-            while (Set("ISB", "ISE", "TA3") contains lexer.token) discardSegment
-            if (lexer.token == "TA1") {
-              val receiveTA1s = new MapListImpl
+            map put (interchangeKey, inter)
+            if (checkSegment("ISB")) discardSegment
+            if (checkSegment("ISE")) discardSegment
+            if (checkSegment("TA3")) discardSegment
+            if (checkSegment("TA1")) {
+              val receiveTA1s =
+                if (map.containsKey(interchangeAcksReceived)) getAs[MapList](interchangeAcksReceived, map)
+                else new MapListImpl
               while (lexer.token == "TA1") receiveTA1s add parseSegment(segTA1, None, SegmentPosition(0, ""))
               map put (interchangeAcksReceived, receiveTA1s)
             }
-            parseInterchange(interchange, token) match {
-              case InterchangeNoError => buildTA1(AcknowledgedNoErrors, InterchangeNoError, interchange)
-              case note => buildTA1(AcknowledgedWithErrors, note, interchange)
+            if (isGroupOpen) {
+              interchangeAck = AcknowledgedWithErrors
+              parseInterchangeGroups(inter, token)
             }
+            if (lexer.currentType == END) {
+              logger.error("end of file with missing IEA")
+              throw InterchangeException(InterchangeEndOfFile, "end of file with missing IEA")
+            }
+            if (checkSegment("IEA")) {
+              LexerEndStatusInterchangeNote get term(inter) match {
+                case Some(code) => {
+                  val text = s"Irrecoverable error in IEA at ${lexer.getSegmentNumber} with control number ${inter.get(INTER_CONTROL)}: ${code.text}"
+                  logger error text
+                  buildTA1(interchangeAck, code, inter)
+                }
+                case None => buildTA1(AcknowledgedNoErrors, InterchangeNoError, inter)
+              }
+            } else throw InterchangeException(InterchangeInvalidControlStructure, s"Unknown or unexpected control segment ${lexer.token}")
           } else {
-            val text = s"Duplicate interchange control number $interchangeNumber in $InterchangeStartSegment at ${lexer.getSegmentNumber}"
+            val text = s"Duplicate interchange control number $interchangeNumber in ISA at ${lexer.getSegmentNumber}"
             logger error text
             throw InterchangeException(InterchangeDuplicateNumber, text)
           }
         }
       } catch {
         case e: InterchangeException => {
-          buildTA1(AcknowledgedRejected, e.note, interchange)
+          buildTA1(interchangeAck, e.note, inter)
           discardInterchange
-          throw e
         }
         case e: IOException => {
-          buildTA1(AcknowledgedRejected, InterchangeEndOfFile, interchange)
+          buildTA1(AcknowledgedRejected, InterchangeEndOfFile, inter)
           throw e
         }
       }

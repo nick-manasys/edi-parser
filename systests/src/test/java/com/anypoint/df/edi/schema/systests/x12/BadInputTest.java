@@ -47,10 +47,7 @@ public class BadInputTest extends X12TestBase
     @Parameters
     public static Collection<Object[]> badEdi850Files() {
         
-        return Arrays.asList(new Object[][] { { BadInputFiles.RANDOM_FILE, BadInputFiles.RANDOM_FILE_EX },
-            // TODO: this next one results in a TA1 rejection, not an exception, so add a different test for that
-            //{ BadInputFiles.MISSING_GROUP, BadInputFiles.MISSING_GROUP_EX },
-            { BadInputFiles.WRONG_HEADER, BadInputFiles.WRONG_HEADER_EX } });
+        return Arrays.asList(new Object[][] { { BadInputFiles.RANDOM_FILE, BadInputFiles.RANDOM_FILE_EX } });
     }
     
     public String getBadFilePath() {

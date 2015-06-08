@@ -70,7 +70,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     })
 
   /** Write a segment from a map of values. */
-  protected def writeSegment(map: ValueMap, segment: Segment): Unit = {
+  def writeSegment(map: ValueMap, segment: Segment): Unit = {
 
     /** Write a value from map. */
     def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
@@ -239,6 +239,9 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment): Boolean
+  
+  /** Close output, intended for testing rather than application. */
+  def close = writer.close
 
   /** Write the output message. */
   def write(map: ValueMap): Try[Unit]
