@@ -33,7 +33,8 @@ trait X12NumberProvider {
 case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberProvider, config: X12WriterConfig)
   extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
     config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars),
-    sc.merge(X12Acknowledgment.trans997)) {
+    (if (sc.version == "005010") sc.merge(X12Acknowledgment.trans997).merge(X12Acknowledgment.trans999)
+      else sc.merge(X12Acknowledgment.trans997))) {
 
   import EdiSchema._
   import SchemaJavaValues._

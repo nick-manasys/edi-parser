@@ -44,7 +44,7 @@ public class MalformedInputTest extends X12TestBase {
 
 	@Test
 	public void badInput() throws Exception {
-        DocumentTest test = new DocumentTestX12(schema);
+        DocumentTest test = new DocumentTestX12(schema, false);
         InputStream is = BiztalkTest.class.getResourceAsStream(badFilePath);
         Map<String, Object> result = test.parse(is);
         List<Map<String, Object>> acks = (List<Map<String, Object>>)result.

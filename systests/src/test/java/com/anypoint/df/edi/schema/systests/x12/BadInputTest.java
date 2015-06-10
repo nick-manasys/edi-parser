@@ -37,7 +37,7 @@ public class BadInputTest extends X12TestBase
     
     @Test
     public void badInput() throws Exception {
-        String ediParseException = parseAndReturnAck(getBadFilePath());
+        String ediParseException = parseAndReturnAck(getBadFilePath(), false);
         Assert.assertNotNull(ediParseException);
         if (!ediParseException.contains(getBadFileException())) {
             Assert.fail("Expected exception text '" + getBadFileException() + "', got '" + ediParseException + "'");

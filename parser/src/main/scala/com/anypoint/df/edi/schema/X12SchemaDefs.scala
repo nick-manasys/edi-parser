@@ -7,10 +7,10 @@ object X12SchemaDefs {
   import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
-  
+
   /** Key for map of transaction lists in root map of send or receive. */
   val transactionsMap = "Transactions"
-  
+
   /** Key for transaction set header information in transaction data map. */
   val setKey = "SetHeader"
 
@@ -338,23 +338,104 @@ object X12Acknowledgment {
   val groupAK3 = GroupComponent("AK3", OptionalUsage, -1, List[TransactionComponent](
     ReferenceComponent(segAK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
     ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99)), None, Nil)
-  val groupAK2 = GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](
+  val groupAK2_997 = GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](
     ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
     groupAK3,
     ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1)), None, Nil)
   val trans997 = Transaction("997", "Functional Acknowledgment", Some("FA"), List[TransactionComponent](
     ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
     ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
-    groupAK2,
+    groupAK2_997,
     ReferenceComponent(segAK9, SegmentPosition(0, "0700"), MandatoryUsage, 1),
     ReferenceComponent(segSE, SegmentPosition(0, "0800"), MandatoryUsage, 1)),
     List[TransactionComponent](), List[TransactionComponent]())
-  
+
+  // 999 acknowledgment schema (generated code, eliminated duplicates from 997)
+  val elem447 = Element("447", "Loop Identifier Code", ALPHANUMERIC, 1, 4)
+  val elem618 = Element("618", "Implementation Transaction Set Syntax Error Code", ID, 1, 3)
+  val elem719 = Element("719", "Segment Position in Transaction Set", INTEGER, 1, 10)
+  val elem721 = Element("721", "Segment ID Code", ID, 2, 3)
+  val compC030 = Composite("C030", "Position in Segment", List[SegmentComponent](
+    ElementComponent(Element("722", "Element Position in Segment", INTEGER, 1, 2), None, "IK40101", 1, MandatoryUsage, 1),
+    ElementComponent(Element("1528", "Component Data Element Position in Composite", INTEGER, 1, 2), None, "IK40102", 2, OptionalUsage, 1),
+    ElementComponent(Element("1686", "Repeating Data Element Position", INTEGER, 1, 4), None, "IK40103", 3, OptionalUsage, 1)), Nil, 0)
+  val compC998 = Composite("C998", "Context Identification", List[SegmentComponent](
+    ElementComponent(Element("9999", "Context Name", ALPHANUMERIC, 1, 35), None, "C99801", 1, MandatoryUsage, 1),
+    ElementComponent(Element("9998", "Context Reference", ALPHANUMERIC, 1, 35), None, "C99802", 2, OptionalUsage, 1)), Nil, 0)
+  val compC999 = Composite("C999", "Reference in Segment", List[SegmentComponent](
+    ElementComponent(Element("725", "Data Element Reference Number", INTEGER, 1, 4), None, "CTX0601", 1, MandatoryUsage, 1),
+    ElementComponent(Element("725", "Data Element Reference Number", INTEGER, 1, 4), None, "CTX0602", 2, OptionalUsage, 1)), Nil, 0)
+  val segCTX = Segment("CTX", "Context", List[SegmentComponent](
+    CompositeComponent(compC998, Some("Context Identification"), "CTX01", 1, MandatoryUsage, 10),
+    ElementComponent(elem721, None, "CTX02", 2, OptionalUsage, 1),
+    ElementComponent(elem719, None, "CTX03", 3, OptionalUsage, 1),
+    ElementComponent(elem447, None, "CTX04", 4, OptionalUsage, 1),
+    CompositeComponent(compC030.rewrite("CTX05", convertEdiForm("X12")), Some("Position in Segment"), "CTX05", 5, OptionalUsage, 1),
+    CompositeComponent(compC999.rewrite("CTX06", convertEdiForm("X12")), Some("Reference in Segment"), "CTX06", 6, OptionalUsage, 1)), Nil)
+  val segIK3 = Segment("IK3", "Implementation Data Segment Note", List[SegmentComponent](
+    ElementComponent(elem721, None, "IK301", 1, MandatoryUsage, 1),
+    ElementComponent(elem719, None, "IK302", 2, MandatoryUsage, 1),
+    ElementComponent(elem447, None, "IK303", 3, OptionalUsage, 1),
+    ElementComponent(Element("620", "Implementation Segment Syntax Error Code", ID, 1, 3), None, "IK304", 4, OptionalUsage, 1)), Nil)
+  val segIK4 = Segment("IK4", "Implementation Data Element Note", List[SegmentComponent](
+    CompositeComponent(compC030.rewrite("IK401", convertEdiForm("X12")), Some("Position in Segment"), "IK401", 1, MandatoryUsage, 1),
+    ElementComponent(Element("725", "Data Element Reference Number", INTEGER, 1, 4), None, "IK402", 2, OptionalUsage, 1),
+    ElementComponent(Element("621", "Implementation Data Element Syntax Error Code", ID, 1, 3), None, "IK403", 3, MandatoryUsage, 1),
+    ElementComponent(Element("724", "Copy of Bad Data Element", ALPHANUMERIC, 1, 99), None, "IK404", 4, OptionalUsage, 1)), Nil)
+  val segIK5 = Segment("IK5", "Implementation Transaction Set Response Trailer", List[SegmentComponent](
+    ElementComponent(Element("717", "Transaction Set Acknowledgment Code", ID, 1, 1), None, "IK501", 1, MandatoryUsage, 1),
+    ElementComponent(elem618, None, "IK502", 2, OptionalUsage, 1),
+    ElementComponent(elem618, None, "IK503", 3, OptionalUsage, 1),
+    ElementComponent(elem618, None, "IK504", 4, OptionalUsage, 1),
+    ElementComponent(elem618, None, "IK505", 5, OptionalUsage, 1),
+    ElementComponent(elem618, None, "IK506", 6, OptionalUsage, 1)), Nil)
+    
+  val groupIK4 = GroupComponent("IK4", OptionalUsage, -1, List[TransactionComponent](
+    ReferenceComponent(segIK4, SegmentPosition(0, "0600"), OptionalUsage, 1),
+    ReferenceComponent(segCTX, SegmentPosition(0, "0700"), OptionalUsage, 10)), None, Nil)
+  val groupIK3 = GroupComponent("IK3", OptionalUsage, -1, List[TransactionComponent](
+    ReferenceComponent(segIK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
+    ReferenceComponent(segCTX, SegmentPosition(0, "0500"), OptionalUsage, 10),
+    groupIK4), None, Nil)
+  val groupAK2_999 = GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](
+    ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
+    groupIK3,
+    ReferenceComponent(segIK5, SegmentPosition(0, "0800"), MandatoryUsage, 1)), None, Nil)
+  val trans999 = Transaction("999", "Implementation Acknowledgment", Some("FA"), List[TransactionComponent](
+    ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
+    ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
+    groupAK2_999,
+    ReferenceComponent(segAK9, SegmentPosition(0, "0900"), MandatoryUsage, 1),
+    ReferenceComponent(segSE, SegmentPosition(0, "1000"), MandatoryUsage, 1)),
+    List[TransactionComponent](), List[TransactionComponent]())
+
   // random access arrays of keys
+  val segAK9Comps = segAK9.components.toArray
+  val segIK5Comps = segIK5.components.toArray
+  val segAK5Comps = segAK5.components.toArray
+  val segIK4Comps = segIK4.components.toArray
+  val segAK4Comps = segAK4.components.toArray
+  val segIK3Comps = segIK3.components.toArray
+  val segAK3Comps = segAK3.components.toArray
+  val segAK2Comps = segAK2.components.toArray
+  val segAK1Comps = segAK1.components.toArray
+  val segCTXComps = segCTX.components.toArray
+  val groupIK4Keys = groupIK4.items map { comp => comp.key } toArray
+  val groupIK3Keys = groupIK3.items map { comp => comp.key } toArray
   val groupAK3Keys = groupAK3.items map { comp => comp.key } toArray
-  val groupAK2Keys = groupAK2.items map { comp => comp.key } toArray
+  val groupAK2_997Keys = groupAK2_997.items map { comp => comp.key } toArray
+  val groupAK2_999Keys = groupAK2_999.items map { comp => comp.key } toArray
   val trans997Keys = trans997.heading map { comp => comp.key } toArray
+  val trans999Keys = trans999.heading map { comp => comp.key } toArray
   
+  // access methods to select appropriate model
+  def groupXK2Keys(generate999: Boolean) = if (generate999) groupAK2_999Keys else groupAK2_997Keys
+  def groupXK3Keys(generate999: Boolean) = if (generate999) groupIK3Keys else groupAK3Keys
+  def segXK3Comps(generate999: Boolean) = if (generate999) segIK3Comps else segAK3Comps
+  def segXK4Comps(generate999: Boolean) = if (generate999) segIK4Comps else segAK4Comps
+  def segXK5Comps(generate999: Boolean) = if (generate999) segIK5Comps else segAK5Comps
+  def ackTransKeys(generate999: Boolean) = if (generate999) trans999Keys else trans997Keys
+
   // TA1 acknowledgment data (generated code)
   val segTA1 = Segment("TA1", "Interchange Acknowledgment", List[SegmentComponent](
     ElementComponent(Element("I12", "Interchange Control Number", INTEGER, 9, 9), None, "TA101", 1, MandatoryUsage, 1),

@@ -14,11 +14,11 @@ import java.util.Map;
 import com.anypoint.df.edi.lexical.EdiConstants;
 import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 import com.anypoint.df.edi.schema.IdentityInformation;
-import com.anypoint.df.edi.schema.SchemaJavaDefs;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.X12ParserConfig;
 import com.anypoint.df.edi.schema.systests.TestBase;
 import com.anypoint.df.edi.schema.tools.Decode997;
+import com.anypoint.df.edi.schema.tools.Decode999;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestX12;
 
@@ -148,7 +148,7 @@ public abstract class X12TestBase extends TestBase {
      * @throws IOException
      */
     protected void parseAndCheckWrite(String path) throws IOException {
-        DocumentTest test = new DocumentTestX12(schema);
+        DocumentTest test = new DocumentTestX12(schema, false);
         String text = readAsString(path);
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
         checkWrite(test, text, result);
@@ -174,32 +174,38 @@ public abstract class X12TestBase extends TestBase {
      * Print acknowledgment information from parse result map.
      *
      * @param result
+     * @param ack999
      */
-    protected void printAcknowledgments(Map<String, Object> result) {
+    protected void printAcknowledgments(Map<String, Object> result, boolean ack999) {
         List<Map<String, Object>> acks = (List<Map<String, Object>>) result.get(SchemaJavaValues
             .functionalAcksGenerated());
         if (acks != null) {
             for (Map<String, Object> ack : acks) {
-                System.out.println(Decode997.decode(ack));
+                if (ack999) {
+                    System.out.println(Decode999.decode(ack));
+                } else {
+                    System.out.println(Decode997.decode(ack));
+                }
             }
         }
     }
 
     /**
-     * Parse a document, then write out and return the generated 997 acknowledgment.
+     * Parse a document, then write out and return the generated 997/999 acknowledgment.
      * 
      * @param path
+     * @param ack999
      * @throws IOException
      */
-    protected String parseAndReturnAck(String path) {
-        DocumentTest test = new DocumentTestX12(schema);
+    protected String parseAndReturnAck(String path, boolean ack999) {
+        DocumentTest test = new DocumentTestX12(schema, ack999);
         InputStream is = X12TestBase.class.getResourceAsStream(path);
         if (is == null) {
             throw new IllegalArgumentException("File " + path + " not found");
         }
         try {
             Map<String, Object> result = test.parse(is);
-            printAcknowledgments(result);
+            printAcknowledgments(result, ack999);
             if (!result.containsKey(SchemaJavaValues.delimiterCharacters())) {
                 result.put(SchemaJavaValues.delimiterCharacters(), "*>U~");
             }
@@ -217,7 +223,7 @@ public abstract class X12TestBase extends TestBase {
      * @throws IOException
      */
     protected String parseAndReturnInterchangeAcks(String path) {
-        DocumentTestX12 test = new DocumentTestX12(schema);
+        DocumentTestX12 test = new DocumentTestX12(schema, false);
         InputStream is = X12TestBase.class.getResourceAsStream(path);
         if (is == null) {
             throw new IllegalArgumentException("File " + path + " not found");
@@ -246,7 +252,7 @@ public abstract class X12TestBase extends TestBase {
         IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
         IdentityInformation[] senders = new IdentityInformation[1];
         senders[0] = identity;
-        X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, -1,
+        X12ParserConfig config = new X12ParserConfig(true, true, true, true, true, true, true, true, false, -1,
             CharacterRestriction.EXTENDED, EdiConstants.ASCII_CHARSET, new IdentityInformation[0], new IdentityInformation[0],
             new String[0]);
 

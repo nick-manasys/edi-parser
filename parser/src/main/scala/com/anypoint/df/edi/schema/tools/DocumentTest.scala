@@ -104,8 +104,9 @@ sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs
 
 case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends DocumentTest(es) {
 
-  def this(sch: EdiSchema) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true, -1,
-    CharacterRestriction.EXTENDED, ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]()))
+  def this(sch: EdiSchema, ack999: Boolean) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true,
+    ack999, -1, CharacterRestriction.EXTENDED, ASCII_CHARSET, Array[IdentityInformation](),
+    Array[IdentityInformation](), Array[String]()))
 
   import com.anypoint.df.edi.schema.SchemaJavaValues._
   import com.anypoint.df.edi.schema.X12Acknowledgment._
@@ -142,15 +143,16 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     os.toString
   }
 
-  /** Write 997 acknowledgement information from parse as output document. */
+  /** Write 997/999 acknowledgement information from parse as output document. */
   def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
-    val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, config)
+    val wconfig = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
+    val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, wconfig)
     val outmap = new ValueMapImpl(map)
     val transactions = new ValueMapImpl
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
-    transactions put ("997", acks)
+    val ackcode = if (config generate999) "999" else "997"
+    transactions put (ackcode, acks)
     outmap put (transactionsMap, transactions)
     if (!outmap.containsKey(interchangeKey)) outmap put (interchangeKey, new ValueMapImpl)
     writer.write(outmap).get
@@ -240,7 +242,7 @@ object DocumentTest {
     val schemaFile = new File(args(0))
     val schema = new YamlReader().loadYaml(new InputStreamReader(new FileInputStream(schemaFile)), Array(args(1)))
     val parse = schema.ediForm match {
-      case EdiSchema.X12 => new DocumentTestX12(schema)
+      case EdiSchema.X12 => new DocumentTestX12(schema, false)
       case EdiSchema.EdiFact => new DocumentTestEdifact(schema)
     }
     val examples = args.toList.tail.tail
