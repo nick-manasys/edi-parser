@@ -234,4 +234,26 @@ public class LexerBaseTest
         	fail();
 		} catch (LexicalException e) { }
     }
+    
+    @Test
+    public void testExponentialNotation() throws Exception {
+        TestLexer lexer = initializeLexer("12.34*.1234E2*1234E-2*12.345*.1234E20*1234E-20~");
+        assertEquals(new BigDecimal("12.34"), lexer.parseNumber(4, 4));
+        assertEquals(new BigDecimal("12.34"), lexer.parseNumber(5, 5));
+        assertEquals(new BigDecimal("12.34"), lexer.parseNumber(5, 5));
+        try {
+            lexer.parseNumber(4, 4);
+            fail();
+        } catch (LexicalException e) { }
+        lexer.advance();
+        try {
+            lexer.parseNumber(5, 5);
+            fail();
+        } catch (LexicalException e) { }
+        lexer.advance();
+        try {
+            lexer.parseNumber(5, 5);
+            fail();
+        } catch (LexicalException e) { }
+    }
 }

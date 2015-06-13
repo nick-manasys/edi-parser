@@ -491,7 +491,7 @@ public abstract class WriterBase
     public void writeInt(int value, int minl, int maxl) throws IOException {
         String text = padZeroes(Integer.toString(value), minl);
         if (text.length() > maxl) {
-            if (!text.startsWith("-") || (text.length() -1 > maxl)) {
+            if (!text.startsWith("-") || (text.length() - 1 > maxl)) {
                 throw new WriteException("value too long");
             }
         }
@@ -509,7 +509,7 @@ public abstract class WriterBase
     public void writeBigInteger(BigInteger value, int minl, int maxl) throws IOException {
         String text = padZeroes(value.toString(), minl);
         if (text.length() > maxl) {
-            if (!text.startsWith("-") || (text.length() -1 > maxl)) {
+            if (!text.startsWith("-") || (text.length() - 1 > maxl)) {
                 throw new WriteException("value too long");
             }
         }
@@ -532,8 +532,6 @@ public abstract class WriterBase
     
     /**
      * Write big decimal value.
-     * TODO: handle writing exponential indicators E+/-n
-     * TODO: X12 explicitly forbids triad separators, check EDIFACT
      *
      * @param value
      * @param minl
@@ -541,25 +539,36 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeDecimal(BigDecimal value, int minl, int maxl) throws IOException {
-        
-        // if no decimal point needed just write as an integer
-        if (value.scale() <= 0) {
+        int precision = value.precision();
+        int scale = value.scale();
+        if (scale <= 0 && precision - scale < maxl) {
+            
+            // write as simple integer
             writeBigInteger(value.toBigIntegerExact(), minl, maxl);
             return;
+            
+        } else if (scale >= 0 && Math.max(precision, scale) <= maxl) {
+            
+            // write as simple decimal
+            int adj = value.signum() < 0 ? 2 : 1;
+            writeToken(padZeroes(value.toPlainString(), minl + adj));
+            return;
+            
+        } else {
+            
+            // convert using implied decimal (at end) and exponent
+            BigDecimal adjusted = value.movePointRight(scale);
+            String text = adjusted.toBigIntegerExact().toString();
+            text = text + "E" + Integer.toString(-scale);
+            int adj = value.signum() < 0 ? 2 : 1;
+            if (scale > 0) {
+                adj++;
+            }
+            if (text.length() > maxl + adj) {
+                throw new WriteException("length outside of allowed range");
+            }
+            writeToken(padZeroes(text, minl + adj));
         }
-        
-        // check against maximum length, not counting decimal point or minus sign
-        String text = value.toString();
-        int length = text.length() - 1;
-        if (value.signum() < 0) {
-            length--;
-        }
-        if (length > maxl) {
-            throw new WriteException("length outside of allowed range");
-        }
-        
-        // write with leading zeroes if needed to reach minimum length
-        writeToken(padZeroes(decimalMark == '.' ? text : text.replace('.', decimalMark), minl + 1));
     }
     
     /**

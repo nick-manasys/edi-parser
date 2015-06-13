@@ -628,8 +628,7 @@ public abstract class LexerBase
     }
     
     /**
-     * Get current token as an X12 real number value and advance to next token. TODO: handle exponential indicators,
-     * allow comma decimal point for EDIFACT
+     * Get current token as an X12/EDIFACT real number value and advance to next token.
      *
      * @param minl minimum length (excluding sign and/or decimal)
      * @param maxl maximum length (excluding sign and/or decimal)
@@ -640,21 +639,31 @@ public abstract class LexerBase
         String text = token;
         int length = 0;
         boolean decimal = false;
-        boolean replace = false;
+        int exponent = -1;
         for (int i = 0; i < text.length(); i++) {
             char chr = text.charAt(i);
             if (chr >= '0' && chr <= '9') {
                 length++;
-            } else if (!decimal && (chr == '.' || (replace = chr == altDecimalMark))) {
+            } else if (!decimal && (chr == '.' || chr == altDecimalMark)) {
                 decimal = true;
-            } else if (i != 0 || chr != '-') {
+                if (chr == altDecimalMark) {
+                    text = text.replace((char)altDecimalMark, '.');
+                }
+            } else if (exponent < 0 && (chr == 'E' || chr == 'e')) {
+                exponent = i;
+            } else if ((i != 0 && i != exponent + 1) || chr != '-') {
                 handleError(DataType.REAL, ErrorCondition.INVALID_CHARACTER, "character '" + chr
                     + "' not allowed or wrong placement");
             }
         }
         checkLength(DataType.REAL, length, minl, maxl);
         advance();
-        return new BigDecimal(replace ? text.replace((char)altDecimalMark, '.') : text);
+        if (exponent >= 0) {
+            BigDecimal base = new BigDecimal(text.substring(0, exponent));
+            int power = Integer.valueOf(text.substring(exponent + 1));
+            return base.scaleByPowerOfTen(power);
+        }
+        return new BigDecimal(text);
     }
     
     /**
