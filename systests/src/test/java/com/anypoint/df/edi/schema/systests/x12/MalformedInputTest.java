@@ -63,6 +63,7 @@ public class MalformedInputTest extends X12TestBase {
 				{BadInputFiles.MISSING_BEG, BadInputFiles.MISSING_BEG_EX}, 
 				{BadInputFiles.MISSING_PO1, BadInputFiles.MISSING_PO1_EX}, 
 				{BadInputFiles.MISSING_SE, BadInputFiles.MISSING_SE_EX},
+                {BadInputFiles.BAD_REPLACES_SE, BadInputFiles.BAD_REPLACES_SE_EX},
                 {BadInputFiles.MISSING_GE, BadInputFiles.MISSING_GE_EX}
 		});
 	}
