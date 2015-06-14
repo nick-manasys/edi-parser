@@ -34,7 +34,7 @@ public abstract class LexerBase
     final int substitutionChar;
     
     /** Allowed character set for string data (<code>null</code> if unrestricted). */
-    final boolean[] allowedChars;
+    boolean[] allowedChars;
     
     /** Reader wrapping document data stream (created by {@link #init()}). */
     Reader reader;
@@ -102,13 +102,11 @@ public abstract class LexerBase
      * @param is input
      * @param subst substitution character for invalid character in string (-1 if unused)
      * @param altdec alternative decimal mark character (to '.', -1 if unused)
-     * @param chars allowed character set flags for string data (<code>null</code> if unrestricted)
      */
-    public LexerBase(InputStream is, int subst, int altdec, boolean[] chars) {
+    public LexerBase(InputStream is, int subst, int altdec) {
         stream = is;
         substitutionChar = subst;
         altDecimalMark = altdec;
-        allowedChars = chars;
     }
     
     /**

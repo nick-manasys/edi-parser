@@ -34,9 +34,10 @@ public class X12Lexer extends LexerBase
      * @param chset character set selection
      */
     public X12Lexer(InputStream is, Charset charset, int subst, CharacterRestriction chset) {
-        super(is, subst, -1, chset.flags());
+        super(is, subst, -1);
         subCompSeparator = -1;
         reader = new BufferedReader(new InputStreamReader(stream, charset));
+        allowedChars = chset.flags();
     }
     
     /**

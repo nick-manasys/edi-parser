@@ -35,7 +35,7 @@ public class EdifactLexer extends LexerBase
      * @param subst substitution character for invalid character in string (-1 if unused)
      */
     public EdifactLexer(InputStream is, Charset charset, int subst) {
-        super(is, subst, ',', null);
+        super(is, subst, ',');
         componentSeparator = ':';
         dataSeparator = '+';
         releaseIndicator = '?';
@@ -188,6 +188,7 @@ public class EdifactLexer extends LexerBase
             }
             
             // turn stream into reader with appropriate character set
+            allowedChars = syntax.flags();
             reader = new BufferedReader(new InputStreamReader(stream, charset));
             advance(ItemType.DATA_ELEMENT);
             return version;
