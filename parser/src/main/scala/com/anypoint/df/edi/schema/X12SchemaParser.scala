@@ -281,7 +281,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
   }
 
   /** Report segment error. */
-  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError) = {
+  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError, discard: Boolean) = {
     def addError(fatal: Boolean, error: SegmentSyntaxError) = {
       oneOrMoreSegmentsInError = true
       if (config.reportDataErrors) {

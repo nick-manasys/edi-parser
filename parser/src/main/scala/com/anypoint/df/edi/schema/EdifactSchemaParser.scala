@@ -119,7 +119,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   var currentSegment: Segment = null
 
   /** Error code for current segment (not data error). */
-  var segmentError: SyntaxError = null
+  var segmentGeneralError: SyntaxError = null
 
   /** Control reference for current interchange, used in error reporting. */
   var interchangeReference = ""
@@ -281,12 +281,20 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       case _ =>
     }
   }
+  
+  def handleSegmentErrors(segNum: Int) =
+    if (segmentGeneralError != null || !segmentErrors.isEmpty) {
+      val code = if (segmentGeneralError == null) null else segmentGeneralError.code
+      messageErrors += SegmentErrorReport(segNum, code, segmentErrors.toList)
+      segmentGeneralError = null
+      segmentErrors.clear
+    }
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, group: Option[GroupComponent], position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
     val map = new ValueMapImpl
-    segmentError = null
+    segmentGeneralError = null
     segmentErrors.clear
     currentSegment = segment
     val segNum = errorSegmentNumber
@@ -299,22 +307,17 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         discardSegment
       }
     }
-    if (segmentError != null || !segmentErrors.isEmpty) {
-      val code = if (segmentError == null) null else segmentError.code
-      messageErrors += SegmentErrorReport(segNum, code, segmentErrors.toList)
-    }
+    handleSegmentErrors(segNum)
     if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.token}'")
     map
   }
 
   /** Report segment error. */
-  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError) = {
+  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError, discard: Boolean) = {
     def addError(fatal: Boolean, error: SyntaxError) = {
       logErrorInMessage(fatal, false, s"${error.text}: $ident")
       if (fatal) rejectMessage = true
-      if (segmentError == null) {
-        segmentError = error
-      }
+      if (segmentGeneralError == null) segmentGeneralError = error
     }
 
     error match {
@@ -325,6 +328,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       case ComponentErrors.OutOfOrderSegment => addError(config.orderFail, NotSupportedInPosition)
       case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, NotSupportedInPosition)
     }
+    if (discard) handleSegmentErrors(errorSegmentNumber)
   }
 
   /** Get the UNB segment definition for the syntax version. */
@@ -605,7 +609,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
           firstInterchange = new ValueMapImpl()
           syntaxVersion = init(firstInterchange)
           map put (delimiterCharacters, buildDelims)
-          segmentError = null
+          segmentGeneralError = null
           segmentErrors.clear
           parseCompList(unbSegment(syntaxVersion).components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT,
             firstInterchange)
@@ -613,7 +617,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         } catch {
           case e: LexicalException => {
             logger.error(s"Unable to process message due to error in interchange header: ${e.getMessage}")
-            if (segmentError != null) throw EdifactInterchangeException(segmentError, e.getMessage, e)
+            if (segmentGeneralError != null) throw EdifactInterchangeException(segmentGeneralError, e.getMessage, e)
             else if (segmentErrors.isEmpty) throw EdifactInterchangeException(UnspecifiedError, e.getMessage, e)
             else throw EdifactInterchangeException(segmentErrors(0).error, e.getMessage, e)
           }

@@ -81,7 +81,7 @@ object DecodeContrl extends SchemaJavaDefs {
         if (code != null) builder ++= s" error ${SyntaxErrors(code).text}"
         val ucdlist = getAs[MapList](segcomps(1).key, segmap)
         val dataelem = segUCD.components(1).asInstanceOf[CompositeComponent]
-        foreachMapInList(ucdlist, ucdmap => {
+        if (ucdlist != null) foreachMapInList(ucdlist, ucdmap => {
           val error = SyntaxErrors(getRequiredString(segUCD.components(0).key, ucdmap))
           builder ++= s" ${error.text} on ${buildOptionalDataElement(dataelem, ucdmap)} "
         })
