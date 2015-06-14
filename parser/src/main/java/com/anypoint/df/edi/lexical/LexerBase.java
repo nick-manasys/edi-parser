@@ -121,6 +121,21 @@ public abstract class LexerBase
     public abstract Object init(Map<String,Object> props) throws LexicalException;
     
     /**
+     * Close input.
+     */
+    public void close() {
+        if (reader != null) {
+            try {
+                reader.close();
+            } catch (Throwable t) { /* nothing to do */ }
+        } else {
+            try {
+                stream.close();
+            } catch (Throwable t) { /* nothing to do */ }
+        }
+    }
+    
+    /**
      * Read bytes from stream into array. Throws an IOException if not enough bytes are present to fill the array.
      *
      * @param byts array

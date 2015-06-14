@@ -76,7 +76,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
   extends SchemaParser(new X12Lexer(in, config charSet, config.substitutionChar, config.strChar), sc) {
 
   import X12SchemaDefs._
-  
+
   /** Transaction code for generated acknowledgments. */
   val ackTransCode = if (config generate999) "999" else "997"
 
@@ -497,7 +497,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
   def term(props: ValueMap): X12Lexer.InterchangeEndStatus = lexer.asInstanceOf[X12Lexer].term(props)
 
   /** Parse the input message. */
-  def parse: Try[ValueMap] = Try {
+  def parse: Try[ValueMap] = Try(try {
 
     def matchIdentity(interQual: String, interId: String, usage: String, allowed: Array[IdentityInformation]) =
       allowed.filter { info =>
@@ -692,5 +692,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       }
     }
     map
-  }
+  } finally {
+    try { lexer close } catch { case e: Throwable => }
+  })
 }

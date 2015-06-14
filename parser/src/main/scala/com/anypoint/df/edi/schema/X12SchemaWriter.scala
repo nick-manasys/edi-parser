@@ -169,9 +169,10 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
         term(interProps)
       }
     }
-    close
   } catch {
     case e: WriteException => throw e
     case e: Throwable => logAndThrow("Writer error ", e)
+  } finally {
+    try { close } catch { case e: Throwable => }
   })
 }

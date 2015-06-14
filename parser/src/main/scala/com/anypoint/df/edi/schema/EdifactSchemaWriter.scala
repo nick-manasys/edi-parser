@@ -182,9 +182,10 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
         term(termprops)
       }
     }
-    close
   } catch {
     case e: WriteException => throw e
     case e: Throwable => logAndThrow("Writer error ", e)
+  } finally {
+    try { close } catch { case e: Throwable => }
   })
 }

@@ -132,7 +132,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
 
   /** Number of messages in interchange. */
   var interchangeMessageCount = 0
-  
+
   /** Number of good messages in interchange. */
   var interchangeGoodCount = 0
 
@@ -405,9 +405,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   /** Parse close of a message set. */
   def closeSet(props: ValueMap) = {
     def closeError(error: SyntaxError) = {
-        logErrorInMessage(true, false, error.text)
-        if (messageErrorCode == null) messageErrorCode = error
-        rejectMessage = true
+      logErrorInMessage(true, false, error.text)
+      if (messageErrorCode == null) messageErrorCode = error
+      rejectMessage = true
     }
     if (checkSegment(segUNT)) {
       if (rejectMessage) discardSegment
@@ -527,7 +527,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   def init(data: ValueMap) = lexer.asInstanceOf[EdifactLexer].init(data)
 
   /** Parse the input message. */
-  def parse: Try[ValueMap] = Try {
+  def parse: Try[ValueMap] = Try(try {
 
     def valueOrNull[T](index: Int, values: Array[T]): T = if (index < values.length) values(index) else null.asInstanceOf[T]
 
@@ -755,5 +755,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       }
     }
     map
-  }
+  } finally {
+    try { lexer close } catch { case e: Throwable => }
+  })
 }
