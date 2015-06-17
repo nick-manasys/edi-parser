@@ -145,7 +145,7 @@ UNZ+1+50'"""
 
   def main(args: Array[String]): Unit = {
     val config = EdifactParserConfig(true, true, true, true, true, true, true, -1,
-      ASCII_CHARSET, Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
+      Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
     val is = new ByteArrayInputStream(testMsg.getBytes)
     val schema = EdiSchema(EdiSchema.EdiFact, "D01A", Map[String, EdiSchema.Element](), Map[String, EdiSchema.Composite](),
       Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]()).merge(transCONTRLv4)

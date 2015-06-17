@@ -12,14 +12,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.anypoint.df.edi.lexical.EdiConstants;
-import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.EdifactIdentityInformation;
 import com.anypoint.df.edi.schema.EdifactParserConfig;
 import com.anypoint.df.edi.schema.EdifactSchemaDefs;
 import com.anypoint.df.edi.schema.EdiSchema.*;
-import com.anypoint.df.edi.schema.IdentityInformation;
 import com.anypoint.df.edi.schema.systests.TestBase;
 import com.anypoint.df.edi.schema.tools.DecodeContrl;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
@@ -219,7 +216,7 @@ public abstract class EdifactTestBase extends TestBase {
         EdifactIdentityInformation identity =
             new EdifactIdentityInformation(interchangeId, interchangeQualifier, null, null);
         EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, -1,
-            EdiConstants.ASCII_CHARSET, new EdifactIdentityInformation[0], new EdifactIdentityInformation[] { identity });
+            new EdifactIdentityInformation[0], new EdifactIdentityInformation[] { identity });
 
         DocumentTest test = new DocumentTestEdifact(schema, config);
         InputStream is = EdifactTestBase.class.getResourceAsStream(inputFilePath);

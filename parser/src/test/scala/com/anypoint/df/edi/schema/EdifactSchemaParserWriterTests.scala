@@ -40,7 +40,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   def buildUNZ(count: Int) = s"UNZ+$count+8'"
 
   val parserConfig = EdifactParserConfig(true, true, true, true, true, true, true, -1,
-    ASCII_CHARSET, Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
+    Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
   
   /** Reads a copy of the test document into memory, standardizing line endings. */
   val testDoc = {

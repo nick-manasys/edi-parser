@@ -25,16 +25,13 @@ public class EdifactLexer extends LexerBase
         VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR
     }
     
-    private final Charset specifiedCharset;
-    
     /**
      * Constructor.
      *
      * @param is input
-     * @param charset agreed character set for partners (<code>null</code> if none)
      * @param subst substitution character for invalid character in string (-1 if unused)
      */
-    public EdifactLexer(InputStream is, Charset charset, int subst) {
+    public EdifactLexer(InputStream is, int subst) {
         super(is, subst, ',');
         componentSeparator = ':';
         dataSeparator = '+';
@@ -42,7 +39,6 @@ public class EdifactLexer extends LexerBase
         segmentTerminator = '\'';
         repetitionSeparator = '*';
         subCompSeparator = -1;
-        specifiedCharset = charset;
     }
     
     /**
@@ -130,10 +126,10 @@ public class EdifactLexer extends LexerBase
             }
             
             // check for character encoding specified
-            Charset charset = specifiedCharset == null ? syntax.defaultCharSet() : specifiedCharset;
             int chr = stream.read();
             String codelist = null;
             String charenc = null;
+            Charset charset = syntax.defaultCharSet();
             if (version == SyntaxVersion.VERSION4 && chr == componentSeparator) {
                 
                 // ignore service code list directory version number

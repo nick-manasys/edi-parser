@@ -174,7 +174,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
 case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es) {
 
   def this(sch: EdiSchema) = this(sch, EdifactParserConfig(true, true, true, true, true, true, true, -1,
-    ASCII_CHARSET, Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]()))
+    Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]()))
 
   import com.anypoint.df.edi.schema.EdifactAcknowledgment._
   import com.anypoint.df.edi.schema.SchemaJavaValues._
