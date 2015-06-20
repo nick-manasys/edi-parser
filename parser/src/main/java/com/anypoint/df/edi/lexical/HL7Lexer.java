@@ -16,7 +16,7 @@ import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxIdentifier;
 import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
 
 /**
- * Lexer variation for EDIFACT.
+ * Lexer variation for HL7.
  */
 public class HL7Lexer extends LexerBase
 {
@@ -54,7 +54,7 @@ public class HL7Lexer extends LexerBase
      * @return version
      * @throws LexicalException
      */
-    public SyntaxVersion init(Map<String,Object> props) throws LexicalException {
+    public Object init(Map<String,Object> props) throws LexicalException {
         try {
             
             // check the segment tag for optional UNA

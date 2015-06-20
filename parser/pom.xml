@@ -13,11 +13,15 @@
     <relativePath>..</relativePath>
   </parent>
 
+  <properties>
+    <snakeyaml.version>1.15</snakeyaml.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.yaml</groupId>
       <artifactId>snakeyaml</artifactId>
-      <version>1.15</version>
+      <version>${snakeyaml.version}</version>
     </dependency>
     <dependency>
       <groupId>log4j</groupId>
@@ -101,6 +105,36 @@
             <id>test</id>
             <goals>
               <goal>test</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.3</version>
+        <configuration>
+          <createDependencyReducedPom>false</createDependencyReducedPom>
+          <minimizeJar>true</minimizeJar>
+          <artifactSet>
+            <includes>
+              <include>org.yaml:snakeyaml</include>
+            </includes>
+          </artifactSet>
+          <relocations>
+            <relocation>
+              <pattern>org.yaml.snakeyaml</pattern>
+              <shadedPattern>org.yaml.snakeyaml.${snakeyaml.version}.shade</shadedPattern>
+            </relocation>
+          </relocations>
+          <shadedArtifactAttached>true</shadedArtifactAttached>
+          <shadedClassifierName>snakeyaml</shadedClassifierName> <!-- Any name that makes sense -->
+        </configuration>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
             </goals>
           </execution>
         </executions>

@@ -428,9 +428,8 @@ public abstract class WriterBase
     }
     
     /**
-     * Write text as an id value. This format allows a single space to be added at the end of the value, which must
-     * otherwise consist only of alphas and digits. If any lowercase alphas are present they are silently converted to
-     * uppercase.
+     * Write text as an id value. This is the same as alphanumeric, except that at least one character must be present
+     * and the first character cannot be a space.
      *
      * @param text
      * @param minl minimum length
@@ -438,22 +437,13 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeId(String text, int minl, int maxl) throws IOException {
-        int length = text.length();
-        if (length < (minl - 1) || length > maxl) {
-            throw new WriteException("length outside of allowed range");
+        if (minl > 0 && text.length() == 0) {
+            throw new WriteException("at least one character must be present in id");
         }
-        for (int i = 0; i < length; i++) {
-            char chr = text.charAt(i);
-            if (!Character.isAlphabetic(chr) && (chr < '0' || chr > '9') && (chr != ' ' || i < length - 1)) {
-                throw new WriteException("character '" + chr + "' not allowed in id");
-            } else if (Character.isLowerCase(chr)) {
-                text = text.toUpperCase();
-            }
+        if (text.charAt(0) == ' ') {
+            throw new WriteException("first character of an id cannot be a space");
         }
-        if (length == minl - 1) {
-            text = text + " ";
-        }
-        writeToken(text);
+        writeAlphaNumeric(text, minl, maxl);
     }
     
     /**
