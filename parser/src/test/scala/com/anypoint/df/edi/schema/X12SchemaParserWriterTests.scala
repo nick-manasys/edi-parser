@@ -127,6 +127,30 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     result.isInstanceOf[Success[ValueMap]] should be (true)
     val map = result.get
   }
+  
+  it should "generate a Functional Acknowledgment for a received group" in {
+    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
+    val parser = X12SchemaParser(messageIn, schema, new DefaultX12NumberValidator, parserConfig)
+    val result = parser.parse
+    result.isInstanceOf[Success[ValueMap]] should be (true)
+    val map = result.get
+    val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
+    acks.size should be (1)
+  }
+  
+  it should "not generate a Functional Acknowledgment for a Functional Acknowledgment" in {
+    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val text = "ISA*00*          *00*          *ZZ*MULESOFT       *ZZ*MODUS          *150106*1201*U*00501*000000001*1*P*>~GS*FA*MULESOFT*MODUS*20150106*1201*1*X*005010~ST*999*0001~AK1*PO*123456789*005010~AK2*850*000000123~IK5*R*4~AK9*R*2*1*0*5~SE*6*0001~GE*1*1~IEA*1*000000001~"
+    val parser = X12SchemaParser(new ByteArrayInputStream(text.getBytes), schema, new DefaultX12NumberValidator, parserConfig)
+    val result = parser.parse
+    result.isInstanceOf[Success[ValueMap]] should be (true)
+    val map = result.get
+    val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
+    acks.size should be (0)
+  }
 
   behavior of "X12SchemaWriter"
 
