@@ -506,7 +506,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
       }
 
     def skipGroup(error: GroupSyntaxError) = {
-      groupErrors += error
+      groupError(error)
       discardToGroupEnd
     }
 
