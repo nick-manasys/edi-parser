@@ -72,7 +72,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       }
     }
   }
-  
+
   /** Report a repetition error on a composite component. This can probably be generalized in the future. */
   def repetitionError(comp: CompositeComponent): Unit
 
@@ -98,8 +98,13 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     case object UnusedSegment extends ComponentError
   }
 
-  /** Report segment error. */
-  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError, discard: Boolean): Unit
+  /** Report segment error.
+    * @param ident segment ident
+    * @param group containing group
+    * @param error
+    * @param flush report error immediately (segment already parsed or will not be parsed)
+    */
+  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError, flush: Boolean): Unit
 
   /** Containing scope within a parse. This gives a way of looking into scopes back up the tree of nested scopes for
     * the current point in the parse, to 1) tell whether a segment that doesn't fit in the current scope is for some
@@ -165,14 +170,14 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
             // make sure list is set in map
             val list = getList(key, values)
             if (max > 1 && list.size == max) {
-              segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops, false)
+              segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops, true)
             }
           }
         def addInstance(key: String, data: ValueMap) =
           if (values.containsKey(key)) {
             values get (key) match {
               case list: MapList => list add (data)
-              case _ => segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops, false)
+              case _ => segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops, true)
             }
           } else values put (key, data)
         @tailrec
@@ -312,13 +317,16 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
                   val data =
                     if (ref.count == 1) parseSegment(segment, group, ref.position)
                     else parseRepeatingSegment(segment, ref.count, group, ref.position)
-                  if (ref.usage != UnusedUsage) values put (ref.key, data)
+                  if (ref.usage != UnusedUsage) {
+                    if (values.containsKey(ref.key)) segmentError(ident, grpid, ComponentErrors.TooManyRepetitions, true)
+                    else values put (ref.key, data)
+                  }
                   parseComponents(nextpos)
                 }
               }
               case Some(grp: GroupComponent) => {
                 if (grp.endPosition.position < position) {
-                  segmentError(ident, grpid, ComponentErrors.OutOfOrderSegment, false)
+                  segmentError(ident, grpid, ComponentErrors.OutOfOrderSegment, true)
                 } else if (grp.position.position >= position) {
                   parseRepeatingGroup(grp, values,
                     ContainingScope(comps, group.map { _.leadSegmentRef.segment }, grp.position) :: scopes)
@@ -370,7 +378,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       case _ =>
     }
     convertSectionControl match {
-      case Some(1) => segmentError(lexer.token, None, ComponentErrors.OutOfOrderSegment, false)
+      case Some(1) => segmentError(lexer.token, None, ComponentErrors.OutOfOrderSegment, true)
       case _ =>
     }
     topMap put (transactionSummary, parseTable(2, transaction.summaryById))

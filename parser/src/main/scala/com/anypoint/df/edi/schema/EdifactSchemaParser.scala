@@ -294,7 +294,6 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   def parseSegment(segment: Segment, group: Option[GroupComponent], position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
     val map = new ValueMapImpl
-    segmentGeneralError = null
     segmentErrors.clear
     currentSegment = segment
     val segNum = errorSegmentNumber
