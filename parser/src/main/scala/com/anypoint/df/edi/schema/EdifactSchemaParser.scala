@@ -647,7 +647,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       ackroot put (transactionHeading, ackhead)
       ackroot put (transactionDetail, new ValueMapImpl)
       ackroot put (transactionSummary, new ValueMapImpl)
-      funcAckList add (ackroot)
+      funcAckList add ackroot
       val interack = new ValueMapImpl
       val segUCI = uciSegment(syntaxVersion)
       interack put (segUCI.components(0).key, interchangeReference)
@@ -660,6 +660,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
         def parseMessage(context: String, group: Option[ValueMap]) = {
           interchangeMessageCount = interchangeMessageCount + 1
           val (setid, setprops) = openSet
+          if (setid == "CONTRL") funcAckList remove ackroot
           if (numval.validateMessage(getRequiredString(msgHeadReferenceKey, setprops),
             getRequiredString(msgHeadMessageTypeKey, setprops),
             getRequiredString(msgHeadMessageVersionKey, setprops),

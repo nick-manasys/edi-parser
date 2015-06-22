@@ -412,8 +412,8 @@ object EdiSchema {
 case class EdiSchema(val ediForm: EdiSchema.EdiForm, val version: String, val elements: Map[String, EdiSchema.Element],
   val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
   val transactions: EdiSchema.TransactionMap) {
-  def this(ver: String) = this(EdiSchema.X12, ver, Map[String, EdiSchema.Element](), Map[String, EdiSchema.Composite](),
-    Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]())
+  def this(form: EdiSchema.EdiForm, ver: String) = this(form, ver, Map[String, EdiSchema.Element](),
+    Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]())
   def merge(other: EdiSchema) = EdiSchema(ediForm, version, elements ++ other.elements, composites ++ other.composites,
     segments ++ other.segments, transactions ++ other.transactions)
   def merge(transact: EdiSchema.Transaction) = {

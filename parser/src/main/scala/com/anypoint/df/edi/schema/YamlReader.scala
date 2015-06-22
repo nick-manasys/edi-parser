@@ -453,7 +453,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       val version = getRequiredString(versionKey, input)
       val baseSchema = if (input.containsKey(importsKey)) {
         val impsin = getChildList(importsKey, input).asInstanceOf[java.util.List[String]]
-        impsin.asScala.toList.foldLeft(new EdiSchema(version))((acc, path) => {
+        impsin.asScala.toList.foldLeft(new EdiSchema(form, version))((acc, path) => {
           schemaCache.get(path) match {
             case Some(schema) => acc.merge(schema)
             case None => {
@@ -465,7 +465,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
             }
           }
         })
-      } else new EdiSchema(version)
+      } else new EdiSchema(form, version)
       val elements =
         if (input.containsKey(elementsKey)) convertElements(input, baseSchema.elements)
         else baseSchema.elements

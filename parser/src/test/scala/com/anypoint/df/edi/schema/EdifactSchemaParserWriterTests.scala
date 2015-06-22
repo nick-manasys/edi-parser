@@ -41,7 +41,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   val parserConfig = EdifactParserConfig(true, true, true, true, true, true, true, -1,
     Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
-  
+
   /** Reads a copy of the test document into memory, standardizing line endings. */
   val testDoc = {
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")).getLines
@@ -52,10 +52,10 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     })
     builder.toString
   }
-  
+
   val testSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
     getClassLoader.getResourceAsStream("esl/ORDERS.esl"), "UTF-8"), Array())
-  
+
   def parseDoc(doc: String) = {
     val ins = new ByteArrayInputStream(doc.getBytes(ASCII_CHARSET))
     val parser = EdifactSchemaParser(ins, testSchema, new DefaultEdifactNumberValidator, parserConfig)
@@ -121,35 +121,54 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     result.isInstanceOf[Success[ValueMap]] should be (true)
     val map = result.get
   }
-  
+
   it should "parse syntax version 1 as syntax version 2" in {
     val modDoc = testDoc.substring(0, 9) + '1' + testDoc.substring(10, 44) + testDoc.substring(46)
     val input = parseDoc(modDoc)
     val interMsg = getRequiredValueMap(interchangeKey, input)
     interMsg.get(interHeadSyntaxVersionKey) should be ("1")
   }
-  
+
   it should "throw an exception when date length in UNB doesn't match syntax version" in {
     val modDoc = testDoc.substring(0, 9) + '1' + testDoc.substring(10)
     intercept[EdifactInterchangeException] { parseDoc(modDoc) }
   }
-  
+
   it should "parse syntax version 2" in {
     val modDoc = testDoc.substring(0, 9) + '2' + testDoc.substring(10, 44) + testDoc.substring(46)
     val input = parseDoc(modDoc)
     val interMsg = getRequiredValueMap(interchangeKey, input)
     interMsg.get(interHeadSyntaxVersionKey) should be ("2")
   }
-  
+
   it should "parse syntax version 3" in {
     val modDoc = "UNB+UNOA:3" + testDoc.substring(10, 44) + testDoc.substring(46)
     val input = parseDoc(modDoc)
     val interMsg = getRequiredValueMap(interchangeKey, input)
     interMsg.get(interHeadSyntaxVersionKey) should be ("3")
   }
-  
+
+  it should "generate a CONTRL acknowledgment for a normal message" in {
+    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")
+    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, parserConfig)
+    val map = parser.parse.get
+    val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
+    acks.size should be (1)
+  }
+
+  it should "not generate a CONTRL acknowledgment for a CONTRL message" in {
+    val schema = new EdiSchema(EdiFact, "96a").merge(transCONTRLv3)
+    val messageIn = new ByteArrayInputStream("UNB+UNOC:3+MODUS:ZZZ+MULESOFT:ZZZ+150608:2032+1++ORDERS'UNH+1+CONTRL:D:96A:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UNT+3+1'UNZ+1+1'".getBytes)
+    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, parserConfig)
+    val map = parser.parse.get
+    val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
+    acks.size should be (0)
+  }
+
   val writerConfig = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, -1, '.', ASCII_CHARSET, "+:*'?", "\n")
-  
+
   /** Get provider configured for the sample document. */
   def docProvider = {
     val provider = new DefaultEdifactNumberProvider
@@ -157,10 +176,10 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     provider.setNum = 6423
     provider
   }
-  
+
   /** Prepare a test input message to be output as the same mesaage. Removes the interchange information from the
-   *  actual message(s) and swaps interchange sender and receipient information in the root interchange map.
-   */
+    * actual message(s) and swaps interchange sender and receipient information in the root interchange map.
+    */
   def prepareToSend(input: ValueMap) = {
     getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).asScala.foreach {
       map => map.remove(interchangeKey)
@@ -198,7 +217,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     text.substring(0, start) should be (compare.substring(0, start))
     text.substring(end) should be (compare.substring(end))
   }
-  
+
   it should "roundtrip a parsed document" in {
     val input = parseDoc(testDoc)
     val out = new ByteArrayOutputStream
@@ -209,7 +228,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val text = new String(out.toByteArray)
     text should be (testDoc)
   }
-  
+
   it should "roundtrip a parsed document using syntax version 2" in {
     val modDoc = "UNB+UNOB:2" + testDoc.substring(10, 44) + testDoc.substring(46)
     val input = parseDoc(modDoc)
@@ -221,7 +240,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val text = new String(out.toByteArray)
     text should be (modDoc)
   }
-  
+
   it should "roundtrip a parsed document using syntax version 3" in {
     val modDoc = "UNB+UNOA:3" + testDoc.substring(10, 44) + testDoc.substring(46)
     val input = parseDoc(modDoc)
@@ -233,7 +252,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val text = new String(out.toByteArray)
     text should be (modDoc)
   }
-  
+
   it should "use interchange data at message level to override root level" in {
     val input = parseDoc(testDoc)
     val out = new ByteArrayOutputStream
@@ -244,23 +263,23 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val interRoot = new ValueMapImpl(interMsg)
     swap(interHeadSenderQualKey, interHeadRecipientQualKey, interMsg)
     swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, interMsg)
-    input put(interchangeKey, interRoot)
+    input put (interchangeKey, interRoot)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     text should be (testDoc)
   }
-  
+
   def oneshotWriter = EdifactSchemaWriter(new ByteArrayOutputStream, testSchema, new DefaultEdifactNumberProvider, writerConfig)
-  
+
   it should "throw an exception when missing required interchange data" in {
     val input = parseDoc(testDoc)
     getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).asScala.foreach {
       map => map.remove(interchangeKey)
     }
-    input remove(interchangeKey)
+    input remove (interchangeKey)
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
-  
+
   /** Data- and schema-dependent tests. */
   it should "throw an exception when missing required segment" in {
     val input = parseDoc(testDoc)
@@ -285,21 +304,21 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val input = parseDoc(testDoc)
     val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
     val segment = getRequiredMapList("0030 DTM", getRequiredValueMap(transactionHeading, message)).get(0)
-    segment remove("DTM0101")
+    segment remove ("DTM0101")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when a number value is given a string" in {
     val input = parseDoc(testDoc)
     val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
     val segment = getRequiredMapList("2110 CNT", getRequiredValueMap(transactionSummary, message)).get(0)
-    segment put("CNT0102", "1")
+    segment put ("CNT0102", "1")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when a string value is given a number" in {
     val input = parseDoc(testDoc)
     val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
     val segment = getRequiredMapList("2110 CNT", getRequiredValueMap(transactionSummary, message)).get(0)
-    segment put("CNT0101", Integer.valueOf(2))
+    segment put ("CNT0101", Integer.valueOf(2))
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
 }
