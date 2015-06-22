@@ -531,7 +531,7 @@ public abstract class WriterBase
     public void writeDecimal(BigDecimal value, int minl, int maxl) throws IOException {
         int precision = value.precision();
         int scale = value.scale();
-        if (scale <= 0 && precision - scale < maxl) {
+        if (scale <= 0 && (precision - scale) <= maxl) {
             
             // write as simple integer
             writeBigInteger(value.toBigIntegerExact(), minl, maxl);
@@ -540,7 +540,7 @@ public abstract class WriterBase
         } else if (scale >= 0 && Math.max(precision, scale) <= maxl) {
             
             // write as simple decimal
-            int adj = value.signum() < 0 ? 2 : 1;
+            int adj = (value.signum() < 0 ? 1 : 0) + (scale > 0 ? 1 : 0);
             writeToken(padZeroes(value.toPlainString(), minl + adj));
             return;
             
