@@ -83,6 +83,9 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
     writeSegment(props, SESegment)
     setCount += 1
   }
+  
+  /** Write top-level section of transaction. */
+  def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]) = writeSection(map, comps)
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment) = segment.ident == "ST" || segment.ident == "SE"

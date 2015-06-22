@@ -5367,3 +5367,19 @@ X    9603  Information detail identifier                           [I]
 
      Repr: an..3
 
+----------------------------------------------------------------------
+
+     0081  Section identification                                  [B]
+
+     Desc: Code qualifying the section.
+
+     Repr: a1
+
+----------------------------------------------------------------------
+
+     0087  Anti-collision segment group identification             [B]
+
+     Desc: Group identifier
+
+     Repr: an..4
+

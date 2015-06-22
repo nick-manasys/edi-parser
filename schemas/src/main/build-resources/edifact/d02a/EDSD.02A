@@ -3396,3 +3396,29 @@
        7036  Characteristic description                C      an..35
 
 080    4513 MAINTENANCE OPERATION CODE                 C    1 an..3
+
+----------------------------------------------------------------------
+
+       UGH  ANTI-COLLISION SEGMENT GROUP HEADER
+
+       Function: To head, identify and specify an anti-collision segment group.
+
+010    0087 ANTI-COLLISION SEGMENT GROUP
+            IDENTIFICATION                             M    1 an..4
+
+----------------------------------------------------------------------
+
+       UGT  ANTI-COLLISION SEGMENT GROUP TRAILER
+
+       Function: To head, identify and specify an anti-collision segment group.
+
+010    0087 ANTI-COLLISION SEGMENT GROUP
+            IDENTIFICATION                             M    1 an..4
+
+----------------------------------------------------------------------
+
+       UNS  SECTION CONTROL
+
+       Function: To head, identify and specify an anti-collision segment group.
+
+010    0081 SECTION IDENTIFICATION                     M    1 a1

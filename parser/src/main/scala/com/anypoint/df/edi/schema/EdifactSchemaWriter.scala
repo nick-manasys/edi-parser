@@ -39,6 +39,18 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
+  
+  /** Write top-level section of transaction. */
+  def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]) = comps match {
+    case (ref: ReferenceComponent) :: tail if (ref.segment.ident == "UNS") => {
+      writer.writeToken("UNS")
+      writer.writeDataSeparator
+      writer.writeToken(if (index == 1) "D" else "S")
+      writer.writeSegmentTerminator
+      writeSection(map, tail)
+    }
+    case _ => writeSection(map, comps)
+  }
 
   /** Output interchange header segment(s). */
   def init(props: ValueMap) = {
@@ -84,7 +96,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   }
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
-  def isEnvelopeSegment(segment: Segment) = segment.ident == "UNH" || segment.ident == "UNT"
+  def isEnvelopeSegment(segment: Segment) = schema.ediForm.isEnvelopeSegment(segment.ident)
 
   /** Stores list of string values matching the simple value components. */
   def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {

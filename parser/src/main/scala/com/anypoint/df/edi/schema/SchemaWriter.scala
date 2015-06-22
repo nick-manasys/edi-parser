@@ -120,11 +120,11 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
             if (comp.count > 1) {
               value match {
                 case list: SimpleList =>
-                if (list.isEmpty()) comp.usage match {
-                  case MandatoryUsage => throw new WriteException(s"no values present for property ${comp.name}")
-                  case _ =>
-                }
-                else list.asScala.foreach { value => writeComponent(value) }
+                  if (list.isEmpty()) comp.usage match {
+                    case MandatoryUsage => throw new WriteException(s"no values present for property ${comp.name}")
+                    case _ =>
+                  }
+                  else list.asScala.foreach { value => writeComponent(value) }
                 case _ => throw new WriteException(s"expected list of values for property ${comp.name}")
               }
             } else writeComponent(value)
@@ -145,7 +145,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     def writeCompList(map: ValueMap, typ: ItemType, skip: Boolean, comps: List[SegmentComponent]): Unit = comps match {
       case h :: t => {
         try {
-            writeValue(map, typ, skip, h)
+          writeValue(map, typ, skip, h)
         } catch {
           case e: WriteException => throw e
           case e: Exception => throw new WriteException(s"${e.getMessage} on component ${h.key}")
@@ -165,15 +165,10 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     writer.writeSegmentTerminator
   }
 
-  /** Write a complete transaction. The supplied map has a maximum of five values: the transaction id and name, and
-    * separate child maps for each of the three sections of a transaction (heading, detail, and summary). Each child map
-    * is keyed by segment name (with the ID suffixed in parenthesis) or group id. For a segment with no repeats allowed
-    * the associated value is the map of the values in the segment. For a segment with repeats allowed the value is a
-    * list of maps, one for each occurrence of the segment. For a group the value is also a list of maps, with each map
-    * of the same form as the child maps of the top-level result (so keys are segment or nested group names, values are
-    * maps or lists).
+  /** Write a portion of transaction data represented by a list of components (which may be segment references or
+    * loops) from a map.
     */
-  def writeTransaction(map: ValueMap, transaction: Transaction) = {
+  def writeSection(map: ValueMap, comps: List[TransactionComponent]): Unit = comps.foreach(comp => {
 
     /** Write a (potentially) repeating segment from a list of maps. */
     def writeRepeatingSegment(list: MapList, segment: Segment, limit: Int): Unit =
@@ -183,63 +178,72 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     def writeRepeatingGroup(list: MapList, group: GroupBase): Unit =
       list.asScala.foreach { map => writeSection(map, group.items) }
 
-    /** Write a portion of transaction data represented by a list of components (which may be segment references or
-      * loops) from a map.
-      */
-    def writeSection(map: ValueMap, comps: List[TransactionComponent]): Unit = comps.foreach(comp => {
-      def checkMissing = comp.usage match {
-        case MandatoryUsage => throw new WriteException(s"missing required value '${comp.key}'")
-        case _ =>
-      }
-      def writeGroup(key: String, group: GroupBase) =
-        if (group.count == 1) writeSection(getRequiredValueMap(key, map), group.items)
-        else writeRepeatingGroup(getRequiredMapList(key, map), group)
-      val key = comp.key
-      comp match {
-        case ref: ReferenceComponent =>
-          if (!isEnvelopeSegment(ref.segment)) {
-            if (map.containsKey(key)) {
-              val value = map.get(key)
-              if (ref.count != 1) {
-                val list = getRequiredMapList(key, map)
-                if (list.isEmpty) ref.usage match {
-                  case MandatoryUsage => throw new WriteException(s"no values present for segment ${ref.key}")
-                  case _ =>
-                }
-                else writeRepeatingSegment(list, ref.segment, ref.count)
-              } else writeSegment(getRequiredValueMap(key, map), ref.segment)
-            } else checkMissing
-          }
-        case wrap: LoopWrapperComponent =>
+    def checkMissing = comp.usage match {
+      case MandatoryUsage => throw new WriteException(s"missing required value '${comp.key}'")
+      case _ =>
+    }
+    def writeGroup(key: String, group: GroupBase) =
+      if (group.count == 1) writeSection(getRequiredValueMap(key, map), group.items)
+      else writeRepeatingGroup(getRequiredMapList(key, map), group)
+    
+    val key = comp.key
+    comp match {
+      case ref: ReferenceComponent =>
+        if (!isEnvelopeSegment(ref.segment)) {
           if (map.containsKey(key)) {
-            val idmap = new ValueMapImpl
-            idmap put (wrap.open.components.head.key, wrap.ident)
-            idmap put (wrap.close.components.head.key, wrap.ident)
-            writeSegment(idmap, wrap.open)
-            writeGroup(key, wrap.loopGroup)
-            writeSegment(idmap, wrap.close)
+            val value = map.get(key)
+            if (ref.count != 1) {
+              val list = getRequiredMapList(key, map)
+              if (list.isEmpty) ref.usage match {
+                case MandatoryUsage => throw new WriteException(s"no values present for segment ${ref.key}")
+                case _ =>
+              }
+              else writeRepeatingSegment(list, ref.segment, ref.count)
+            } else writeSegment(getRequiredValueMap(key, map), ref.segment)
+          } else checkMissing
+        }
+      case wrap: LoopWrapperComponent =>
+        if (map.containsKey(key)) {
+          val idmap = new ValueMapImpl
+          idmap put (wrap.open.components.head.key, wrap.ident)
+          idmap put (wrap.close.components.head.key, wrap.ident)
+          writeSegment(idmap, wrap.open)
+          writeGroup(key, wrap.loopGroup)
+          writeSegment(idmap, wrap.close)
+        }
+      case group: GroupComponent =>
+        var variant = false
+        group.variants.foreach { gv =>
+          if (map.containsKey(gv.key)) {
+            variant = true
+            writeGroup(gv.key, gv)
           }
-        case group: GroupComponent =>
-          var variant = false
-          group.variants.foreach { gv =>
-            if (map.containsKey(gv.key)) {
-              variant = true
-              writeGroup(gv.key, gv)
-            }
-          }
-          if (map.containsKey(key)) writeGroup(key, group)
-          else if (!variant) checkMissing
-      }
-    })
+        }
+        if (map.containsKey(key)) writeGroup(key, group)
+        else if (!variant) checkMissing
+    }
+  })
+  
+  /** Write top-level section of transaction. */
+  def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]): Unit
 
-    if (!transaction.heading.isEmpty) writeSection(getRequiredValueMap(transactionHeading, map), transaction.heading)
-    if (!transaction.detail.isEmpty) writeSection(getRequiredValueMap(transactionDetail, map), transaction.detail)
-    if (!transaction.summary.isEmpty) writeSection(getRequiredValueMap(transactionSummary, map), transaction.summary)
+  /** Write a complete transaction. The supplied map has a maximum of five values: the transaction id and name, and
+    * separate child maps for each of the three sections of a transaction (heading, detail, and summary). Each child map
+    * is keyed by segment name (with the ID suffixed in parenthesis) or group id. For a segment with no repeats allowed
+    * the associated value is the map of the values in the segment. For a segment with repeats allowed the value is a
+    * list of maps, one for each occurrence of the segment. For a group the value is also a list of maps, with each map
+    * of the same form as the child maps of the top-level result (so keys are segment or nested group names, values are
+    * maps or lists).
+    */
+  def writeTransaction(map: ValueMap, transaction: Transaction) = {
+    if (!transaction.heading.isEmpty) writeTopSection(0, getRequiredValueMap(transactionHeading, map), transaction.heading)
+    if (!transaction.detail.isEmpty) writeTopSection(1, getRequiredValueMap(transactionDetail, map), transaction.detail)
+    if (!transaction.summary.isEmpty) writeTopSection(2, getRequiredValueMap(transactionSummary, map), transaction.summary)
   }
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment): Boolean
-  
+
   /** Close output, intended for testing rather than application. */
   def close = writer.close
 

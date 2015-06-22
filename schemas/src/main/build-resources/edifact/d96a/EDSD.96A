@@ -2688,26 +2688,26 @@
 
 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
 
-      UGH  ANTI-COLLISION SEGMENT GROUP HEADER
+       UGH   ANTI-COLLISION SEGMENT GROUP HEADER
 
-      Function: To head, identify and specify an anti-collision segment group.
+       Function: To head, identify and specify an anti-collision segment group.
 
 010   0087  ANTI-COLLISION SEGMENT GROUP
-            IDENTIFICATION                                 M  an..4
+            IDENTIFICATION                                 M  1 an..4
 
 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
 
-      UGT  ANTI-COLLISION SEGMENT GROUP TRAILER
+       UGT   ANTI-COLLISION SEGMENT GROUP TRAILER
 
-      Function: To head, identify and specify an anti-collision segment group.
+       Function: To head, identify and specify an anti-collision segment group.
 
 010   0087  ANTI-COLLISION SEGMENT GROUP
-            IDENTIFICATION                                 M  an..4
+            IDENTIFICATION                                 M  1 an..4
 
 컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
 
-      UNS  SECTION CONTROL
+       UNS   SECTION CONTROL
 
-      Function: To head, identify and specify an anti-collision segment group.
+       Function: To head, identify and specify an anti-collision segment group.
 
-010   0081  SECTION IDENTIFICATION                         M  a1
+010   0081  SECTION IDENTIFICATION                         M  1 a1

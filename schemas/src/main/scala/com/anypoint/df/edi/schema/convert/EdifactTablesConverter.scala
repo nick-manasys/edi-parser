@@ -7,7 +7,7 @@ import scala.io.Source
 
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.schema.{ EdiSchema, YamlReader, YamlWriter }
+import com.anypoint.df.edi.schema.{ EdiSchema, EdifactSchemaDefs, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 
 /** Application to generate EDIFACT transaction schemas from table data.
@@ -313,7 +313,7 @@ object EdifactTablesConverter {
 
         lines.skipToLead
         val items = itemr(Nil)
-        if (items.isEmpty) throw new IllegalArgumentException(s"No values defined for segnebt ${heads(1)}")
+        if (items.isEmpty) throw new IllegalArgumentException(s"No values defined for segment ${heads(1)}")
         buildr(Segment(heads(1), heads(2), items, Nil) :: acc)
       } else acc reverse
     }
@@ -391,7 +391,7 @@ object EdifactTablesConverter {
               liner(segref :: acc)
             }
             case _ =>
-              if (Set("UNH", "UNT", "UNS", "UGH", "UGT") contains fields(2)) liner(acc)
+              if (Set("UNH", "UNT", "UGH", "UGT") contains fields(2)) liner(acc)
               else throw new IllegalArgumentException(s"Unknown segment reference ${fields(2)}")
           }
         }
