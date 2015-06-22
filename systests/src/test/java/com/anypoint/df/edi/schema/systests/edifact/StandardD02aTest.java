@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class StandardD02a extends EdifactTestBase {
+public class StandardD02aTest extends EdifactTestBase {
     
     @Test
     public void verifyCOPARN() throws Exception {

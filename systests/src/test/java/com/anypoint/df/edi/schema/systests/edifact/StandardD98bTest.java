@@ -1,11 +1,8 @@
 package com.anypoint.df.edi.schema.systests.edifact;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Ignore;
 import org.junit.Test;
 
-public class StandardD98b extends EdifactTestBase {
+public class StandardD98bTest extends EdifactTestBase {
     
     @Test
     public void verifyIFCSUM() throws Exception {
@@ -24,10 +21,4 @@ public class StandardD98b extends EdifactTestBase {
         // TODO: fails because of comma decimal marker on input written as decimal point on output, need to configure output
 //        parseAndCheckWrite("/edifact/d98b/IFTERA_refrigerated.edi");
     }
-    
-//    @Test
-//    public void verifyGeneratedAcks() {
-//        assertEquals("ISA*00*          *00*          *ZZ*9177           *01*000099999      *XXXXXX*XXXX*U*00400*XXXXXXXXX*X*P*>~GS*FA*9177*000099999*XXXXXXXX*XXXX**X*004010~ST*997*0001~AK1*PO*966~AK9*A*1*1*1~SE*4*0001~GE*1*1~IEA*1*000000001~",
-//            stripAckDates(parseAndReturnAck("/x12/004010/sample850s/850_9177_1.edi")));
-//    }
 }

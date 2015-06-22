@@ -134,7 +134,7 @@ public abstract class EdifactTestBase extends TestBase {
         while (iterin.hasNext() && iterout.hasNext()) {
             String is = iterin.next();
             String os = iterout.next();
-            assertEquals(os, is);
+            assertEquals(is, os);
         }
         assertFalse(iterin.hasNext());
         assertFalse(iterout.hasNext());
@@ -192,15 +192,16 @@ public abstract class EdifactTestBase extends TestBase {
      * Parse a document, then write out and return the generated CONTRL acknowledgment.
      * 
      * @param path
+     * @return acknowledgment
      * @throws IOException
      */
     protected String parseAndReturnAck(String path) {
-        DocumentTest test = new DocumentTestEdifact(schema);
         InputStream is = EdifactTestBase.class.getResourceAsStream(path);
         if (is == null) {
             throw new IllegalArgumentException("File " + path + " not found");
         }
         try {
+            DocumentTest test = new DocumentTestEdifact(schema);
             Map<String, Object> result = test.parse(is);
             printAcknowledgments(result);
             return test.printAck(result);
@@ -208,9 +209,16 @@ public abstract class EdifactTestBase extends TestBase {
             e.printStackTrace();
             return e.getMessage();
         }
-
     }
 
+    /**
+     * Parse a document with sender identity information specified.
+     * 
+     * @param inputFilePath
+     * @param interchangeId
+     * @param interchangeQualifier
+     * @return acknowledgment
+     */
     protected String parseWithSenderIdentityInformation(String inputFilePath, String interchangeId,
         String interchangeQualifier) {
         EdifactIdentityInformation identity =
@@ -221,6 +229,7 @@ public abstract class EdifactTestBase extends TestBase {
         DocumentTest test = new DocumentTestEdifact(schema, config);
         InputStream is = EdifactTestBase.class.getResourceAsStream(inputFilePath);
         Map<String, Object> result = test.parse(is);
+        printAcknowledgments(result);
         return test.printAck(result);
     }
 }

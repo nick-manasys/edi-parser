@@ -5,7 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class Standard_004010_850 extends X12TestBase {
+public class Standard_004010_850Test extends X12TestBase {
     
     @BeforeClass
     public static void setUpClass() {
