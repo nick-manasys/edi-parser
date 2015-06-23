@@ -80,7 +80,7 @@ public class EdifactWriter extends WriterBase
     public void init(Map<String, Object> props) throws IOException {
         
         // write UNA if needed
-        if (needUna) {
+        if (needUna || Boolean.TRUE.equals(props.get(EdifactConstants.FORCE_UNA))) {
             writer.write("UNA");
             writer.write(overrideDelimiters.charAt(1));
             writer.write(overrideDelimiters.charAt(0));

@@ -208,7 +208,8 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val inter = getRequiredValueMap(interchangeKey, map)
     val syntax = EDIFACT_CHARSETS.get(getAs(unbSyntax.components(0).key, "UNOC", inter))
     val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", inter))
-    val config = EdifactWriterConfig(syntax, version, -1, '.', ASCII_CHARSET, getRequiredString(delimiterCharacters, map), "")
+    val config = EdifactWriterConfig(syntax, version, -1, '.', ASCII_CHARSET,
+      getRequiredString(delimiterCharacters, map), "", false)
     val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val transacts = getRequiredValueMap(messagesMap, map)
     writer.write(map).get
@@ -220,7 +221,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val os = new ByteArrayOutputStream
     val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", getAsMap(interchangeKey, map)))
     val config = EdifactWriterConfig(LEVELC, SyntaxVersion.VERSION3, -1, '.', ASCII_CHARSET,
-      getRequiredString(delimiterCharacters, map), "")
+      getRequiredString(delimiterCharacters, map), "", false)
     val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val outmap = new ValueMapImpl
     outmap put(interchangeKey, map.get(interchangeKey))
