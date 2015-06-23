@@ -14,7 +14,7 @@ import com.anypoint.df.edi.lexical.EdifactConstants._
 /** Configuration parameters for EDIFACT schema writer.
   */
 case class EdifactWriterConfig(val syntax: SyntaxIdentifier, val version: SyntaxVersion, val subChar: Int,
-  val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String, val forceUNOA: Boolean) {
+  val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String, val forceUNA: Boolean) {
   if (delims.size != 0 && delims.size != 5) throw new IllegalArgumentException("delimiter string must be empty or 5 characters")
 }
 
@@ -56,7 +56,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   def init(props: ValueMap) = {
     props put (interHeadSyntaxIdentKey, config.syntax.code)
     props put (interHeadSyntaxVersionKey, config.version.code)
-    if (config.forceUNOA) props put (FORCE_UNA, java.lang.Boolean.TRUE)
+    if (config.forceUNA) props put (FORCE_UNA, java.lang.Boolean.TRUE)
     // TODO: set character encoding for v4, if it doesn't match syntax
     writer.init(props)
     writeSegment(props, unbSegment(config.version))
