@@ -83,7 +83,7 @@ object EdiSchema {
     * @param cnt maximum repetition count
     */
   case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage,
-    cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
+      cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
     val itemType = if (composite.isSimple) ItemType.DATA_ELEMENT else ItemType.SUB_COMPONENT
   }
 
@@ -154,20 +154,22 @@ object EdiSchema {
     * @param maxLength maximum length for entire value (0 if no limit)
     */
   case class Composite(id: String, nm: String, val components: List[SegmentComponent], val rules: List[OccurrenceRule],
-    val maxLength: Int) extends ComponentBase(id, nm) {
+      val maxLength: Int) extends ComponentBase(id, nm) {
     def this(id: String, nm: String, comps: List[SegmentComponent], rules: List[OccurrenceRule]) =
       this(id, nm, comps, rules, 0)
-    def rewrite(prefix: String, form: EdiForm) = Composite(ident, name,
-      components.map { comp =>
-        val rekey = form.keyName(prefix, comp.position)
-        comp match {
-          case ec: ElementComponent =>
-            ElementComponent(ec.element, Some(ec.name), rekey, ec.position, ec.usage, ec.count)
-          case cc: CompositeComponent =>
-            CompositeComponent(cc.composite, Some(cc.name), rekey, cc.position, cc.usage, cc.count)
-        }
-      },
-      rules, maxLength)
+    def rewrite(prefix: String, form: EdiForm): Composite =
+      Composite(ident, name,
+        components.map { scomp =>
+          val rekey = form.keyName(prefix, scomp.position)
+          scomp match {
+            case ec: ElementComponent =>
+              ElementComponent(ec.element, Some(ec.name), rekey, ec.position, ec.usage, ec.count)
+            case cc: CompositeComponent =>
+              val comp = if (cc.count == 1) cc.composite.rewrite(rekey, form) else cc.composite
+              CompositeComponent(comp, Some(cc.name), rekey, cc.position, cc.usage, cc.count)
+          }
+        },
+        rules, maxLength)
     val isSimple = components.forall { comp => comp.isInstanceOf[ElementComponent] }
   }
 
@@ -221,7 +223,7 @@ object EdiSchema {
     */
   case class ReferenceComponent(val segment: Segment, pos: SegmentPosition, use: Usage, cnt: Int)
     extends TransactionComponent(componentKey(segment.ident, pos), pos, use, cnt)
-  
+
   /** Any segment reference.
     * @param ident
     * @param position
@@ -242,7 +244,7 @@ object EdiSchema {
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
     val endPosition: SegmentPosition, use: Usage, val ident: String, grp: GroupComponent)
-    extends TransactionComponent(componentKey(open.ident, start), start, use, 1) {
+      extends TransactionComponent(componentKey(open.ident, start), start, use, 1) {
     val loopGroup = GroupComponent(grp.ident, grp.usage, grp.count, grp.items, grp.varkey, grp.variants, Some(key))
     val compsById = Map((open.ident + ident) -> ReferenceComponent(open, start, MandatoryUsage, 1),
       (close.ident + ident) -> ReferenceComponent(close, endPosition, MandatoryUsage, 1))
@@ -255,7 +257,7 @@ object EdiSchema {
     * @param items
     */
   sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int, val choice: Boolean,
-    val items: List[TransactionComponent]) extends TransactionComponent(ky, pos, use, cnt) {
+      val items: List[TransactionComponent]) extends TransactionComponent(ky, pos, use, cnt) {
 
     /** Components in group by segment identifier. */
     val compsById = componentsById(items)
@@ -269,10 +271,10 @@ object EdiSchema {
     */
   case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
     itms: List[TransactionComponent])
-    extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, itms)
+      extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, itms)
 
   /** Get lead reference from list of transaction components. If the first component is not a reference this recursively
-   *  descends until a first component reference is found.
+    * descends until a first component reference is found.
     * @param ident
     * @param comps
     */
@@ -293,8 +295,8 @@ object EdiSchema {
     */
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, itms: List[TransactionComponent],
     val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None, ch: Boolean = false)
-    extends GroupBase(ky.getOrElse(componentKey(ident, leadReference(ident, itms).position)),
-      leadReference(ident, itms).position, use, cnt, ch, itms) {
+      extends GroupBase(ky.getOrElse(componentKey(ident, leadReference(ident, itms).position)),
+        leadReference(ident, itms).position, use, cnt, ch, itms) {
 
     /** Group head segment reference. */
     val leadSegmentRef = leadReference(ident, items)
@@ -320,8 +322,8 @@ object EdiSchema {
     * @param summary
     */
   case class Transaction(val ident: String, val name: String, val group: Option[String],
-    val heading: List[TransactionComponent], val detail: List[TransactionComponent],
-    val summary: List[TransactionComponent]) {
+      val heading: List[TransactionComponent], val detail: List[TransactionComponent],
+      val summary: List[TransactionComponent]) {
 
     /** Segments used in transaction set. */
     val segmentsUsed = {
@@ -400,7 +402,7 @@ object EdiSchema {
     def isEnvelopeSegment(ident: String) = "MSH" == ident
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
-    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def keyName(parentId: String, position: Int) = parentId + "-" + (if (position < 10) "0" + position else position)
   }
   def convertEdiForm(value: String) = value match {
     case EdiFact.text => EdiFact
@@ -410,8 +412,8 @@ object EdiSchema {
 }
 
 case class EdiSchema(val ediForm: EdiSchema.EdiForm, val version: String, val elements: Map[String, EdiSchema.Element],
-  val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
-  val transactions: EdiSchema.TransactionMap) {
+    val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
+    val transactions: EdiSchema.TransactionMap) {
   def this(form: EdiSchema.EdiForm, ver: String) = this(form, ver, Map[String, EdiSchema.Element](),
     Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]())
   def merge(other: EdiSchema) = EdiSchema(ediForm, version, elements ++ other.elements, composites ++ other.composites,

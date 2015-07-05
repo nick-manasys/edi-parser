@@ -85,6 +85,12 @@ class DefaultEdifactNumberValidator extends EdifactNumberValidator {
     associationCode: String, directoryVersion: String, subFunction: String, context: String) = setRefs.add(msgRef)
 }
 
+class DefaultHL7NumberValidator extends HL7NumberValidator {
+  var msgNums = Set[String]()
+  def validateMessage(sender: HL7IdentityInformation, receiver: HL7IdentityInformation, control: String) =
+    msgNums.add(control)
+}
+
 sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs {
   
   /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found. */

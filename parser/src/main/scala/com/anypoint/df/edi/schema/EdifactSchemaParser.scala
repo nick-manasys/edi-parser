@@ -532,8 +532,6 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {
 
-    def valueOrNull[T](index: Int, values: Array[T]): T = if (index < values.length) values(index) else null.asInstanceOf[T]
-
     def buildIdentity(values: Array[String]) = EdifactIdentityInformation(values(0), valueOrNull(1, values),
       valueOrNull(2, values), valueOrNull(3, values))
 
@@ -588,17 +586,6 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, intercopy)
       ctrlmap put (interchangeKey, intercopy)
       ctrlmap
-    }
-
-    /** Builds array of string values matching the simple value components. */
-    def getStrings(comps: List[SegmentComponent], data: ValueMap) = {
-      @tailrec
-      def getr(rem: List[SegmentComponent], acc: List[String]): List[String] = rem match {
-        case (h: ElementComponent) :: t => getr(t, data.get(h.key).asInstanceOf[String] :: acc)
-        case h :: t => getr(t, acc)
-        case _ => acc.reverse
-      }
-      getr(comps, Nil).toArray
     }
 
     def openInterchange =

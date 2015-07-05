@@ -24,6 +24,20 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   val outsidePosition = SegmentPosition(0, "0000")
 
+  /** Get value from array, or null if past end. */
+  def valueOrNull[T](index: Int, values: Array[T]): T = if (index < values.length) values(index) else null.asInstanceOf[T]
+
+  /** Build array of string values matching the simple value components. */
+  def getStrings(comps: List[SegmentComponent], data: ValueMap) = {
+    @tailrec
+    def getr(rem: List[SegmentComponent], acc: List[String]): List[String] = rem match {
+      case (h: ElementComponent) :: t => getr(t, data.get(h.key).asInstanceOf[String] :: acc)
+      case h :: t => getr(t, acc)
+      case _ => acc.reverse
+    }
+    getr(comps, Nil).toArray
+  }
+
   /** Discard current element. */
   def discardElement = {
     lexer.advance
@@ -31,17 +45,20 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   }
 
   /** Parse a segment component, which is either an element or a composite. */
-  def parseComponent(comp: SegmentComponent, map: ValueMap): Unit = {
+  def parseComponent(comp: SegmentComponent, /*level: ItemType,*/ map: ValueMap): Unit = {
     comp match {
       case elemComp: ElementComponent => {
         val elem = elemComp.element
         val value = elem.dataType match {
           case ALPHA => lexer.parseAlpha(elem.minLength, elem.maxLength)
-          case ALPHANUMERIC | ID => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
+          case ALPHANUMERIC | DATETIME | STRINGDATA | VARIES => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
           case BINARY => throw new IOException("Handling not implemented for binary values")
           case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
+          case ID => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
           case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
           case NUMBER | REAL => lexer.parseNumber(elem.minLength, elem.maxLength)
+          case NUMERIC => lexer.parseNumeric(elem.minLength, elem.maxLength)
+          case SEQID => lexer.parseSeqId
           case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
           case typ: DataType if (typ.isDecimal) =>
             lexer.parseImpliedDecimalNumber(typ.decimalPlaces, elem.minLength, elem.maxLength)
@@ -266,7 +283,8 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
               false
             }
           }
-          checkr(scopes)
+          if (lexer.currentType == ItemType.END) true
+          else checkr(scopes)
         }
 
         /** Parse a wrapped loop, handling wrap open and close segments directly.

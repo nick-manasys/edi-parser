@@ -420,7 +420,6 @@ object EdifactSchemaDefs {
 object EdifactAcknowledgment {
 
   import EdiSchema._
-  import com.anypoint.df.edi.lexical.X12Constants._
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 

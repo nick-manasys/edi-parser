@@ -61,6 +61,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       val use = convertUsage(getRequiredString(usageKey, values))
       val count = values.get(countKey) match {
         case n: Integer => n.toInt
+        case ">1" => Integer.MAX_VALUE
         case null => 1
         case _ => throw new IllegalArgumentException(s"Value $countKey must be an integer")
       }

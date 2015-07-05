@@ -393,7 +393,7 @@ public abstract class LexerBase
                     break;
                 } else if (chr == releaseIndicator) {
                     escape = true;
-                } else if (chr == -1) {
+                } else if (value == -1) {
                     peekType = ItemType.END;
                     break;
                 } else {
@@ -626,6 +626,25 @@ public abstract class LexerBase
     }
     
     /**
+     * Get current token as an HL7 sequence ID value and advance to next token.
+     *
+     * @return
+     * @throws IOException
+     */
+    public Integer parseSeqId() throws IOException {
+        String text = token;
+        for (int i = 0; i < text.length(); i++) {
+            char chr = text.charAt(i);
+            if (chr < '0' || chr > '9') {
+                handleError(DataType.INTEGER, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
+            }
+        }
+        checkLength(DataType.INTEGER, text.length(), 1, 4);
+        advance();
+        return Integer.valueOf(text);
+    }
+    
+    /**
      * Get current token as an integer value and advance to next token.
      *
      * @param minl minimum length (excluding sign and/or decimal)
@@ -677,6 +696,38 @@ public abstract class LexerBase
             return base.scaleByPowerOfTen(power);
         }
         return new BigDecimal(text);
+    }
+    
+    /**
+     * Get current token as an HL7 numeric value and advance to next token.
+     *
+     * @param minl minimum length (excluding sign and/or decimal)
+     * @param maxl maximum length (excluding sign and/or decimal)
+     * @return
+     * @throws IOException
+     */
+    public Number parseNumeric(int minl, int maxl) throws IOException {
+        String text = token;
+        int length = 0;
+        boolean decimal = false;
+        for (int i = 0; i < text.length(); i++) {
+            char chr = text.charAt(i);
+            if (chr >= '0' && chr <= '9') {
+                length++;
+            } else if (!decimal && chr == '.') {
+                decimal = true;
+            } else if (i != 0 || (chr != '+' && chr != '-')) {
+                handleError(DataType.REAL, ErrorCondition.INVALID_CHARACTER, "character '" + chr
+                    + "' not allowed or wrong placement");
+            }
+        }
+        checkLength(DataType.REAL, length, minl, maxl);
+        advance();
+        if (decimal) {
+            return new BigDecimal(text);
+        } else {
+            return new BigInteger(text);
+        }
     }
     
     /**
