@@ -230,7 +230,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
     def checkParse(comp: SegmentComponent, of: ItemType) =
       if (of == lexer.currentType) {
-        if (lexer.token.length > 0) parseComponent(comp, map)
+        if (lexer.token.length > 0) parseComponent(comp, of, rest.nextLevel, map)
         else {
           if (comp.usage == MandatoryUsage) addElementError(MissingRequiredElement)
           lexer.advance
@@ -421,7 +421,7 @@ case class X12SchemaParser(in: InputStream, sc: EdiSchema, numval: X12NumberVali
     transLists: java.util.Map[String, MapList], providerId: String, groupSender: String, groupReceiver: String) = {
     def handleTransaction(t: Transaction, setprops: ValueMap, setack: ValueMap): ValueMap = {
       if (t.group == Some(groupCode)) {
-        val data = parseTransaction(t)
+        val data = parseTransaction(t, false)
         data put (interchangeKey, interchange)
         data put (groupKey, group)
         data put (setKey, setprops)

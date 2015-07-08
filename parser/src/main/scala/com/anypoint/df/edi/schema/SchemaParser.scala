@@ -24,20 +24,6 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
 
   val outsidePosition = SegmentPosition(0, "0000")
 
-  /** Get value from array, or null if past end. */
-  def valueOrNull[T](index: Int, values: Array[T]): T = if (index < values.length) values(index) else null.asInstanceOf[T]
-
-  /** Build array of string values matching the simple value components. */
-  def getStrings(comps: List[SegmentComponent], data: ValueMap) = {
-    @tailrec
-    def getr(rem: List[SegmentComponent], acc: List[String]): List[String] = rem match {
-      case (h: ElementComponent) :: t => getr(t, data.get(h.key).asInstanceOf[String] :: acc)
-      case h :: t => getr(t, acc)
-      case _ => acc.reverse
-    }
-    getr(comps, Nil).toArray
-  }
-
   /** Discard current element. */
   def discardElement = {
     lexer.advance
@@ -45,7 +31,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   }
 
   /** Parse a segment component, which is either an element or a composite. */
-  def parseComponent(comp: SegmentComponent, /*level: ItemType,*/ map: ValueMap): Unit = {
+  def parseComponent(comp: SegmentComponent, first: ItemType, rest: ItemType, map: ValueMap): Unit = {
     comp match {
       case elemComp: ElementComponent => {
         val elem = elemComp.element
@@ -70,14 +56,14 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         if (comp.count > 1) {
           val complist = new MapListImpl
           map put (comp.key, complist)
-          val baseType = compComp.itemType;
-          if (lexer.currentType == baseType) {
+          // TODO: is this check necessary? should never get here if not
+          if (lexer.currentType == first) {
             val compmap = new ValueMapImpl
-            parseCompList(composite.components, baseType, baseType.nextLevel, compmap)
+            parseCompList(composite.components, first, rest, compmap)
             complist add compmap
             while (lexer.currentType == REPETITION) {
               val repmap = new ValueMapImpl
-              parseCompList(composite.components, REPETITION, baseType.nextLevel, repmap)
+              parseCompList(composite.components, REPETITION, rest, repmap)
               complist add repmap
             }
             if (complist.size > comp.count) {
@@ -85,7 +71,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
               while (complist.size > comp.count) complist.remove(comp.count)
             }
           }
-        } else parseCompList(composite.components, lexer.currentType, COMPONENT, map)
+        } else parseCompList(composite.components, first, rest, map)
       }
     }
   }
@@ -142,7 +128,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     * the value is also a list of maps, with each map of the same form as the child maps of the top-level result (so
     * keys are segment or nested group names, values are maps or lists).
     */
-  def parseTransaction(transaction: Transaction) = {
+  def parseTransaction(transaction: Transaction, onepart: Boolean) = {
 
     /** Get list of maps for key. If the list is not already set, this creates and returns a new one. */
     def getList(key: String, values: ValueMap) =
@@ -385,22 +371,25 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       parse
     }
 
-    val topMap: ValueMap = new ValueMapImpl
-    topMap put (transactionId, transaction.ident)
-    topMap put (transactionName, transaction.name)
-    topMap put (transactionHeading, parseTable(0, transaction.headingById))
-    convertSectionControl match {
-      case Some(1) | None => {
-        topMap put (transactionDetail, parseTable(1, transaction.detailById))
+    if (onepart) parseTable(0, transaction.headingById)
+    else {
+      val topMap: ValueMap = new ValueMapImpl
+      topMap put (transactionId, transaction.ident)
+      topMap put (transactionName, transaction.name)
+      topMap put (transactionHeading, parseTable(0, transaction.headingById))
+      convertSectionControl match {
+        case Some(1) | None => {
+          topMap put (transactionDetail, parseTable(1, transaction.detailById))
+        }
+        case _ =>
       }
-      case _ =>
+      convertSectionControl match {
+        case Some(1) => segmentError(lexer.token, None, ComponentErrors.OutOfOrderSegment, true)
+        case _ =>
+      }
+      topMap put (transactionSummary, parseTable(2, transaction.summaryById))
+      topMap
     }
-    convertSectionControl match {
-      case Some(1) => segmentError(lexer.token, None, ComponentErrors.OutOfOrderSegment, true)
-      case _ =>
-    }
-    topMap put (transactionSummary, parseTable(2, transaction.summaryById))
-    topMap
   }
 
   /** Discard input past end of current segment. */

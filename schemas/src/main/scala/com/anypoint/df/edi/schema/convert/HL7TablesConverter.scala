@@ -178,12 +178,8 @@ object HL7TablesConverter {
           {
             val repeats = if (line(4) == "Y") line(5).toInt else 1
             comps(line(2)) match {
-              case Element(id, nm, typ, mn, mx) => {
-                val max = if (line(5).length > 0) line(5).toInt else mx
-                val elem = Element(id, nm, typ, mn, max)
-                ElementComponent(elem, None, "", line(1).toInt, convertUsage(line(3)), 1) :: acc
-              }
-              case c: Composite => CompositeComponent(c, None, "", line(1).toInt, convertUsage(line(3)), 1) :: acc
+              case e: Element => ElementComponent(e, None, "", line(1).toInt, convertUsage(line(3)), repeats) :: acc
+              case c: Composite => CompositeComponent(c, None, "", line(1).toInt, convertUsage(line(3)), repeats) :: acc
             }
           })
         case None => Nil
@@ -276,15 +272,21 @@ object HL7TablesConverter {
       // data_structure, description, data_type_code, repeating, elementary
       val dataStructs = lineList(fileInput(version, dataStructureNames))
       val structNames = dataStructs.foldLeft(Map[String, String]())((acc, line) => acc + (line(0) -> line(1)))
+      // (data_structure, seq_no), comp_no, table_id, min_length, max_length, req_opt
+      val groupedDataStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { _(0) }
 
       // build element definitions for elementary components
-      val elemDefs = dataStructs.filter { _(4) == "1" }.foldLeft(Map.empty[String, Element])((map, line) =>
-        map + (line(0) -> Element(line(0), line(1), EdiConstants.toHL7Type(line(2)), 0, 0)))
+      val elemDefs = dataStructs.filter { _(4) == "1" }.foldLeft(Map.empty[String, Element])((map, line) => {
+        val ident = line(0)
+        val compline = groupedDataStructs(ident).head
+        val mintext = compline(4)
+        val minlen = if (mintext.length > 0) mintext.toInt else 1
+        val maxlen = compline(5).toInt
+        map + (ident -> Element(line(0), line(1), EdiConstants.toHL7Type(line(2)), minlen, if (maxlen == 0) 9999 else maxlen))
+      })
       println("Generated element definitions:")
       elemDefs.keys.foreach { ident => println(ident) }
       val simpleComps = compDetails.filter { case (ident, line) => elemDefs.contains(line(3)) }
-      // (data_structure, seq_no), comp_no, table_id, min_length, max_length, req_opt
-      val groupedDataStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { _(0) }
       val compMap = buildComposites(groupedDataStructs, structNames, compDetails, elemDefs)
       compMap.foreach {
         case (key, elem: Element) => println(s"$key => ${elem.name} (element)")
@@ -320,7 +322,8 @@ object HL7TablesConverter {
       val groupedMsgStructs = lineList(fileInput(version, messageStructures)).reverse.groupBy { _(0) }
       val structures = buildStructures(groupedMsgStructs, segments)
 
-      val baseSchema = EdiSchema(HL7, version.getName, elemDefs, compDefs, segments, Map[String, Transaction]())
+      val vernum = version.getName.drop(1).replace('_', '.')
+      val baseSchema = EdiSchema(HL7, vernum, elemDefs, compDefs, segments, Map[String, Transaction]())
       val outdir = new File(yamldir, version.getName)
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
@@ -328,7 +331,7 @@ object HL7TablesConverter {
       
       val listWriter = new FileWriter(new File(outdir, "structures.txt"))
       structures foreach (struct => {
-        val schema = EdiSchema(HL7, version.getName, Map[String, Element](), Map[String, Composite](),
+        val schema = EdiSchema(HL7, vernum, Map[String, Element](), Map[String, Composite](),
           Map[String, Segment](), Map(struct.ident -> struct))
         writeSchema(schema, struct.ident, Array(s"/hl7/${version.getName}/basedefs$yamlExtension"), outdir)
         listWriter.write(struct.ident + '\n')

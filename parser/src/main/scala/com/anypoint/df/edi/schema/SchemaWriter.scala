@@ -69,92 +69,97 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       }
     })
 
+  /** Write a value from map. */
+  def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
+
+    def writeSimple(value: Any, dtype: DataType, min: Int, max: Int) = dtype match {
+      case ALPHA => writer.writeAlpha(value.asInstanceOf[String], min, max)
+      case ALPHANUMERIC | DATETIME | STRINGDATA | VARIES => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
+      case ID => writer.writeId(value.asInstanceOf[String], min, max)
+      case DATE => value match {
+        case calendar: Calendar => writer.writeDate(calendar, min, max)
+        case date: Date => writer.writeDate(date, min, max)
+        case _ => throw new WriteException(s"Date value must be Date or Calendar instance, not ${value.getClass.getName}")
+      }
+      case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue, min, max)
+      case NUMBER | REAL => writer.writeDecimal(value.asInstanceOf[BigDecimal], min, max)
+      case NUMERIC => writer.writeNumeric(value.asInstanceOf[Number], min, max)
+      case SEQID => writer.writeSeqId(value.asInstanceOf[Integer].intValue)
+      case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)
+      case BINARY => throw new WriteException("Handling not implemented for binary values")
+      case typ: DataType if (typ.isDecimal) =>
+        writer.writeImplicitDecimal(value.asInstanceOf[BigDecimal], typ.decimalPlaces, min, max)
+    }
+
+    def writeComponent(value: Object, repeat: Boolean) = {
+      if (repeat) writer.writeRepetitionSeparator
+      else if (!skip) typ match {
+        case SEGMENT => writer.writeSegmentTerminator
+        case DATA_ELEMENT => writer.writeDataSeparator
+        case COMPONENT => writer.writeComponentSeparator
+        case SUB_COMPONENT => writer.writeSubcomponentSeparator
+      }
+      comp match {
+        case ElementComponent(elem, _, _, _, _, _) =>
+          writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
+        case CompositeComponent(composite, _, _, _, _, _) =>
+          writeCompList(value.asInstanceOf[ValueMap], typ.nextLevel, true, composite.components)
+      }
+    }
+
+    def skipAtLevel = typ match {
+      case SEGMENT => writer.writeSegmentTerminator
+      case DATA_ELEMENT => writer.skipElement
+      case COMPONENT => writer.skipComponent
+      case SUB_COMPONENT => writer.skipSubcomponent
+      case REPETITION =>
+    }
+
+    comp match {
+      case cc: CompositeComponent if (cc.count == 1) =>
+        if (cc.composite.components.exists { ccc => map containsKey ccc.key }) {
+          writeComponent(map, false)
+        } else skipAtLevel
+      case _ =>
+        if (map.containsKey(comp.key)) {
+          val value = map.get(comp.key)
+          if (value == null) throw new WriteException(s"Value cannot be null for key ${comp.key}")
+          if (comp.count > 1) {
+            value match {
+              case list: SimpleList =>
+                if (list.isEmpty()) comp.usage match {
+                  case MandatoryUsage => throw new WriteException(s"no values present for property ${comp.name}")
+                  case _ =>
+                } else {
+                  writeComponent(list.get(0), false)
+                  list.asScala.drop(1).foreach { map => writeComponent(map, true) }
+                }
+              case _ => throw new WriteException(s"expected list of values for property ${comp.name}")
+            }
+          } else writeComponent(value, false)
+        } else comp.usage match {
+          case MandatoryUsage => throw new WriteException(s"missing required value '${comp.name}'")
+          case _ => if (!skip) skipAtLevel
+        }
+    }
+  }
+
+  /** Write a list of components (which may be the segment itself, a repeated set of values, or a composite). */
+  def writeCompList(map: ValueMap, typ: ItemType, skip: Boolean, comps: List[SegmentComponent]): Unit = comps match {
+    case h :: t => {
+      try {
+        writeValue(map, typ, skip, h)
+      } catch {
+        case e: WriteException => throw e
+        case e: Exception => throw new WriteException(s"${e.getMessage} on component ${h.key}")
+      }
+      writeCompList(map, typ, false, t)
+    }
+    case _ =>
+  }
+
   /** Write a segment from a map of values. */
   def writeSegment(map: ValueMap, segment: Segment): Unit = {
-
-    /** Write a value from map. */
-    def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
-
-      def writeSimple(value: Any, dtype: DataType, min: Int, max: Int) = dtype match {
-        case ALPHA => writer.writeAlpha(value.asInstanceOf[String], min, max)
-        case ALPHANUMERIC => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
-        case ID => writer.writeId(value.asInstanceOf[String], min, max)
-        case DATE => value match {
-          case calendar: Calendar => writer.writeDate(calendar, min, max)
-          case date: Date => writer.writeDate(date, min, max)
-          case _ => throw new WriteException(s"Date value must be Date or Calendar instance, not ${value.getClass.getName}")
-        }
-        case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue, min, max)
-        case NUMBER | REAL => writer.writeDecimal(value.asInstanceOf[BigDecimal], min, max)
-        case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)
-        case BINARY => throw new WriteException("Handling not implemented for binary values")
-        case typ: DataType if (typ.isDecimal) =>
-          writer.writeImplicitDecimal(value.asInstanceOf[BigDecimal], typ.decimalPlaces, min, max)
-      }
-
-      def writeComponent(value: Object) = {
-        if (!skip) typ match {
-          case SEGMENT => writer.writeSegmentTerminator
-          case DATA_ELEMENT => writer.writeDataSeparator
-          case COMPONENT => writer.writeComponentSeparator
-          case SUB_COMPONENT => writer.writeSubcomponentSeparator
-          case REPETITION => writer.writeRepetitionSeparator
-        }
-        comp match {
-          case ElementComponent(elem, _, _, _, _, _) =>
-            writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
-          case CompositeComponent(composite, _, _, _, _, _) =>
-            writeCompList(value.asInstanceOf[ValueMap], COMPONENT, true, composite.components)
-        }
-      }
-
-      comp match {
-        case cc: CompositeComponent if (cc.count == 1) =>
-          if (cc.composite.components.exists { ccc => map containsKey ccc.key }) {
-            writeComponent(map)
-          } else writer.skipElement
-        case _ =>
-          if (map.containsKey(comp.key)) {
-            val value = map.get(comp.key)
-            if (value == null) throw new WriteException(s"Value cannot be null for key ${comp.key}")
-            if (comp.count > 1) {
-              value match {
-                case list: SimpleList =>
-                  if (list.isEmpty()) comp.usage match {
-                    case MandatoryUsage => throw new WriteException(s"no values present for property ${comp.name}")
-                    case _ =>
-                  }
-                  else list.asScala.foreach { value => writeComponent(value) }
-                case _ => throw new WriteException(s"expected list of values for property ${comp.name}")
-              }
-            } else writeComponent(value)
-          } else comp.usage match {
-            case MandatoryUsage => throw new WriteException(s"missing required value '${comp.name}'")
-            case _ => if (!skip) typ match {
-              case SEGMENT => writer.writeSegmentTerminator
-              case DATA_ELEMENT => writer.skipElement
-              case COMPONENT => writer.skipComponent
-              case SUB_COMPONENT => writer.skipSubcomponent
-              case REPETITION =>
-            }
-          }
-      }
-    }
-
-    /** Write a list of components (which may be the segment itself, a repeated set of values, or a composite). */
-    def writeCompList(map: ValueMap, typ: ItemType, skip: Boolean, comps: List[SegmentComponent]): Unit = comps match {
-      case h :: t => {
-        try {
-          writeValue(map, typ, skip, h)
-        } catch {
-          case e: WriteException => throw e
-          case e: Exception => throw new WriteException(s"${e.getMessage} on component ${h.key}")
-        }
-        writeCompList(map, typ, false, t)
-      }
-      case _ =>
-    }
-
     writer.writeToken(segment.ident)
     try {
       writeCompList(map, DATA_ELEMENT, false, segment.components)
@@ -185,7 +190,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     def writeGroup(key: String, group: GroupBase) =
       if (group.count == 1) writeSection(getRequiredValueMap(key, map), group.items)
       else writeRepeatingGroup(getRequiredMapList(key, map), group)
-    
+
     val key = comp.key
     comp match {
       case ref: ReferenceComponent =>
@@ -223,7 +228,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         else if (!variant) checkMissing
     }
   })
-  
+
   /** Write top-level section of transaction. */
   def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]): Unit
 
@@ -235,7 +240,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     * of the same form as the child maps of the top-level result (so keys are segment or nested group names, values are
     * maps or lists).
     */
-  def writeTransaction(map: ValueMap, transaction: Transaction) = {
+  def writeTransaction(map: ValueMap, transaction: Transaction) {
     if (!transaction.heading.isEmpty) writeTopSection(0, getRequiredValueMap(transactionHeading, map), transaction.heading)
     if (!transaction.detail.isEmpty) writeTopSection(1, getRequiredValueMap(transactionDetail, map), transaction.detail)
     if (!transaction.summary.isEmpty) writeTopSection(2, getRequiredValueMap(transactionSummary, map), transaction.summary)

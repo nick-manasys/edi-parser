@@ -85,25 +85,34 @@ class DefaultEdifactNumberValidator extends EdifactNumberValidator {
     associationCode: String, directoryVersion: String, subFunction: String, context: String) = setRefs.add(msgRef)
 }
 
+class DefaultHL7NumberProvider extends HL7NumberProvider {
+  var msgNum = 0
+  def nextMessage(sender: HL7Identity.HL7IdentityInformation, receiver: HL7Identity.HL7IdentityInformation) = {
+    msgNum += 1
+    msgNum.toString
+  }
+}
+
 class DefaultHL7NumberValidator extends HL7NumberValidator {
+  import HL7Identity._
   var msgNums = Set[String]()
   def validateMessage(sender: HL7IdentityInformation, receiver: HL7IdentityInformation, control: String) =
     msgNums.add(control)
 }
 
 sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs {
-  
+
   /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found. */
   def parse(is: InputStream): ValueMap
-  
+
   /** Prepare input message for output, reversing the sender and receiver values. */
   def prepareOutput(inmap: ValueMap): Unit
-  
+
   /** Regenerate parsed document by writing map to output. This should give a document identical to the input, except
     * for date/times and line endings following segment terminators.
     */
   def printDoc(map: ValueMap): String
-  
+
   /** Write functional acknowledgement information from parse as output document. */
   def printAck(map: ValueMap): String
 }
@@ -126,7 +135,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
       case Failure(e) => throw e
     }
   }
-  
+
   /** Prepare input message for output, reversing the sender and receiver values. */
   def prepareOutput(map: ValueMap) = {
     val group = getRequiredValueMap(groupKey, map)
@@ -164,7 +173,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     writer.write(outmap).get
     os.toString
   }
-  
+
   /** Write interchange acknowledgement information from parse as output. */
   def printInterchangeAcks(delims: String, list: MapList) = {
     val os = new ByteArrayOutputStream
@@ -193,16 +202,16 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
       case Failure(e) => throw e
     }
   }
-  
+
   /** Prepare input message for output, reversing the sender and receiver values. */
   def prepareOutput(map: ValueMap) = {
     val inter = getRequiredValueMap(interchangeKey, map)
     swap(interHeadSenderQualKey, interHeadRecipientQualKey, inter)
     swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, inter)
     if (map.containsKey(groupKey)) {
-        val group = getRequiredValueMap(groupKey, map)
-        swap(groupHeadSenderQualKey, groupHeadRecipientQualKey, inter)
-        swap(groupHeadSenderIdentKey, groupHeadRecipientIdentKey, group)
+      val group = getRequiredValueMap(groupKey, map)
+      swap(groupHeadSenderQualKey, groupHeadRecipientQualKey, inter)
+      swap(groupHeadSenderIdentKey, groupHeadRecipientIdentKey, group)
     }
   }
 
@@ -230,7 +239,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
       getRequiredString(delimiterCharacters, map), "", false)
     val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val outmap = new ValueMapImpl
-    outmap put(interchangeKey, map.get(interchangeKey))
+    outmap put (interchangeKey, map.get(interchangeKey))
     val transactions = new ValueMapImpl
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     transactions put ("CONTRL", acks)

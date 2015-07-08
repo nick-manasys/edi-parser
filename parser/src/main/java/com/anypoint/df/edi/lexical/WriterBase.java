@@ -139,7 +139,7 @@ public abstract class WriterBase
      * @param chr
      * @param flags
      */
-    private void clearFlag(int chr, boolean[] flags) {
+    private static void clearFlag(int chr, boolean[] flags) {
         if (chr >= 0 && chr < flags.length) {
             flags[chr] = false;
         }
@@ -168,6 +168,7 @@ public abstract class WriterBase
     public void skipElement() {
         skippedElementCount++;
         skippedCompCount = 0;
+        skippedSubCompCount = 0;
     }
     
     /**
@@ -176,6 +177,7 @@ public abstract class WriterBase
      */
     public void skipComponent() {
         skippedCompCount++;
+        skippedSubCompCount = 0;
     }
     
     /**
@@ -295,6 +297,9 @@ public abstract class WriterBase
     public void writeRepetitionSeparator() throws IOException {
         checkSegmentStart();
         writer.write(repetitionSeparator);
+        skippedElementCount = 0;
+        skippedCompCount = 0;
+        skippedSubCompCount = 0;
     }
     
     /**
@@ -489,6 +494,23 @@ public abstract class WriterBase
     }
     
     /**
+     * Write HL7 sequence ID value.
+     *
+     * @param value
+     * @throws IOException
+     */
+    public void writeSeqId(int value) throws IOException {
+        if (value < 0) {
+            throw new WriteException("value cannot be negative");
+        }
+        String text = Integer.toString(value);
+        if (text.length() > 4) {
+            throw new WriteException("value too long");
+        }
+        writeToken(text);
+    }
+    
+    /**
      * Write big integer value.
      *
      * @param value
@@ -558,6 +580,40 @@ public abstract class WriterBase
                 throw new WriteException("length outside of allowed range");
             }
             writeToken(padZeroes(text, minl + adj));
+        }
+    }
+    
+    /**
+     * Write HL7 numeric big decimal value.
+     *
+     * @param value
+     * @param minl
+     * @param maxl
+     * @throws IOException
+     */
+    public void writeNumeric(Number number, int minl, int maxl) throws IOException {
+        if (number instanceof BigInteger) {
+            writeBigInteger((BigInteger)number, minl, maxl);
+        } else {
+            BigDecimal value = (BigDecimal)number;
+            int precision = value.precision();
+            int scale = value.scale();
+            if (scale <= 0 && (precision - scale) <= maxl) {
+                
+                // write as simple integer
+                writeBigInteger(value.toBigIntegerExact(), minl, maxl);
+                return;
+                
+            } else if (scale >= 0 && Math.max(precision, scale) <= maxl) {
+                
+                // write as simple decimal
+                int adj = (value.signum() < 0 ? 1 : 0) + (scale > 0 ? 1 : 0);
+                writeToken(padZeroes(value.toPlainString(), minl + adj));
+                return;
+                
+            } else {
+                throw new WriteException("length outside of allowed range");
+            }
         }
     }
     

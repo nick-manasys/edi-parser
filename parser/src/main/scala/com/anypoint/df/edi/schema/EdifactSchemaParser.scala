@@ -96,7 +96,7 @@ case class EdifactInterchangeException(error: SyntaxError, text: String, cause: 
 
 /** Parser for EDIFACT EDI documents. */
 case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNumberValidator, config: EdifactParserConfig)
-  extends SchemaParser(new EdifactLexer(in, config.substitutionChar), sc) {
+  extends SchemaParser(new EdifactLexer(in, config.substitutionChar), sc) with UtilityBase {
 
   import EdifactSchemaDefs._
 
@@ -266,7 +266,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     }
     def checkParse(comp: SegmentComponent, of: ItemType) =
       if (of == lexer.currentType) {
-        if (isPresent(comp)) parseComponent(comp, map)
+        if (isPresent(comp)) parseComponent(comp, of, rest.nextLevel, map)
         else {
           if (comp.usage == MandatoryUsage) addElementError(MissingRequiredValue)
           lexer.advance
@@ -571,7 +571,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     def parseGroup(group: ValueMap, groupCode: String, providerId: String, groupSender: String, groupReceiver: String) = {
       val (setid, setprops) = openSet
       schema.transactions.get(setid) match {
-        case t: Transaction => transLists.get(setid).add(parseTransaction(t))
+        case t: Transaction => transLists.get(setid).add(parseTransaction(t, false))
         case _ => messageError(NoAgreementForValue)
       }
     }
@@ -661,7 +661,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
                 getAsString(msgHeadMessageReleaseKey, setprops)).toLowerCase() == schema.version
             if (versionMatch) schema.transactions(setid) match {
               case t: Transaction => {
-                val data = parseTransaction(t)
+                val data = parseTransaction(t, false)
                 if (isSetClose) {
                   closeSet(setprops)
                   group.foreach { gmap => data.put(groupKey, gmap) }

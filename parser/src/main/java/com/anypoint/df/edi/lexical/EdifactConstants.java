@@ -30,7 +30,7 @@ public final class EdifactConstants extends EdiConstants
     /** EDIFACT Level B character set. */
     public static final boolean[] levelBCharacterSet;
     
-    /** General character set (allows all of Level B, along with everything above 7-bit ASCII range). */
+    /** General character set (allows everything above ASCII control character range). */
     public static final boolean[] generalCharacterSet;
     
     static {
@@ -43,8 +43,7 @@ public final class EdifactConstants extends EdiConstants
         fillChars('a', 'z', levelBCharacterSet);
         setChars(" .,-()/'+:=?!\"%&*;<>\014\015\017".toCharArray(), levelBCharacterSet);
         generalCharacterSet = new boolean[0x10000];
-        System.arraycopy(levelBCharacterSet, 0, generalCharacterSet, 0, levelBCharacterSet.length);
-        fillChars((char)0x80, (char)0xFFFF, generalCharacterSet);
+        fillChars((char)0x20, (char)0xFFFF, generalCharacterSet);
     }
     
     // standard character sets
@@ -72,7 +71,7 @@ public final class EdifactConstants extends EdiConstants
         }
         
         public boolean[] flags() {
-            return null;
+            return characterFlags;
         }
     }
     public static final SyntaxIdentifier LEVELA = new SyntaxIdentifier("UNOA", ASCII_CHARSET, levelACharacterSet);

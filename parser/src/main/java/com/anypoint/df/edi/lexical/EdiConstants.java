@@ -37,6 +37,9 @@ public abstract class EdiConstants
             if (ordinal() < DATA_ELEMENT.ordinal()) {
                 throw new IllegalStateException("No granularity defined for item type " + toString());
             }
+            if (ordinal() == values().length - 1) {
+                return this;
+            }
             return values()[ordinal() + 1];
         }
     }

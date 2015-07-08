@@ -1,19 +1,13 @@
 package com.anypoint.df.edi.lexical;
 
 import static com.anypoint.df.edi.lexical.EdiConstants.ASCII_CHARSET;
-import static com.anypoint.df.edi.lexical.EdifactConstants.*;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.Charset;
 import java.util.Map;
 
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
-import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxIdentifier;
-import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
 
 /**
  * Lexer variation for HL7.
@@ -41,10 +35,10 @@ public class HL7Lexer extends LexerBase
      * parsing. Returns with the lexer positioned at the MSH-3 value.
      *
      * @param props store for property values from interchange
-     * @return <code>null</code>
+     * @return delimiter characters
      * @throws LexicalException
      */
-    public Object init(Map<String,Object> props) throws LexicalException {
+    public String init(Map<String,Object> props) throws LexicalException {
         try {
             
             // check the segment tag for optional UNA
@@ -55,20 +49,21 @@ public class HL7Lexer extends LexerBase
             }
             
             // get separator and encoding characters
-            byts = readBytes(6);
+            byts = readBytes(5);
             dataSeparator = (char)byts[0];
             componentSeparator = (char)byts[1];
             repetitionSeparator =(char)byts[2];
             releaseIndicator = (char)byts[3];
             subCompSeparator = (char)byts[4];
-            if (byts[5] != dataSeparator) {
+            if (stream.read() != dataSeparator) {
                 throw new RuntimeException("Field separator not present following MSH-2");
             }
             
             // initialize reader and set lexer to MSH-3 field
             reader = new ByteReader();
             advance(ItemType.DATA_ELEMENT);
-            return null;
+            elementNumber = 2;
+            return new String(byts, ASCII_CHARSET);
             
         } catch (IOException e) {
             throw new LexicalException("Message aborted due to error reading header", e);
@@ -76,24 +71,12 @@ public class HL7Lexer extends LexerBase
     }
 
     /**
-     * Finish interchange parse. The end of this interchange may be followed by another interchange, so this only parses
-     * up to and including the UNZ segment terminator.
+     * Finish document parse.
      * 
      * @param props
      * @throws IOException
      */
     public void term(Map<String, Object> props) throws IOException {
-        if (!"UNZ".equals(token())) {
-            throw new IllegalStateException("not at trailer");
-        }
-        if (nextType() == ItemType.DATA_ELEMENT) {
-            advance();
-            props.put(INTER_CONTROL_COUNT, parseInteger(1, 6));
-            if (nextType() == ItemType.DATA_ELEMENT) {
-                advance();
-                props.put(INTER_CONTROL_REF, parseAlphaNumeric(0, 14));
-            }
-        }
     }
     
     /**

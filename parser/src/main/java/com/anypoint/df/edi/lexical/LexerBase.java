@@ -66,11 +66,11 @@ public abstract class LexerBase
     /** Current segment number. */
     int segmentNumber;
     
+    /** Data element number (from start of segment). */
+    int elementNumber;
+    
     /** Handler for lexical errors. */
     private ErrorHandler errorHandler;
-    
-    /** Data element number (from start of segment). */
-    private int elementNumber;
     
     /** Repetition number (from start of data element). */
     private int repetitionNumber;

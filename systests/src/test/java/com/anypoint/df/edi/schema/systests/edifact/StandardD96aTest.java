@@ -56,7 +56,7 @@ public class StandardD96aTest extends EdifactTestBase {
             stripAckDates(parseAndReturnAck("/edifact/d96a/ORDERS_D96A-empty-DTM-and-RFF.edi")));
         assertEquals("UNB+UNOC:3+MODUS:ZZZ+MULESOFT:ZZZ+XXXXXXXXXXX+++ORDERS'UNH++CONTRL:D:96A:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UCM+6424+ORDERS:D:96A:UN:EAN008+4'UCS+9+35'UNT+5+1'UNZ+1+1'",
             stripAckDates(parseAndReturnAck("/edifact/d96a/ORDERS_D96A_repeated-ALI.edi")));
-        assertEquals("UNB+UNOC:3+MODUS:ZZZ+MULESOFT:ZZZ+XXXXXXXXXXX+++ORDERS'UNH++CONTRL:D:96A:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UCM+6424+ORDERS:D:96A:UN:EAN008+4'UCS+9+35'UNT+5+1'UNZ+1+1'",
+        assertEquals("UNB+UNOC:3+MODUS:ZZZ+MULESOFT:ZZZ+XXXXXXXXXXX+++ORDERS'UNH++CONTRL:D:96A:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UCM+6424+ORDERS:D:96A:UN:EAN008+4'UCS+12'UCD+21+6:2'UNT+6+1'UNZ+1+1'",
             stripAckDates(parseAndReturnAck("/edifact/d96a/ORDERS_D96A_invalid-char.edi")));
     }
 }

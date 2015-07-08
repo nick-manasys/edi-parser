@@ -14,7 +14,7 @@ import com.anypoint.df.edi.lexical.EdifactConstants._
 /** Configuration parameters for EDIFACT schema writer.
   */
 case class EdifactWriterConfig(val syntax: SyntaxIdentifier, val version: SyntaxVersion, val subChar: Int,
-  val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String, val forceUNA: Boolean) {
+    val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String, val forceUNA: Boolean) {
   if (delims.size != 0 && delims.size != 5) throw new IllegalArgumentException("delimiter string must be empty or 5 characters")
 }
 
@@ -29,8 +29,8 @@ trait EdifactNumberProvider {
 /** Writer for EDIFACT EDI documents.
   */
 case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
-  extends SchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax, config.delims,
-    config.suffix, config.subChar, config.decimalMark), sc) {
+    extends SchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax, config.delims,
+      config.suffix, config.subChar, config.decimalMark), sc) {
 
   import EdiSchema._
   import SchemaJavaValues._
@@ -39,7 +39,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
-  
+
   /** Write top-level section of transaction. */
   def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]) = comps match {
     case (ref: ReferenceComponent) :: tail if (ref.segment.ident == "UNS") => {
@@ -170,18 +170,23 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
                 if (msgData.containsKey(messageHeaderKey)) new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
                 else new ValueMapImpl
               val msgType = getRequiredString(transactionId, msgData)
-              setProps put (msgHeadMessageTypeKey, msgType)
-              if (!setProps.containsKey(msgHeadMessageAgencyKey)) setProps put (msgHeadMessageAgencyKey, "UN")
-              val msgAgency = getAsString(msgHeadMessageVersionKey, setProps)
-              val fullVersion = schema.version.toUpperCase
-              val msgVersion = fullVersion.substring(0, 1)
-              val msgRelease = fullVersion.substring(1)
-              setProps put (msgHeadMessageVersionKey, msgVersion)
-              setProps put (msgHeadMessageReleaseKey, msgRelease)
-              openSet(numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency), setProps)
-              writeTransaction(msgData, schema transactions (msgType))
-              closeSet(setProps)
-              setCount += 1
+              schema.transactions(msgType) match {
+                case t: Transaction => {
+                  setProps put (msgHeadMessageTypeKey, msgType)
+                  if (!setProps.containsKey(msgHeadMessageAgencyKey)) setProps put (msgHeadMessageAgencyKey, "UN")
+                  val msgAgency = getAsString(msgHeadMessageVersionKey, setProps)
+                  val fullVersion = schema.version.toUpperCase
+                  val msgVersion = fullVersion.substring(0, 1)
+                  val msgRelease = fullVersion.substring(1)
+                  setProps put (msgHeadMessageVersionKey, msgVersion)
+                  setProps put (msgHeadMessageReleaseKey, msgRelease)
+                  openSet(numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency), setProps)
+                  writeTransaction(msgData, t)
+                  closeSet(setProps)
+                  setCount += 1
+                }
+                case _ => logAndThrow(s"Unknown message id $msgType")
+              }
             } catch {
               case e: Throwable => {
                 logAndThrow(s"${e.getMessage} in ${msgData.get(transactionId)} at index ${msgData.get(msgIndexKey)}", e)

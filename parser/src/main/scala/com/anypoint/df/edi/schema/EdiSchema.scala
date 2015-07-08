@@ -399,7 +399,7 @@ object EdiSchema {
     def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
   }
   case object HL7 extends EdiForm("HL7") {
-    def isEnvelopeSegment(ident: String) = "MSH" == ident
+    def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, position: Int) = parentId + "-" + (if (position < 10) "0" + position else position)
