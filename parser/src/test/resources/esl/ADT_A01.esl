@@ -1,0 +1,10 @@
+form: HL7
+version: 'v251'
+imports: [ '/hl7/v251/basedefs.esl' ]
+structures:
+- id: 'ADT_A01'
+  name: ADT_A01
+  heading:
+  - { idRef: 'MSH', position: '01', usage: M }
+  - { idRef: 'EVN', position: '03', usage: M }
+  - { idRef: 'PID', position: '04', usage: M }
