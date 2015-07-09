@@ -320,7 +320,7 @@ object HL7TablesConverter {
 
       // message_structure, seq_no, seg_code, groupname, repetitional, optional
       val groupedMsgStructs = lineList(fileInput(version, messageStructures)).reverse.groupBy { _(0) }
-      val structures = buildStructures(groupedMsgStructs, segments)
+      val structures = buildStructures(groupedMsgStructs, segments).sortBy { _.ident }
 
       val vernum = version.getName.drop(1).replace('_', '.')
       val baseSchema = EdiSchema(HL7, vernum, elemDefs, compDefs, segments, Map[String, Transaction]())

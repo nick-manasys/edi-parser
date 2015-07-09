@@ -493,7 +493,7 @@ object EdifactTablesConverter {
       val messagesdir = new File(version, messagesDirName)
       if (!messagesdir.exists) throw new IllegalArgumentException(s"Missing required $messagesDirName directory")
       val listWriter = new FileWriter(new File(outdir, "structures.txt"))
-      val transacts = messagesdir.listFiles.map { f =>
+      val transacts = messagesdir.listFiles.sorted.map { f =>
         try {
           val stream = new FileInputStream(f)
           try {

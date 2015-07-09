@@ -309,7 +309,7 @@ object X12TablesConverter {
       val binSegs = segDefs.get("BIN").toSet ++ segDefs.get("BDS").toSet
       val transactions = defineTransactions(segDefs, setHeads, setGroups, binSegs).values.filter {
         trans => binSegs.forall { seg => !trans.segmentsUsed.contains(seg) }
-      }
+      }.toSeq.sortBy { _.ident }
       val listWriter = new FileWriter(new File(outdir, "structures.txt"))
       transactions foreach (transact => {
         val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
