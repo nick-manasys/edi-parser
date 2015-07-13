@@ -1,0 +1,565 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+SUPERANNUATION MAINTENANCE MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :SUPMAN
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-09
+
+
+
+
+
+
+SOURCE: 
+
+
+                          CONTENTS 
+
+SUPERANNUATION MAINTENANCE MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+      This specification provides the definition of the
+      Superannuation Maintenance Message (SUPMAN) to be used in
+      Electronic Data Interchange (EDI) between partners involved in
+      administration, commerce and transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+      The Superannuation Maintenance Message is sent by a party to an
+      organisation administering a superannuation scheme, to specify
+      membership maintenance information about superannuation scheme
+      members.
+
+1.2 Field of Application
+
+      This message may be applied for both national and international
+      superannuation maintenance. It is based on general commercial
+      practice and is not dependent on the type of business or
+      industry.
+
+1.3 Principles
+
+      - A Superannuation Maintenance Message gives information about
+        updates or reviews of superannuation scheme member details
+        for retirement benefit purposes.
+
+      - The message may be used to provide information about a
+        single member as well as multiple members employed by the
+        same employer.
+
+      - The message structure is generalised by specifying several
+        conditional segments and segment groups. Only a subset of the
+        conditional segments may be needed to meet particular
+        requirements. If necessary, specific subsets may be
+        associated with the document/message name identification in
+        the BGM segment or with other provided identifiers. Users
+        intending to use the message should study the conditional
+        segments and segment groups to decide which are necessary for
+        their application.
+
+      - A Superannuation Maintenance Message may be sent by an
+        employer, on behalf of an employer or any other authorised
+        party.
+
+      - A Superannuation Maintenance Message is based on agreements
+        between the parties.
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying a
+message.
+
+Note: Superannuation maintenance messages conforming to
+      this document must contain the following data in segment
+      UNH, composite S009:
+
+Data element     0065 SUPMAN
+                 0052 D
+                 0054 93A
+                 0051 UN
+            
+BGM, Beginning of message
+A segment for unique identification of the Superannuation
+Maintenance Message, the type of Superannuation Maintenance
+and its function.
+
+RFF, Reference
+A segment for referencing the scheme/ plan number or other
+associated reference related to the whole message.
+Additionally, the employer number and other information
+related to the whole message may be provided.
+
+CUX, Currencies
+A segment giving the currency  and the associated exchange
+rate of any total monetary amount to be paid, if required.
+
+DTM, Date/time/period
+A segment which may include the message date, the date and
+time associated with any validation keys, and other dates
+relevant to the whole of the message.
+
+FTX, Free text
+A segment for free text information in coded or clear form,
+to give further clarification when required to the
+Superannuation maintenance message. It should be noted that
+the use of clear text may require special processing of this
+segment.
+
+
+Segment Group 1: NAD-SG2
+A group of segments identifying names and addresses relevant
+to the Superannuation Maintenance message.
+
+  NAD, Name and address
+  A segment identifying the name and address of the parties
+  associated with the Superannuation Maintenance message and
+  their functions. Examples are: the employer, the receiving
+  party and the recipient system.
+
+
+  Segment Group 2: CTA-COM
+  A group of segments identifying contact persons or
+  department and their communication number.
+
+    CTA, Contact information
+    A segment giving additional contact information of a
+    person or department specified in the NAD segment and
+    to whom communication should be directed.
+
+    COM, Communication contact
+    A segment specifying communication contact number.
+
+UNS, Section control
+A service segment placed after the last user segment in the
+heading section to indicate the end of that section.
+
+
+Segment Group 3: NAD-DTM-ATT-RFF-SG4-SG5-SG6-SG7-SG8-SG9-SG10
+A group of segments providing the required maintenance
+information for each member. General indicators are given to
+identify the type of the maintenance information for
+processing purposes.
+
+  NAD, Name and address
+  A segment providing the member's surname, identification number,
+  given name(s) or initials, maiden (mother's) name, title,
+  home address or associated details as required.
+
+  DTM, Date/time/period
+  A segment giving membership related dates. The effective
+  date of any changes is usually mandatory. Other optional
+  dates include the member's date of birth, and dates
+  associated with the service, benefits, or employment.
+
+  ATT, Attribute
+  A segment providing the member's sex or marital status details.
+
+  RFF, Reference
+  A segment for referencing the member's scheme/ plan number,
+  any previous scheme/ plan number, previous member number in
+  the case of changes and other additional reference
+  information.
+
+
+  Segment Group 4: REL-NAD-PCD
+  A group of segments identifying details of any
+  beneficiaries.
+
+    REL, Relationship
+    A segment providing the relationship between the member
+    and the member's beneficiary.
+
+    NAD, Name and address
+    A segment providing name and address details of the
+    member's beneficiary.
+
+    PCD, Percentage details
+    A segment providing the percentage details of the
+    benefits assigned to the beneficiary.
+
+
+  Segment Group 5: EMP-PCD-CUX-NAD-SG6
+  A group of segments providing employment related
+  information. The segment group allows for the case that the
+  same member is employed more than once, if required.
+
+    EMP, Employment details
+    A segment giving required employment details of the
+    member, such as the member's employment category (e.g.
+    permanent, part time etc.), and, conditionally, the
+    occupation and/or trade classification.
+
+    PCD, Percentage details
+    A segment providing the percentage of part-time
+    employment or other relevant percentage details.
+
+    CUX, Currencies
+    A segment identifying the currency and associated
+    exchange rate of the member's salary and contributions.
+
+    NAD, Name and address
+    A segment providing the member's work address or
+    associated details, as well as any previous work name and
+    address. In addition, the name, and or identification of
+    a trade union or other relevant organisation may be
+    given. The segment may also be used to indicate any
+    previous home address of the member as well as well
+    any previous name of the member.
+
+
+    Segment Group 6: MOA-PAT-DTM
+    A group of segments identifying the member's salary.
+    Repeats are to provide additional salary information such
+    as the notional salary amount, the superannuation salary
+    amount etc.
+
+      MOA, Monetary amount
+      A segment giving the salary monetary amount for the
+      period defined in the PAT segment (in the time relation
+      data element), or a mutually defined time period.
+      Repeating segments may provide a number of different
+      salary amounts relevant to the same employment.
+
+      PAT, Payment terms basis
+      A segment giving the salary amount time relation (e.g.
+      yearly), and the salary payment frequency (e.g.
+      monthly)
+
+      DTM, Date/time/period
+      A segment giving a date related to salary (e.g. the
+      salary effective date).
+
+
+  Segment Group 7: GIS-DTM
+  A group of segments providing general indicators for
+  processing and associated dates where appropriate.
+
+    GIS, General indicator
+    A repeating segment to indicate whether the data for a
+    member in segment group 3 are for a new member, a member
+    change or a periodic review. If required, an indicator
+    may be used to identify the existence of beneficiaries,
+    insurance cover, and additional/ voluntary contributions.
+    In addition, an indicator may also be used to positively
+    identify specific changes such as personal data changes,
+    a scheme/ plan change and other updates.
+
+    DTM, Date/time/period
+    A segment giving the date associated with the general
+    indicator segment information.
+
+
+  Segment Group 8: MEM-SG9-SG10
+  A group of segments identifying membership processing
+  details related to status, benefits and contributions.
+
+    MEM, Membership details
+    A segment providing details related to the member
+    benefit/contribution category and status. Conditionally,
+    details on any insurance cover level or rate table, as
+    well as the reason for any change may be given.
+
+
+    Segment Group 9: ATT-PCD
+    A group of segments identifying any additional member
+    attributes.
+
+      ATT, Attribute
+      A segment providing details related to member
+      attribute information not otherwise specified.
+
+      PCD, Percentage details
+      A segment providing the percentage of an associated
+      member attribute.
+
+
+    Segment Group 10: COT-MOA-PCD-DTM-PAT-FTX
+    A group of segments identifying  member contribution
+    amount details and their type. This segment group may be
+    used to identify the rate or amount of any additional/
+    voluntary contributions. It may also be used for periodic
+    reviews, or for other relevant purposes.
+
+      COT, Contribution details
+      A segment identifying the type of contributions, any
+      investment instruction (e.g. an indication whether
+      multiple investment funds apply), the rate of any
+      additional/ voluntary contributions, and the reason for
+      any change in contributions as required. For periodic
+      review purposes, the contribution type (e.g. member or
+      company paid, additional or voluntary etc.) is mandatory.
+
+      MOA, Monetary amount
+      A segment giving a contribution amount which is to be,
+      or has been, paid for or by the member. This segment is
+      associated with the above COT segment (e.g. a voluntary
+      contribution amount or  the contribution amount
+      relevant for review purposes could be given). For
+      periodic review purposes this segment is mandatory.
+
+      PCD, Percentage details
+      A segment providing the percentage of any indicated
+      contribution.
+
+      DTM, Date/time/period
+      A segment specifying the contribution start and end
+      dates, and the date of any contribution termination
+      as needed (mainly for review purposes).
+
+      PAT, Payment terms basis
+      A segment giving the payment frequency of contributions
+      (as part of the type of period). Other payment terms
+      information may also be provided.
+
+      FTX, Free text
+      A segment for free text information in coded or clear
+      form, to give information on additional attributes if
+      required. Coded text should be used where possible, as
+      the use of clear text may require special processing of
+      the FTX segment information.
+
+CNT, Control total
+A segment to provide message control totals as required. For
+example, the total number of members included in the message
+could be provided.
+
+AUT, Authentication result
+A segment to specify the results of the application of an
+authentication procedure, enabling to check the authenticity
+of the sender and the integrity of the data.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number
+of segments in the message and the Control Reference Number
+of the message.
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+                                 HEADER SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  RFF  Reference                            M      6                  
+  CUX  Currencies                           C      1                  
+  DTM  Date/time/period                     C      9                  
+  FTX  Free text                            C      5                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      6 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+  UNS  Section control                      M      1                  
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+                                                                      
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M 999999 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  DTM  Date/time/period                     M     15                 ³
+  ATT  Attribute                            C      9                 ³
+  RFF  Reference                            C      9                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄ¿³
+  REL  Relationship                         M      1                ³³
+  NAD  Name and address                     M      1                ³³
+  PCD  Percentage details                   C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  EMP  Employment details                   M      1                ³³
+  PCD  Percentage details                   C      1                ³³
+  CUX  Currencies                           C      1                ³³
+  NAD  Name and address                     C      9                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄ¿³³
+  MOA  Monetary amount                      M      1               ³³³
+  PAT  Payment terms basis                  C      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M     20 ÄÄÄÄÄ¿³
+  GIS  General indicator                    M      1                ³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  MEM  Membership details                   M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄ¿³³
+  ATT  Attribute                            M      1               ³³³
+  PCD  Percentage details                   C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄ¿³³
+  COT  Contribution details                 M      1               ³³³
+  MOA  Monetary amount                      C      1               ³³³
+  PCD  Percentage details                   C      1               ³³³
+  DTM  Date/time/period                     C      3               ³³³
++ PAT  Payment terms basis                  C      1               ³³³
+  FTX  Free text                            C      3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  CNT  Control total                        C      9                  
+  AUT  Authentication result                C      1                  
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+ATT  Attribute
+AUT  Authentication result
+BGM  Beginning of message
+CNT  Control total
+COM  Communication contact
+COT  Contribution details
+CTA  Contact information
+CUX  Currencies
+DTM  Date/time/period
+EMP  Employment details
+FTX  Free text
+GIS  General indicator
+MEM  Membership details
+MOA  Monetary amount
+NAD  Name and address
+PAT  Payment terms basis
+PCD  Percentage details
+REL  Relationship
+RFF  Reference
+UNH  Message header
+UNS  Section control
+UNT  Message trailer

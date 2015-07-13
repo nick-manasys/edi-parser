@@ -1,0 +1,468 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+SUPERANNUATION CONTRIBUTIONS ADVICE MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :SUPCOT
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-09
+
+
+
+
+
+
+SOURCE: 
+
+
+                          CONTENTS 
+
+SUPERANNUATION CONTRIBUTIONS ADVICE MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+      This specification provides the definition of the
+      Superannuation Contributions Advice Message (SUPCOT) to be used
+      in Electronic Data Interchange (EDI) between partners involved
+      in administration, commerce and transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+      The Superannuation Contributions Advice is sent by a party to
+      an organisation administering a superannuation scheme, to
+      detail contribution payments made for members of the
+      superannuation scheme.
+
+1.2 Field of Application
+
+      This message may be applied for both national and international
+      superannuation contributions advices. It is based on general
+      commercial practice and is not dependent on the type of
+      business or industry.
+
+1.3 Principles
+
+      - a Superannuation Contributions Advice gives detailed
+        information about a payment into a superannuation scheme
+        for retirement benefit purposes.
+
+      - the payment is generally on behalf of a number of members but
+        could be for single member.
+
+      - the payment may refer to multiple dates.
+
+      - a Superannuation Contributions Advice is based on agreements
+        between the parties.
+
+      - contributions may be made by any party or on behalf of any
+        party or parties; usually this means an employer and/or its
+        employees.
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying a message.
+
+Note: Superannuation Contributions Advice messages conforming to
+      this document must contain the following data in segment
+      UNH, composite S009:
+
+Data element     0065 SUPCOT
+                 0052 D
+                 0054 93A
+                 0051 UN
+
+BGM, Beginning of message
+A segment for unique identification of the Superannuation
+Contributions Advice Message, the type of Superannuation
+Contributions Advice and its function.
+
+RFF, Reference
+A segment for referencing information related to the whole
+message. The scheme/ plan number is mandatory. In addition, the
+employer number and other references, such as references to
+payments, may be provided.
+
+PAI, Payment instructions
+A segment specifying the payment means (e.g. cheque or direct
+bank transfer) and, if required, the payment channel for the
+Superannuation Contributions Advice. The payment conditions may
+also be specified.
+
+CUX, Currencies
+A segment giving the currency  and the associated exchange rate
+of the total amount paid in relation to this advice.
+
+FII, Financial institution information
+A segment identifying the financial institution (e.g. bank) and
+account number of the issuing party, and, where required, the
+receiving party.
+
+DTM, Date/time/period
+A segment which may include the message date, the payment
+date, the cheque date, the date and time associated with any
+validation keys, and other dates relevant to the whole of the
+message.
+
+FTX, Free text
+A segment for free text information in coded or clear form, to
+give further clarification when required to the Superannuation
+Contributions Advice message. It should be noted that the use
+of clear text may require special processing of this segment.
+
+
+Segment Group 1: NAD-SG2
+A group of segments identifying names and addresses relevant to
+the Superannuation Contributions Advice.
+
+  NAD, Name and address
+  A segment identifying the name and address of the parties
+  associated with the Superannuation Contributions Advice and
+  their functions. Examples are: the employer, the recipient
+  system and the name and address of the payer's financial
+  institution if required.
+
+
+  Segment Group 2: CTA-COM
+  A group of segments identifying contact persons or
+  department and their communication number.
+
+    CTA, Contact information
+    A segment giving additional contact information of a
+    person or department specified in the NAD segment and to
+    whom communication should be directed.
+
+    COM, Communication contact
+    A segment specifying communication contact number.
+
+UNS, Section control
+A service segment placed after the last user segment in the
+detail section to indicate the end of that section.
+
+
+Segment Group 3: NAD-ATT-RFF-DTM-EMP-LOC-FTX-SG4-SG5
+A group of segments identifying member and employment details.
+
+  NAD, Name and address
+  A segment providing the member's identification number, and,
+  if required, the member's name, title, and work address
+  details.
+
+  ATT, Attribute
+  A segment providing the member's sex type.
+
+  RFF, Reference
+  A segment for identifying the member's payroll number or an
+  associated reference.
+
+  DTM, Date/time/period
+  A segment providing the member's birth date.
+
+  EMP, Employment details
+  A segment providing required employment details of the
+  member, such as the member's employment category.
+
+  FTX, Free text
+  A segment for free text information in coded or clear form,
+  to give information on additional attributes if required.
+  Coded text should be used where possible, as the use of
+  clear text may require special processing of the FTX segment
+  information.
+
+
+  Segment Group 4: PAT-MOA-CUX-DTM-FTX-SG5
+  A group of segments identifying contribution processing
+  details. Any date details may be provided in either segment
+  group 4 or in segment group 5, depending on requirements.
+
+    PAT, Payment terms basis
+    A segment giving the number of payment periods
+    associated with the contribution, and, if required, the
+    payment frequency (as part of the type of period). The
+    payment terms type qualifier needs to be used to indicate
+    whether regular or other (e.g.advanced payments)
+    contributions are involved.
+
+    MOA, Monetary amount
+    A segment providing the member's salary.
+
+    CUX, Currencies
+    A segment identifying the currency and associated
+    exchange rate of the member's salary and contributions.
+
+    DTM, Date/time/period
+    A segment specifying the contribution start and end
+    dates, and the date of any contribution termination.
+
+    FTX, Free text
+    A segment for free text information in coded or clear
+    form, to give information on additional attributes if
+    required. Coded text should be used where possible, as
+    the use of clear text may require special processing of
+    the FTX segment information.
+
+
+    Segment Group 5: COT-MOA-DTM-FTX
+    A group of segments identifying member contribution
+    amount details and their type. Dates may be provided in
+    this segment group where needed. An investment
+    instruction may also be provided as required.
+
+      COT, Contribution details
+      A segment to qualify the nature of a contribution (e.g. a
+      normal, special or a final/ceasing contribution), and
+      the type of a contribution (often mandatory) such as
+      member or company paid. Conditionally, the segment may
+      provide an investment instruction, and give the reason
+      for a change in contributions as indicated by the
+      contributions qualifier and the monetary amount
+      (e.g. a final/ceasing contribution has been made).
+
+      MOA, Monetary amount
+      A segment giving the contribution amount paid for or
+      by the member.
+
+      DTM, Date/time/period
+      A segment specifying the contribution start and end
+      dates, and the date of any contribution termination
+      as needed.
+
+      FTX, Free text
+      A segment for free text information in coded or clear
+      form, to give information on additional attributes if
+      required. Coded text should be used where possible,
+      as the use of clear text may require special
+      processing of the FTX segment information.
+
+UNS, Section control
+A service segment placed after the last user segment in the
+detail section to indicate the end of that section.
+
+MOA, Monetary amount
+A segment giving the total amount being paid into the
+superannuation scheme as specified by this advice.
+
+CNT, Control total
+A segment to provide message control totals as required. For
+example, the total number of individual contribution amounts
+could be provided. It should be noted that a balancing monetary
+total is provided by the total amount paid.
+
+AUT, Authentication result
+A segment to specify the results of the application of an
+authentication procedure, enabling to check the authenticity of
+the sender and the integrity of the data.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number of
+segments in the message and the Control Reference Number of the
+message.
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+                                 HEADER SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  RFF  Reference                            M      6                  
+  PAI  Payment instructions                 C      1                  
+  CUX  Currencies                           C      1                  
+  FII  Financial institution information    C      2                  
+  DTM  Date/time/period                     C      9                  
+  FTX  Free text                            C      5                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      6 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNS  Section control                      M      1                  
+                                                                      
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M 999999 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  ATT  Attribute                            C      1                 ³
+  RFF  Reference                            C      1                 ³
+  DTM  Date/time/period                     C      1                 ³
+  EMP  Employment details                   C      1                 ³
+  FTX  Free text                            C      3                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M      9 ÄÄÄÄÄ¿³
+  PAT  Payment terms basis                  M      1                ³³
+  MOA  Monetary amount                      C      1                ³³
+  CUX  Currencies                           C      1                ³³
+  DTM  Date/time/period                     C      3                ³³
+  FTX  Free text                            C      3                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M     99 ÄÄÄÄ¿³³
+  COT  Contribution details                 M      1               ³³³
+  MOA  Monetary amount                      M      1               ³³³
+  DTM  Date/time/period                     C      3               ³³³
+  FTX  Free text                            C      3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+  UNS  Section control                      M      1                  
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  MOA  Monetary amount                      M      1                  
+  CNT  Control total                        C      9                  
+  AUT  Authentication result                C      1                  
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+ATT  Attribute
+AUT  Authentication result
+BGM  Beginning of message
+CNT  Control total
+COM  Communication contact
+COT  Contribution details
+CTA  Contact information
+CUX  Currencies
+DTM  Date/time/period
+EMP  Employment details
+FII  Financial institution information
+FTX  Free text
+MOA  Monetary amount
+NAD  Name and address
+PAI  Payment instructions
+PAT  Payment terms basis
+RFF  Reference
+UNH  Message header
+UNS  Section control
+UNT  Message trailer

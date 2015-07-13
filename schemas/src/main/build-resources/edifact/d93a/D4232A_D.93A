@@ -1,0 +1,50 @@
+                                                File: D4232_D.93A
+UN/EDIFACT DRAFT DIRECTORY
+
+PART 4 - UNITED NATIONS RULES FOR ELECTRONIC DATA INTERCHANGE FOR 
+         ADMINISTRATION, COMMERCE AND TRANSPORT
+
+CHAPTER 2.2 - GENERAL INFORMATION: UN/EDIFACT Application Syntax Rules 
+              (ISO 9735) Issue 93.2, March 1993
+
+The standard ISO 9735, Electronic Data Interchange for Administration,
+Commerce and Transport (EDIFACT) - Application level syntax rules, has
+received an Amendment 1 dated 1992-12-01.
+
+This Amendment 1 is as follows:
+
+Clause 2 (Normative references)
+===============================
+
+Add a footnote reference "1)" after the title of ISO 8859.
+
+Add a footnote as follows:
+
+-------------------
+1) See also annex D.
+
+Clause 4 (Syntax levels)
+========================
+
+Add the words ", see annex D" at the end of the second sentence in the
+first paragraph.
+
+Add the words "and annex D" after the words "clause 5" in the third 
+paragraph.
+
+Annex D
+=======
+
+In summary, this annex contains the codes for data elements 0001, 
+syntax identifier, in the interchange header UNB and describes the
+corresponding character sets.
+
+               *************************************
+Note:   The earlier versions of ISO 9735 (1988-07-15 and 1990-11-01) are
+still usable for the interchange of EDIFACT messages. The 1988
+version is identified by a value of 1, and the 1990 version by a
+value of 2 in the mandatory data element 0002 (Syntax version
+number) in the segment UNB (Interchange header).
+
+When this 1992 version is used the value in data element 0002 shall be 3.
+

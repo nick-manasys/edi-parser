@@ -1,0 +1,889 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+MULTIPLE PAYMENT ORDER MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :PAYMUL
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :1 
+                                     Date          :92-07
+
+
+
+
+
+
+SOURCE: WESTERN EUROPEAN EDIFACT BOARD - MD4 
+
+
+                          CONTENTS 
+
+MULTIPLE PAYMENT ORDER MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification  provides the  definition of  the Multiple
+Payment order  Message (PAYMUL) to be used in Electronic Data
+Interchange    (EDI)    between    partners    involved    in
+administration, commerce and transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+A Multiple Payment order is sent by the Ordering Customer (or
+Payer or  Agent on  behalf of  the Ordering  Customer) to the
+Ordered Bank,  to instruct  the  Ordered  Bank  to  debit  an
+account it services for the Ordering Customer, and to arrange
+for the payment of specified amounts to several Beneficiaries
+(or  Payees)   in  settlement   of  the  referenced  business
+transaction(s).
+
+Throughout this document, the term 'Ordering Customer' refers
+to either  an Ordering  Customer, or  a Payer or Agent acting
+(sending) on  behalf of  the Ordering  Customer; likewise the
+term 'Beneficiary' refers to either a Beneficiary, or a Payee
+or Agent acting on behalf of the Beneficiary.
+
+1.2 Field of Application
+
+This  message   may  be   applied  for   both  national   and
+international settlements.  It is based on universal practice
+and is not dependent on the type of business or industry.
+
+1.3 Principles
+
+- A Multiple Payment Order may cover the financial settlement
+  of one  or  more  commercial  trade  transactions  such  as
+  invoices credit notes, debit notes etc.  It is not intended
+  for use in securities trading.
+
+- Charges  may  be  borne  on  account(s)  different  of  the
+  account(s) held by the Ordering Customer.
+
+- Several  debit accounts, execution dates and currencies may
+  be specified.
+
+- The  Ordered Bank  may  need  a  confirmation/authorization
+  (e.g. AUTHOR message) to be allowed to process the Multiple
+  Payment Order message.
+
+- The  only way to modify a Multiple Payment Order message is
+  to cancel  the whole  message or  part thereof (e.g. by the
+  use of  the FINCAN  message).  In that respect, one to many
+  order(s) could be cancelled within the message, avoiding to
+  be obliged to cancel the whole message.
+
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A  service   segment  starting  and  uniquely  identifying  a
+message.
+
+The message type identifier for the UN Multiple Payment Order
+is PAYMUL.
+
+Note: PAYMUL  message conforming  to this  issue, 92.1 of the
+      UNTDID,  must   contain  the  following  data  in  UNH,
+      composite S009:
+
+      Data element  0065  PAYMUL
+                    0052  D
+                    0054  93A
+                    0051  UN
+
+BGM, Beginning of message
+A segment by means of which the sender must uniquely identify
+the PAYMUL  message  using  its  type  and  number  and  when
+necessary its function.
+
+Note: The  identification will be passed back to the ordering
+      customer for reconciliation purposes, if a reference is
+      not quoted in the B- level.
+
+DTM, Date/time/period
+A segment  specifying the  date and if required the time when
+the message is created.
+
+BUS, Business function
+A segment  providing information to the ordered bank to route
+the message,  or for  tariffing or  for the provision of some
+statistical information.
+
+FII, Financial institution information
+A segment  identifying the  financial institution which holds
+the account(s).
+
+
+Segment Group 1: RFF-DTM
+A group of segments identifying any previously sent message.
+
+  RFF, Reference
+  A  segment  specifying  the  reference  number  of  another
+  message.
+
+  DTM, Date/time/period
+  A segment  identifying the  creation date of the referenced
+  message.
+
+
+Segment Group 2: NAD-CTA-COM
+A group  of segments identifying the ordering party, which is
+valid for all payment orders.
+
+  NAD, Name and address
+  Name and address for the ordering customer
+
+  CTA, Contact information
+  A segment  identifying a  portion or  a department  for the
+  party  specified   in  the  leading  NAD  segment  to  whom
+  communication should be directed.
+
+  COM, Communication contact
+  A segment  identifying communication  type(s) and number(s)
+  of person(s)  or department(s)  specified in the associated
+  CTA segment.
+
+
+Segment Group 3: LIN-DTM-RFF-BUS-FCA-SG4-SG5-SG6-SG7-SG8-SG9-SG10
+
+This segment  group contains  information regarding the debit
+side of  this transaction  and details which are pertinent to
+all payments  specified in  the  message.    Certain  payment
+details may  be provided  either in  segment group  3  or  in
+segment group 10, but not in both.
+
+  LIN, Line item
+  A segment  identifying the  line item  by  a  current  line
+  number.
+
+  DTM, Date/time/period
+  A segment  identifying the date, at which an order has been
+  requested to be executed or acted upon.
+
+  RFF, Reference
+  A segment  specifying the  reference of  the  single  debit
+  amount in the PAYMUL.
+
+  Note:  The  identification  will  be  passed  back  to  the
+  Ordering Customer for reconciliation purposes.
+
+  BUS, Business function
+  A  segment   identifying  certain  characteristics  of  the
+  payment  orders   stored  on  level  C,  such  as  business
+  function.
+
+  FCA, Financial charges allocation
+  A segment  specifying the  method for allocation of charges
+  and allowances  (e.g. charges  to be  borne by the ordering
+  customer), and  identifying the ordering customer's account
+  to which such charges or allowances should be directed
+  where it  is different  from the  principal  account.  This
+  constitutes a  default specification  and may be overridden
+  at detail level.
+
+
+  Segment Group 4: MOA-CUX-DTM-RFF
+  A group  of segments  containing the currency of the single
+  amounts in  level C,  currency to  be transferred, plus the
+  total of all single amounts of level C.
+
+    MOA, Monetary amount
+    A segment specifying the total amount and the currency to
+    be transferred.
+
+    CUX, Currencies
+    A  segment   specifying  the   source  currency  and  the
+    destination currency  of the  transaction, when  they are
+    different.  The rate of exchange is solely used when
+    previously agreed  between the  ordering customer and the
+    ordered bank.
+
+    DTM, Date/time/period
+    A segment  identifying the effective date and/or time the
+    rate  of  exchange  was  fixed.    The  other  occurrence
+    identifies the reference date.
+
+    RFF, Reference
+    A segment  identifying the  deal between ordered bank and
+    ordering customer.
+
+
+  Segment Group 5: FII-CTA-COM
+  A group  of segments  containing the account servicing bank
+  including the  account to be debited. If the ordering party
+  is not  quoted separately  in the NAD-segment on level-B or
+  level-A, then  this group  also contains the information of
+  the ordering party.
+
+    FII, Financial institution information
+    A  segment  identifying  the  financial  institution  and
+    relevant account number with the currency.
+
+    CTA, Contact information
+    A segment  identifying a  person or  a department for the
+    financial institution specified in the FII segment and to
+    whom communication should be directed.
+
+    COM, Communication contact
+    A segment  providing a communication number for the party
+    identified in the FII segment.
+
+
+  Segment Group 6: NAD-CTA-COM
+  A  group   of  segments   identifying  the  ordering  party
+  (mutually exclusive  with NAD-segment  on level-A  for  the
+  ordering party  (Ordering customer and payer). Furthermore,
+  one contact party can also be quoted in this group.
+
+    NAD, Name and address
+    A segment  identifying the  name and  address of the non-
+    financial institutions associated with the PAYMUL.
+
+    CTA, Contact information
+    A segment  identifying a  person or  a department for the
+    party  specified   in  the   NAD  segment   and  to  whom
+    communication should be directed.
+
+    COM, Communication contact
+    A segment  providing a communication number for the party
+    identified in  the NAD  segment and  optionally  for  the
+    contact identified in the associated CTA segment.
+
+
+  Segment Group 7: INP-DTM-FTX
+  A  group  of  segments  containing  instructions  from  the
+  ordering customer relating to parties identified in the NAD
+  and FII segments.
+  It specifies  action to  be taken by the identified parties
+  and the  date (and  optionally time)  by which  such action
+  needs to be taken.
+
+    INP, Parties to instruction
+    A  segment   identifying  the   party   originating   the
+    instruction  and   the  parties  to  be  contacted.    It
+    specifies where appropriate the instruction in coded
+    form.
+
+    DTM, Date/time/period
+    A segment  specifying the  earliest and  the latest dates
+    and times  by which  the instruction specified in the INP
+    and/or FTX segment(s) needs to be carried out.
+
+    FTX, Free text
+    A segment providing free text instruction relating to the
+    associated INP segment.
+
+
+  Segment Group 8: GIS-NAD-FTX
+  A group  - mutually  exclusive with  level C  - of segments
+  providing information  for  subsequent  use  by  regulatory
+  authorities requiring  statistical and other types of data.
+  It also  identifies the  regulatory authority for which the
+  information is intended followed by the information itself.
+
+    GIS, General indicator
+    A segment identifying what processing should be completed
+    by regulatory authorities.
+
+    NAD, Name and address
+    A segment  identifying the  recipient of  the  associated
+    informative text.
+
+    FTX, Free text
+    A segment giving information in coded or in clear form to
+    provide information  relevant to  regulatory  authorities
+    requirements.
+
+
+  Segment Group 9: PRC-FTX
+  A group  of segments  - mutually  exclusive with  level -C-
+  containing the details of payment, which are determined for
+  all payments on level C.
+
+    PRC, Process identification
+    A segment  identifying the  kind of  free text  following
+    this segment.
+
+    FTX, Free text
+    A segment  for information  in coded  or in clear form to
+    provide information  from the  ordering customer  to  the
+    beneficiary.
+
+
+
+  Segment Group 10: SEQ-MOA-DTM-RFF-PAI-FCA-SG11-SG12-SG13-SG14-SG15
+  This  segment  group  contains  information  regarding  the
+  Beneficiaries of the payments.  Certain payment details may
+  be provided  either in segment group 10 or in segment group
+  3, but not in both.
+
+    SEQ, Sequence details
+    A segment  identifying the  kind of  item with  a current
+    number.
+
+    MOA, Monetary amount
+    A segment  giving the amount value of the payment.  It is
+    the amount  to be transferred.  The currency is quoted on
+    level B.
+
+    DTM, Date/time/period
+    A segment  identifying dates and where necessary the time
+    for value dates on the beneficiary's side.
+
+    RFF, Reference
+    A segment  identifying a  transaction from  the  ordering
+    customer to the beneficiary.
+
+    Note: This  reference  number  will  be  printed  in  the
+          statement line  of the  beneficiary's account being
+          able to  reconcile the  credited amount with direct
+          communication between the two parties.
+
+    PAI, Payment instructions
+    A segment  specifying the  conditions, method and channel
+    of payment for the payment order.
+
+    FCA, Financial charges allocation
+    A segment specifying the method for allocation of charges
+    and allowances  and identifying  the ordering  customer's
+    account to  which such  charges or  allowances should  be
+    directed where it is different from the principal amount;
+    quotation of the segment mutually exclusive with level-B.
+
+
+    Segment Group 11: FII-CTA-COM
+    A group of segments containing the beneficiary's bank and
+    the account  and if  necessary  up  to  two  intermediary
+    banks.
+
+      FII, Financial institution information
+      A segment  identifying the  financial  institution  and
+      relevant account number with the currency.
+
+      CTA, Contact information
+      A segment  identifying a person or a department for the
+      financial institution  specified in the FII segment and
+      to whom communication should be directed.
+
+      COM, Communication contact
+      A segment  providing a  communication  number  for  the
+      party identified  in the FII Segment and optionally for
+      the intermediary banks.
+
+
+    Segment Group 12: NAD-CTA-COM
+    A group  of segments  identifying the name and address of
+    the beneficiary and one contact party.
+
+      NAD, Name and address
+      A segment  identifying the name and address of the non-
+      financial institutions  associated with  the payment on
+      the beneficiary's side.
+
+      CTA, Contact information
+      A segment  identifying a person or a department for the
+      party  specified   in  the  NAD  segment  and  to  whom
+      communication should be directed.
+
+      COM, Communication contact
+      A segment  providing a  communication  number  for  the
+      party identified  in the NAD segment and optionally for
+      the contact identified in the associated CTA segment.
+
+
+    Segment Group 13: INP-DTM-FTX
+    A group  of segments  containing  instructions  from  the
+    ordering customer  relating to  parties identified in the
+    NAD and FII segments.  It specifies action to be taken by
+    the identified parties and the date (and optionally time)
+    by which such action needs to be taken.
+
+      INP, Parties to instruction
+      A  segment   identifying  the   party  originating  the
+      instruction  and   the  parties  to  be  contacted.  It
+      specifies where  appropriate the  instruction in  coded
+      form.
+
+      DTM, Date/time/period
+      A segment  specifying the earliest and the latest dates
+      and times   by  which the  instruction specified in the
+      INP and/or FTX segment(s) needs to be carried out.
+
+      FTX, Free text
+      A segment  providing free  text instruction relating to
+      the associated INP segment.
+
+
+    Segment Group 14: GIS-NAD-FTX
+    A group  - mutually  exclusive with level B - of segments
+    providing information  for subsequent  use by  regulatory
+    authorities requiring  statistical  and  other  types  of
+    data.   It also  identifies the  regulatory authority for
+    which  the   information  is  intended  followed  by  the
+    information itself.
+
+      GIS, General indicator
+      A  segment   identifying  what   processing  should  be
+      completed by regulatory authorities.
+
+      NAD, Name and address
+      A segment  identifying the  recipient of the associated
+      informative text.
+
+      FTX, Free text
+      A segment  giving information in coded or in clear form
+      to   provide   information   relevant   to   regulatory
+      authorities' requirements.
+
+
+    Segment Group 15: PRC-FTX-SG16
+    A group  of segments  containing the  details of payment.
+    The content  of these  segments  is  passed  through  the
+    banking chain from the ordering customer to the
+    beneficiary's account to be credited.
+
+    Note: This  segment group  can be mutually exclusive with
+          level B. In addition the group contains two further
+          mutually exclusive segments.
+
+      PRC, Process identification
+      A segment identifying the kind of payment details.
+
+      FTX, Free text
+      A segment providing free text instruction relating to the
+      payment details.
+
+
+      Segment Group 16: DOC-MOA-DTM-RFF-NAD-SG17-SG18-SG19
+      A group  of segments  providing details of all documents,
+      e.g., invoices,  statements, despatch advices, etc..., to
+      which the  Multiple Payment  Order refers.   It  includes
+      information on the monetary amounts for each document and
+      on any  adjustments (with an indication of the reason for
+      adjustments) and  discounts.  For information purposes an
+      indication of the tax element can be provided.
+
+        DOC, Document/message details
+        A segment  identifying the  reference document  against
+        which payment is being made.
+
+        MOA, Monetary amount
+        A segment giving the monetary amounts of each reference
+        document  (e.g.,   original  amount,   discount  amount
+        etc..).   The amount  due and  the amount  remitted are
+        mandatory.
+
+        DTM, Date/time/period
+        A  segment   specifying  the  date  of  the  referenced
+        document  and   indicating  any  other  relevant  dates
+        applicable.
+
+        RFF, Reference
+        A  segment   for  the   inclusion  of   any  additional
+        references related to the reference document.
+
+        NAD, Name and address
+        A segment  identifying a party name and address, either
+        by coded identification or in a clear form.
+
+
+        Segment Group 17: CUX-DTM
+        A group  of segments  specifying the currencies and the
+        related dates/periods  valid to the referenced document
+        where different to the reference currency.
+
+          CUX, Currencies
+          A segment  identifying the  currency  and  associated
+          exchange  rate   of  the  referenced  document  where
+          different to the remittance currency.
+
+          DTM, Date/time/period
+          A segment  specifying the date/time/period related to
+          the rate of exchange.
+
+
+        Segment Group 18: AJT-MOA-RFF
+        A group  of segments  indicating adjustment amounts and
+        their referenced documents.
+
+          AJT, Adjustment details
+          A segment  indicating any  adjustments to the amounts
+          originally specified  in the referenced document, and
+          to  which  items  such  adjustments  apply  with  the
+          associated reason for adjustment.
+
+          MOA, Monetary amount
+          A  segment   giving  the   monetary  amounts  of  the
+          adjustments of each reference document (e.g. original
+          amounts, discount  amount, etc.)   The  currency data
+          elements should not be used.
+
+          RFF, Reference
+          A  segment   for  the  inclusion  of  any  additional
+          references related to the reference documents.
+
+
+        Segment Group 19: DLI-MOA-PIA-DTM-SG20-SG21
+        A group  of segments which may be used when required to
+        provide  details   of  individual  line  items  in  the
+        reference document.
+
+          DLI, Document line identification
+          A segment identifying a specific line item within the
+          referenced document.
+
+          MOA, Monetary amount
+          A segment  giving the  monetary amounts for this line
+          item.
+
+          PIA, Additional product id
+          A segment  specifying item identification codes where
+          required.
+
+          DTM, Date/time/period
+          A segment  specifying the date/time/period related to
+          the line item.
+
+
+          Segment Group 20: CUX-DTM
+          A group  of segments identifying the currency and the
+          related  dates/periods   of  the   line  item   where
+          different to the remittance and document currency.
+
+            CUX, Currencies
+            A segment  identifying the  currency and associated
+            exchange rate  of the line item, where different to
+            the reference and target currency.
+
+            DTM, Date/time/period
+            A segment specifying the effective date and/or time
+            the rate of exchange was fixed.
+
+
+          Segment Group 21: AJT-MOA-RFF
+          A group of segments indicating adjustment amounts and
+          their referenced documents for this line item.
+
+            AJT, Adjustment details
+            A segment indicating any adjustments to the amounts
+            originally specified  for this  line item  and  the
+            reason for the adjustments.
+
+            MOA, Monetary amount
+            A  segment  giving  the  monetary  amounts  of  the
+            adjustment for this line item.
+
+            RFF, Reference
+            A segment  for  the  inclusion  of  any  additional
+            references related to the reference document.
+
+CNT, Control total
+A segment  identifying the  kind of  control-checks  for  the
+payment orders  contained in  the PAYMUL  and identifying the
+totals according to the coded form.
+
+
+Segment Group 22: AUT-DTM
+A  group   of  segments   specifying  the   details  of   any
+authentication (validation)  procedure applied  to the PAYMUL
+message.
+
+  AUT, Authentication result
+  A  segment   specifying  details   of  any   authentication
+  (validation) procedures applied to the PAYMUL message.
+
+  DTM, Date/time/period
+  A segment identifying the validation date/time.
+
+UNT, Message trailer
+A service  segment ending  a message, giving the total number
+of segments  in the  message and the control reference number
+of the message.
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+                                 HEADER SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  DTM  Date/time/period                     M      1                  
+  BUS  Business function                    C      1                  
+  FII  Financial institution information    C      1                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄÄ¿
+  RFF  Reference                            M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  CTA  Contact information                  C      1                 ³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+                                                                      
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M   9999 ÄÄÄÄÄÄ¿
+  LIN  Line item                            M      1                 ³
+  DTM  Date/time/period                     M      1                 ³
+  RFF  Reference                            C      1                 ³
+  BUS  Business function                    C      1                 ³
+  FCA  Financial charges allocation         C      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M      1 ÄÄÄÄÄ¿³
+  MOA  Monetary amount                      M      1                ³³
+  CUX  Currencies                           C      1                ³³
+  DTM  Date/time/period                     C      2                ³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M      1 ÄÄÄÄÄ¿³
+  FII  Financial institution information    M      1                ³³
+  CTA  Contact information                  C      1                ³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      3 ÄÄÄÄÄ¿³
+  NAD  Name and address                     M      1                ³³
+  CTA  Contact information                  C      1                ³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄ¿³
+  INP  Parties to instruction               M      1                ³³
+  DTM  Date/time/period                     C      1                ³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄÄÄ¿³
+  GIS  General indicator                    M      1                ³³
+  NAD  Name and address                     M      1                ³³
+  FTX  Free text                            M      6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄ¿³
+  PRC  Process identification               M      1                ³³
+  FTX  Free text                            M      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M   9999 ÄÄÄÄÄ¿³
+  SEQ  Sequence details                     M      1                ³³
+  MOA  Monetary amount                      M      1                ³³
+  DTM  Date/time/period                     C      1                ³³
+  RFF  Reference                            C      1                ³³
+  PAI  Payment instructions                 C      1                ³³
+  FCA  Financial charges allocation         C      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      3 ÄÄÄÄ¿³³
+  FII  Financial institution information    M      1               ³³³
+  CTA  Contact information                  C      1               ³³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 12 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      3 ÄÄÄÄ¿³³
+  NAD  Name and address                     M      1               ³³³
+  CTA  Contact information                  C      1               ³³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 13 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      3 ÄÄÄÄ¿³³
+  INP  Parties to instruction               M      1               ³³³
+  DTM  Date/time/period                     C      2               ³³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 14 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄÄ¿³³
+  GIS  General indicator                    M      1               ³³³
+  NAD  Name and address                     M      1               ³³³
+  FTX  Free text                            M      6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 15 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  PRC  Process identification               M      1               ³³³
+  FTX  Free text                            C      5               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 16 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄ¿³³³
+  DOC  Document/message details             M      1              ³³³³
+  MOA  Monetary amount                      C      5              ³³³³
+  DTM  Date/time/period                     C      5              ³³³³
+  RFF  Reference                            C      5              ³³³³
+  NAD  Name and address                     C      2              ³³³³
+                                                                  ³³³³
+  ÄÄÄ Segment Group 17 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄ¿³³³³
+  CUX  Currencies                           M      1             ³³³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³³
+                                                                  ³³³³
+  ÄÄÄ Segment Group 18 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    100 ÄÄ¿³³³³
+  AJT  Adjustment details                   M      1             ³³³³³
+  MOA  Monetary amount                      M      1             ³³³³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³³
+                                                                  ³³³³
+  ÄÄÄ Segment Group 19 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   1000 ÄÄ¿³³³³
+  DLI  Document line identification         M      1             ³³³³³
+  MOA  Monetary amount                      M      5             ³³³³³
+  PIA  Additional product id                C      5             ³³³³³
+  DTM  Date/time/period                     C      5             ³³³³³
+                                                                 ³³³³³
+  ÄÄÄ Segment Group 20 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 Ä¿³³³³³
+  CUX  Currencies                           M      1            ³³³³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÙ³³³³³
+                                                                 ³³³³³
+  ÄÄÄ Segment Group 21 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 Ä¿³³³³³
+  AJT  Adjustment details                   M      1            ³³³³³³
+  MOA  Monetary amount                      M      1            ³³³³³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÁÁÁÁÁÙ
+  CNT  Control total                        C      5                  
+                                                                      
+  ÄÄÄ Segment Group 22 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄÄ¿
+  AUT  Authentication result                M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+AJT  Adjustment details
+AUT  Authentication result
+BGM  Beginning of message
+BUS  Business function
+CNT  Control total
+COM  Communication contact
+CTA  Contact information
+CUX  Currencies
+DLI  Document line identification
+DOC  Document/message details
+DTM  Date/time/period
+FCA  Financial charges allocation
+FII  Financial institution information
+FTX  Free text
+GIS  General indicator
+INP  Parties to instruction
+LIN  Line item
+MOA  Monetary amount
+NAD  Name and address
+PAI  Payment instructions
+PIA  Additional product id
+PRC  Process identification
+RFF  Reference
+SEQ  Sequence details
+UNH  Message header
+UNT  Message trailer

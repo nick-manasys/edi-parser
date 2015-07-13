@@ -1,0 +1,616 @@
+
+ 1000     C002     BGM
+ 1000     C002     DOC
+ 1001              DMS
+ 1001     C002     BGM
+ 1001     C002     DOC
+ 1004              BGM
+ 1004              DMS
+ 1004     C503     CNI
+ 1004     C503     DOC
+ 1049     C701     ERP
+ 1050     C286     SEQ
+ 1052     C701     ERP
+ 1054     C701     ERP
+ 1073              DLI
+ 1082              AJT
+ 1082              DLI
+ 1082              LIN
+ 1082              PIT
+ 1131     C002     BGM
+ 1131     C002     DOC
+ 1131     C040     TDT
+ 1131     C082     NAD
+ 1131     C088     FII
+ 1131     C100     TOD
+ 1131     C107     FTX
+ 1131     C110     PAT
+ 1131     C200     TCC
+ 1131     C202     PAC
+ 1131     C203     COT
+ 1131     C203     MEM
+ 1131     C203     TCC
+ 1131     C212     LIN
+ 1131     C212     PIA
+ 1131     C213     GID
+ 1131     C214     ALC
+ 1131     C214     DLM
+ 1131     C215     SEL
+ 1131     C218     HAN
+ 1131     C222     TDT
+ 1131     C222     TPL
+ 1131     C224     EQD
+ 1131     C229     CPI
+ 1131     C231     CPI
+ 1131     C233     TSR
+ 1131     C237     EQA
+ 1131     C237     EQD
+ 1131     C237     SGP
+ 1131     C240     CCI
+ 1131     C241     TAX
+ 1131     C242     PRC
+ 1131     C243     TAX
+ 1131     C244     TEM
+ 1131     C246     CST
+ 1131     C273     IMD
+ 1131     C286     SEQ
+ 1131     C292     PIT
+ 1131     C501     PCD
+ 1131     C515     TEM
+ 1131     C517     LOC
+ 1131     C519     LOC
+ 1131     C521     BUS
+ 1131     C522     COT
+ 1131     C522     DLM
+ 1131     C522     INP
+ 1131     C524     HAN
+ 1131     C528     TCC
+ 1131     C529     GIS
+ 1131     C533     TAX
+ 1131     C534     PAI
+ 1131     C536     TSR
+ 1131     C537     TSR
+ 1131     C543     AGR
+ 1131     C545     IND
+ 1131     C549     ARD
+ 1131     C550     RCS
+ 1131     C551     BUS
+ 1131     C553     LOC
+ 1131     C554     TCC
+ 1131     C555     STS
+ 1131     C556     STS
+ 1131     C601     STS
+ 1131     C703     GDS
+ 1131     C703     TSR
+ 1131     C878     FCA
+ 1131     C901     ERC
+ 1131     C941     REL
+ 1131     C942     MEM
+ 1131     C944     MEM
+ 1131     C945     MEM
+ 1131     C948     EMP
+ 1131     C950     EMP
+ 1131     C951     EMP
+ 1131     C953     COT
+ 1131     C955     ATT
+ 1131     C956     ATT
+ 1131     C960     APR
+ 1131     C960     COT
+ 1131     C960     MEM
+ 1131     C960     QVR
+ 1153     C506     RFF
+ 1154     C506     RFF
+ 1156     C506     RFF
+ 1159     C286     SEQ
+ 1218              DOC
+ 1220              DOC
+ 1222              LIN
+ 1222              PIT
+ 1225              BGM
+ 1227              ALC
+ 1229              LIN
+ 1229              PIT
+ 1229              RCS
+ 1230     C552     ALC
+ 1245              SEQ
+ 1312              CNI
+ 1366     C503     CNI
+ 1366     C503     DOC
+ 1373     C503     CNI
+ 1373     C503     DOC
+ 1490              CNI
+ 1496              CST
+ 1496              GID
+ 2005     C507     DTM
+ 2009     C112     PAT
+ 2013     C329     SCC
+ 2015     C329     SCC
+ 2017     C329     SCC
+ 2151     C112     PAT
+ 2152     C112     PAT
+ 2379     C507     DTM
+ 2380     C507     DTM
+ 2475     C112     PAT
+ 3035              FII
+ 3035              NAD
+ 3036     C080     NAD
+ 3036     C850     INP
+ 3039     C082     NAD
+ 3042     C059     NAD
+ 3045     C080     NAD
+ 3055     C002     BGM
+ 3055     C002     DOC
+ 3055     C040     TDT
+ 3055     C082     NAD
+ 3055     C088     FII
+ 3055     C100     TOD
+ 3055     C107     FTX
+ 3055     C110     PAT
+ 3055     C200     TCC
+ 3055     C202     PAC
+ 3055     C203     COT
+ 3055     C203     MEM
+ 3055     C203     TCC
+ 3055     C212     LIN
+ 3055     C212     PIA
+ 3055     C213     GID
+ 3055     C214     ALC
+ 3055     C214     DLM
+ 3055     C215     SEL
+ 3055     C218     HAN
+ 3055     C222     TDT
+ 3055     C222     TPL
+ 3055     C224     EQD
+ 3055     C229     CPI
+ 3055     C231     CPI
+ 3055     C233     TSR
+ 3055     C237     EQA
+ 3055     C237     EQD
+ 3055     C237     SGP
+ 3055     C240     CCI
+ 3055     C241     TAX
+ 3055     C242     PRC
+ 3055     C243     TAX
+ 3055     C244     TEM
+ 3055     C246     CST
+ 3055     C273     IMD
+ 3055     C286     SEQ
+ 3055     C292     PIT
+ 3055     C501     PCD
+ 3055     C515     TEM
+ 3055     C517     LOC
+ 3055     C519     LOC
+ 3055     C521     BUS
+ 3055     C522     COT
+ 3055     C522     DLM
+ 3055     C522     INP
+ 3055     C524     HAN
+ 3055     C528     TCC
+ 3055     C529     GIS
+ 3055     C533     TAX
+ 3055     C534     PAI
+ 3055     C536     TSR
+ 3055     C537     TSR
+ 3055     C543     AGR
+ 3055     C545     IND
+ 3055     C549     ARD
+ 3055     C550     RCS
+ 3055     C551     BUS
+ 3055     C553     LOC
+ 3055     C554     TCC
+ 3055     C555     STS
+ 3055     C556     STS
+ 3055     C601     STS
+ 3055     C703     GDS
+ 3055     C703     TSR
+ 3055     C878     FCA
+ 3055     C901     ERC
+ 3055     C941     REL
+ 3055     C942     MEM
+ 3055     C944     MEM
+ 3055     C945     MEM
+ 3055     C948     EMP
+ 3055     C950     EMP
+ 3055     C951     EMP
+ 3055     C953     COT
+ 3055     C955     ATT
+ 3055     C956     ATT
+ 3055     C960     APR
+ 3055     C960     COT
+ 3055     C960     MEM
+ 3055     C960     QVR
+ 3077              TEM
+ 3124     C058     NAD
+ 3127     C040     TDT
+ 3128     C040     TDT
+ 3139              CTA
+ 3148     C076     COM
+ 3153              DOC
+ 3155     C076     COM
+ 3164              NAD
+ 3192     C078     FII
+ 3194     C078     FII
+ 3194     C878     FCA
+ 3207              FII
+ 3207              NAD
+ 3222     C519     LOC
+ 3223     C519     LOC
+ 3224     C517     LOC
+ 3225     C517     LOC
+ 3227              LOC
+ 3229              NAD
+ 3232     C553     LOC
+ 3233     C553     LOC
+ 3236     C514     PSD
+ 3237     C514     PSD
+ 3239              ALI
+ 3251              NAD
+ 3279              BUS
+ 3285     C849     INP
+ 3301     C849     INP
+ 3412     C056     CTA
+ 3413     C056     CTA
+ 3432     C088     FII
+ 3433     C088     FII
+ 3434     C088     FII
+ 3434     C878     FCA
+ 3436     C088     FII
+ 3446              TAX
+ 3453              FTX
+ 3453     C503     CNI
+ 3453     C503     DOC
+ 3494              EMP
+ 4000     C506     RFF
+ 4017              SCC
+ 4022     C521     BUS
+ 4025     C521     BUS
+ 4027     C521     BUS
+ 4043              API
+ 4043              APR
+ 4052     C100     TOD
+ 4053     C100     TOD
+ 4055              TOD
+ 4065     C536     TSR
+ 4078     C524     HAN
+ 4079     C524     HAN
+ 4183              ALI
+ 4215              TOD
+ 4215     C231     CPI
+ 4219     C537     TSR
+ 4221              QVA
+ 4221              QVR
+ 4233              PCI
+ 4237              CPI
+ 4237     C200     TCC
+ 4276     C110     PAT
+ 4277     C110     PAT
+ 4279              PAT
+ 4294     C262     API
+ 4294     C262     QVA
+ 4294     C960     APR
+ 4294     C960     COT
+ 4294     C960     MEM
+ 4294     C960     QVR
+ 4295     C262     API
+ 4295     C262     QVA
+ 4295     C960     APR
+ 4295     C960     COT
+ 4295     C960     MEM
+ 4295     C960     QVR
+ 4343              BGM
+ 4347              PIA
+ 4383     C551     BUS
+ 4400     C522     COT
+ 4400     C522     DLM
+ 4400     C522     INP
+ 4401     C522     COT
+ 4401     C522     DLM
+ 4401     C522     INP
+ 4403     C522     COT
+ 4403     C522     DLM
+ 4403     C522     INP
+ 4405     C516     MOA
+ 4405     C850     INP
+ 4407              PSD
+ 4415     C244     TEM
+ 4416     C244     TEM
+ 4419              TEM
+ 4424     C515     TEM
+ 4425     C515     TEM
+ 4431     C534     PAI
+ 4435     C534     PAI
+ 4439     C534     PAI
+ 4440     C108     FTX
+ 4441     C107     FTX
+ 4451              FTX
+ 4453              FTX
+ 4455              DLM
+ 4457              DLM
+ 4461     C534     PAI
+ 4463              BUS
+ 4465              AJT
+ 4471              ALC
+ 4471              FCA
+ 4487              BUS
+ 4493              SCC
+ 5004     C516     MOA
+ 5007     C549     ARD
+ 5013     C545     IND
+ 5025     C516     MOA
+ 5027     C545     IND
+ 5030     C546     IND
+ 5039     C546     IND
+ 5047              COT
+ 5048     C953     COT
+ 5049     C953     COT
+ 5118     C509     PRI
+ 5125     C509     PRI
+ 5152     C241     TAX
+ 5153     C241     TAX
+ 5189     C552     ALC
+ 5213              PRI
+ 5237     C229     CPI
+ 5242     C203     COT
+ 5242     C203     MEM
+ 5242     C203     TCC
+ 5243     C203     COT
+ 5243     C203     MEM
+ 5243     C203     TCC
+ 5243     C554     TCC
+ 5245     C501     PCD
+ 5249     C501     PCD
+ 5273     C243     TAX
+ 5275     C203     COT
+ 5275     C203     MEM
+ 5275     C203     TCC
+ 5278     C243     TAX
+ 5279     C243     TAX
+ 5283              TAX
+ 5284     C128     RTE
+ 5284     C509     PRI
+ 5286              TAX
+ 5289     C533     TAX
+ 5305              TAX
+ 5375     C509     PRI
+ 5377     C292     PIT
+ 5379              PGI
+ 5387     C509     PRI
+ 5388     C288     PGI
+ 5389     C288     PGI
+ 5393     C138     API
+ 5393     C138     APR
+ 5394     C138     API
+ 5394     C138     APR
+ 5402              CUX
+ 5419     C128     RTE
+ 5420     C128     RTE
+ 5463              ALC
+ 5479              LOC
+ 5482     C501     PCD
+ 5495              LIN
+ 5495              PIT
+ 6008     C211     DIM
+ 6060     C186     QTY
+ 6063     C186     QTY
+ 6063     C279     QVA
+ 6063     C279     QVR
+ 6064     C279     QVA
+ 6064     C279     QVR
+ 6066     C270     CNT
+ 6069     C270     CNT
+ 6071     C526     PSD
+ 6071     C526     SPS
+ 6072     C526     PSD
+ 6072     C526     SPS
+ 6074              SPS
+ 6140     C211     DIM
+ 6145              DIM
+ 6152     C174     MEA
+ 6152     C280     RNG
+ 6155     C502     CCI
+ 6155     C502     MEA
+ 6162     C174     MEA
+ 6162     C280     RNG
+ 6167              RNG
+ 6168     C211     DIM
+ 6173     C512     SPS
+ 6174     C512     SPS
+ 6245              TMP
+ 6246     C239     TMP
+ 6311              MEA
+ 6311              TEM
+ 6313     C502     CCI
+ 6313     C502     MEA
+ 6313     C527     STA
+ 6314     C174     MEA
+ 6314     C527     STA
+ 6321     C502     CCI
+ 6321     C502     MEA
+ 6321     C527     STA
+ 6331              STA
+ 6341              CUX
+ 6343     C504     CUX
+ 6343     C516     MOA
+ 6345     C078     FII
+ 6345     C504     CUX
+ 6345     C516     MOA
+ 6345     C878     FCA
+ 6347     C504     CUX
+ 6348     C504     CUX
+ 6350     C523     EQN
+ 6353     C523     EQN
+ 6411     C128     RTE
+ 6411     C174     MEA
+ 6411     C186     QTY
+ 6411     C211     DIM
+ 6411     C223     DGS
+ 6411     C239     TMP
+ 6411     C270     CNT
+ 6411     C280     RNG
+ 6411     C509     PRI
+ 6411     C526     PSD
+ 6411     C526     SPS
+ 6411     C527     STA
+ 7008     C273     IMD
+ 7009     C273     IMD
+ 7011              PIT
+ 7036     C240     CCI
+ 7037     C240     CCI
+ 7039              PSD
+ 7045              PSD
+ 7047              PSD
+ 7059              CCI
+ 7064     C202     PAC
+ 7064     C213     GID
+ 7064     C402     PAC
+ 7065     C202     PAC
+ 7065     C213     GID
+ 7073     C531     PAC
+ 7075              CPS
+ 7075     C531     PAC
+ 7077              IMD
+ 7077     C402     PAC
+ 7081              IMD
+ 7083              LIN
+ 7083              PIT
+ 7085     C703     GDS
+ 7085     C703     TSR
+ 7088     C234     DGS
+ 7102     C210     PCI
+ 7106     C223     DGS
+ 7124     C234     DGS
+ 7130     C401     TDT
+ 7140              BII
+ 7140     C212     LIN
+ 7140     C212     PIA
+ 7143     C212     LIN
+ 7143     C212     PIA
+ 7143     C402     PAC
+ 7160     C214     ALC
+ 7160     C214     DLM
+ 7161     C214     ALC
+ 7161     C214     DLM
+ 7164              CPS
+ 7166              CPS
+ 7186     C242     PRC
+ 7187     C242     PRC
+ 7187     C529     GIS
+ 7188              TEM
+ 7224              PAC
+ 7224              SGP
+ 7224     C213     GID
+ 7233     C531     PAC
+ 7240              DMS
+ 7273     C233     TSR
+ 7293              RCS
+ 7295     C550     RCS
+ 7297              GIR
+ 7357     C528     TCC
+ 7361     C246     CST
+ 7365     C529     GIS
+ 7383              IMD
+ 7383              MEA
+ 7402     C206     GIR
+ 7402     C208     GIN
+ 7405              GIN
+ 7405     C206     GIR
+ 7419     C218     HAN
+ 7429              BII
+ 7431     C543     AGR
+ 7433     C543     AGR
+ 7434     C543     AGR
+ 7436     C045     BII
+ 7438     C045     BII
+ 7440     C045     BII
+ 7442     C045     BII
+ 7444     C045     BII
+ 7446     C045     BII
+ 7449              MEM
+ 7450     C942     MEM
+ 7451     C942     MEM
+ 7452     C944     MEM
+ 7453     C944     MEM
+ 7455     C945     MEM
+ 7456     C945     MEM
+ 7457     C945     MEM
+ 8022     C200     TCC
+ 8023     C200     TCC
+ 8028              TDT
+ 8051              TDT
+ 8053              EQA
+ 8053              EQD
+ 8066     C220     TDT
+ 8067     C220     TDT
+ 8077              EQD
+ 8078     C205     DGS
+ 8092     C205     DGS
+ 8101              TDT
+ 8126              DGS
+ 8154     C224     EQD
+ 8155     C224     EQD
+ 8158     C235     DGS
+ 8169              EQD
+ 8178     C228     TDT
+ 8179     C228     TDT
+ 8186     C235     DGS
+ 8211              DGS
+ 8212     C222     TDT
+ 8212     C222     TPL
+ 8213     C222     TDT
+ 8213     C222     TPL
+ 8246     C236     DGS
+ 8249              EQD
+ 8255              DGS
+ 8260     C237     EQA
+ 8260     C237     EQD
+ 8260     C237     SGP
+ 8273              DGS
+ 8275              PCI
+ 8323              GOR
+ 8325              DGS
+ 8332              TMD
+ 8334     C219     TMD
+ 8335     C219     TMD
+ 8339              DGS
+ 8341              TMD
+ 8351     C205     DGS
+ 8364              DGS
+ 8393     C532     PAC
+ 8395     C532     PAC
+ 8410              DGS
+ 8453     C222     TDT
+ 8453     C222     TPL
+ 8457     C401     TDT
+ 8459     C401     TDT
+ 9003              EMP
+ 9004     C948     EMP
+ 9005     C948     EMP
+ 9006     C950     EMP
+ 9007     C950     EMP
+ 9008     C951     EMP
+ 9009     C951     EMP
+ 9011     C555     STS
+ 9012     C556     STS
+ 9013     C556     STS
+ 9015     C601     STS
+ 9017              ATT
+ 9018     C956     ATT
+ 9019     C956     ATT
+ 9021     C955     ATT
+ 9141              REL
+ 9142     C941     REL
+ 9143     C941     REL
+ 9213              ALI
+ 9280              AUT
+ 9282              AUT
+ 9302     C215     SEL
+ 9303     C215     SEL
+ 9308              SEL
+ 9321     C901     ERC
+ 9353     C232     GOR
+ 9411     C232     GOR
+ 9415     C232     GOR
+ 9417     C232     GOR
+ 9419              AGR
+ S009              UNH
+ S010              UNH

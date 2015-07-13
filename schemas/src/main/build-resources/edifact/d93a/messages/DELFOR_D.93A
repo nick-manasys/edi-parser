@@ -1,0 +1,1139 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+DELIVERY SCHEDULE MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :DELFOR
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE:  Submitted by WEEB-MD1 on behalf of PAEB 
+
+
+                          CONTENTS 
+
+DELIVERY SCHEDULE MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification provides the definition of the Delivery Schedule
+Message (DELFOR) to be used in Electronic Data Interchange (EDI)
+between partners involved in administration, commerce and
+transportation.
+
+1.  Scope
+
+
+This paper provides the definition of the United Nations Standard
+Delivery Schedule message to be used in Electronic Data Interchange
+(EDI) between trading partners.
+
+1.1 Functional Definition
+
+A message from buyer to supplier giving product requirements regarding
+details for short term delivery instructions and/or medium to long
+term product/service forecast for planning purposes according to
+conditions set out in a contract or order. The message can be used to
+authorize the commitment of labour and materials resources.
+
+1.2 Field of Application
+
+The UN Standard Delivery Schedule Message may be applied for both
+national and international trade. It is based on universal commercial
+practice and is not dependent on the type of business or industry.
+
+1.3 Principles
+
+- specify delivery schedules requested by the buyer
+
+- define the aspects that guarantee a perfect synchronization between
+buyer and seller
+
+- provide information allowing the seller to plan for future
+requirements in order to purchase raw materials to produce and deliver
+goods in the most economical way.
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying a message. The
+message type code for the UN Delivery Schedule Message is 'DELFOR'.
+Note: Delivery Schedule Messages conforming to this document must
+contain the following data in UNH, composite S009:
+Data element   0065 DELFOR
+               0052 D
+               0054 93A
+               0051 UN
+
+BGM, Beginning of message
+Segment groups assumes that the other group will not be used. There
+are two methods of conveying Product Delivery forecast information.
+First method is by delivery point (Segment groups 4-17), the second is
+product driven (Segment group 18-31).
+
+DTM, Date/time/period
+A segment specifying the date, and when relevant, the time/period of
+the beginning and ending of the validity period of the document. The
+DTM must be specified at least once to identify the Delivery Schedule
+document date.
+
+The date/time/period segment within other Segment group should be used
+whenever the date/time/period is logically related to another
+specified data item.
+
+
+Segment Group 1: RFF-DTM
+A group of segments giving references relevant to the whole message,
+e.g. contract number.
+
+  RFF, Reference
+  A segment for referencing documents relating to the whole Delivery
+  Schedule Message, e.g. contract, import/export license.
+
+  DTM, Date/time/period
+  Date/time/period from the referred document.
+
+
+Segment Group 2: NAD-LOC-SG3
+A group of segments identifying names, addresses, locations, and
+contacts relevant to the whole Delivery Schedule.
+
+  NAD, Name and address
+  A segment for identifying names and addresses and their functions
+  relevant for the whole Delivery Schedule. Identification of the
+  seller and buyer parties is recommended for the Delivery Schedule
+  message. Exception: the identification of the recipient of the goods
+  must be given in the NAD segment in the detail section when
+  required.
+
+  It is recommended that where possible only the coded form of the
+  party ID should be specified, e.g. the buyer and seller are known to
+  each other, thus only the coded ID is required. The consignee or
+  delivery address may vary and would have to be clearly specified,
+  preferably in structured format.
+
+  LOC, Place/location identification
+  A segment indicating more details regarding specific place/locations
+  related to the party specified in the NAD segment, e.g. internal
+  site/building number.
+
+
+  Segment Group 3: CTA-COM
+  A group of segments to identify people, functions, or departments
+  and appropriate numbers to whom communication should be directed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+    CTA, Contact information
+    A segment to identify the person, function, or department to whom
+    communication should be directed.
+
+    COM, Communication contact
+    A segment identifying communication types and numbers for the
+    person, function, or department identified in the CTA.
+
+UNS, Section control
+A service segment placed at the start of the detail section to avoid
+segment collision. The detail section consists of two main Segment
+groups: Segment group 4 and Segment group 18. The use of one of the
+Segment groups assumes that the other group will not be used. There
+are two methods of conveying Product Delivery forecast information.
+First method is by delivery point (Segment groups 4-17), the second is
+product driven (Segment group 18-31).
+
+
+Segment Group 4: NAD-LOC-FTX-SG5-SG6-SG7-SG8
+A group containing delivery names and addresses, related information
+and details of line items to be consigned to the delivery points.
+
+  NAD, Name and address
+  A segment for identifying names and addresses and their functions
+  relevant to the delivery point.
+
+  LOC, Place/location identification
+  A segment identifying a specific location to which product, as
+  specified in the LIN-Segment groups, should be delivered.
+
+  FTX, Free text
+  A segment with free text in coded or clear form to give further
+  clarification when required. In computer to computer exchanges such
+  text will normally require the receiver to process this segment
+  manually.
+
+
+  Segment Group 5: DOC-DTM
+  A group of segments providing information relating to documents
+  required for the delivery point.
+
+    DOC, Document/message details
+    A segment providing information relating to the documents required
+    for the specified delivery point.
+
+    DTM, Date/time/period
+    Date/time of documents required.
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Segment Group 6: CTA-COM
+  A group of segments to identify a person or department and
+  appropriate numbers to whom communication should be directed.
+
+    CTA, Contact information
+    A segment to identify the person, function, or department to whom
+    communication should be directed.
+
+    COM, Communication contact
+    Identify communication types and numbers for the person, function,
+    or department identified in CTA.
+
+
+  Segment Group 7: TDT-DTM
+  A group of segments specifying details of the mode and means of
+  transport, and date/time of departure and destination relating to
+  specified delivery point.
+
+    TDT, Details of transport
+    A segment specifying the carriage, and the mode and means of
+    transport of the goods for the specified transport.
+
+    DTM, Date/time/period
+    A segment indicating the date/time/period details of departure
+    and/or arrival relating to the TDT segment.
+
+
+  Segment Group 8: LIN-PIA-IMD-MEA-ALI-GIN-GIR-LOC-DTM-FTX-SG9-SG10-SG11-SG12-SG14
+  A group of segments providing details of the individual line items
+  for the specified delivery point.
+
+    LIN, Line item
+    A segment identifying the details of the product or service to be
+    delivered, e.g. product identification. All other segments in the
+    detail section following the LIN segment refer to the line item.
+
+    PIA, Additional product id
+    A segment providing additional product identification.
+
+    IMD, Item description
+    A segment for describing the product or the service to be
+    delivered. This segment should be used for products that cannot be
+    identified by a product code or article number.
+
+    MEA, Measurements
+    A segment specifying physical measurements of the item to be
+    delivered in original or unpacked form.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ALI, Additional information
+    A segment indicating that the line item is subject to special
+    conditions due to origin, customs preference, or commercial
+    factors.
+
+    GIN, Goods identity number
+    A segment providing identity numbers to be applied to the goods to
+    be delivered, e.g. serial numbers for assembled equipment.
+
+    GIR, Related identification numbers
+    A segment providing sets of related identification numbers for a
+    line item, e.g. engine number, chassis number and transmission
+    number for a vehicle.
+
+    LOC, Place/location identification
+    A segment identifying a specific location to which products, as
+    specified in the LIN-Segment group, should be delivered.
+
+    DTM, Date/time/period
+    Date/time/period associated with the line item.
+
+    FTX, Free text
+    A segment with free text in coded or clear form to give further
+    clarification, when required, to the line item to be delivered. In
+    computer to computer exchanges such text will normally require the
+    receiver to process this segment manually.
+
+
+    Segment Group 9: CTA-COM
+    A group of segments to identify the person, function or a
+    department and appropriate numbers to whom communication should be
+    directed.
+
+      CTA, Contact information
+      A segment to identify the person, function, department to whom
+      communication should be directed.
+
+      COM, Communication contact
+      Identify communication types and numbers for the person,
+      function, or department identified in the CTA.
+
+
+    Segment Group 10: RFF-DTM
+    A group of segments giving references related to the line item and
+    where necessary, their dates.
+
+      RFF, Reference
+      A segment for identifying documents relating to the line item,
+      e.g. a contract and its appropriate line item.
+
+      DTM, Date/time/period
+      Date/time of the referred document.
+
+
+
+
+
+
+
+
+
+
+
+    Segment Group 11: TDT-DTM
+    A group of segments specifying details of the mode and means of
+    transport, and date/time of departure and destination relating to
+    the specified location.
+
+      TDT, Details of transport
+      A segment specifying the carriage, and the mode and means of
+      transport of the goods for the specified location.
+
+      DTM, Date/time/period
+      A segment indicating the date/time/period details of departure
+      and/or arrival relating to the TDT segment.
+
+
+    Segment Group 12: QTY-SCC-DTM-SG13
+    A group of segments specifying quantity related information for
+    actual delivery, reporting or cumulative quantities and forecast
+    quantities as required for the line item.
+
+      QTY, Quantity
+      A segment to specify pertinent quantities which may be relating
+      to schedule(s) and/or pattern established in the SCC/DTM
+      segment, e.g. delivery quantity or a specified date.
+
+      SCC, Scheduling conditions
+      A segment specifying the type and status of the schedule being
+      given, and optionally defining a pattern to be established, e.g.
+      firm or proposed delivery schedule for a weekly pattern.
+
+      DTM, Date/time/period
+      A segment indicating the date/time/period details relating to
+      the quantity and schedule details in the QTY/SCC segments. This
+      segment may indicate date/time ranges, e.g. start and end dates
+      for a delivery pattern, or delivery window.
+
+
+      Segment Group 13: RFF-DTM
+      A group of segments for referencing specific product delivery
+      release information and where necessary their date.
+
+        RFF, Reference
+        A segment for referencing specific product delivery release
+        information e.g. appointment.
+
+        DTM, Date/time/period
+        Date/time of the referred document.
+
+
+    Segment Group 14: PAC-MEA-QTY-DTM-SG15-SG16
+    A group of segments identifying the packaging, physical
+    dimensions, and marks and numbers for goods referenced in the line
+    item to be delivered.
+
+
+
+
+
+
+
+
+
+
+
+      PAC, Package
+      A segment specifying the number of package units and the
+      physical type of packaging for the line item, e.g. pallet.
+
+      MEA, Measurements
+      A segment specifying physical measurements of packages described
+      in the PAC segment, e.g. pallet dimensions.
+
+      QTY, Quantity
+      A segment to specify pertinent quantities relating to the
+      physical units (packages) described in the PAC segment.
+
+      DTM, Date/time/period
+      A segment specifying date/time/period details relating to the
+      physical units (packages) described in the PAC segment, e.g.
+      packaging date.
+
+
+      Segment Group 15: PCI-GIN
+      A group of segments identifying markings and labels and if
+      relevant package numbers.
+
+        PCI, Package identification
+        A segment specifying markings and labels used on individual
+        physical units (packages) described in the PAC segment.
+
+        GIN, Goods identity number
+        A segment providing identity numbers to be applied to the
+        packages to be delivered.
+
+
+      Segment Group 16: QVA-DTM-SG17
+      A group of segments specifying details regarding quantity
+      variations relevant to the line item to be delivered.
+
+        QVA, Quantity variances
+        A segment specifying details relating to variations between
+        ordered/notified and shipped/received quantities.
+
+        DTM, Date/time/period
+        A segment specifying the date/time/period related to the
+        variance specified in QVA segment.
+
+
+        Segment Group 17: RFF-DTM
+        A group of segments for referencing quantity variance
+        information.
+
+          RFF, Reference
+          A segment for referencing documents relating to the variance
+          specified in QVA segment, e.g. previous delivery schedule,
+          previous despatch advice.
+
+
+
+
+
+
+
+
+
+
+
+          DTM, Date/time/period
+          Date/time of the referred document.
+
+          The detail section consists of two main Segment groups,
+          Segment group 4 and Segment group 18. The use of Segment
+          group 18 assumes that Segment group 4 has not been used.
+
+
+Segment Group 18: LIN-PIA-IMD-MEA-ALI-GIN-GIR-DTM-FTX-SG19-SG20-SG22-SG24
+A group of that contains a line item and its related information and
+details of delivery names and addresses for each delivery location to
+which goods from the line items should be consigned.
+
+  LIN, Line item
+  A segment identifying the details of the product or service to be
+  delivered, e.g. product identification. All other segments in the
+  detail section following the LIN segment refer to the line item.
+
+  PIA, Additional product id
+  A segment providing additional product identification to the line
+  item.
+
+  IMD, Item description
+  A segment for describing the product or the service to be delivered.
+  This segment should be used for products that cannot be identified
+  by a product code or article number.
+
+  MEA, Measurements
+  A segment specifying physical measurements of the item to be
+  delivered in original or unpacked form.
+
+  ALI, Additional information
+  A segment indicating that the line item is subject to special
+  conditions due to origin, customs preference, or commercial factors.
+
+  GIN, Goods identity number
+  A segment providing identity numbers to be applied to the goods to
+  be delivered, e.g. serial numbers for assembled equipment.
+
+  GIR, Related identification numbers
+  A segment providing sets of related identification numbers for a
+  line item, e.g. engine number, chassis number and transmission
+  number for a vehicle.
+
+  DTM, Date/time/period
+  Date/time/period associated with the line item.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  FTX, Free text
+  A segment with free text in coded or clear form to give further
+  clarification, when required, to the line item to be delivered. In
+  computer to computer exchanges such text will normally require the
+  receiver to process this segment manually.
+
+
+  Segment Group 19: RFF-DTM
+  A group of segment giving references related to the line item and
+  where necessary, their dates.
+
+    RFF, Reference
+    A segment for referencing documents relating to the line item,
+    e.g. a contract and its appropriate line item.
+
+    DTM, Date/time/period
+    Date/time/period associated with the referred document.
+
+
+  Segment Group 20: QTY-SCC-DTM-SG21
+  A group of segments specifying quantity related information for
+  actual delivery, reporting or cumulative quantities and forecast
+  quantities as required for the line item.
+
+    QTY, Quantity
+    A segment to specify pertinent quantities which may be relating to
+    the schedule(s) and/or pattern established in the SCC/DTM segment,
+    e.g. delivery quantity on a specified date.
+
+    SCC, Scheduling conditions
+    A segment specifying the type and status of the schedule being
+    given, and optionally defining a pattern to be established, e.g.
+    firm or proposed delivery schedule for a weekly pattern.
+
+    DTM, Date/time/period
+    A segment indicating the date/time/period details relating to the
+    quantity and schedule detail sin the QTY/SCC segments. This
+    segment may indicate date/time ranges, e.g. start and end dates
+    for a delivery pattern, or delivery window.
+
+
+    Segment Group 21: RFF-DTM
+    A group of segment for referencing specific product delivery
+    release information and where necessary their date.
+
+      RFF, Reference
+      A segment for referencing specific product delivery release
+      information, e.g. appointment.
+
+      DTM, Date/time/period
+      Date/time of the referred document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Segment Group 22: PAC-MEA-QTY-DTM-SG23
+  A group of segments identifying the packaging, physical dimensions,
+  and marks and numbers for goods referenced in the line item to be
+  delivered.
+
+    PAC, Package
+    A segment specifying the number of package units and the physical
+    type of packaging for the line item, e.g. pallet.
+
+    MEA, Measurements
+    A segment specifying physical measurements of packages described
+    in the PAC segment, e.g. pallet dimensions.
+
+    QTY, Quantity
+    A segment to specify pertinent quantities relating to the physical
+    units (packages) described in the PAC segment.
+
+    DTM, Date/time/period
+    A segment specifying the date/time/period details relating to the
+    physical units (packages) described in the PAC segment, e.g.
+    package validity date.
+
+
+    Segment Group 23: PCI-GIN
+    A segment identifying markings and labels and ,if relevant,
+    package numbers.
+
+      PCI, Package identification
+      A segment specifying markings and labels used on individual
+      physical units (packages) described in the PAC segment.
+
+      GIN, Goods identity number
+      A segment providing identity numbers to be applied to the
+      packages to be delivered.
+
+
+  Segment Group 24: NAD-LOC-FTX-SG25-SG26-SG27-SG29-SG31
+  A group of segments providing details of the individual delivery
+  points.
+
+    NAD, Name and address
+    A segment for identifying names and addresses and their functions
+    relevant to the delivery point. Exception: the identification of
+    the recipient of the goods must be given in the NAD segment in the
+    detail section when required.
+
+    It is recommended that where possible only the coded form of the
+    party ID should be specified, e.g. the buyer and seller are known
+    to each other, thus only the coded ID is required. The consignee
+    or delivery address may vary and would have to be clearly
+    specified, preferably in structured format.
+
+
+
+
+
+
+
+
+
+
+
+    All other segments in this Segment group 24 following the NAD
+    segment refer to that delivery point.
+
+    LOC, Place/location identification
+    A segment identifying a specific location to which products, as
+    specified in the LIN-Segment groups, should be delivered.
+
+    FTX, Free text
+    A segment with free text in coded or clear form to give further
+    clarification when required. In computer to computer exchanges
+    such text will normally require the receiver to process this
+    segment manually.
+
+
+    Segment Group 25: DOC-DTM
+    A group of segment providing information relating to documents
+    required for the delivery point.
+
+      DOC, Document/message details
+      A segment providing information relating to the documents
+      required for the specified delivery point.
+
+      DTM, Date/time/period
+      Date/time of documents required.
+
+
+    Segment Group 26: CTA-COM
+    A group of segments to identify a person or a department and
+    appropriate numbers to whom communication should be directed.
+
+      CTA, Contact information
+      A segment to identify the person, function, or department to
+      whom communication should be directed.
+
+      COM, Communication contact
+      Identify communication types and numbers for the person,
+      function, or department identified in CTA.
+
+
+    Segment Group 27: QTY-SCC-DTM-SG28
+    A group of segments specifying quantity related information for
+    actual delivery, reporting or cumulative quantities and forecast
+    quantities as required for the delivery point.
+
+      QTY, Quantity
+      A segment to specify pertinent quantities which may be relating
+      to the schedule(s) and/or pattern established in the SCC/DTM
+      segment, e.g. delivery quantity on a specified date.
+
+      SCC, Scheduling conditions
+      A segment specifying the type and status of the schedule being
+      given, and optionally defining a pattern to be established, e.g.
+      firm or proposed delivery schedule for a weekly pattern.
+
+
+
+
+
+
+
+
+
+
+      DTM, Date/time/period
+      A segment indicating the date/time details relating to the
+      quantity and schedule details in the QTY/SCC segments. This
+      segment may indicate date/time ranges, e.g. start and end dates
+      for a delivery pattern, or delivery window.
+
+
+      Segment Group 28: RFF-DTM
+      A group of segment for referencing specific product delivery
+      release information and, where necessary, their dates.
+
+        RFF, Reference
+        A segment for referencing specific product delivery release
+        information e.g. appointment.
+
+        DTM, Date/time/period
+        Date/time of the referred document.
+
+
+    Segment Group 29: QVA-DTM-SG30
+    A group of segments specifying details regarding quantity
+    variations relevant to the line item and delivery point to be
+    delivered.
+
+      QVA, Quantity variances
+      A segment specifying details relating to variations between
+      ordered/notified or shipped/received quantities, or to provide
+      information on the latest received quantities.
+
+      DTM, Date/time/period
+      A segment specifying the date/time/period related to the
+      variance specified in QVA segment.
+
+
+      Segment Group 30: RFF-DTM
+      A group of segments for referencing quantity variance
+      information.
+
+        RFF, Reference
+        A segment for referencing documents relating to the variance
+        specified in QVA segment, e.g. previous delivery schedule,
+        previous despatch advice.
+
+        DTM, Date/time/period
+        Date/time of the referred document.
+
+
+    Segment Group 31: TDT-DTM
+    A group of segments specifying details of the mode and means of
+    transport, and date/time of departure and destination relating to
+    the specified location.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      TDT, Details of transport
+      A segment specifying the carriage, and the mode and means of
+      transport of the goods for the specified location.
+
+      DTM, Date/time/period
+      A segment indicating the date/time/period details of departure
+      and/or arrival relating to the TDT segment.
+
+UNS, Section control
+A service segment placed at the start of the summary section to avoid
+segment collision.
+
+CNT, Control total
+A segment by which control totals may be provided by sender for
+checking by the receiver.
+
+FTX, Free text
+A segment with free text in coded or clear form to give further
+clarification when required. In computer to computer exchanges such
+text will normally require the receiver to process this segment
+manually.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number of
+segments in the message and the Control reference number of the
+message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+* DTM  Date/time/period                     M     10                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄÄ¿
+  RFF  Reference                            M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     20 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  LOC  Place/location identification        C     10                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+  UNS  Section control                      M      1                  
+                                                                      
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    500 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  LOC  Place/location identification        C     10                 ³
+  FTX  Free text                            C      5                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  DOC  Document/message details             M      1                ³³
+  DTM  Date/time/period                     C     10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  TDT  Details of transport                 M      1                ³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+* ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄ¿³
+  LIN  Line item                            M      1                ³³
+  PIA  Additional product id                C     10                ³³
+  IMD  Item description                     C     10                ³³
+  MEA  Measurements                         C      5                ³³
+  ALI  Additional information               C      5                ³³
+  GIN  Goods identity number                C    100                ³³
+  GIR  Related identification numbers       C    100                ³³
+  LOC  Place/location identification        C    100                ³³
+  DTM  Date/time/period                     C      5                ³³
+  FTX  Free text                            C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  CTA  Contact information                  M      1               ³³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  RFF  Reference                            M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  TDT  Details of transport                 M      1               ³³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 12 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    200 ÄÄÄÄ¿³³
+  QTY  Quantity                             M      1               ³³³
+  SCC  Scheduling conditions                C      1               ³³³
+  DTM  Date/time/period                     C      2               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 13 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄ¿³³³
+  RFF  Reference                            M      1              ³³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 14 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     50 ÄÄÄÄ¿³³
+  PAC  Package                              M      1               ³³³
+  MEA  Measurements                         C     10               ³³³
+  QTY  Quantity                             C      5               ³³³
+  DTM  Date/time/period                     C      5               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 15 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄ¿³³³
+  PCI  Package identification               M      1              ³³³³
+  GIN  Goods identity number                C     10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 16 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄ¿³³³
+  QVA  Quantity variances                   M      1              ³³³³
+  DTM  Date/time/period                     C      5              ³³³³
+                                                                  ³³³³
+  ÄÄÄ Segment Group 17 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄ¿³³³³
+  RFF  Reference                            M      1             ³³³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÁÁÁÁÙ
+                                                                      
+  ÄÄÄ Segment Group 18 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄ¿
+  LIN  Line item                            M      1                 ³
+  PIA  Additional product id                C     10                 ³
+  IMD  Item description                     C     10                 ³
+  MEA  Measurements                         C      5                 ³
+  ALI  Additional information               C      5                 ³
+  GIN  Goods identity number                C    100                 ³
+  GIR  Related identification numbers       C    100                 ³
+  DTM  Date/time/period                     C      5                 ³
+  FTX  Free text                            C      5                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 19 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  RFF  Reference                            M      1                ³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 20 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     50 ÄÄÄÄÄ¿³
+  QTY  Quantity                             M      1                ³³
+  SCC  Scheduling conditions                C      1                ³³
+  DTM  Date/time/period                     C      2                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 21 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  RFF  Reference                            M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 22 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  PAC  Package                              M      1                ³³
+  MEA  Measurements                         C     10                ³³
+  QTY  Quantity                             C      5                ³³
+  DTM  Date/time/period                     C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 23 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  PCI  Package identification               M      1               ³³³
+  GIN  Goods identity number                C     10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 24 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    500 ÄÄÄÄÄ¿³
+  NAD  Name and address                     M      1                ³³
+  LOC  Place/location identification        C     10                ³³
+  FTX  Free text                            C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 25 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  DOC  Document/message details             M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 26 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  CTA  Contact information                  M      1               ³³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 27 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     50 ÄÄÄÄ¿³³
+  QTY  Quantity                             M      1               ³³³
+  SCC  Scheduling conditions                C      1               ³³³
+  DTM  Date/time/period                     C      2               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 28 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄ¿³³³
+  RFF  Reference                            M      1              ³³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 29 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  QVA  Quantity variances                   M      1               ³³³
+  DTM  Date/time/period                     C      5               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 30 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄ¿³³³
+  RFF  Reference                            M      1              ³³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 31 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  TDT  Details of transport                 M      1               ³³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+  UNS  Section control                      M      1                  
+  CNT  Control total                        C      5                  
+  FTX  Free text                            C      5                  
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+ALI  Additional information
+BGM  Beginning of message
+CNT  Control total
+COM  Communication contact
+CTA  Contact information
+DOC  Document/message details
+DTM  Date/time/period
+FTX  Free text
+GIN  Goods identity number
+GIR  Related identification numbers
+IMD  Item description
+LIN  Line item
+LOC  Place/location identification
+MEA  Measurements
+NAD  Name and address
+PAC  Package
+PCI  Package identification
+PIA  Additional product id
+QTY  Quantity
+QVA  Quantity variances
+RFF  Reference
+SCC  Scheduling conditions
+TDT  Details of transport
+UNH  Message header
+UNS  Section control
+UNT  Message trailer

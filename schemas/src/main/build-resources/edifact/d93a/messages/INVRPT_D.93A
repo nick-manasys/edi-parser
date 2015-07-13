@@ -1,0 +1,625 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+INVENTORY REPORT MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :INVRPT
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE:  Submitted by WEEB-MD1 on behalf of PAEB 
+
+
+                          CONTENTS 
+
+INVENTORY REPORT MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification provides the definition of the Inventory Report
+message (INVRPT) to be used in Electronic Data Interchange (EDI)
+between trading partners involved in administration, commerce and
+transport.
+
+1.  Scope
+
+
+This paper provides the definition of the United Nations Standard
+Inventory Report Message to be used in Electronic Data Interchange
+between trading partners.
+
+1.1 Functional Definition
+
+A message specifying information relating to held inventories. The
+Inventory report message is intended to be used in either direction
+between trading partners.
+
+1.2 Field of Application
+
+The UN Standard Inventory Report Message may be applied for both
+national and international trade. It is based on universal commercial
+practice, and is not dependent on the type of business or industry.
+
+1.3 Principles
+
+The exchanged information will relate to inventories of raw materials,
+manufactured articles, or other stockable items, and can be exchanged
+between a manufacturer and distributor (wholesaler), or manufacturer
+and consignment holder, etc.
+
+The message includes functionality to differentiate classes of
+inventory, and to permit financial valuation of inventories
+facilitating price protection claims, auditing, statutory
+declarations, etc.
+
+The specified quantities relating to a product can indicate opening
+stock, closing stock, and goods movement (receipts or withdrawals) of
+held inventory, for a given time frame.
+
+The specified quantities can relate directly to a product or package,
+and may be sub-detailed within different groups or classes, e.g.,
+batch, age, valuation, location, etc.
+
+For every specified quantity it is possible to indicate the relative
+package identifications of the physical units involved.
+
+
+
+
+
+
+
+
+
+
+
+
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying a message. The
+message code for the UN Inventory Report Message is 'INVRPT'.
+Note: Inventory Report messages conforming to this document must
+contain the following data in UNH, composite S009:
+Data element   0065 INVRPT
+               0052 D
+               0054 93A
+               0051 UN
+
+
+
+
+
+
+
+
+
+
+BGM, Beginning of message
+A segment for unique identification of the Inventory Report document,
+name and its number.
+
+DTM, Date/time/period
+Date/time/period related to the whole message.
+
+
+Segment Group 1: RFF-DTM
+A group of segments giving references and where necessary, their dates
+relating to the whole message, e.g., a contract, dispatch advice
+number, etc.
+
+  RFF, Reference
+  A segment for referencing documents relating to the whole inventory
+  report message, e.g., a contract, dispatch advice number, etc.
+
+  DTM, Date/time/period
+  Date/time/period as applied to the referred document.
+
+
+Segment Group 2: NAD-LOC-SG3-SG4
+A group of segments identifying names, addresses and locations
+relevant to the whole message.
+
+  NAD, Name and address
+  A segment for identifying names and addresses and their functions
+  relevant for the whole Inventory Report. Indications of the parties
+  involved is recommended for the Inventory Report message. They are
+  to be given in the NAD segment. It is recommended that where
+  possible only the coded form of the party ID should be specified.
+
+  LOC, Place/location identification
+  A segment indicating more details regarding specific place/locations
+  referred to in the NAD segment, e.g., the location of held
+  inventory.
+
+
+  Segment Group 3: RFF-DTM
+  A group of segments giving references only relating to the specified
+  party, rather than the whole message.
+
+    RFF, Reference
+    A segment for referencing documents and other numbers pertinent to
+    the NAD segment.
+
+    DTM, Date/time/period
+    Date/time/period as applied to the referred document.
+
+
+  Segment Group 4: CTA-COM
+  A group of segments to identify person, function, department, and
+  where appropriate numbers to which the communications should be
+  directed.
+
+
+
+
+
+
+
+
+
+
+    CTA, Contact information
+    A segment to identify person, function, department, to whom
+    communications should be directed.
+
+    COM, Communication contact
+    Identifying communication types and numbers for the entities
+    specified in CTA, e.g., FAX, TELEX, telephone, etc.
+
+
+Segment Group 5: CUX-DTM
+A group of segments to indicate currencies used for financial
+evaluation.
+
+  CUX, Currencies
+  A segment specifying currencies, and, if required, rates of exchange
+  for the whole message, e.g., evaluation currency.
+
+  DTM, Date/time/period
+  Date/time/period as applied to the currencies.
+
+
+Segment Group 6: CPS-SG7
+A group of segments providing details of all package levels of the
+inventory report. This segment group provides the capability to give
+the hierarchical relationship. The group defines a local top-down
+packaging structure.
+
+  CPS, Consignment packing sequence
+  A segment identifying the sequence in which packing has been done,
+  e.g. handling unit (pallet), package (box)
+
+
+  Segment Group 7: PAC-PCI-SG8
+  A group of segments identifying packaging, marks and numbers, date
+  and time information.
+
+    PAC, Package
+    A segment specifying the number and type of packages. DE7224,
+    number of packages must not be used.
+
+    PCI, Package identification
+    A segment specifying markings and labels used on individual
+    physical units (packages) described in the PAC Segment.
+
+
+    Segment Group 8: QTY-GIN-DTM
+    A group of segments providing package quantities with package
+    identification and relevant date/time information.
+
+      QTY, Quantity
+      A segment to provide quantity information suitably qualified for
+      the packages referred to in the PAC Segment, e.g., opening
+      quantity, closing quantity, adjustment quantity. This quantity
+      segment may contain any number of packages.
+
+
+
+
+
+
+
+
+
+
+      GIN, Goods identity number
+      A segment to provide serial-, batch-, label- or packaging
+      number. These may be simple numbers or ranges of numbers.
+
+      DTM, Date/time/period
+      Date/time period relevant to the package, e.g. production date,
+      expiration date, etc.
+
+
+Segment Group 9: LIN-PIA-IMD-MEA-ALI-LOC-DTM-SG10-SG11
+A group of segments providing detailed information on each line of the
+inventory report.
+
+  LIN, Line item
+  A segment identifying a specific line in the inventory report. All
+  other segments in the detail section refer to the line item.
+
+  IMD, Item description
+  A segment for describing the product or package.
+
+  MEA, Measurements
+  A segment specifying physical measurements in the inventory item,
+  either in original or packaged form.
+
+  LOC, Place/location identification
+  A segment indicating details regarding specific place or location of
+  the specified line item.
+
+  DTM, Date/time/period
+  Date/time/period as applied to the line item.
+
+
+  Segment Group 10: RFF-DTM
+  A group of segments giving references only relating to the specified
+  line item.
+
+    RFF, Reference
+    A segment for referencing documents and other numbers pertinent to
+    the line item.
+
+    DTM, Date/time/period
+    Date/time/period as applied to the referred document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Segment Group 11: QTY-GIN-LOC-DTM-SG12-SG13-SG14
+  A group of segments providing quantity, and optionally package
+  details, line item currencies and references.
+
+    QTY, Quantity
+    A segment to provide quantity information, suitably qualified for
+    the product referred to by the LIN segment, e.g., opening
+    quantity, closing quantity, etc.
+
+    GIN, Goods identity number
+    A segment to provide specific serial, batch or packaging numbers
+    to which the specific quantity relates. These may be single
+    numbers or ranges of numbers.
+
+    LOC, Place/location identification
+    A segment indicating details regarding specific place or location
+    of the quantity referred to in QTY.
+
+    DTM, Date/time/period
+    Date/time/period as applied to the quantity.
+
+
+    Segment Group 12: PRI-CUX-DTM
+    A group of segments to provide price/cost/value information.
+
+      PRI, Price details
+      A segment to provide the price/cost/value, suitable qualified.
+
+      CUX, Currencies
+      A segment specifying currencies, and if required, rates of
+      exchange, e.g., evaluation currency.
+
+      DTM, Date/time/period
+      Date/time/period as applied to the currencies.
+
+
+    Segment Group 13: RFF-DTM
+    A group of segments giving references only relating to the
+    specified quantity.
+
+      RFF, Reference
+      A segment for referencing documents and other numbers pertinent
+      to the quantity.
+
+      DTM, Date/time/period
+      Date/time/period as applied to the referred document.
+
+
+    Segment Group 14: CPS-SG15
+    A group of segments providing details of all package levels of the
+    inventory report. This segment group provides the capability to
+    give the hierarchical relationship. The group defines a logical
+    top-down packaging structure.
+
+
+
+
+
+
+
+
+
+
+      CPS, Consignment packing sequence
+      A segment identifying the sequence in which packing has been
+      done, e.g., handling unit (pallet), package (box).
+
+
+      Segment Group 15: PAC-MEA-QTY-GIN-DTM
+      A group of segments identifying packages, identification of the
+      packages and date/time information.
+
+        PAC, Package
+        A segment specifying the number and type of packages (physical
+        units and the physical type of packaging).
+
+        GIN, Goods identity number
+        A segment to provide serial, batch, label or packaging number.
+        These may be simple numbers or ranges of numbers.
+
+        DTM, Date/time/period
+        Date/time/period relevant to the package, e.g., production
+        date, expiration date, etc.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number of
+segments in the message and the control reference number of the
+message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  DTM  Date/time/period                     C     10                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄÄ¿
+  RFF  Reference                            M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     20 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  LOC  Place/location identification        C      5                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  RFF  Reference                            M      1                ³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+                                                                      
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄÄ¿
+  CUX  Currencies                           M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄ¿
+  CPS  Consignment packing sequence         M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄÄ¿³
+  PAC  Package                              M      1                ³³
+  PCI  Package identification               C   1000                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄ¿³³
+  QTY  Quantity                             M      1               ³³³
+  GIN  Goods identity number                C   9999               ³³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+                                                                      
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄ¿
+  LIN  Line item                            M      1                 ³
+  IMD  Item description                     C     10                 ³
+  MEA  Measurements                         C     10                 ³
+  LOC  Place/location identification        C      5                 ³
+  DTM  Date/time/period                     C      5                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  RFF  Reference                            M      1                ³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄ¿³
+  QTY  Quantity                             M      1                ³³
+  GIN  Goods identity number                C   9999                ³³
+  LOC  Place/location identification        C      5                ³³
+  DTM  Date/time/period                     C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 12 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  PRI  Price details                        M      1               ³³³
+  CUX  Currencies                           C      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 13 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  RFF  Reference                            M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 14 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄ¿³³
+  CPS  Consignment packing sequence         M      1               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 15 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄ¿³³³
+  PAC  Package                              M      1              ³³³³
+  GIN  Goods identity number                C   9999              ³³³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÁÙ
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+BGM  Beginning of message
+COM  Communication contact
+CPS  Consignment packing sequence
+CTA  Contact information
+CUX  Currencies
+DTM  Date/time/period
+GIN  Goods identity number
+IMD  Item description
+LIN  Line item
+LOC  Place/location identification
+MEA  Measurements
+NAD  Name and address
+PAC  Package
+PCI  Package identification
+PRI  Price details
+QTY  Quantity
+RFF  Reference
+UNH  Message header
+UNT  Message trailer

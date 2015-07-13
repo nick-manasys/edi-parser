@@ -1,0 +1,742 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+EXTENDED CREDIT ADVICE MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :CREEXT
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE:  Joint development by the Pan American EDIFACT Board and the Western European EDIFACT Board MD4
+
+
+                          CONTENTS 
+
+EXTENDED CREDIT ADVICE MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification provides the definition of the Extended Credit
+Advice Message (CREEXT) to be used in electronic data interchange
+(EDI) between partners involved in administration, commerce and
+transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+An Extended Credit Advice is sent by the Account Servicing Financial
+Institution to the Account Owner to inform the Account Owner that its
+account has been or will be credited for a specified amount on the
+date indicated, in settlement of the referenced business
+transaction(s), and to provide to the Payee full details of the
+transactions to which the Extended Credit Advice relates.
+
+1.2 Field of Application
+
+This message may be applied for both national and international
+settlements. It is based on universal practice and is not dependent on
+the type of business or industry.
+
+1.3 Principles
+
+An Extended Credit Advice may cover the financial settlement of one or
+more commercial trade transactions, such as invoices, credit notes,
+debit notes, etc. It is not intended for use in securities trading.
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying the message.
+Note: Extended Credit Advice messages conforming to this document must
+contain the following data in segment UNH, composite S009:
+Data element   0065 CREEXT
+               0052 D
+               0054 93A
+               0051 UN
+
+BGM, Beginning of message
+A segment for unique identification of the Extended Credit Advice, the
+type of Extended Credit Advice and its function.
+
+DTM, Date/time/period
+A segment specifying the date and, when required, the time at which
+the message has been created as well as other dates and times relevant
+to the financial transaction.
+
+RFF, Reference
+A segment  identifying references of  other messages or
+transactions related to this message.
+
+BUS, Business function
+A segment identifying certain characteristics of the Extended Credit
+Advice, such as its business function. In so doing, it provides
+information about the message that may be used to route the message
+within an institution, for tariffing, or for the provision of some
+statistical information.
+
+
+Segment Group 1: RFF-DTM
+A group of segments identifying a previously-sent message.
+
+  RFF, Reference
+  A segment identifying the date/time of the previously-sent message.
+
+  DTM, Date/time/period
+  A segment identifying the date/time of the previously-sent message.
+
+FTX, Free text
+A segment giving information in coded or clear form to provide
+supplementary information relating to the Extended Credit Advice.
+
+
+Segment Group 2: MOA-CUX-DTM-RFF
+A group of segments identifying the monetary amount and, if necessary,
+the currencies, exchange rate and date for that payment.
+
+  MOA, Monetary amount
+  A segment giving the amount value of the credit.
+
+  CUX, Currencies
+  A segment identifying the reference currency and the target currency
+  of the transaction when they are different. The rate of exchange is
+  solely used when previously agreed between the Ordering Customer and
+  the Ordered Bank.
+
+
+
+
+
+
+
+
+
+
+  DTM, Date/time/period
+  A segment identifying the effective date and/or time the rate of
+  exchange was fixed.
+
+  RFF, Reference
+  A segment identifying other transactions to which funds associated
+  with the Extended Credit Advice are related, such as a separate
+  foreign exchange deal.
+
+
+Segment Group 3: FII-CTA-COM
+A group of segments providing information about the financial
+institutions and accounts of each party to the Extended Credit Advice,
+together with details of any parties contacted or to be contacted in
+relation to the transaction, and any required action by parties to the
+transaction.
+
+  FII, Financial institution information
+  A segment identifying the financial institution (e.g., bank) and
+  relevant account number and currency for the Payer, Payee and other
+  parties to the transaction.
+
+  CTA, Contact information
+  A segment identifying a person or a department for the financial
+  institution specified in the FII segment and to whom communication
+  should be directed.
+
+  COM, Communication contact
+  A segment providing a communication number for the party identified
+  in the FII segment and optionally for the contact identified in the
+  associated CTA segment.
+
+
+Segment Group 4: NAD-CTA-COM
+A group of segments identifying the name and address of the
+non-financial institutions involved in the transaction and their
+contacts.
+
+  NAD, Name and address
+  A segment identifying the name and address of the non- financial
+  institutions associated with the Extended Credit Advice and their
+  functions. Identification of the Payer and Payee parties is
+  mandatory for the Extended Credit Advice message and should be given
+  in this segment.
+
+  CTA, Contact information
+  A segment identifying a person or a department for the party
+  specified in the NAD segment and to whom communication should be
+  directed.
+
+
+
+
+
+
+
+
+
+
+
+
+
+  COM, Communication contact
+  A segment providing a communication number for the party identified
+  in the NAD segment and optionally for the contact identified in the
+  associated CTA segment.
+
+
+Segment Group 5: INP-FTX-DTM
+A group of segments containing instructions relating to parties
+identified in the NAD and FII segments. It specifies action taken or
+to be taken by the identified parties, and the date (and optionally
+time) by which such action was taken or needs to be taken.
+
+  INP, Parties to instruction
+  A segment identifying the party originating the instruction, the
+  parties contacted or to be contacted at or by the associated
+  financial institution on matters concerning the execution of the
+  payment. It specifies where appropriate the instruction in coded
+  form.
+
+  FTX, Free text
+  A segment providing free text instruction relating to the associated
+  INP segment.
+
+  DTM, Date/time/period
+  A segment specifying the earliest and the latest dates and times by
+  which the instruction specified in the INP and FTX segments needs to
+  be carried out.
+
+
+Segment Group 6: FCA-MOA-SG7
+A group of segments providing full details of all charges, or
+allowances, and associated taxes, that apply to a particular
+transaction, together with information as to who bears the charges,
+and to which account they have been directed. A total value of all
+charges plus allowances may be given for every account to which
+charges may be directed. Where charges are subject to taxation this
+may also be specified.
+
+  FCA, Financial charges allocation
+  A segment specifying the method for allocation of charges and
+  allowances and identifying an account to which such charges or
+  allowances were directed where it is different from the principal
+  account.
+
+  MOA, Monetary amount
+  A segment giving the total value of charges and/or allowances and
+  associated taxes, that relate to an account for charges/allowances.
+  This segment also identifies the basis amount from which charges are
+  calculated, if different from the overall amount of the original
+  order.
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Segment Group 7: ALC-PCD-MOA-CUX-DTM-SG8
+  A group of segments providing a detail breakdown of all charges (and
+  allowances) and associated charges (or allowances).
+
+    ALC, Allowance or charge
+    A segment providing full details of each charge or allowance for
+    which the Payee is liable. Included are full details of the method
+    of calculating the charge.
+
+    PCD, Percentage details
+    A segment specifying the percentage used for calculating the
+    charges (or allowances).
+
+    MOA, Monetary amount
+    A segment identifying the amount of charges (or allowances) and/or
+    specifying the basis amount from which charges (or allowances) may
+    be calculated if different from the FCA segment.
+
+    CUX, Currencies
+    A segment specifying exchange rates related to the charges and
+    allowances.
+
+    DTM, Date/time/period
+    A segment identifying the effective date and/or time the rate of
+    exchange was fixed.
+
+
+    Segment Group 8: TAX-MOA-CUX-DTM
+    A group of segments describing any taxes associated with the
+    charges and their amount.
+
+      TAX, Duty/tax/fee details
+      A segment identifying any taxes related to a specific charge.
+
+      MOA, Monetary amount
+      A segment specifying the total amount of the tax and the basis
+      for calculation.
+
+      CUX, Currencies
+      A segment specifying exchange rates.
+
+      DTM, Date/time/period
+      A segment identifying the effective date and/or time the rate of
+      exchange was fixed.
+
+
+Segment Group 9: DOC-MOA-DTM-RFF-NAD-SG10-SG11-SG12
+A group of segments providing details of all documents, e.g.,
+invoices, statements, despatch advices, etc..., to which the Extended
+Credit Advice refers. It includes information on the monetary amounts
+for each document and on any adjustments (with an indication of the
+reason for adjustments) and discounts. For information purposes an
+
+
+
+
+
+
+
+
+
+
+indication of the tax element can be provided.
+
+  DOC, Document/message details
+  A segment identifying the reference document against which payment
+  is being made.
+
+  MOA, Monetary amount
+  A segment giving the monetary amounts of each reference document
+  (e.g., original amount, discount amount etc...), and the relevant
+  currency if necessary. The amount due and the amount remitted are
+  mandatory.
+
+  DTM, Date/time/period
+  A segment specifying the date of the referenced document and
+  indicating any other relevant dates applicable.
+
+  RFF, Reference
+  A segment for the inclusion of any additional references related to
+  the reference document.
+
+  NAD, Name and address
+  A segment identifying a party name and address, either by coded
+  identification or in a clear form.
+
+
+  Segment Group 10: CUX-DTM
+  A group of segments specifying the currencies and the related
+  dates/periods valid to the referenced document where different to
+  the remittance currency.
+
+    CUX, Currencies
+    A segment identifying the currency and associated exchange rate of
+    the referenced document where different to the reference currency.
+
+    DTM, Date/time/period
+    A segment specifying the date/time/period related to the rate of
+    exchange.
+
+
+  Segment Group 11: AJT-MOA-RFF
+  A group of segments indicating adjustment amounts and their
+  referenced documents.
+
+    AJT, Adjustment details
+    A segment indicating any adjustments to the amounts originally
+    specified in the referenced document, and to which items such
+    adjustments apply, with the associated reason for adjustment.
+
+    MOA, Monetary amount
+    A segment giving the monetary amounts of the adjustments of each
+    reference document (e.g. original amount, discount amount,etc.).
+    The currency data elements should not be used.
+
+
+
+
+
+
+
+
+
+
+    RFF, Reference
+    A segment for the inclusion of any additional references related
+    to the reference document.
+
+
+  Segment Group 12: DLI-MOA-PIA-DTM-SG13-SG14
+  A group of segments which may be used when required to provide
+  details of individual line items in the reference document.
+
+    DLI, Document line identification
+    A segment identifying a specific line item within the referenced
+    document.
+
+    MOA, Monetary amount
+    A segment giving the monetary amounts for this line item.
+
+    PIA, Additional product id
+    A segment specifying item identification codes where required.
+
+    DTM, Date/time/period
+    A segment specifying the date/time/period related to the line
+    item.
+
+
+    Segment Group 13: CUX-DTM
+    A group of segments identifying the currency and the related
+    dates/periods of the line item where different to the remittance
+    and document currency.
+
+      CUX, Currencies
+      A segment identifying the currency and associated exchange rate
+      of the line item, where different to the source and document
+      currency.
+
+      DTM, Date/time/period
+      A segment identifying the effective date and/or time the rate of
+      exchange was fixed.
+
+
+    Segment Group 14: AJT-MOA-RFF
+    A group of segments indicating adjustment amounts and their
+    referenced documents for this line item.
+
+      AJT, Adjustment details
+      A segment indicating any adjustments to the amounts originally
+      specified for this line item and the reason for the adjustments.
+
+      MOA, Monetary amount
+      A segment giving the monetary amounts of the adjustment for this
+      line item.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      RFF, Reference
+      A segment for the inclusion of any additional references related
+      to the reference document.
+
+UNS, Section control
+A service segment placed at the beginning of the summary section.
+
+MOA, Monetary amount
+A segment giving a summary of various amounts, for information to the
+Beneficiary.
+
+
+Segment Group 15: GIS-NAD-FTX
+A group of segments providing information for subsequent use by
+regulatory authorities requiring statistical and other types of data.
+It also identifies the regulatory authority for which the information
+is intended followed by the information itself.
+
+  GIS, General indicator
+  A segment identifying what process should be completed by the
+  regulatory authorities.
+
+  NAD, Name and address
+  A segment identifying the recipient of the associated informative
+  text.
+
+  FTX, Free text
+  A segment giving information in coded or clear form to provide
+  information relevant to regulatory authorities' requirements.
+
+
+Segment Group 16: AUT-DTM
+A group of segments specifying the details of authentication.
+
+  AUT, Authentication result
+  A segment specifying the details of any authentication (validation)
+  procedure applied to the Extended Credit Advice message.
+
+  DTM, Date/time/period
+  A segment identifying the date and, where necessary, the time of
+  validation.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number of
+segments in the message and the control reference number of the
+message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  DTM  Date/time/period                     M      7                  
+- RFF  Reference                            C      3                  
+  BUS  Business function                    C      1                  
+                                                                      
++ ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      3 ÄÄÄÄÄÄ¿
++ RFF  Reference                            M      1                 ³
++ DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  FTX  Free text                            C      5                  
+                                                                      
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M      4 ÄÄÄÄÄÄ¿
+  MOA  Monetary amount                      M      1                 ³
+  CUX  Currencies                           C      1                 ³
+  DTM  Date/time/period                     C      2                 ³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M      4 ÄÄÄÄÄÄ¿
+  FII  Financial institution information    M      1                 ³
+  CTA  Contact information                  C      1                 ³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      6 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  CTA  Contact information                  C      1                 ³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄÄÄÄ¿
+  INP  Parties to instruction               M      1                 ³
+  FTX  Free text                            C      1                 ³
+  DTM  Date/time/period                     C      3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄÄ¿
+  FCA  Financial charges allocation         M      1                 ³
+  MOA  Monetary amount                      C      2                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M     20 ÄÄÄÄÄ¿³
+  ALC  Allowance or charge                  M      1                ³³
+  PCD  Percentage details                   C      1                ³³
+  MOA  Monetary amount                      C      2                ³³
+  CUX  Currencies                           C      1                ³³
+  DTM  Date/time/period                     C      2                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  TAX  Duty/tax/fee details                 M      1               ³³³
+  MOA  Monetary amount                      C      2               ³³³
+  CUX  Currencies                           C      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+                                                                      
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄ¿
+  DOC  Document/message details             M      1                 ³
+  MOA  Monetary amount                      M      5                 ³
+  DTM  Date/time/period                     C      5                 ³
+  RFF  Reference                            C      5                 ³
+  NAD  Name and address                     C      2                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CUX  Currencies                           M      1                ³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    100 ÄÄÄÄÄ¿³
+  AJT  Adjustment details                   M      1                ³³
+  MOA  Monetary amount                      C      1                ³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 12 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄ¿³
+  DLI  Document line identification         M      1                ³³
+  MOA  Monetary amount                      C      5                ³³
+  PIA  Additional product id                C      5                ³³
+  DTM  Date/time/period                     C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 13 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  CUX  Currencies                           M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 14 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  AJT  Adjustment details                   M      1               ³³³
+  MOA  Monetary amount                      C      1               ³³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+  UNS  Section control                      M      1                  
+  MOA  Monetary amount                      C      5                  
+                                                                      
+  ÄÄÄ Segment Group 15 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄÄÄÄ¿
+  GIS  General indicator                    M      1                 ³
+  NAD  Name and address                     M      1                 ³
+  FTX  Free text                            M      6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 16 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄÄ¿
+  AUT  Authentication result                M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+AJT  Adjustment details
+ALC  Allowance or charge
+AUT  Authentication result
+BGM  Beginning of message
+BUS  Business function
+COM  Communication contact
+CTA  Contact information
+CUX  Currencies
+DLI  Document line identification
+DOC  Document/message details
+DTM  Date/time/period
+FCA  Financial charges allocation
+FII  Financial institution information
+FTX  Free text
+GIS  General indicator
+INP  Parties to instruction
+MOA  Monetary amount
+NAD  Name and address
+PCD  Percentage details
+PIA  Additional product id
+RFF  Reference
+TAX  Duty/tax/fee details
+UNH  Message header
+UNS  Section control
+UNT  Message trailer

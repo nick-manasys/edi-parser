@@ -1,0 +1,134 @@
+                                                    File: DIRDEF.CDE
+
+                                    
+                              DIRDEF NOTES 
+                                  and 
+                             TEMPORARY CODES
+
+
+This is the first time that official UN/EDIFACT directories are being
+distributed in a DIRDEF EDIFACT message format. This message has been
+tested; however, there may be errors that have not been found. If, 
+when trying to use this message, errors are discovered, the UN/ECE 
+secretariat would appreciate being notified.
+
+If, after reviewing the documentation in this file and the file 
+DIRDEF.DOC, you have questions regarding the manner in which this 
+message was implemented for the UN/EDIFACT Standard (S.93A) or Draft 
+(D.93A) directories, please contact: Virginia S. Cram-Martos, UN/EDIFACT
+Administrator, UN/ECE Trade Division, Rm. 450, Palais de Nations, 1211
+Geneva 10, Telephone: 41 22 917 2745, Telefax: 41 22 917 0037.
+
+
+NOTES:
+
+Blank text line indication:
+
+    Within the text for UN/EDIFACT message boilerplate text, sometimes
+    there is more than one paragraph or list in the same section. 
+
+    In implementing DIRDEF it has become clear that this presents a
+    problem as we have codes for indicating the text subject (data
+    element 4451, text subject qualifier), but no mechanism for
+    indicating paragraphs or blank lines within text for the same
+    subject/section.
+
+    As a temporary solution to this problem, we have decided to indicate
+    a blank line by placing a single period in a 4440, free text
+    component data element within the FTX segment.
+
+
+
+CODES:
+
+2005 Date/time/period qualifier
+     182  Issue date
+
+
+2379 Date/time/period format qualifier
+     101  YYMMDD Calendar date: Y=date, M=month,D=day
+
+
+3035 Party qualifier
+     MS   Document/message issue/sender.
+     UN   United Nations
+
+
+4451 Text subject qualifier
+     APP  Field of application
+     CLR  Clarification of usage   
+     FUD  Functional definition
+     INT  Introduction
+     PRP  Principles
+     
+
+9857 Maintenance operation, coded
+     1    Addition
+     2    Change
+     3    Deletion
+
+
+9871 Class designator, coded
+     1    Service
+     2    User
+     
+
+9873 Simple data element type, coded
+     1    Alphabetic
+     2    Alphanumeric
+     3    Numeric
+
+
+9875 Simple data element length indicator, coded
+     F    Fixed
+     V    Variable
+
+
+9883 Code set indicator, coded
+     1    Yes
+     2    No
+
+
+9885 Requirement designator, coded
+     1    Conditional
+     2    Mandatory
+
+
+9895 Section Identification, coded
+     1    Header
+     2    Detail
+     3    Summary
+
+
+ ____________________________________________________________________
+
+
+
+
+     
+
+     
+     
+
+
+     
+
+
+
+
+
+
+
+
+
+
+
+
+ page 2
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    
+                                    

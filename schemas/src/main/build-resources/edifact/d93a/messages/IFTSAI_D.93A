@@ -1,0 +1,521 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+FORWARDING AND TRANSPORT SCHEDULE AND AVAILABILITY INFORMATION MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :IFTSAI
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :1 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE:  WESTERN EUROPEAN EDIFACT BOARD 
+
+
+                          CONTENTS 
+
+FORWARDING AND TRANSPORT SCHEDULE AND AVAILABILITY INFORMATION MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification provides the definition of the International
+Forwarding and Transport Schedule and Availability Information Message
+(IFTSAI) to be used in Electronic Data Interchange (EDI) between
+partners involved in Administration, Commerce and Transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+The function of this message is to request transport schedule or
+availability information and to answer to such a request.
+
+1.2 Field of Application
+
+This message may be applied for both national and international trade.
+It is based on universal practice and is not dependent on the type of
+business or industry.
+
+1.3 Principles
+
+This message may be used:
+
+a)  to request operating means of transportation for a specific
+routing. Certain specific research criteria such as date/time of
+operation and type of transport desired may be precised to limit the
+volume of information requested.
+
+b) to answer to such a request furnishing a list of operating means of
+transport in accordance with the selection criteria. Such answer may
+comprise direct and/or combinations of means of transport.
+
+c) to request means of transport on which space is available for a
+specific routing. Certain specific research criteria like date/time of
+operation, type of transport and space desired may be precised to
+limit the volume of information requested.
+
+d) to answer to such request furnishing a list of available means of
+transport in accordance with the selection criteria. Such an answer
+may comprise direct and/or combinations of means of transport.
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying the message.
+
+Note: International forwarding and transport schedule and availability
+information messages conforming to this document must contain the
+following data in segment UNH, composite S009:
+
+Data element   0065  IFTSAI
+               0052  D
+               0054  93A
+               0051  UN
+
+BGM, Beginning of message
+A segment to indicate the type and function of the message and to
+transmit the identifying number.
+
+DTM, Date/time/period
+A segment to indicate date(s) and time(s) applying to the whole
+message.
+
+FTX, Free text
+A segment to specify free form or processable supplementary
+information. In computer-to-computer exchanges free form text will
+normally require the receiver to process this segment manually.
+
+RFF, Reference
+A segment to express a reference which applies to the entire message.
+
+
+Segment Group 1: LOC-DTM
+A group of segments to identify the routing and date of the schedule
+or availability information.
+
+  LOC, Place/location identification
+  A segment to identify a location, e.g. place of departure/arrival.
+
+  DTM, Date/time/period
+  A segment to indicate date(s) and time(s) related to the location.
+
+
+
+
+
+
+
+
+
+
+
+Segment Group 2: EQD-EQN-MEA-DIM-FTX
+A group of segments to define requested or available equipment.
+
+  EQD, Equipment details
+  A segment to specify requested or available equipment and equipment
+  size and type.
+
+  EQN, Number of units
+  A segment to specify the number of requested or available pieces of
+  equipment.
+
+  MEA, Measurements
+  A segment to specify measurements, other than dimensions, associated
+  with equipment, in terms of capacity.
+
+  DIM, Dimensions
+  A segment to specify dimensions applicable to equipment.
+
+  FTX, Free text
+  A segment to specify free form or processable supplementary
+  information associated with the equipment.
+
+
+Segment Group 3: TDT-DTM-TSR-FTX-EQD-QTY-MEA-SG4
+A group of segments to specify the schedule or availability selection
+criteria and to detail the schedule or availability information being
+provided.
+
+  TDT, Details of transport
+  A segment to indicate information related to the mode and means of
+  transport, eg. specific conveyance/carrier.
+
+  DTM, Date/time/period
+  A segment to indicate date(s) and time(s), e.g. earliest departure
+  date/time, latest arrival date/time.
+
+  TSR, Transport service requirements
+  A segment to identify contract, conditions of carriage, services and
+  priority requirements.
+
+  FTX, Free text
+  A segment to specify free form or processable supplementary
+  information related to the means of transport.
+
+  EQD, Equipment details
+  A segment to identify the equipment requested/available.
+
+  QTY, Quantity
+  A segment to indicate a quantity, e.g. number of intermediate stops.
+
+
+
+
+
+
+
+
+
+
+
+
+  MEA, Measurements
+  A segment to indicate weight and/or volume selection criteria, e.g.
+  minimum weight.
+
+
+  Segment Group 4: LOC-DTM
+  A group of segments to identify the routing(s) and indicate
+  corresponding date(s) and time(s).
+
+    LOC, Place/location identification
+    A segment to identify a location, e.g. place of departure/arrival.
+
+    DTM, Date/time/period
+    A segment to indicate date(s) and time(s) related to the location,
+    e.g. date/time of scheduled departure/arrival.
+
+
+Segment Group 5: NAD-LOC-SG6
+A group of segments to indicate all parties involved in the
+transaction and relevant locations, contacts and communication
+channels.
+
+  NAD, Name and address
+  A segment to identify the party's name, address and function.
+
+  LOC, Place/location identification
+  A segment to identify a place/location/sub-location and where
+  relevant the function. The present location must be associated with
+  the relevant party.
+
+
+  Segment Group 6: CTA-COM
+  A group of segments to identify a contact and its communication
+  channels, related to the party.
+
+    CTA, Contact information
+    A segment to identify a person or department within a party.
+
+    COM, Communication contact
+    A segment to identify the communication numbers of person or
+    department to whom communication should be directed.
+
+
+Segment Group 7: GID-HAN-FTX-SG8-SG9-SG10-SG11
+A group of segments to describe the goods items for which schedule or
+availability is requested/provided.
+
+  GID, Goods item details
+  A segment to identify the goods item. A goods item can be identified
+  by up to three levels of packaging within this segment.
+
+  HAN, Handling instructions
+  A segment to specify handling instructions relating to the goods
+  item.
+
+
+
+
+
+
+
+
+
+
+  FTX, Free text
+  A segment to specify free form or processable information relating
+  to the goods item.
+
+
+  Segment Group 8: GDS-FTX
+  A group of segments to identify and describe the goods.
+
+    GDS, Nature of cargo
+    A segment to describe the nature of cargo.
+
+    FTX, Free text
+    A segment to describe the goods in free form.
+
+
+  Segment Group 9: MEA-EQN
+  A group of segments to specify measurements applicable to the goods
+  item.
+
+    MEA, Measurements
+    A segment to specify measurements, other than dimensions,
+    applicable to the goods item.
+
+    EQN, Number of units
+    A segment to specify the number of equipment units to which the
+    measurement applies.
+
+
+  Segment Group 10: DIM-EQN
+  A group of segments to specify dimensions applicable to the goods
+  item.
+
+    DIM, Dimensions
+    A segment to specify dimensions applicable to the goods item.
+
+    EQN, Number of units
+    A segment to specify the number of equipment units to which the
+    given dimensions apply.
+
+
+  Segment Group 11: DGS-FTX
+  A group of segments to specify dangerous goods details related to
+  the goods item.
+
+    DGS, Dangerous goods
+    A segment to specify the class of dangerous goods, packing group,
+    etc.
+
+    FTX, Free text
+    A segment to specify the dangerous goods technical name and any
+    other additional dangerous goods information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+UNT, Message trailer
+A service segment ending the message, giving the total number of
+segments in the message and the control reference number of the
+message.
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  DTM  Date/time/period                     C      9                  
+  FTX  Free text                            C     99                  
+  RFF  Reference                            C      9                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄ¿
+  LOC  Place/location identification        M      1                 ³
+  DTM  Date/time/period                     C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄ¿
+  EQD  Equipment details                    M      1                 ³
+  EQN  Number of units                      C      9                 ³
+  MEA  Measurements                         C      9                 ³
+  DIM  Dimensions                           C      9                 ³
+  FTX  Free text                            C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄÄÄ¿
+  TDT  Details of transport                 M      1                 ³
+  DTM  Date/time/period                     C      9                 ³
+  TSR  Transport service requirements       C      9                 ³
+  FTX  Free text                            C      9                 ³
+  EQD  Equipment details                    C     99                 ³
+  QTY  Quantity                             C      9                 ³
+  MEA  Measurements                         C      9                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄ¿³
+  LOC  Place/location identification        M      1                ³³
+  DTM  Date/time/period                     C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+                                                                      
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  LOC  Place/location identification        C      9                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+                                                                      
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄ¿
+  GID  Goods item details                   M      1                 ³
+  HAN  Handling instructions                C      9                 ³
+  FTX  Free text                            C      9                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  GDS  Nature of cargo                      M      1                ³³
+  FTX  Free text                            C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  MEA  Measurements                         M      1                ³³
+  EQN  Number of units                      C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  DIM  Dimensions                           M      1                ³³
+  EQN  Number of units                      C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  DGS  Dangerous goods                      M      1                ³³
+  FTX  Free text                            C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+BGM  Beginning of message
+COM  Communication contact
+CTA  Contact information
+DGS  Dangerous goods
+DIM  Dimensions
+DTM  Date/time/period
+EQD  Equipment details
+EQN  Number of units
+FTX  Free text
+GDS  Nature of cargo
+GID  Goods item details
+HAN  Handling instructions
+LOC  Place/location identification
+MEA  Measurements
+NAD  Name and address
+QTY  Quantity
+RFF  Reference
+TDT  Details of transport
+TSR  Transport service requirements
+UNH  Message header
+UNT  Message trailer

@@ -1,0 +1,742 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+SANITARY/PHYTOSANITARY CERTIFICATE MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :SANCRT
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :1 
+                                     Date          :93-09
+
+
+
+
+
+
+SOURCE: 
+AUSTRALIA/NEW ZEALAND EDIFACT BOARD LTD.
+
+
+
+                          CONTENTS 
+
+SANITARY/PHYTOSANITARY CERTIFICATE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+This specification provides the definition of the
+Sanitary/Phytosanitary Certificate message (SANCRT) to be used
+in Electronic Data Interchange (EDI) between partners involved
+in administration, commerce and transport.
+
+1.  Scope
+
+
+A Sanitary/Phytosanitary Certificate permits an inspection
+authority to attest to the status (health, hygiene, freedom
+from disease or insect pests) of animal, plant or fish
+product, and provides basic details about the means of
+conveyance of that product.
+
+1.1 Functional Definition
+
+A Sanitary/Phytosanitary Certificate permits an inspection
+authority to attest to the status (health, hygiene, freedom
+from disease or insect pests) of animal, plant or fish
+product, and provides basic details about the means of
+conveyance of that product.
+
+1.2 Field of Application
+
+This message may be used nationally and internationally by
+government authorities and commercial entities involved in the
+process of animal, plant and fish product certification. 
+Typically, the message would be used by one national authority
+to advise another that product meets exporting country
+standards and regulations.  The message is intended to provide
+for all internationally agreed information requirements of
+government authorities with respect to health, phytosanitary
+and veterinary certification, including those specified by the
+Office International Des Epizooties International Zoo-Sanitary
+Code for trade in animals and animal products and by the
+International Plant Protection Convention (IPPC) for trade in
+plants and plant material.
+
+1.3 Principles
+
+-    a single certificate is for product exported by a single
+     country to a single destination country.
+
+-    a certificate may cover several product items.  A    
+     certificate should however be limited to product items of
+     the same type or category.
+
+-    all product covered by a certificate is transported
+     together on the same transport vehicle or vehicle set at
+     the same time. Transport can however occur over more than
+     one stage.
+
+-    product may be in zero, one or more containers.
+
+-    inclusion of standard endorsements or generic textual
+     declarations in the certificate is discouraged.  It is    
+     recommended that these and other certification protocol   
+     requirements be accounted for outside the certificate in  
+     individual trading partner agreements.
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying a message.
+
+Note: Sanitary/Phytosanitary Certificate messages conforming
+      to this document must contain the following data in UNH
+      Composite S009:
+
+      Data element  0065  SANCRT
+                    0052  D
+                    0054  93A
+                    0051  UN
+
+BGM, Beginning of message
+A segment uniquely identifying the Sanitary/Phytosanitary
+Certificate message, the type of certificate, its function and 
+certificate number.
+
+DTM, Date/time/period
+A segment identifying a date relevant to the entire
+certificate. The segment should be specified at least once to
+identify the date of certificate issue.
+
+LOC, Place/location identification
+A segment identifying a location relevant to the entire
+certificate. The segment should be specified at least once to
+identify the country or place of certification.
+
+RFF, Reference
+A segment identifying a reference related to the entire
+certificate, for example the establishment number for
+processing or slaughter plants.
+
+FTX, Free text
+A segment specifying textual information in code or clear
+form, to give further clarification where required to the
+entire certificate. The segment should be used for any
+declarations or inspection comments relevant to the entire
+certificate.
+
+
+Segment Group 1:
+A group of segments identifying documentary requirements where
+they are needed as supporting information for the entire
+certificate.
+
+  DOC, Document/message details
+  A segment identifying a specific document required as
+  supporting information for the entire certificate. The
+  segment should be used for the identification of any
+  additional certificates or permits related to the
+  Sanitary/Phytosanitary Certificate.
+
+  DTM, Date/time/period
+  A segment identifying a date related to the document. 
+  The segment should be used for example to identify the
+  date of issue of the document or the presentation period
+  within which the document must be presented.
+
+  LOC, Place/location identification
+  A segment identifying a location related to the document.
+
+
+Segment Group 2:
+A group of segments identifying parties relevant to the entire
+certificate, with any related contacts and communication
+numbers.
+
+  NAD, Name and address
+  A segment identifying the name and address of a party or
+  site associated with the certificate. The segment must
+  be specified at least once to identify the consignor. 
+  Other parties or sites may for example be consignee,
+  or certification officer.
+
+
+  Segment Group 3:
+  A group of segments identifying a contact and communication
+  numbers for the party relevant to the certificate.
+
+    CTA, Contact information
+    A segment giving additional contact information for
+    the person or department specified as a relevant
+    party, to whom communication should be directed.
+
+    COM, Communication contact
+    A segment identifying the phone number, fax number or
+    other communications number of the contact specified
+    for the relevant party.
+
+
+Segment Group 4:
+A group of segments specifying how product described on the
+certificate is transported, possibly in multiple stages.
+
+  TDT, Details of transport
+  A segment identifying the mode and means of transport,
+  and the transport vehicle used. The segment should be
+  used for example to identify vessel voyage number or
+  aircraft flight number, vessel or aircraft name, and
+  vessel or aircraft registration number.
+
+  DTM, Date/time/period
+  A segment identifying a date related to the transport of
+  product. The segment should be used for example to
+  identify the date of departure and date of arrival of
+  each transport stage.
+
+  LOC, Place/location identification
+  A segment identifying a location relevant to a transport
+  stage.
+
+  RFF, Reference
+  A segment identifying an additional document or
+  regulatory references relevant to a transport stage.
+
+
+Segment Group 5:
+A group of segments specifying the number, characteristics,
+and identification markings of packaging relevant to the
+entire certificate.
+
+  PAC, Package
+  A segment identifying the number and type of packages
+  relevant to the entire certificate.
+
+  PCI, Package identification
+  A segment identifying markings and labels on packages
+  relevant to the entire certificate.
+
+  MEA, Measurements
+  A segment identifying measurements relevant to packaging
+  of the product covered by the entire certificate. The
+  segment should be used for example to specify weights of
+  inner and outer packages.
+
+
+Segment Group 6:
+A group of segments identifying equipment used to transport
+of product covered by the entire certificate.
+
+  EQD, Equipment details
+  A segment identifying a unit of equipment used to
+  transport the product covered by the entire certificate.
+  The segment should be used for example to specify a
+  container or ships hold.
+
+
+  Segment Group 7:
+  A group of segments identifying seals applied a unit of
+  equipment used to transport the product covered by the 
+  entire certificate.
+
+    SEL, Seal number
+    A segment identifying a seal and the seal issuer
+    for the unit of equipment.
+
+    DTM, Date/time/period
+    A segment identifying a date relevant to the
+    sealing of the unit of equipment.
+
+    LOC, Place/location identification
+    A segment identifying a location relevant to the
+    sealing of the unit of equipment.
+
+
+Segment Group 8:
+A group of segments identifying a process applied to the product,
+packaging or transport equipment covered by the entire certificate,
+and related names, addresses, dates, measurements and
+references.
+
+  PRC, Process identification
+  A segment identifying a process relevant to the entire
+  certificate. The segment should be used for example to specify
+  processes such as pest treatment, slaughtering, packing,
+  storage, testing and preservation, together with any
+  materials such as chemicals associated with the process.
+
+  IMD, Item description
+  A segment used to indicate chemicals, active ingredients etc
+  used in processing.
+
+  NAD, Name and address
+  A segment identifying the name and address of a party
+  associated with the product item process. The segment
+  should be used for example to identify the treatment,
+  slaughtering, packing, storage, inspection or testing
+  organisation.
+
+  MEA, Measurements
+  A segment identifying various measurement factors for the
+  process. The segment should be used for example to
+  specify temperature during storage or chemical
+  concentrations during treatment.
+
+  DTM, Date/time/period
+  A segment identifying a date relevant to the process. 
+  The segment should be used for example to identify the
+  duration of a specific process.
+
+  LOC, Place/location identification
+  A segment identifying a location relevant to the process.
+
+  DOC, Document/message details
+  A segment identifying a specific document required as
+  supporting information for the process.
+
+  RFF, Reference
+  A segment identifying an additional reference or
+  regulation relevant to the process.
+
+
+Segment Group 9:
+A group of segments identifying line item details for a certificate.
+
+  LIN, Line item
+  A segment identifying product item details for a line on the
+  certificate.
+
+  MEA, Measurements
+  A segment identifying measurements relevant to the product
+  item. The segment should be used for example to specify line
+  net and gross weights, number of items or age.
+
+  PIA, Additional product id
+  A segment specifying additional or substitutional product item
+  identifiers. The segment should be used for example to
+  specify any tariff classification relevant to the product
+  item.
+
+  IMD, Item description
+  A segment describing the product item in an industry
+  or free format. The segment could also be used to describe
+  attributes such as species or breed.
+
+  GIN, Goods identity number
+  A segment specifying additional identifiers related to the
+  product item. The segment could be used for example to
+  specify animal tag numbers.
+
+  ATT, Attribute
+  A segment further identifying attributes of the product item. 
+  The segment could be used for example to identify product sex.
+
+  DTM, Date/time/period
+  A segment identifying a date relevant to the product item. 
+  The segment could be used for example to identify the use by
+  date of processed product.
+
+  LOC, Place/location identification
+  A segment identifying a location relevant to the product item.
+  The segment should for example be used to specify the country
+  of origin where different to country of export.
+
+  FTX, Free text
+  A segment specifying textual information in code or clear
+  form, to give further clarification where required for the
+  product item. The segment should be used for the scientific
+  name of the product item, any declarations or comments
+  specific to the product item, and the names of product
+  contaminates.
+
+
+  Segment Group 10:
+  A group of segments identifying related documents specific to 
+  a certificate line.
+
+    DOC, Document/message details
+    A segment identifying a specific document required as
+    supporting information for a certificate line. The
+    segment should be used for the identification of any
+    additional certificates or permits related to the
+    Sanitary/Phytosanitary Certificate.
+
+    DTM, Date/time/period
+    A segment identifying a date related to the document. 
+    The segment should be used for example to identify the
+    date of issue of the document or the presentation period
+    within which the document must be presented.
+
+    LOC, Place/location identification
+    A segment identifying a location related to the document.
+
+
+  Segment Group 11:
+  A group of segments specifying the number, characteristics,
+  and identification markings of individual packages.
+
+    PAC, Package
+    A segment identifying the number and type of packages
+    relevant to the product item.
+
+    PCI, Package identification
+    A segment identifying markings and labels on packages
+    relevant to the product item.
+
+    MEA, Measurements
+    A segment identifying measurements relevant to packaging
+    of the product item. The segment should be used for
+    example to specify weights of inner and outer packages.
+
+
+  Segment Group 12:
+  A group of segments identifying equipment used to transport
+  the product item.
+
+    EQD, Equipment details
+    A segment identifying a unit of equipment used to
+    transport the product item. The segment should be used
+    for example to specify a container or ships hold.
+
+
+    Segment Group 13:
+    A group of segments identifying seals applied a unit of
+    equipment used to transport the product item.
+
+      SEL, Seal number
+      A segment identifying a seal and the seal issuer
+      for the unit of equipment.
+
+      DTM, Date/time/period
+      A segment identifying a date relevant to the
+      sealing of the unit of equipment.
+
+      LOC, Place/location identification
+      A segment identifying a location relevant to the
+      sealing of the unit of equipment.
+
+
+  Segment Group 14:
+  A group of segments identifying a process applied to a product
+  item, and related names, addresses, dates, measurements and
+  references.
+
+    PRC, Process identification
+    A segment identifying a process relevant to the product
+    item. The segment should be used for example to specify
+    processes such as pest treatment, slaughtering, packing,
+    storage, testing and preservation, together with any
+    materials such as chemicals associated with the process.
+
+    IMD, Item description
+    A segment used to indicate chemicals, active ingredients etc
+    used in processing.
+
+    NAD, Name and address
+    A segment identifying the name and address of a party
+    associated with the product item process. The segment
+    should be used for example to identify the treatment,
+    slaughtering, packing, storage, inspection or testing
+    organisation.
+
+    MEA, Measurements
+    A segment identifying various measurement factors for the
+    process. The segment should be used for example to
+    specify temperature during storage or chemical
+    concentrations during treatment.
+
+    DTM, Date/time/period
+    A segment identifying a date relevant to the process.
+    The segment should be used for example to identify the
+    duration of a specific process.
+
+    LOC, Place/location identification
+    A segment identifying a location relevant to the process.
+
+    DOC, Document/message details
+    A segment identifying a specific document required as
+    supporting information for the process.
+
+    RFF, Reference
+    A segment identifying an additional reference or
+    regulation relevant to the process.
+
+CNT, Control total
+A segment to provide message control totals as required.
+
+
+Segment Group 15:
+A group of segments permitting the verification of the authenticity
+of the sender and the integrity of the data.
+
+  AUT, Authentication result
+  A segment containing the result of the algorithm permitting the
+  verification of the authenticity of the sender and the
+  integrity of the data.
+
+  DTM, Date/time/period
+  A segment identifying a date associated with the preceding AUT.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number of
+segments in the message and the Control Reference Number of
+the message.
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+                                 HEADER SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  DTM  Date/time/period                     M     99                  
+  LOC  Place/location identification        M     99                  
+  RFF  Reference                            C      9                  
+  FTX  Free text                            C      9                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄ¿
+  DOC  Document/message details             M      1                 ³
+  DTM  Date/time/period                     C      9                 ³
+  LOC  Place/location identification        C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+                                                                      
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄÄ¿
+  TDT  Details of transport                 M      1                 ³
+  DTM  Date/time/period                     C      9                 ³
+  LOC  Place/location identification        C      9                 ³
+  RFF  Reference                            C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄÄ¿
+  PAC  Package                              M      9                 ³
+  PCI  Package identification               C      9                 ³
+  MEA  Measurements                         C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄÄ¿
+  EQD  Equipment details                    M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  SEL  Seal number                          M      1                ³³
+  DTM  Date/time/period                     C      9                ³³
+  LOC  Place/location identification        C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+                                                                      
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄÄ¿
+  PRC  Process identification               M      1                 ³
+  IMD  Item description                     C      9                 ³
+  NAD  Name and address                     C      9                 ³
+  MEA  Measurements                         C      9                 ³
+  DTM  Date/time/period                     C      9                 ³
+  LOC  Place/location identification        C      9                 ³
+  DOC  Document/message details             C      9                 ³
+  RFF  Reference                            C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+                                                                      
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄ¿
+  LIN  Line item                            M      1                 ³
+  MEA  Measurements                         C      9                 ³
+  PIA  Additional product id                C      9                 ³
+  IMD  Item description                     C      9                 ³
+  GIN  Goods identity number                C   9999                 ³
+  ATT  Attribute                            C      9                 ³
+  DTM  Date/time/period                     C      9                 ³
+  LOC  Place/location identification        C      9                 ³
+  FTX  Free text                            C      9                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  DOC  Document/message details             M      1                ³³
+  DTM  Date/time/period                     C      9                ³³
+  LOC  Place/location identification        C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄ¿³
+  PAC  Package                              M      1                ³³
+  PCI  Package identification               C      9                ³³
+  MEA  Measurements                         C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 12 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄ¿³
+  EQD  Equipment details                    M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 13 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄ¿³³
+  SEL  Seal number                          M      1               ³³³
+  DTM  Date/time/period                     C      9               ³³³
+  LOC  Place/location identification        C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 14 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄ¿³
+  PRC  Process identification               M      1                ³³
+  IMD  Item description                     C      9                ³³
+  NAD  Name and address                     C      9                ³³
+  MEA  Measurements                         C      9                ³³
+  DTM  Date/time/period                     C      9                ³³
+  LOC  Place/location identification        C      9                ³³
+  DOC  Document/message details             C      9                ³³
+  RFF  Reference                            C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  CNT  Control total                        C      9                  
+                                                                      
+  ÄÄÄ Segment Group 15 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄ¿
+  AUT  Authentication result                M      1                 ³
+  DTM  Date/time/period                     C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+ATT  Attribute
+AUT  Authentication result
+BGM  Beginning of message
+CNT  Control total
+COM  Communication contact
+CTA  Contact information
+DOC  Document/message details
+DTM  Date/time/period
+EQD  Equipment details
+FTX  Free text
+GIN  Goods identity number
+IMD  Item description
+LIN  Line item
+LOC  Place/location identification
+MEA  Measurements
+NAD  Name and address
+PAC  Package
+PCI  Package identification
+PIA  Additional product id
+PRC  Process identification
+RFF  Reference
+SEL  Seal number
+TDT  Details of transport
+UNH  Message header
+UNT  Message trailer

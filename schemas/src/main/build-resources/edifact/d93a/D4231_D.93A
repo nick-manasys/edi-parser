@@ -1,0 +1,889 @@
+                                                        File: D4231_D.93A 
+UN/EDIFACT DRAFT DIRECTORY
+
+PART 4, UNITED NATIONS RULES FOR ELECTRONIC DATA INTERCHANGE FOR
+        ADMINISTRATION, COMMERCE AND TRANSPORT
+
+Chapter 2.3 UN/EDIFACT SYNTAX IMPLEMENTATION GUIDELINES
+
+
+                              CONTENTS
+
+SECTION
+
+1       -    INTRODUCTION
+
+2       -    BASIC REQUIREMENTS FOR EDI APPLICATIONS
+2.1     -    Standards
+2.2     -    Interface with the in-house system
+2.3     -    Software
+2.4     -    Communications
+
+3       -    INTERCHANGE AGREEMENT
+3.1     -    Introduction
+3.2     -    Initial development and design
+3.3     -    User manual
+3.4     -    Check list for the interchange agreement
+3.5     -    Interchange maintenance authority
+
+4       -    TERMINOLOGY
+
+5       -    CHARACTER SET FOR INTERCHANGE
+
+6       -    TRANSMISSION COMPONENTS
+6.1     -    Data elements
+6.2     -    Segments
+6.3     -    Messages
+
+7       -    IDENTIFICATION & CONTROL OF UN/EDIFACT
+             MESSAGES
+7.1     -    Definition of a UNSM
+7.2     -    Definition of a Sub-set of a UNSM
+7.3     -    UN/EDIFACT Directory Set Issue Numbers
+7.4     -    Message Version & Release Numbers for UNSMs and for
+             Subsets of UNSMs
+7.5     -    Message Version/Release Numbers for Trial Messages
+7.6     -    Message Version/Release Numbers for pre-Trial Messages
+7.7     -    User Conventions for the Implementation of Sub-sets of
+             UNSMs
+7.8     -    User Conventions for the Implementation of UNSMs under 
+             Amendment
+
+8       -    BASIC UN EDIFACT SYNTAX RULES
+8.1     -    Interchange structure
+8.2     -    Use of the character set
+     8.2.1  -     Relationship to syntax control characters
+     8.2.2  -     Level A & Level B syntax separators
+8.3     -    Interchange formatting rules
+     8.3.1  -     Interchange structure
+     8.3.2  -     Service string advice - UNA
+     8.3.3  -     Interchange control header - UNB
+     8.3.4  -     Interchange control trailer - UNZ
+     8.3.5  -     Functional group structure
+     8.3.6  -     Functional group header - UNG
+     8.3.7  -     Functional group trailer - UNE
+     8.3.8  -     Message structure
+     8.3.9  -     Message header - UNH
+     8.3.10 -     Message trailer - UNT
+     8.3.11 -     Section control segment - UNS
+
+9       -    SEGMENT CONSTRUCTION & TRANSMISSION RULES
+9.1     -    Segment composition
+9.2     -    Absence of data
+     9.2.1  -     Absence of a segment
+     9.2.2  -     Absence of data within a segment
+9.3     -    Suppression of non-significant characters
+9.4     -    Negative values
+9.5     -    Repeated and nested segments
+     9.5.1  -     Repeating segments
+     9.5.2  -     Comparison of implicit and explicit representation
+     9.5.3  -     Repeating groups of segments
+     9.5.4  -     Message branching diagrams
+
+10      -    EDIFACT SERVICE & CONTROL MESSAGES
+
+11      -    MIGRATION TO EDIFACT
+
+11.1    -    Rapporteur Contact Points
+
+
+
+SECTION 1 - INTRODUCTION
+
+The purpose of these guidelines is to assist Electronic Data
+Interchange (EDI) users with their implementation of the
+ISO-UN/EDIFACT (EDI for Administration, Commerce and
+Transport) Syntax Rules, and to expand some of the rules
+contained in ISO 9735, supported by examples.
+
+The guidelines are a part of a set of complementary documents
+available to users.  The other documents in the series which
+users should be aware of are:-
+
+   - UNTDED   : The United Nations Trade Data Elements Directory
+                (also published as the International Standard ISO
+                7372) and associated code sets
+
+   - ISO 9735 : The EDIFACT Syntax Rules standard
+
+   - The UN/EDIFACT Message Design Guidelines
+
+   - The UN/EDIFACT Directory Set, containing directories for:
+
+     UNEDMD - Internationally agreed UN/EDIFACT Standard Messages
+              (UNSMs)
+
+     UNEDSD - UN/EDIFACT Standard Segments for UNSMs
+
+     UNEDCD - UN/EDIFACT Composite data elements for UNSMs
+
+     UNEDED - UN/EDIFACT Data Elements for UNSMs
+
+     UNEDCL - UN/EDIFACT Code List for UNSMs
+
+
+UNTDED is published separately by the UN, and maintained jointly
+with ISO.  The remaining documents are compiled in the UN Trade
+Data Interchange Directory.
+
+In 1987, following the convergence of the UN and US/ANSI syntax
+proposals, the UN/EDIFACT Syntax Rules were approved as an ISO
+standard, having been developed within and submitted for approval
+by the United Nations Economic Commission for Europe's Working
+Party on the Facilitation of International Trade Procedures
+(UN/ECE WP.4).
+
+At the same time, WP.4 appointed three Rapporteurs to co-ordinate
+the continuing work in conjunction with the UN/ECE Secretariat.
+The Rapporteurs appointed were from Poland (co-ordinating the
+views and input from CMEA countries), from the United Kingdom
+(co-ordinating on behalf of the EEC and EFTA countries), and the
+United States (on behalf of the US and Canada).  Additional
+Rapporteurs may be appointed in the future.
+In particular, the UNECE Secretariat and the Rapporteurs,
+supported by Advisory and Support Teams, will be the focal point
+for maintenance of the UN/EDIFACT Syntax Rules and for proposals
+for new UNSMs (or for amendments to existing UNSMs).  The agreed
+maintenance procedures can be found in the Message Design
+Guidelines document, as can the contact points for the
+Rapporteurs.
+
+Under NO circumstances should users, software providers, or
+network providers make any changes to the UN/EDIFACT Syntax Rules
+as defined in ISO 9735.  Change requests should be registered
+either direct to the UN/ECE Secretariat, or via one of the
+Rapporteurs, (or by use of ISO procedures) for international
+discussion and approval, both at the UN and in the ISO.
+
+From the outset of the development of the UN/EDIFACT techniques,
+certain important design criteria were adhered to.  These were
+that the techniques should be independent of the computers to be
+used, the systems using them, the applications using them, the
+communications methods to be used, and the data to be
+interchanged.  The fact that there are a range of live and pilot
+applications, using a broad spectrum of mainframe, mini and micro
+computers, utilising a range of different computer communications
+protocols, (such as 2780, 3780, SNA/DNA, packet switching etc.),
+different systems solutions (including one-to-one direct
+interchange and mailbox switching), demonstrates that the
+criteria have been met.
+
+In addition to the above, UN/EDIFACT is designed to have the
+minimum impact upon the in-house systems using the technique.
+Many live applications constructing data for transmission of
+UN/EDIFACT messages, use a technique of creating a simple serial
+file - often structured to hold records containing data
+equivalent to that required for segments of data in the messages.
+This file is then submitted to a formatting routine, which
+constructs the data according to the UN/EDIFACT syntax.
+
+Experience has shown that for both converting from the in-house
+file layout into UN/EDIFACT Syntax for transmission, and for
+converting back into the required in-house layout on receipt of
+an EDIFACT structured transmission, parameter (or table) driven
+routines have proven to be very effective.  When receiving a
+transmission for translation, by using such routines, it is
+possible for the recipient to ignore any data which is of no
+interest to him for his own in-house needs.
+
+It is stressed that UN/EDIFACT is a user application protocol for
+use within user systems, which is compatible with the OSI model,
+in that it presents user data for transmission via the services
+described by the model.
+
+A common technique is for users to have their own in-house
+written routines (or a software package), for formatting and
+de-formatting UN/EDIFACT structured transmission files.  All of
+this is user data, which is then submitted to a proprietary
+communications protocol (such as 2780, 3780, X25 etc) as defined
+in the User Interchange Agreement.
+
+                           Interchange
+              +--------------------------------------+
+              |            Agreement                 |
+              |                                      |
+              |                                      |
+   +-----------------------+              +-----------------------+
+   | USER 'A' SYSTEM       |              | USER 'B' SYSTEM       |
+   |.......................|              |.......................|
+   | EDIFACT formatting and|              | EDIFACT formatting and|
+   | de-formatting routine |              | de-formatting routine |
+   |.......................|              |.......................|
+  +|-----------------------|+            +|-----------------------|+
+  || Communications        ||            || Communications        ||
+  || protocol              ||            || protocol              ||
+  |+-----------------------+|            |+-----------------------+|
+  |   APPLICATION LAYER     |            |   APPLICATION LAYER     |
+  +-------------------------+            +-------------------------+
+  |   PRESENTATION LAYER    |            |   PRESENTATION LAYER    |
+  +-------------------------+            +-------------------------+
+  |   SESSION LAYER         |            |   SESSION LAYER         |
+  +-------------------------+            +-------------------------+
+  |   TRANSPORT LAYER       |            |   TRANSPORT LAYER       |
+  +-------------------------+            +-------------------------+
+  |   NETWORK LAYER         |            |   NETWORK LAYER         |
+  +-------------------------+            +-------------------------+
+  |   DATA LINK LAYER       |            |   DATA LINK LAYER       |
+  +-------------------------+            +-------------------------+
+  |   PHYSICAL LAYER        |            |   PHYSICAL LAYER        |
+  |                         |            |                         |
+  +-------------------------+            +-------------------------+
+              |                                      |
+              |                                      |
+              +--------------------------------------+
+
+
+SECTION 2 - BASIC REQUIREMENTS FOR EDI APPLICATIONS
+
+2.1  Standards
+
+Without strict adherence to the published UN/EDIFACT standards,
+many of the achievable benefits will be lost.
+
+The UN/EDIFACT Syntax Rules (ISO 9735), set the standards for
+structuring data into segments, segments into messages, and
+messages into an interchange.
+
+Data, segment and message standards are equally essential
+requirements.
+
+The United Nations Trade Data Elements Directory (UNTDED) sets
+out the standards for administration, commerce and transport
+data.  Where appropriate it also recommends codes for coded
+representation of data (often internationally maintained codes),
+and for qualifiers. Since UNTDED is also an ISO standard (ISO
+7372), they are maintained jointly by the UN and ISO.
+
+Because of the repetitive nature of information required in each of
+the sectors for which UN/EDIFACT has been designed, it is possible to
+assemble logically related data elements into standard segments,
+which can then be used in several different messages meeting the
+requirements of related business functions.  An example of this
+can be found by examining United Nations Standard Messages
+(UNSMs), such as the Commercial Invoice, the Purchase Order and
+the Despatch Advice.  Such standard segments are published in the
+UNSM Standard Segments Directory, with other segments specific to
+certain messages.
+
+Finally, UNSMs are published in the UN/EDIFACT Message Directory.
+The procedures for the maintenance of the UN/EDIFACT Syntax and
+the directories (including how users can propose
+changes/additions to existing segments/messages, and proposals
+for new UNSMs) are contained in the Message Design Guidelines.
+
+As far as possible, (providing the required function has been
+covered) users should try to use existing UNSMs.  At first sight,
+users may find that some UNSMs appear unnecessarily complex.
+Upon closer examination however, it will be found that many (and
+in some cases, most) of the segments and groups of segments are
+defined as being "Conditional".  This is because the messages
+have been designed for International and National use, by
+multi-industry sectors.
+
+Since conditional segments may be completely omitted from a
+message, a user's requirements can often be met by use of a
+relatively smaller percentage of the segments specified in a
+UNSM.  Should this prove not to be the case, then the Message
+Design Guidelines must be studied.
+
+2.2  Interface with the in-house system
+
+Once having settled on the message standard to be used, users
+must then carry out a careful analysis of their in-house system
+with respect to the data requirements for the message in
+question.
+
+This will entail ensuring that all of the data which must be
+provided for the application in which the message is being used,
+(which could include data defined as conditional, as well as
+mandatory data), can be supplied from the in-house system.  If
+not, some way must be found for doing so.  (In some cases,
+certain elements of data can be held on a "parameter" file - see
+Section 2.3).
+
+For receipt of EDI messages, clearly users must decide how the
+data is to be processed.  (For example, can a Purchase Order
+message be taken directly into an existing in-house order
+processing system, or should some intermediate processing and
+perhaps re-ordering of data be carried out first?).
+
+For both transmission and receipt of EDI messages, attention
+should also be paid to any codes specified for use in the
+messages.  These may not equate exactly with those used in the
+in-house systems, and some form of code conversion may be
+required.  This can be particularly important if data not
+previously integrated between in-house applications are to be
+linked.
+
+2.3  Software
+
+Software of one kind or another is needed to format data from
+in-house systems into the message and syntax structure, and to
+reverse the process into a form required by in-house systems.
+
+This can either be developed in-house, or proprietary software
+packages can be obtained.  In-house development can be a quick
+way of getting an application off the ground for one or two
+messages, but generally will not be cost effective as more EDI
+message are introduced into the application - mainly because the
+routines are usually coded to be message dependent.  This can
+cause maintenance difficulties as messages are amended and
+enhanced over a period of time.
+
+Software packages are available from a variety of sources,
+ranging from data capture systems to interface translators. Most
+are message independent, generally by use of table-driven
+techniques.  If message content changes, this means that only the
+tables have to be amended, not the main modules of the package.
+
+As previously identified, on some occasions users may find that
+the required data are not always available from the in-house
+system.  For formatting of data for transmission, this can be
+true, particularly for some of data required for certain of the
+syntax service segments (e.g. the Interchange Header - UNB; and
+the Functional Group Header - UNG).  It could also be true if for
+example, the full name and address of the organisation
+originating the data is required in the interchange in order to
+meet some form of legal requirement.
+
+A useful technique for solving these problems is to hold such
+constant data on a small parameter file, which can be accessed
+when required during the message formatting process.
+
+2.4  Communications
+
+Some form of communications carrier is the last essential basic
+element for implementation of EDI applications.
+
+Some applications still exchange magnetic tapes, but
+increasingly, telecommunications techniques are being used. Two
+options are available - either direct communications, or via a
+third party service.
+
+Direct point-to-point or dial-up techniques may suffice if
+interchange partners are few in number, and their
+telecommunications protocols are identical.
+
+However, as the number of interchange partners increases, as
+the number of different telecommunications protocols have to be
+catered for, and as scheduling problems become more acute, it
+may well be found that the services offered by a range of network
+providers become a possible alternative.
+
+Although the services offered may vary in detail, most offer
+network communication, the interface to the network, protocol
+conversion services (i.e. data is provided using a preferred
+telecommunications protocol and it is a function of the network
+provider's service to convert to the protocols to those of the
+interchange partners), and mailbox/clearing-house services.
+
+Users of mailbox/clearing-house services send data to the network
+provider, who interrogates the header segment of each interchange
+in order to deposit the data in the mailbox of the appropriate
+addressee specified in the interchange header segment.  Each
+recipient can then access his own mailbox to retrieve data.  This
+can be a particularly useful facility if scheduling problems are
+acute, or if data is being exchanged across time zones.
+
+When joining an existing user group, it may be found that the
+choice of communications techniques has already been made by the
+group as a whole.
+
+SECTION 3 - INTERCHANGE AGREEMENT
+
+3.1    Introduction
+
+Virtually every live data interchange application operates under
+an interchange agreement, which normally takes the form of a
+user manual.
+
+Once created, this has to be maintained in the same way that any
+computer system user manual has to be.
+
+The type of controlling agency authority created varies from
+application to application.  For example, in Customs interchange
+applications, it is the Customs authority itself which normally
+controls and maintains the necessary user documentation.  Other
+examples include trade associations, trade facilitation
+organisations, and a secretariat created and funded by the trade
+itself.
+
+3.2     Initial development and design
+
+While it is impossible to specify precisely the technique which
+should be used for the initial development and design of
+interchange systems, some guidelines can be given, based upon an
+analysis of the techniques used for existing systems.
+
+A typical technique used is to create a steering committee
+chosen from a selection of users from the application area.  A
+series of working sub-groups, each charged with a specific task,
+report to the steering committee as they progress their work. In
+turn, these sub-groups are formed from users, having the
+necessary expertise for the task in hand.
+
+The following list of tasks are typical of those which have been
+carried out by existing user groups.  More detailed subjects
+might need to be included, depending upon the application area,
+and two or more of the tasks might be undertaken by one
+sub-group.
+
+A typical list of tasks for a specific application could be:
+
+   - to identify the functions - and therefore the types of
+     messages (or transactions) to be interchanged, with reference
+     to the agreed application data element directory and with
+     particular emphasis on the mandatory or conditional status of
+     each data element within each transaction.  Since users in
+     different application areas may wish, in the future, to
+     interchange data, wherever possible standardisation of message
+     types and structure within each application area will be to
+     everyone's advantage
+
+   - to identify the data elements required, element sizes and
+     formats, element terminology, and to compile a user data
+     element directory.  (This would normally be done with
+     reference to the UN Trade Data Element Directory insofar as
+     international data elements are concerned).  For national, or
+     industry specific data elements, local agreement would be
+     necessary.
+
+   - to identify the functions of user data segments required,
+     making full use of the UNSM Standard Segments Directory,
+     particularly with respect to standard user data segments
+     designed for multi-industry/multi-application use.  Should
+     new user data segments need to be designed, the
+     recommendations contained in the UN EDIFACT Message Design
+     Guidelines should be followed, with "Change Requests" being
+     submitted to the local Rapporteur's Advisory & Support Team
+     as necessary
+
+   - to specify the level of syntax rules to be used by the
+     application, (i.e. Level A or B - see ISO 9735)
+
+   - to specify the method(s) to be used for the physical
+     transmission of data within the application, including where
+     relevant, the specification of requirements for magnetic tape
+     transfer, for floppy disks transfer, and for
+     telecommunications protocols.
+
+   - to identify any legal and security problems related to the
+     transfer of information, which might require resolution.  (It
+     should be noted that the UN/ICC UNCID recommendations -
+     "Uniform Rules of Conduct for the Interchange of Trade Data" -
+     address all legal questions which need to be considered.
+     UNCID is included in the UN Trade Data Interchange
+     Directory).
+
+   - to identify and recommend common coding techniques to be
+     implemented by all participants in the user group.
+
+   - to identify and recommend encryption techniques (if
+     required)
+
+   - to recommend the form and period of a trial phase of testing,
+     prior to full implementation.
+
+3.3    User Manual
+
+Taking account of the above subjects, it is recommended that the
+user manual should at least include:
+
+   - a description of the level of EDIFACT syntax to be used
+
+   - a description of the agreed character set to be used
+
+   - a full and detailed description of the structure of message
+     types to be used.  (As far as possible, it is stressed that
+     UNSMs should be used - or if not exactly suitable - that the
+     procedures for amendment set out in the Message Design
+     Guidelines should be followed).
+
+   - the user data element directory (utilising UNTDED as far as
+     possible)
+
+   - the user segment directory (utilising the standard segments
+     defined in EDSD as far as possible)
+
+   - the user message directory
+
+   - a specification of legal/security requirements to be
+     observed.
+
+   - a description of the communications service(s) to be
+     utilised.
+
+   - a specification of the transmission record length to be
+     used (which must be standard within the application area)
+
+   - a indication of the techniques to be used for error
+     correction, acknowledgements, etc
+
+   - an indication whether or not Functional Grouping is to be
+     used.
+
+   - an indication of the type of encryption to be used (if any).
+
+   - an indication of the type of password facility to be used (if
+     any).
+
+3.4  Check List for the Interchange Agreement
+
+An Interchange Agreement (normally in the form of a User Manual)
+governs all of the participants subscribing to the application
+interchange which it describes.
+
+Separate bi-lateral agreements between participants in such an
+interchange application are not recommended, since they only
+serve to defeat the purpose of the standards specified for all
+users in the Interchange Agreement.
+
+For certain data fields in the Service segments which form the
+syntax, the Interchange Agreement must specify the code sets,
+lists of qualifiers, etc to be used.  The fields and the
+criteria to be addressed are listed below, with the service data
+element reference number and the segment in which it appears, in
+brackets after the field name.
+
+INTERCHANGE SENDER (S002 UNB)
+
+The Interchange Agreement (IA) must specify whether a name or
+code should be used to identify the organisations sending data.
+If a code, the various code sets must be identifiable by use of
+qualifiers, which must be specified.
+
+INTERCHANGE RECIPIENT (S003 UNB)
+
+The IA must specify whether a name or code should be used to
+identify recipients.  If a code, the various code sets must be
+identifiable by use of qualifiers, which must be specified.
+
+RECIPIENT'S REFERENCE/PASSWORD (S005 UNB)
+
+The IA must state if the field is to be used.  If so, either a
+list of passwords must be maintained, or (more likely), senders
+must ascertain from their various partners what reference or
+password is to be provided.
+
+APPLICATION REFERENCE (0026 UNB)
+
+The IA must state whether the field is to be used, if so, it
+must state what information should be carried in the field.
+
+PROCESSING PRIORITY CODE (0029 UNB)
+
+The IA must state whether the field is to be used, if so, a list
+of codes and meanings must be provided.
+
+COMMUNICATIONS AGREEMENT IDENTIFICATION (0032 UNB)
+
+The IA must state whether the field is to be used, if so,
+whether a name or code should appear.  If a code, its value must
+be provided.
+
+APPLICATION SENDER'S IDENTIFICATION (S006 UNG) & RECIPIENT'S
+IDENTIFICATION (S007 UNG)
+
+The IA must either inform users either that it is their own
+responsibility to maintain code lists (plus qualifiers if
+necessary) for their partners, or it should publish and maintain
+agreed lists for all participants.
+
+CONTROLLING AGENCY (0051 UNG)
+
+The IA must provide the list of codes which could be used
+(although within one interchange application, it is most likely
+that only one code would be used.  For example, if UNSMs are
+being used, the code would have the value UN).
+
+MESSAGE VERSION NUMBER (0008 UNG)
+
+If UNSMs are being used, the current version number (and if
+necessary, the release number) of the message in question should
+be specified.  If the application is using other than UNSMs,
+then the IA must publish the version numbers (and release
+numbers if necessary) - see Section 7 Identification and
+Control of messages.
+
+MESSAGE IDENTIFIER (S009 UNH)
+
+The message identifier field has 5 component data elements.  The
+value of each of these must be specified as necessary per
+message type in the IA, according to the procedures set out in
+Section 7, dealing with the identification and control of
+messages.
+
+3.5  Interchange maintenance authority
+
+It is strongly recommended that some form of interchange
+maintenance authority be created.  Such an authority would be
+responsible for the control and maintenance of the interchange
+agreement, with particular responsibility for the production and
+circulation of amendments to the user manual, and for control
+of change-over to new versions of messages.
+
+SECTION 4 - TERMINOLOGY
+
+For the definitions of the terminology used in this document,
+please see Annex A of the ISO 9735 standard.
+
+SECTION 5 - CHARACTER SET FOR INTERCHANGE
+
+In order to cover the range of user preference, two levels of
+syntax are identified with respect to use of character sets.
+These levels are defined in the Interchange Header (UNB) segment
+(in the data element S001 Syntax Identifiers) as UNOA (for the
+basic level A), and UNOB for level B.
+
+The full character set for both levels is specified in ISO 9735
+EDIFACT Syntax Rules.
+
+Level B only, may use a higher level character set taken from ISO
+646 IRV, including the use of three of the IS 1-4 non-printable
+separator characters in place of the printable separator
+characters used in Level A, as defined in ISO 9735. However, it
+should be clearly understood that users of Level B must revert to
+Level A if this is necessary to meet the capability and wishes of
+the recipient.
+
+Care should also be taken regarding the use of the IS 1-4
+separator characters with respect to certain communications
+protocols.  (For example, if the 2780 protocol is used, certain
+of the IS characters are not passed through to the application
+level process.  In this case, use of the Level A set will
+overcome the problem).
+
+If not otherwise agreed between interchange partners, the "bit"
+representation of the recommended character set for
+computer-to-computer interchange for both Level A and B is the
+seven-bit representation specified in the basic ISO 646
+standard.
+
+Binary coded decimal or other forms of hardware/software
+dependent character representation (for examples EBCDIC) must not
+be used for interchange (other than by prior agreement between
+interchange partners), as these features are not available, or
+are not dealt with in the same way, in all makes of computers.
+
+
+ International Reference Version (IRV) ISO 646-1983 (E)
+
+            +------------------------------------------------+
+            |b7    |  0 |  0 | 0  | 0  |  1  |  1 |  1  | 1  |
+            |------|----|----|----|----|-----|----|-----|----|
+            |b6    |  0 |  0 |  1 |  1 |  0  |  0 |  1  | 1  |
+            |------|----|----|----|----|-----|----|-----|----|
+            |b5    |  0 |  1 |  0 |  1 |  0  |  1 |  0  | 1  |
+            +------+----+----+----+----+-----+----+-----+----+
++--------------|   |    |    |    |    |     |    |     |    |
+|b4| b3| b2| b1|   |  0 |  1 |  2 |  3 |  4  |  5 |  6  | 7  |
+|--------------+---+----+----+----+----+-----+----+-----*---D*
+|0 | 0 | 0 | 0 | 0 | NUL| DLE|  SP|  O |  @  |  P |  `  | p  |
+|--------------+---+----|----|----|----|-----|----*-----*----*
+|0 | 0 | 0 | 1 | 1 | SOH| DC1|   !|  1 |  A  |  Q |  a  | q  |
+|--------------+---.----.*---*--------------------*---------D*
+|0 | 0 | 1 | 0 | 2 | STX| DC2|   "|  2 |  B  |  R |  b  | r  |
+|--------------+---.----.*---*--------------------*---------D*
+|0 | 0 | 1 | 1 | 3 | ETX| DC3|   #|  3 |  C  |  S |  c  | s  |
+|--------------+---.----.*---*--------------------*----------*
+|0 | 1 | 0 | 0 | 4 | EOT| DC4| $  |  4 |  D  |  T |  d  | t  |
+|--------------+---.---------.--------------------*----------*
+|0 | 1 | 0 | 1 | 5 | ENQ| NAK|   %|  5 |  E  |  U |  e  | u  |
+|--------------+---.---------.--------------------*----------*
+|0 | 1 | 1 | 0 | 6 | ACK| SYN|   &|  6 |  F  |  V |  f  | v  |
+|--------------+---.---------.--------------------*----------*
+|0 | 1 | 1 | 1 | 7 | BEL| ETB|   '|  7 |  G  |  W |  g  | w  3
+|--------------+---.---------.--------------------*----------*
+|1 | 0 | 0 | 0 | 8 | BS | CAN|   (|  8 |  H  |  X |  h  | x  |
+|--------------+---.---------.--------------------*----------*
+|1 | 0 | 0 | 1 | 9 | HT | EM |   )|  9 |  I  |  Y |  i  | y  |
+|--------------+---.---------.--------------------*----------*
+|1 | 0 | 1 | 0 | 10| LF | SUB|   *|  : |  J  |  Z |  j  | z  |
+|--------------+---.---------.--------------------*-----*---D*
+|1 | 0 | 1 | 1 | 11| VT | ESC|   +|  ; |  K  |  [ |  k  | {  |
+|--------------+---.---------.*---*---------------*-----*----|
+|1 | 1 | 0 | 0 | 12| FF | IS4|  , |  < |  L  |  \ |  l  |  | |
+|--------------+---.---------.*---*---------------*-----*----|
+|1 | 1 | 0 | 1 | 13| CR | IS3|   -|  = |  M  |  ] |  m  |  } |
+|--------------+---.---------.--------------------*-----*----|
+|1 | 1 | 1 | 0 | 14| SO | IS2|   .|  > |  N  |  ^ |  n  | ~  |
+|--------------+---.---------.---------------*----*-----*----|
+|1 | 1 | 1 | 1 | 15| SI | IS1|   /|  ? |  O  |  _ |  o  | DEL|
++--------------+---.-D--.----.---------------*----*-----*---D+
+
+
+Specified by the standard and widely implemented
+
+------------
+|  2 |  B  |
+------------
+|  3 |  C  |
+------------
+
+Specified by the standard, but not implemented by all manufacturers
+.----.
+| STX|
+.----.
+| ETX|
+.----.----
+| EOT| DC4|
+.---------.
+| ENQ| NAK|
+.---------.
+
+Specified by the standard, but implemented with varying bit patterns
+
+      *---D*
+      | p  |
+*-----*----*
+|  a  | q  |
+*---------D*
+|  b  | r  |
+*---------D*
+
+
+SECTION 6 - TRANSMISSION COMPONENTS
+
+An interchange of data in the context of EDIFACT, is composed of
+one or more messages containing segments which in turn are made
+up of data elements.
+
+6.1    Data elements
+
+(NOTE:  It is stressed that all the examples of data
+          which follow in this paper are examples.  UNTDED
+          should be studied to obtain the current formats,
+          code set and qualifier values, etc).
+
+A data element may consist of a single data item, e.g. "2310
+Delivery month" in which case it is called a simple data
+element, or it may consist of several data items, e.g. the
+composite data element "C198 PRODUCT IDENTIFICATION" which
+consists of two data elements, 7020 Article Number and 7823
+Article Number Qualifier. In this case it is called a composite
+data element; each data item within a composite data element is
+called a component data element.
+
+A component is identified by its position within a data
+element.  For example, if a data element was required to express
+the cost of insurance, it would be defined as a composite data
+element with two component data elements.  In the first position
+would be "5486 Insurance Cost", accompanied by "6345 Currency
+Code" as the second component.
+
+The data elements referred to in the EDIFACT standard are either
+user data elements or service data elements.
+
+User data elements contain the substantive data which are to be
+transmitted.  They are outside the scope of the standard and
+should be defined and agreed (preferably based on the UN trade
+data element directory - TDED) between interchange partners, and
+specified in a user data element directory.
+
+Service data elements contain data required for structuring the
+transmission.  A list of the service data elements provided in
+this standard and their detailed descriptions are given in the UN
+Trade Data Element Directory (TDED), in the 'S' and the '000'
+series.  They will also be found in ISO 9735.
+
+Data elements can only be transmitted within a segment.
+
+Each data element in TDED is allocated a unique 4-digit
+numeric tag.  In addition, each data element is allocated a
+unique and mnemonic four-character data element identifier which
+must be alphabetic.  These identifiers can be used in internal
+systems, e.g. for system and programming documentation.
+
+6.2    Segments
+
+There are two types of segments: User Data segments and Service
+segments.  Conditional Segments containing no data must be
+omitted from the message in which they would normally appear.
+
+User data segments contain data elements such as amounts,
+values, names, places and other data to be transmitted.  The
+contents of user data segments are outside the scope of the
+UN/EDIFACT Syntax standard.  User data segments must not be
+created with the first two letters of the tag "UN", as these are
+reserved for use in service segments.
+
+Service segments contain service data elements such as sender
+of the transmission, syntax rules type and level, date of the
+preparation of the transmission, priority type, etc. and/or
+other specific data which are required for the transmission. All
+service segment tags start with the two letters "UN" which are
+reserved for this purpose.  On no account should users change
+service segments.  A "Change Request" procedure is described in
+the Message Design Guidelines for the purpose of proposing
+amendments. The following categories of service segments are
+provided in the UN/EDIFACT syntax standard:
+
+     Transmission structuring syntax segments, which are used
+     to assemble transmissions in a standard way, e.g. to start
+     and end each transmission, to start and end each message
+     within a transmission, and to start and end functional
+     groups of messages within a transmission (if this facility
+     is required).
+
+     Segments used in the Service messages "CONTRL" & "APPLIC",
+     which respectively are used for acknowledgements requests,
+     for correction of syntax errors and rejections, and for
+     confirmation of receipt or requests for correction of
+     application errors.  (The latter - APPLIC - is under
+     development).
+
+     A segment used in the General Purpose Message "GENRAL",
+     which is used to indicate the type, title and references
+     for the message.
+
+Segments are identified by a code which uniquely identifies each
+segment as specified in a segment directory.
+
+A list of the service segments provided in the EDIFACT syntax
+standard, with detailed descriptions, is given in Annex B of ISO
+9735.
+
+6.3    Messages
+
+A Message consists of a number of segments structured in
+accordance with the syntax rules.  It must begin with the
+service segment "UNH -Message header" and end with the service
+segment "UNT - Message trailer".  It must contain at least one
+user data segment, containing at least one user data element.
+
+There are two classes of messages:  User messages and EDIFACT
+Service messages.
+
+     User messages contain the user data segments required for
+     the message in addition to the "Message header" and
+     "Message trailer" segments.
+
+There is an option to transfer a message progressively. At the
+time of the first transmission, it generally would not contain
+all of the information as defined in the interchange application
+message specifications, other than the data defined as being
+mandatory within the message. In this case, the originator may
+transmit a selection of the data elements at first, followed by
+a second (or successive) transmission(s), adding to or updating
+the data previously transmitted, the data being related by means
+of a structured, unique key.
+
+(An example might be a Booking message, where the transport
+operator needs a rough estimate of the space required for the
+shipment as early as possible to facilitate his planning.  The
+precise details may be supplied by the originator later as they
+become available, until finally the transport operator has
+sufficient data to create a bill of lading).
+
+The use of the progressive message transfer technique is
+explained in more detail in Section 8.3.9 of this guide.
+
+UN/EDIFACT Service messages contain service segments for error
+correction, either at the syntax protocol level, or at the
+application level, and service segments for general free
+text. Their use is explained in Section 10 of this guide.
+
+Messages are uniquely identified by a message identifier
+field consisting of five component data elements, used to
+effect identification and control of messages, as explained in
+the next Section.

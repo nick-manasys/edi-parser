@@ -248,22 +248,22 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
     val ctempl1a = buildTemplate(ctemplate1a)
     val ctempl1b = buildTemplate(ctemplate1b)
     val clines1 = stringLines(composite1b)
-    parseTemplate(ctempl1a, false, ctempl1a(2), clines1) should be(Array("", "C852", "RISK OBJECT SUB-TYPE"))
+    parseTemplate(ctempl1a, false, 2, clines1) should be(Array("", "C852", "RISK OBJECT SUB-TYPE"))
     clines1.skipBlankLine
     clines1.skipPastBlankLine
-    parseTemplate(ctempl1b, true, ctempl1b(3), clines1) should be(Array("010", "", "7177", "Risk object sub-type description identifier", "C"))
-    parseTemplate(ctempl1b, true, ctempl1b(3), clines1) should be(Array("020", "", "1131", "Code list identification code", "C"))
-    parseTemplate(ctempl1b, true, ctempl1b(3), clines1) should be(Array("030", "", "3055", "Code list responsible agency code", "C"))
-    parseTemplate(ctempl1b, true, ctempl1b(3), clines1) should be(Array("040", "", "7176", "Risk object sub-type description", "C"))
+    parseTemplate(ctempl1b, true, 3, clines1) should be(Array("010", "", "7177", "Risk object sub-type description identifier", "C"))
+    parseTemplate(ctempl1b, true, 3, clines1) should be(Array("020", "", "1131", "Code list identification code", "C"))
+    parseTemplate(ctempl1b, true, 3, clines1) should be(Array("030", "", "3055", "Code list responsible agency code", "C"))
+    parseTemplate(ctempl1b, true, 3, clines1) should be(Array("040", "", "7176", "Risk object sub-type description", "C"))
     val stempl1a = buildTemplate(stemplate1a)
     val stempl1b = buildTemplate(stemplate1b)
     val slines1 = stringLines(segment1b)
-    parseTemplate(stempl1a, false, stempl1a(2), slines1) should be(Array("", "SCD", "STRUCTURE COMPONENT DEFINITION"))
+    parseTemplate(stempl1a, false, 2, slines1) should be(Array("", "SCD", "STRUCTURE COMPONENT DEFINITION"))
     slines1.skipBlankLine
     slines1.skipPastBlankLine
-    parseTemplate(stempl1b, true, stempl1b(3), slines1) should be(Array("010", "", "7497", "STRUCTURE COMPONENT FUNCTION CODE QUALIFIER", "M", "1"))
+    parseTemplate(stempl1b, true, 3, slines1) should be(Array("010", "", "7497", "STRUCTURE COMPONENT FUNCTION CODE QUALIFIER", "M", "1"))
     slines1.skipBlankLine
-    parseTemplate(stempl1b, true, stempl1b(3), slines1) should be(Array("020", "", "C786", "STRUCTURE COMPONENT IDENTIFICATION", "C", "1"))
+    parseTemplate(stempl1b, true, 3, slines1) should be(Array("020", "", "C786", "STRUCTURE COMPONENT IDENTIFICATION", "C", "1"))
   }
 
   it should "throw an exception when fields are missing at end" in {

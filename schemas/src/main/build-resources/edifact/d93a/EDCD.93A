@@ -1,0 +1,1383 @@
+* *     *                                                            *
+***     *                                                     * *
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C002  DOCUMENT/MESSAGE NAME
+
+  Desc: Identification of a type of document/message by code or
+        name. Code preferred.
+
+  1001  Document/message name, coded                          C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  1000  Document/message name                                 C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C040  CARRIER
+
+  Desc: Identification of a carrier by code and/or by name. Code
+        preferred.
+
+  3127  Carrier identification                                C an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  3128  Carrier name                                          C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C045  BILL LEVEL IDENTIFICATION
+
+  Desc: A sequenced collection of facetted codes used for multiple
+        indexing purposes.
+
+  7436  Level one ID                                          C an..17
+  7438  Level two ID                                          C an..17
+  7440  Level three ID                                        C an..17
+  7442  Level four ID                                         C an..17
+  7444  Level five ID                                         C an..17
+  7446  Level six ID                                          C an..17
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C056  DEPARTMENT OR EMPLOYEE DETAILS
+
+  Desc: Code and/or name of a department or employee. Code preferred.
+
+  3413  Department or employee identification                 C an..17
+  3412  Department or employee                                C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C058  NAME AND ADDRESS
+
+  Desc: Unstructured name and address: one to five lines.
+
+  3124  Name and address line                                 M an..35
+  3124  Name and address line                                 C an..35
+  3124  Name and address line                                 C an..35
+  3124  Name and address line                                 C an..35
+  3124  Name and address line                                 C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C059  STREET
+
+  Desc: Street address and/or PO Box number in a structured address:
+        one to three lines.
+
+  3042  Street and number/P.O. Box                            M an..35
+  3042  Street and number/P.O. Box                            C an..35
+  3042  Street and number/P.O. Box                            C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C076  COMMUNICATION CONTACT
+
+  Desc: Communication number of a department or employee in a
+        specified channel.
+
+  3148  Communication number                                  M an..25
+  3155  Communication channel qualifier                       M an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C078  ACCOUNT IDENTIFICATION
+
+  Desc: Identification of an account holder by account number and/or
+        account holder name in one or two lines. Number preferred.
+
+  3194  Account holder number                                 C an..17
+  3192  Account holder name                                   C an..35
+  3192  Account holder name                                   C an..35
+  6345  Currency, coded                                       C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C080  PARTY NAME
+
+  Desc: Identification of a transaction party by name, one to five
+        lines. Party name may be formatted.
+
+  3036  Party name                                            M an..35
+  3036  Party name                                            C an..35
+  3036  Party name                                            C an..35
+  3036  Party name                                            C an..35
+  3036  Party name                                            C an..35
+  3045  Party name format, coded                              C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C082  PARTY IDENTIFICATION DETAILS
+
+  Desc: Identification of a transaction party by code.
+
+  3039  Party id identification                               M an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C088  INSTITUTION IDENTIFICATION
+
+  Desc: Identification of a financial institution by code branch
+        number, or name and name of place. Code or branch number
+        preferred.
+
+  3433  Institution name identification                       C an..11
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  3434  Institution branch number                             C an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  3432  Institution name                                      C an..70
+  3436  Institution branch place                              C an..70
+
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C100  TERMS OF DELIVERY
+
+  Desc: Terms of delivery code from a specified source.
+
+  4053  Terms of delivery, coded                              C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4052  Terms of delivery                                     C an..70
+  4052  Terms of delivery                                     C an..70
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C107  TEXT REFERENCE
+
+  Desc: Coded reference to a standard text and its source.
+
+  4441  Free text, coded                                      M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C108  TEXT LITERAL
+
+  Desc: Free text; one to five lines.
+
+  4440  Free text                                             M an..70
+  4440  Free text                                             C an..70
+  4440  Free text                                             C an..70
+  4440  Free text                                             C an..70
+  4440  Free text                                             C an..70
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C110  PAYMENT TERMS
+
+  Desc: Terms of payment code from a specified source.
+
+  4277  Terms of payment identification                       M an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4276  Terms of payment                                      C an..35
+  4276  Terms of payment                                      C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C112  TERMS/TIME INFORMATION
+
+  Desc: Time details in payment terms.
+
+  2475  Payment time reference, coded                         M an..3
+  2009  Time relation, coded                                  C an..3
+  2151  Type of period, coded                                 C an..3
+  2152  Number of periods                                     C n..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C128  RATE DETAILS
+
+  Desc: Rate per unit and rate basis.
+
+  5419  Rate type qualifier                                   M an..3
+  5420  Rate per unit                                         M n..15
+  5284  Unit price basis                                      C n..9
+  6411  Measure unit qualifier                                C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C138  PRICE MULTIPLIER INFORMATION
+
+  Desc: Price multiplier and its identification.
+
+  5394  Price multiplier                                      M n..12
+  5393  Price multiplier qualifier                            C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C174  VALUE/RANGE
+
+  Desc: Measurement value and relevant minimum and maximum
+        tolerances in that order.
+
+  6411  Measure unit qualifier                                M an..3
+  6314  Measurement value                                     C n..18
+  6162  Range minimum                                         C n..18
+  6152  Range maximum                                         C n..18
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C186  QUANTITY DETAILS
+
+  Desc: Quantity information in a transaction, qualified when
+        relevant.
+
+  6063  Quantity qualifier                                    M an..3
+  6060  Quantity                                              M n..15
+  6411  Measure unit qualifier                                C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C200  CHARGE
+
+  Desc: Identification of a charge by code and/or by name.
+
+  8023  Freight and charges identification                    C an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  8022  Freight and charges                                   C an..26
+  4237  Prepaid/collect indicator, coded                      C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C202  PACKAGE TYPE
+
+  Desc: Type of package by name or by code from a specified source.
+
+  7065  Type of packages identification                       C an..7
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7064  Type of packages                                      C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C203  RATE/TARIFF CLASS
+
+  Desc: Identification of the applicable rate/tariff class.
+
+  5243  Rate/tariff class identification                      M an..9
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  5242  Rate/tariff class                                     C an..35
+  5275  Supplementary rate/tariff basis identification        C an..6
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  5275  Supplementary rate/tariff basis identification        C an..6
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C205  HAZARD CODE
+
+  Desc: The identification of the dangerous goods in code.
+
+  8351  Hazard code identification                            M an..7
+  8078  Hazard substance/item/page number                     C an..7
+  8092  Hazard code version number                            C an..10
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C206  IDENTIFICATION NUMBER
+
+  Desc: Goods item identification number.
+
+  7402  Identity number                                       M an..35
+  7405  Identity number qualifier                             C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C208  IDENTITY NUMBER RANGE
+
+  Desc: Goods item identification numbers, start and end of
+        consecutively numbered range.
+
+  7402  Identity number                                       M an..35
+  7402  Identity number                                       C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C210  MARKS & LABELS
+
+  Desc: Shipping marks on packages; one to ten lines.
+
+  7102  Shipping marks                                        M an..35
+  7102  Shipping marks                                        C an..35
+  7102  Shipping marks                                        C an..35
+  7102  Shipping marks                                        C an..35
+  7102  Shipping marks                                        C an..35
+  7102  Shipping marks                                        C an..35
+  7102  Shipping marks                                        C an..35
+  7102  Shipping marks                                        C an..35
+  7102  Shipping marks                                        C an..35
+  7102  Shipping marks                                        C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C211  DIMENSIONS
+
+  Desc: Specification of the dimensions of a transportable unit.
+
+  6411  Measure unit qualifier                                M an..3
+  6168  Length dimension                                      C n..15
+  6140  Width dimension                                       C n..15
+  6008  Height dimension                                      C n..15
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C212  ITEM NUMBER IDENTIFICATION
+
+  Desc: Goods identification for a specified source.
+
+  7140  Item number                                           C an..35
+  7143  Item number type, coded                               C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C213  NUMBER AND TYPE OF PACKAGES
+
+  Desc: Number and type of individual parts of a shipment.
+
+  7224  Number of packages                                    M n..8
+  7065  Type of packages identification                       C an..7
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7064  Type of packages                                      C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+* C214  SPECIAL SERVICES IDENTIFICATION
+
+  Desc: Identification of a special service by a code from a
+        specified source.
+
+  7161  Special services, coded                               M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
++ 7160  Special service                                       C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C215  SEAL ISSUER
+
+  Desc: Identification of the issuer of a seal on equipment either
+        by code or by name.
+
+  9303  Sealing party, coded                                  C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  9302  Sealing party                                         C an..17
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C218  HAZARDOUS MATERIAL
+
+  Desc: Hazardous material code from a specified source.
+
+  7419  Hazardous material class code, identification         C an..4
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C219  MOVEMENT TYPE
+
+  Desc: Description of type of service for movement of cargo.
+
+  8335  Movement type, coded                                  C an..3
+  8334  Movement type                                         C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+  C220  MODE OF TRANSPORT
+
+  Desc: Method of transport code or name. Code preferred.
+
+  8067  Mode of transport, coded                              C an..3
+  8066  Mode of transport                                     C an..17
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C222  TRANSPORT IDENTIFICATION
+
+  Desc: Code and/or name identifying the active means of transport.
+
+  8213  Id of means of transport identification               C an..9
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  8212  Id of the means of transport                          C an..17
+  8453  Nationality of means of transport, coded              C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C223  DANGEROUS GOODS SHIPMENT FLASHPOINT
+
+  Desc: Temperature at which a vapor according to ISO 1523/73 can be
+        ignited.
+
+  7106  Shipment flashpoint                                   C n3
+  6411  Measure unit qualifier                                C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C224  EQUIPMENT SIZE AND TYPE
+
+  Desc: Code and/or name identifying size and type of equipment used
+        in transport. Code preferred.
+
+  8155  Equipment size and type identification                C an..4
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  8154  Equipment size and type                               C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C228  TRANSPORT MEANS
+
+  Desc: Code and/or name identifying the inactive means of
+        transport. Code preferred.
+
+  8179  Type of means of transport identification             C an..8
+  8178  Type of means of transport                            C an..17
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C229  CHARGE CATEGORY
+
+  Desc: Identification of a category or a zone of charges.
+
+  5237  Charge category, coded                                M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+
+  C231  METHOD OF PAYMENT
+
+  Desc: Code identifying the method of payment.
+
+  4215  Transport charges method of payment, coded            M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C232  GOVERNMENT ACTION
+
+  Desc: Code indicating a type of government action.
+
+  9415  Government agency, coded                              C an..3
+  9411  Government involvement, coded                         C an..3
+  9417  Government action, coded                              C an..3
+  9353  Government procedure, coded                           C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C233  SERVICE
+
+  Desc: Identification of the requested services, priority and the
+        cargo type concerned.
+
+  7273  Service requirement, coded                            M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7273  Service requirement, coded                            C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C234  UNDG INFORMATION
+
+  Desc: Information on United Nations Dangerous Goods
+        classification.
+
+  7124  UNDG number                                           C n4
+  7088  Dangerous goods flashpoint                            C an..8
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C235  HAZARD IDENTIFICATION
+
+  Desc: Identification of the  Orange placard required on the means of
+        transport
+
+  8158  Hazard identification number, upper part              C an..4
+  8186  Substance identification number, lower part           C an4
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C236  DANGEROUS GOODS LABEL
+
+  Desc: Markings identifying the type of hazardous goods and similar
+        information.
+
+  8246  Dangerous goods label marking                         C an..4
+  8246  Dangerous goods label marking                         C an..4
+  8246  Dangerous goods label marking                         C an..4
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C237  EQUIPMENT IDENTIFICATION
+
+  Desc: Marks (letters and/or numbers) identifying equipment used
+        for transport such as a container.
+
+  8260  Equipment identification number                       C an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C239  TEMPERATURE SETTING
+
+  Desc: The temperature under which the goods are (to be) stored or
+        shipped.
+
+  6246  Temperature setting                                   C n3
+  6411  Measure unit qualifier                                C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C240  PRODUCT CHARACTERISTIC
+
+  Desc: Specific product characteristic data.
+
+  7037  Characteristic identification                         M an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7036  Characteristic                                        C an..35
+  7036  Characteristic                                        C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C241  DUTY/TAX/FEE TYPE
+
+  Desc: Code and/or name identifying duty, tax or fee.
+
+  5153  Duty/tax/fee type, coded                              C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  5152  Duty/tax/fee type                                     C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C242  PROCESS TYPE AND DESCRIPTION
+
+  Desc: Process to which quality data relate.
+
+  7187  Process type identification                           M an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7186  Process type                                          C an..35
+  7186  Process type                                          C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C243  DUTY/TAX/FEE DETAIL
+
+  Desc: Rate of duty/tax/fee applicable to commodities or of tax
+        applicable to services.
+
+  5279  Duty/tax/fee rate identification                      C an..7
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  5278  Duty/tax/fee rate                                     C an..17
+  5273  Duty/tax/fee rate basis identification                C an..12
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C244  TEST METHOD
+
+  Desc: Specification of the test method employed.
+
+  4415  Test method identification                            C an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4416  Test description                                      C an..70
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C246  CUSTOMS IDENTITY CODES
+
+  Desc: Specification of goods in terms of customs identity.
+
+  7361  Customs code identification                           M an..18
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+X C262  REASON FOR CHANGE
+
+  Desc: Code and/or description motivating a price or quantity
+        change.
+  Note:
+        Marked for deletion.  Not to be used for new development,
+        use C960 instead.  C262 will be deleted from the 95.1
+        Directory.
+
+  4295  Change reason, coded                                  C an..3
+  4294  Change reason                                         C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C270  CONTROL
+
+  Desc: Control total for checking integrity of a message or part of
+        a message.
+
+  6069  Control qualifier                                     M an..3
+  6066  Control value                                         M n..18
+  6411  Measure unit qualifier                                C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C273  ITEM DESCRIPTION
+
+  Desc: Code of a standard article description from a specified
+        source.
+
+  7009  Item description identification                       C an..7
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7008  Item description                                      C an..35
+  7008  Item description                                      C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+  C279  QUANTITY DIFFERENCE INFORMATION
+
+  Desc: Information on quantity difference.
+
+  6064  Quantity difference                                   M n..15
+  6063  Quantity qualifier                                    C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C280  RANGE
+
+  Desc: Range minimum and maximum limits.
+
+  6411  Measure unit qualifier                                M an..3
+  6162  Range minimum                                         C n..18
+  6152  Range maximum                                         C n..18
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C286  SEQUENCE INFORMATION
+
+  Desc: Identification of a sequence and source for sequencing.
+
+  1050  Sequence number                                       M an..6
+  1159  Sequence number source, coded                         C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C288  PRICING GROUP
+
+  Desc: To give price group information.
+
+  5389  Pricing group, coded                                  C an..3
+  5388  Pricing group                                         C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C292  PRICE CHANGE INFORMATION
+
+  Desc: A value assigned by the seller to indicate movement of prices
+        from a previous price catalogue.
+
+  5377  Price change indicator, coded                         M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C329  PATTERN DESCRIPTION
+
+  Desc: Shipment, delivery or production interval pattern and
+        timing.
+
+  2013  Frequency, coded                                      C an..3
+  2015  Despatch pattern, coded                               C an..3
+  2017  Despatch pattern timing, coded                        C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+
+
+
+  C401  EXCESS TRANSPORTATION INFORMATION
+
+  Desc: To provide details of reason for, and responsibility for, use
+        of transportation other than normally utilized.
+
+  8457  Excess transportation reason, coded                   M an..3
+  8459  Excess transportation responsibility, coded           M an..3
+  7130  Customer authorization number                         C an..17
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C402  PACKAGE TYPE IDENTIFICATION
+
+  Desc: Identification of the form in which goods are described.
+
+  7077  Item description type, coded                          M an..3
+  7064  Type of packages                                      M an..35
+  7143  Item number type, coded                               C an..3
+  7064  Type of packages                                      C an..35
+  7143  Item number type, coded                               C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C501  PERCENTAGE DETAILS
+
+  Desc: Percentage relating to a specified basis.
+
+  5245  Percentage qualifier                                  M an..3
+  5482  Percentage                                            C n..8
+  5249  Percentage basis, coded                               C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C502  MEASUREMENT DETAILS
+
+  Desc: Identification of measurement type.
+
+  6313  Measurement dimension, coded                          C an..3
+  6321  Measurement significance, coded                       C an..3
+  6155  Measurement attribute, coded                          C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C503  DOCUMENT/MESSAGE DETAILS
+
+  Desc: Identification of document/message by number, status,
+        source and/or language.
+
+  1004  Document/message number                               C an..35
+  1373  Document/message status, coded                        C an..3
+  1366  Document/message source                               C an..35
+  3453  Language, coded                                       C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C504  CURRENCY DETAILS
+
+  Desc: The usage to which a currency relates.
+
+  6347  Currency details qualifier                            M an..3
+  6345  Currency, coded                                       C an..3
+  6343  Currency qualifier                                    C an..3
+  6348  Currency rate base                                    C n..4
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C506  REFERENCE
+
+  Desc: Identification of a reference.
+
+  1153  Reference qualifier                                   M an..3
+  1154  Reference number                                      C an..35
+  1156  Line number                                           C an..6
+  4000  Reference version number                              C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C507  DATE/TIME/PERIOD
+
+  Desc: Date and/or time, or period relevant to the specified
+        date/time/period type.
+
+  2005  Date/time/period qualifier                            M an..3
+  2380  Date/time/period                                      C an..35
+  2379  Date/time/period format qualifier                     C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C509  PRICE INFORMATION
+
+  Desc: Identification of price type, price and related details.
+
+  5125  Price qualifier                                       M an..3
+  5118  Price                                                 C n..15
+  5375  Price type, coded                                     C an..3
+  5387  Price type qualifier                                  C an..3
+  5284  Unit price basis                                      C n..9
+  6411  Measure unit qualifier                                C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C512  SIZE DETAILS
+
+  Desc: Information about the number of observations.
+
+  6173  Size qualifier                                        C an..3
+  6174  Size                                                  C n..15
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C514  SAMPLE LOCATION DETAILS
+
+  Desc: Identification of location within the specimen, from which
+        the sample was taken.
+
+  3237  Sample location, coded                                C an..3
+  3236  Sample location                                       C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C515  TEST REASON
+
+  Desc: To identify the reason for the test as specified.
+
+  4425  Test reason identification                            C an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4424  Test reason                                           C an..35
+
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C516  MONETARY AMOUNT
+
+  Desc: Amount of goods or services stated as a monetary amount in a
+        specified currency.
+
+  5025  Monetary amount type qualifier                        M an..3
+  5004  Monetary amount                                       C n..18
+  6345  Currency, coded                                       C an..3
+  6343  Currency qualifier                                    C an..3
+  4405  Status, coded                                         C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C517  LOCATION IDENTIFICATION
+
+  Desc: Identification of a location by code or name.
+
+  3225  Place/location identification                         C an..25
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  3224  Place/location                                        C an..17
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C519  RELATED LOCATION ONE IDENTIFICATION
+
+  Desc: Identification the first related location by code or
+        name.
+
+  3223  Related place/location one identification             C an..25
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  3222  Related place/location one                            C an..70
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C521  BUSINESS FUNCTION
+
+  Desc: To specify a business reason.
+
+  4027  Business function qualifier                           M an..3
+  4025  Business function, coded                              M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4022  Business description                                  C an..70
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C522  INSTRUCTION
+
+  Desc: To specify an instruction.
+
+  4403  Instruction qualifier                                 M an..3
+  4401  Instruction, coded                                    C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4400  Instruction                                           C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+
+
+  C523  NUMBER OF UNIT DETAILS
+
+  Desc: Identification of number of units and its purpose.
+
+  6350  Number of units                                       C n..15
+  6353  Number of units qualifier                             C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C524  HANDLING INSTRUCTIONS
+
+  Desc: Instruction for the handling of goods, products or articles
+        in shipment, storage etc.
+
+  4079  Handling instructions, coded                          C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4078  Handling instructions                                 C an..70
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C526  FREQUENCY DETAILS
+
+  Desc: Number of samples collected per specified unit of measure.
+
+  6071  Frequency qualifier                                   M an..3
+  6072  Frequency value                                       C n..9
+  6411  Measure unit qualifier                                C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C527  STATISTICAL DETAILS
+
+  Desc: Specifications related to statistical measurements.
+
+  6314  Measurement value                                     C n..18
+  6411  Measure unit qualifier                                C an..3
+  6313  Measurement dimension, coded                          C an..3
+  6321  Measurement significance, coded                       C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C528  COMMODITY/RATE DETAIL
+
+  Desc: Identification of commodity/rates.
+
+  7357  Commodity/rate identification                         C an..18
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C529  PROCESSING INDICATOR
+
+  Desc: Type of process indication.
+
+  7365  Processing indicator, coded                           M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7187  Process type identification                           C an..17
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+
+  C531  PACKAGING DETAILS
+
+  Desc: Packaging level and details, terms and conditions.
+
+  7075  Packaging level, coded                                C an..3
+  7233  Packaging related information, coded                  C an..3
+  7073  Packaging terms and conditions, coded                 C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C532  RETURNABLE PACKAGE DETAILS
+
+  Desc: Indication of responsibility for payment and load contents of
+        returnable packages.
+
+  8395  Returnable package freight payment responsibility,    C an..3
+        coded
+  8393  Returnable package load contents, coded               C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C533  DUTY/TAX/FEE ACCOUNT DETAIL
+
+  Desc: Indication of account reference for duties, taxes and/or fees.
+
+  5289  Duty/tax/fee account identification                   M an..6
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C534  PAYMENT INSTRUCTION DETAILS
+
+  Desc: Indication of method of payment employed or to be employed.
+
+  4439  Payment conditions, coded                             C an..3
+  4431  Payment guarantee, coded                              C an..3
+  4461  Payment means, coded                                  C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4435  Payment channel, coded                                C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C536  CONTRACT AND CARRIAGE CONDITION
+
+  Desc: To identify a contract and carriage condition.
+
+  4065  Contract and carriage condition, coded                M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C537  TRANSPORT PRIORITY
+
+  Desc: To indicate the priority of requested transport service.
+
+  4219  Transport priority, coded                             M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+  C543  AGREEMENT TYPE IDENTIFICATION
+
+  Desc: Identification of specific agreement type by code or name.
+
+  7431  Agreement type qualifier                              M an..3
+  7433  Agreement type, coded                                 C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7434  Agreement type description                            C an..70
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C545  INDEX IDENTIFICATION
+
+  Desc: To identify an index.
+
+  5013  Index qualifier                                       M an..3
+  5027  Index type, coded                                     C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C546  INDEX VALUE
+
+  Desc: To identify the value of an index.
+
+  5030  Index value                                           M n..6
+  5039  Index value representation, coded                     C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C549  MONETARY FUNCTION
+
+  Desc: To identify the function of a related monetary amount.
+
+  5007  Monetary function, coded                              M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C550  REQUIREMENT/CONDITION IDENTIFICATION
+
+  Desc: To identify the specific rule/condition requirement.
+
+  7295  Requirement/condition identification                  M an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C551  BANK OPERATION
+
+  Desc: Identification of a bank operation by code.
+
+  4383  Bank operation, coded                                 M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+
+
+  C552  ALLOWANCE/CHARGE INFORMATION
+
+  Desc: Identification of allowance/charge information by
+        number and/or code.
+
+  1230  Allowance or charge number                            C an..35
+  5189  Charge/allowance description, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C553  RELATED LOCATION TWO IDENTIFICATION
+
+  Desc: Identification of second related location by code or
+        name.
+
+  3233  Related place/location two identification             C an..25
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  3232  Related place/location two                            C an..70
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C554  RATE/TARIFF CLASS DETAIL
+
+  Desc: Identification of the applicable rate/tariff class.
+
+  5243  Rate/tariff class identification                      C an..9
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C555  STATUS EVENT
+
+  Desc: To specify a status event.
+
+  9011  Status event, coded                                   M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C556  STATUS REASON
+
+  Desc: To specify the reason behind a status event.
+
+  9013  Status reason, coded                                  M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  9012  Status reason                                         C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C601  STATUS DETAIL
+
+  Desc: To specify the type of status in relation to an industry
+        sector or business function.
+
+  9015  Status type, coded                                    M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+  C701  ERROR POINT DETAILS
+
+  Desc: Indication of the point of error in a message.
+
+  1049  Message section, coded                                M an..3
+  1052  Message item number                                   C an..35
+  1054  Message sub-item number                               C n..6
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C703  NATURE OF CARGO
+
+  Desc: Rough classification of a type of cargo.
+
+  7085  Nature of cargo, coded                                M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C849  PARTIES TO INSTRUCTION
+
+  Desc: Identify the sending and receiving parties of the instruction.
+
+  3301  Party enacting instruction identification             M an..17
+  3285  Recipient of the instruction identification           C an..17
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C850  STATUS OF INSTRUCTION
+
+  Desc: Provides information regarding the status of an instruction.
+
+  4405  Status, coded                                         M an..3
+  3036  Party name                                            C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C878  CHARGE/ALLOWANCE ACCOUNT
+
+  Desc: Identification of the account for charge or allowance.
+
+  3434  Institution branch number                             M an..17
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  3194  Account holder number                                 C an..17
+  6345  Currency, coded                                       C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C901  APPLICATION ERROR DETAIL
+
+  Desc: Code assigned by the recipient of a message to indicate a data
+        validation error condition.
+
+  9321  Application error, coded                              M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+
+
+
+
+
+  C941  RELATIONSHIP
+
+  Desc: Identification and/or description of a relationship.
+
+  9143  Relationship, coded                                   C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  9142  Relationship                                          C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C942  MEMBERSHIP CATEGORY
+
+  Desc: Identification and/or description of a membership category
+        for a member of a scheme or group.
+
+  7451  Membership category identification                    M an..4
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7450  Membership category                                   C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C944  MEMBERSHIP STATUS
+
+  Desc: Code and/or description of membership status.
+
+  7453  Membership status, coded                              C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7452  Membership status                                     C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C945  MEMBERSHIP LEVEL
+
+  Desc: Identification of a membership level.
+
+  7455  Membership level qualifier                            M an..3
+  7457  Membership level identification                       C an..9
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  7456  Membership level                                      C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C948  EMPLOYMENT CATEGORY
+
+  Desc: Code and/or description of an employment category.
+
+  9005  Employment category, coded                            C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  9004  Employment category                                   C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C950  QUALIFICATION CLASSIFICATION
+
+  Desc: Qualification classification description and/or code.  This
+        specifies the trade, skill, professional or similar
+        qualification category.
+
+  9007  Qualification classification, coded                   C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  9006  Qualification classification                          C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C951  OCCUPATION
+
+  Desc: Description and/or code of an occupation.
+
+  9009  Occupation, coded                                     C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  9008  Occupation                                            C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C953  CONTRIBUTION TYPE
+
+  Desc: Identification of the type of a contribution to a scheme or
+        group.
+
+  5049  Contribution type, coded                              M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  5048  Contribution type                                     C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C955  ATTRIBUTE TYPE
+
+  Desc: Identification of the type of attribute.
+
+  9021  Attribute type, coded                                 M an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C956  ATTRIBUTE DETAILS
+
+  Desc: Identification of the attribute related to an entity.
+
+  9019  Attribute, coded                                      C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  9018  Attribute                                             C an..35
+
+컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴컴
+
+  C960  REASON FOR CHANGE
+
+  Desc: Code and/or description of the reason for a change.
+
+  4295  Change reason, coded                                  C an..3
+  1131  Code list qualifier                                   C an..3
+  3055  Code list responsible agency, coded                   C an..3
+  4294  Change reason                                         C an..35
+

@@ -1,0 +1,1213 @@
+
+
+
+
+
+
+                              UN/EDIFACT
+
+                            DRAFT DOCUMENT
+
+                     Directory definition message
+
+
+
+
+
+
+______________________________________________________________________
+Please note that this message may be revised a number of times before
+it is next submitted to the Working Party. Further information on the
+development of this message can be obtained from the Rapporteur's
+EDIFACT Board Secretariat. This revision is issued for information and
+comment and is not intended for implementation.
+______________________________________________________________________
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                              Message Type : DIRDEF
+                                              Version      : 0
+                                              Release      : 36
+                                              Contr. Agency:
+
+                                              Status       : 0
+                                              Date         : 93-10-13
+
+
+SOURCE:  Western European EDIFACT Board Secretariat
+         and as agreed at the September 1993 Berlin JRT meeting
+
+
+
+                               CONTENTS
+
+                     Directory definition message
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Terms and Definitions
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message Structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+5.  Directories
+
+    5.1  Directory References
+    5.2  Explanation of Directory Variations
+
+         5.2.1  Segment Variations
+         5.2.2  Composite Variations
+         5.2.3  Element Variations
+
+Annex A  Example
+
+
+
+
+
+
+
+
+
+______________________________________________________________________
+For general information on UN standard message types see UN Trade Data
+Interchange Directory, UNTDID, Part 4, Section 2.5, UN/ECE UNSM
+General Introduction.
+______________________________________________________________________
+
+
+
+
+
+
+
+0.  Introduction
+
+This specification provides the definition of a UN/EDIFACT Directory
+Definition Message (DIRDEF) to be used in Electronic Data Interchange
+(EDI) between partners involved in administration, commerce and
+transport.
+
+1.  Scope
+
+1.1  Functional Definition
+
+This Directory Definition Message (DIRDEF) permits the transfer of the
+contents of a UN/EDIFACT Directory set or parts thereof.
+
+1.2  Field of Application
+
+This message is based on the contents of a UN/EDIFACT Directory set
+and is not dependent on the type of business or industry.
+
+1.3  Principles
+
+The Message allows the transmission of a UN/EDIFACT Directory set or
+parts thereof. A UN/EDIFACT Directory Set comprises:
+
+-Message type directory
+-Segment type directory
+-Composite data element type directory
+-Simple data element type directory
+-Code list directory
+
+One occurence of the message can contain only one version of a
+UN/EDIFACT Directory set or parts thereof.
+
+2.  References
+
+See UNTDID, Part 4, Section 2.5, UN/ECE UNSM General Introduction,
+Section 1.
+
+3.  Terms and Definitions
+
+See UNTDID, Part 4, Section 2.5, UN/ECE UNSM General Introduction,
+Section 2.
+
+4.  Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching diagram
+and Segment Table which indicate mandatory, conditional and repeating
+requirements.
+
+
+
+
+UNH, Message header
+A service segment starting and uniquely identifying a message.
+Note: A Directory Definition Message conforming to this document must
+contain the following data in UNH, composite S009:
+
+Data element 0065 DIRDEF
+             0052 (to be defined)
+             0054 (to be defined)
+             0051 (to be defined)
+
+BGM, Beginning of message
+A segment to indicate the beginning of the message and to transmit
+function, type and number of the message.
+
+DII, Directory identification
+A segment specifying the identity of the directory set and giving its
+language and maintenance operation.
+
+DTM, Date/time/period
+A segment specifying dates related to the directory set, such as date
+of approval, date of submission or WP.4 acceptance date.
+
+FTX, Free text
+A segment providing free text information related to the directory
+set.
+
+Segment Group 1: NAD-SG2
+A group of segments identifying the parties involved in the
+transaction with associated information.
+
+  NAD, Name and address
+  A segment identifying the parties involved in the transaction, e.g.
+  originator, requestor or secretariat.
+
+  Segment Group 2: CTA-COM
+  A group of segments identifying a person or a department and
+  identifying communication type(s) and number(s).
+
+    CTA, Contact information
+    A segment identifying a person or a department for the party
+    specified in the leading NAD segment to whom the communication
+    should be directed.
+
+    COM, Communication contact
+    A segment identifying communication type(s) and number(s) of
+    person(s) or department(s) specified in the associated CTA
+    segment.
+
+Segment Group 3: MSG-FTX-SG4
+A group of segments providing a message type directory.
+
+
+
+
+
+  MSG, Message type identification
+  A segment identifying a message type to be specified.
+
+  FTX, Free text
+  A segment providing textual information related to the message type,
+  namely: Introduction, Scope, Functional Definition, Principles,
+  References and Terms and Definitions.
+
+  Segment Group 4: SGU-FTX-SG5
+  A group of segments specifying a message type structure and its
+  related functional definition.
+
+    SGU, Segment usage details
+    A segment specifying the usage of a segment in a message type
+    structure.
+
+    FTX, Free text
+    A segment providing textual information about segment usage. This
+    information comprises part of the 'Data Segment Clarification'
+    section.
+
+    Segment Group 5: GRU-FTX
+    A group of segments identifying a segment group and providing
+    details about segment group usage.
+
+      GRU, Segment group usage details
+      A segment specifying the usage of a segment group in a message
+      type structure.
+
+      FTX, Free text
+      A segment providing the textual information about segment group
+      usage. This information comprises part of the 'Data Segment
+      Clarification' section.
+
+Segment Group 6: SEG-FTX-ELU
+A group of segments providing a segment directory.
+
+  SEG, Segment identification
+  A segment identifying a segment type and specifying its name, class
+  and maintenance operation.
+
+  FTX, Free text
+  A segment specifying the functional definition of a segment type.
+
+  ELU, Data element usage details
+  A segment specifying the contents of data elements in a segment
+  type.
+
+Segment Group 7: CMP-FTX-ELU
+A group of segments providing a composite data element directory.
+
+
+
+
+
+  CMP, Composite data element identification
+  A segment identifying a composite data element and specifying its
+  name, class and maintenance operation.
+
+  FTX, Free text
+  A segment specifying the functional definition of a composite data
+  element type.
+
+  ELU, Data element usage details
+  A segment specifying component data elements in a composite data
+  element and its related information.
+
+Segment Group 8: ELM-FTX
+A group of segments providing a data element directory.
+
+  ELM, Simple data element details
+  A segment identifying a simple data element and giving related
+  information.
+
+  FTX, Free text
+  A segment specifying the functional definition of a simple data
+  element.
+
+Segment Group 9: VLI-FTX-SG10
+A group of segments providing a code list directory.
+
+  VLI, Value list identification
+  A segment specifying a code set.
+
+  FTX, Free text
+  A segment providing textual information related to the code list.
+
+  Segment Group 10: CDV-FTX
+  A group of segments specifying a code value and its functional
+  definition.
+
+    CDV, Code value definition
+    A segment specifying a code value.
+
+    FTX, Free text
+    A segment specifying the functional definition of a code value.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number of
+segments in the message and the control reference number of the
+message.
+
+
+
+
+
+
+
+
+
+4.2  Message Structure
+
+4.2.1  Branching Diagram
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+ Level
+
+         
+ÚÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÂÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄ
+ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄÄÄÄÄÄÄÂÄÄÄÄ¿
+      ÚÄÄÄÁÄÄÄ¿ÚÄÄÄÁÄÄÄ¿ÚÄÄÄÁÄÄÄ¿³        ³         ³          ³             
+      ³                   ³                   ³          ³ÚÄÄÄÁÄÄÄ¿
+      ³  UNH  ³³  BGM  ³³  DII  ³³        ³         ³          ³             
+      ³                   ³                   ³          ³³  UNT  ³
+  0   ÃÄÂÄÄÄÄÄ´ÃÄÂÄÄÄÄÄ´ÃÄÂÄÄÄÄÄ´³        ³         ³          ³             
+      ³                   ³                   ³          ³ÃÄÂÄÄÄÄÄ´
+      ³M³   1 ³³C³   1 ³³M³   1 ³³        ³         ³          ³             
+      ³                   ³                   ³          ³³M³   1 ³
+      ÀÄÁÄÄÄÄÄÙÀÄÁÄÄÄÄÄÙÀÄÁÄÄÄÄÄÙ³        ³         ³          ³             
+      ³                   ³                   ³          ³ÀÄÁÄÄÄÄÄÙ
+                                 ³        ³         ³          ³             
+      ³                   ³                   ³          ³
+                                 ³        ³     ÚÄÄÄÁÄÄÄ¿  ÚÄÄÄÁÄÄÄ¿         
+  ÚÄÄÄÁÄÄÄ¿           ÚÄÄÄÁÄÄÄ¿           ÚÄÄÄÁÄÄÄ¿  ÚÄÄÄÁÄÄÄ¿
+                                 ³        ³     ³Gr.  1 ³  ³Gr.  3 ³         
+  ³Gr.  6 ³           ³Gr.  7 ³           ³Gr.  8 ³  ³Gr.  9 ³
+                                 ³        ³     ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´         
+  ÃÄÂÄÄÄÄÄ´           ÃÄÂÄÄÄÄÄ´           ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´
+                                 ³        ³     ³C³   9 ³  ³C³ 9999³         
+  ³C³ 9999³           ³C³ 9999³           ³C³ 9999³  ³C³ 9999³
+                             ÚÄÄÄÁÄÄÄ¿ÚÄÄÄÁÄÄÄ¿ ÆÍÏÍÍÍÍÍµ  ÆÍÏÍÍÍÍÍµ         
+  ÆÍÏÍÍÍÍÍµ           ÆÍÏÍÍÍÍÍµ           ÆÍÏÍÍÍÍÍµ  ÆÍÏÍÍÍÍÍµ
+                             ³  DTM  ³³  FTX  ³ ³  NAD  ³  ³  MSG  ³         
+  ³  SEG  ³           ³  CMP  ³           ³  ELM  ³  ³  VLI  ³
+  1                          ÃÄÂÄÄÄÄÄ´ÃÄÂÄÄÄÄÄ´ ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´         
+  ÃÄÂÄÄÄÄÄ´           ÃÄÂÄÄÄÄÄ´           ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´
+                             ³C³   9 ³³C³   9 ³ ³M³   1 ³  ³M³   1 ³         
+  ³M³   1 ³           ³M³   1 ³           ³M³   1 ³  ³M³   1 ³
+                             ÀÄÁÄÄÄÄÄÙÀÄÁÄÄÄÄÄÙ ÀÄÁÄÂÄÄÄÙ  ÀÄÁÄÂÄÄÄÙ         
+  ÀÄÁÄÂÄÄÄÙ           ÀÄÁÄÂÄÄÄÙ           ÀÄÁÄÂÄÄÄÙ  ÀÄÁÄÂÄÄÄÙ
+                                                    ³          ÃÄÄÄÄÄÄÄÄÄ¿   
+      ÃÄÄÄÄÄÄÄÄ¿          ÃÄÄÄÄÄÄÄÄ¿          ³          ÃÄÄÄÄÄÄÄÄÄ¿
+                                                ÚÄÄÄÁÄÄÄ¿      ³    
+ÚÄÄÄÁÄÄÄ¿      ³        ³          ³        ³          ³          ³    
+ÚÄÄÄÁÄÄÄ¿
+                                                ³Gr.  2 ³      ³     ³Gr.  4
+³      ³        ³          ³        ³          ³          ³     ³Gr. 10 ³
+                                                ÃÄÂÄÄÄÄÄ´      ³    
+ÃÄÂÄÄÄÄÄ´      ³        ³          ³        ³          ³          ³    
+ÃÄÂÄÄÄÄÄ´
+                                                ³C³   9 ³      ³     ³C³ 999
+³      ³        ³          ³        ³          ³          ³     ³C³ 9999³
+                                                ÆÍÏÍÍÍÍÍµ  ÚÄÄÄÁÄÄÄ¿
+ÆÍÏÍÍÍÍÍµ  ÚÄÄÄÁÄÄÄ¿ÚÄÄÄÁÄÄÄ¿  ÚÄÄÄÁÄÄÄ¿ÚÄÄÄÁÄÄÄ¿  ÚÄÄÄÁÄÄÄ¿  ÚÄÄÄÁÄÄÄ¿
+ÆÍÏÍÍÍÍÍµ
+                                                ³  CTA  ³  ³  FTX  ³ ³  SGU 
+³  ³  FTX  ³³  ELU  ³  ³  FTX  ³³  ELU  ³  ³  FTX  ³  ³  FTX  ³ ³  CDV  ³
+  2                                             ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´
+ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´  ÃÄÂÄÄÄÄÄ´
+ÃÄÂÄÄÄÄÄ´
+                                                ³M³   1 ³  ³C³ 999 ³ ³M³   1
+³  ³C³   9 ³³C³  99 ³  ³C³   9 ³³C³  99 ³  ³C³   9 ³  ³C³   9 ³ ³M³   1 ³
+                                                ÀÄÁÄÂÄÄÄÙ  ÀÄÁÄÄÄÄÄÙ
+ÀÄÁÄÂÄÄÄÙ  ÀÄÁÄÄÄÄÄÙÀÄÁÄÄÄÄÄÙ  ÀÄÁÄÄÄÄÄÙÀÄÁÄÄÄÄÄÙ  ÀÄÁÄÄÄÄÄÙ  ÀÄÁÄÄÄÄÄÙ
+ÀÄÁÄÂÄÄÄÙ
+                                                    ³                   
+ÃÄÄÄÄÄÄÄÄÄ¿                                                             ³
+                                                    ³                    ³   
+ ÚÄÄÄÁÄÄÄ¿                                                         ³
+                                                    ³                    ³   
+ ³Gr.  5 ³                                                         ³
+                                                    ³                    ³   
+ ÃÄÂÄÄÄÄÄ´                                                         ³
+                                                    ³                    ³   
+ ³C³   1 ³                                                         ³
+                                                ÚÄÄÄÁÄÄÄ¿           
+ÚÄÄÄÁÄÄÄ¿ ÆÍÏÍÍÍÍÍµ                                                    
+ÚÄÄÄÁÄÄÄ¿
+                                                ³  COM  ³            ³  FTX 
+³ ³  GRU  ³                                                     ³  FTX  ³
+  3                                             ÃÄÂÄÄÄÄÄ´           
+ÃÄÂÄÄÄÄÄ´ ÃÄÂÄÄÄÄÄ´                                                    
+ÃÄÂÄÄÄÄÄ´
+                                                ³C³   9 ³            ³C³  99
+³ ³M³   1 ³                                                     ³C³   9 ³
+                                                ÀÄÁÄÄÄÄÄÙ           
+ÀÄÁÄÄÄÄÄÙ ÀÄÁÄÂÄÄÄÙ                                                    
+ÀÄÁÄÄÄÄÄÙ
+                                                                             
+     ³
+                                                                             
+ ÚÄÄÄÁÄÄÄ¿
+                                                                             
+ ³  FTX  ³
+  4                                                                          
+ ÃÄÂÄÄÄÄÄ´
+                                                                             
+ ³C³  99 ³
+                                                                             
+ ÀÄÁÄÄÄÄÄÙ
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.2.2  Segment Table
+
+  TAG     NAME                                  S   REPT
+
+  UNH     Message header                        M      1
+  BGM     Beginning of message                  C      1
+  DII     Directory identification              M      1
+  DTM     Date/time/period                      C      9
+  FTX     Free text                             C      9
+
+  ÄÄÄÄÄ Segment Group  1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄÄÄÄÄÄ¿
+  NAD     Name and address                      M      1            ³
+                                                                    ³
+  ÄÄÄÄÄ Segment Group  2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄÄÄÄ¿ ³
+  CTA     Contact information                   M      1          ³ ³
+  COM     Communication contact                 C      9 ÄÄÄÄÄÄÄÄÄÁÄÙ
+
+  ÄÄÄÄÄ Segment Group  3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄÄÄÄÄÄ¿
+  MSG     Message type identification           M      1            ³
+  FTX     Free text                             C    999            ³
+                                                                    ³
+  ÄÄÄÄÄ Segment Group  4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄÄÄÄÄÄ¿ ³
+  SGU     Segment usage details                 M      1          ³ ³
+  FTX     Free text                             C     99          ³ ³
+                                                                  ³ ³
+  ÄÄÄÄÄ Segment Group  5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄÄÄ¿ ³ ³
+  GRU     Segment group usage details           M      1        ³ ³ ³
+  FTX     Free text                             C     99 ÄÄÄÄÄÄÄÁÄÁÄÙ
+
+  ÄÄÄÄÄ Segment Group  6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄÄÄÄÄÄ¿
+  SEG     Segment identification                M      1            ³
+  FTX     Free text                             C      9            ³
+  ELU     Data element usage details            C     99 ÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  ÄÄÄÄÄ Segment Group  7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄÄÄÄÄÄ¿
+  CMP     Composite data element identificatio  M      1            ³
+  FTX     Free text                             C      9            ³
+  ELU     Data element usage details            C     99 ÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  ÄÄÄÄÄ Segment Group  8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄÄÄÄÄÄ¿
+  ELM     Simple data element details           M      1            ³
+  FTX     Free text                             C      9 ÄÄÄÄÄÄÄÄÄÄÄÙ
+
+  ÄÄÄÄÄ Segment Group  9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄÄÄÄÄÄ¿
+  VLI     Value list identification             M      1            ³
+  FTX     Free text                             C      9            ³
+                                                                    ³
+
+
+
+
+
+
+
+
+  TAG     NAME                                  S   REPT
+
+  ÄÄÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄÄÄÄ¿ ³
+  CDV     Code value definition                 M      1          ³ ³
+  FTX     Free text                             C      9 ÄÄÄÄÄÄÄÄÄÁÄÙ
+  UNT     Message trailer                       M      1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.3  Data Segment Index (Alphabetic Sequence)
+
+  BGM  Beginning of message
+  CDV  Code value definition
+  CMP  Composite data element identification
+  COM  Communication contact
+  CTA  Contact information
+  DII  Directory identification
+  DTM  Date/time/period
+  ELM  Simple data element details
+  ELU  Data element usage details
+  FTX  Free text
+  GRU  Segment group usage details
+  MSG  Message type identification
+  NAD  Name and address
+  SEG  Segment identification
+  SGU  Segment usage details
+  UNH  Message header
+  UNT  Message trailer
+  VLI  Value list identification
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5.  Directories
+
+5.1  Directory References
+
+5.2  Explanation of Directory Variations
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5.2.1  Segment Variations
+
++ CDV      CODE VALUE DEFINITION                                    AD
+
+   Function: To provide information related to a code value.        
+
+   9900      CODE VALUE                                   M an..35
+
+   9868      CODE NAME                                    C an..70
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
++ CMP      COMPOSITE DATA ELEMENT IDENTIFICATION                    AD
+
+   Function: To identify a composite data element and to give its   
+           name, class and maintenance operation.
+
+   9860      COMPOSITE DATA ELEMENT TAG                   M an4
+
+   9904      COMPOSITE DATA ELEMENT NAME                  C an..70
+
+   9871      CLASS DESIGNATOR, CODED                      C an..3
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
++ DII      DIRECTORY IDENTIFICATION                                 AD
+
+   Function: To identify a directory and to give its release,       
+           status, controlling agency, language and maintenance
+           operation.
+
+   9896      DIRECTORY VERSION                            M an..3
+
+   9898      DIRECTORY RELEASE                            M an..3
+
+   9866      DIRECTORY STATUS                             C an..3
+
+   1707      CONTROLLING AGENCY                           C an..2
+
+   3453      LANGUAGE, CODED                              C an..3
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
++ ELM      SIMPLE DATA ELEMENT DETAILS                              AD
+
+   Function: To identify a simple data element and give related     
+           details.
+   9858      SIMPLE DATA ELEMENT TAG                      M an4
+
+   9873      SIMPLE DATA ELEMENT CHARACTER TYPE, CODED    C an..3
+
+   9875      SIMPLE DATA ELEMENT LENGTH INDICATOR, CODED  C a1
+
+   9876      SIMPLE DATA ELEMENT MAXIMUM LENGTH           C n..3
+
+   9880      SIMPLE DATA ELEMENT MINIMUM LENGTH           C n..3
+
+   9906      SIMPLE DATA ELEMENT NAME                     C an..70
+
+   9883      CODE SET INDICATOR, CODED                    C an..3
+
+   9871      CLASS DESIGNATOR, CODED                      C an..3
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
++ ELU      DATA ELEMENT USAGE DETAILS                               AD
+
+   Function: To specify the usage of a data element.                
+
+   9862      DATA ELEMENT TAG                             M an4
+
+   9885      REQUIREMENT DESIGNATOR, CODED                C an..3
+
+   1050      SEQUENCE NUMBER                              C an..6
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++ GRU      SEGMENT GROUP USAGE DETAILS                              AD
+
+   Function: To specify the usage of a segment group within a       
+           message type structure and maintenance operation.
+
+   9890      GROUP ID                                     M an..4
+
+   9885      REQUIREMENT DESIGNATOR, CODED                C an..3
+
+   9886      MAXIMUM NUMBER OF OCCURENCES                 C n..7
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+   1050      SEQUENCE NUMBER                              C an..6
+----------------------------------------------------------------------
++ MSG      MESSAGE TYPE IDENTIFICATION                              AD
+
+   Function: To identify a message type and to give its name,       
+           class and maintenance operation.
+
+   C709      MESSAGE IDENTIFIER                           M
+   1705        Message type identifier                    M an..6
+   1706        Message type version number                M an..3
+   1708        Message type release number                M an..3
+   1707        Controlling agency                         M an..2
+   1709        Association assigned code                  C an..6
+
+   9878      MESSAGE TYPE NAME                            C an..70
+
+   9871      CLASS DESIGNATOR, CODED                      C an..3
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
++ SEG      SEGMENT IDENTIFICATION                                   AD
+
+   Function: To identify a segment and give its name, class and     
+           maintenance operation.
+
+   9864      SEGMENT TAG                                  M an3
+
+   9902      SEGMENT NAME                                 C an..70
+
+   9871      CLASS DESIGNATOR, CODED                      C an..3
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
+
+
+
+
+
+
+
++ SGU      SEGMENT USAGE DETAILS                                    AD
+
+   Function: To specify the details of the usage of a segment       
+           within a message type structure.
+
+   9864      SEGMENT TAG                                  M an3
+
+   9885      REQUIREMENT DESIGNATOR, CODED                C an..3
+
+   9886      MAXIMUM NUMBER OF OCCURENCES                 C n..7
+
+   9888      LEVEL NUMBER                                 C n1
+
+   1050      SEQUENCE NUMBER                              C an..6
+
+   9895      SECTION IDENTIFICATION, CODED                C an..3
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
++ VLI      VALUE LIST IDENTIFICATION                                AD
+
+   Function: To identify a coded or non coded value list.           
+
+   C780      VALUE LIST IDENTIFICATION                    M
+   5792        Value list identifier                      M an..35
+   7405        Identity number qualifier                  C an..3
+   3039        Party id identification                    C an..17
+   1131        Code list qualifier                        C an..3
+   3055        Code list responsible agency, coded        C an..3
+   4405        Status, coded                              C an..3
+
+   5724      VALUE LIST NAME                              C an..70
+
+   9871      CLASS DESIGNATOR, CODED                      C an..3
+
+   5791      VALUE LIST TYPE, CODED                       C an..3
+
+   C240      PRODUCT CHARACTERISTIC                       C
+   7037        Characteristic identification              M an..17
+   1131        Code list qualifier                        C an..3
+   3055        Code list responsible agency, coded        C an..3
+   7036        Characteristic                             C an..35
+   7036        Characteristic                             C an..35
+
+   4815      MAINTENANCE OPERATION, CODED                 C an..3
+
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+5.2.2  Composite Variations
+
++ C709   MESSAGE IDENTIFIER                                         AD
+
+  Desc:  Identification of the type, version etc. of the message
+         being interchanged.
+  Cont: 1705 Message type identifier                      M an..6
+  Cont: 1706 Message type version number                  M an..3
+  Cont: 1708 Message type release number                  M an..3
+  Cont: 1707 Controlling agency                           M an..2
+  Cont: 1709 Association assigned code                    C an..6
+
+----------------------------------------------------------------------
++ C780   VALUE LIST IDENTIFICATION                                  AD
+
+  Desc:  The identification of a coded or non coded value list.
+  Cont: 5792 Value list identifier                        M an..35
+  Cont: 7405 Identity number qualifier                    C an..3
+  Cont: 3039 Party id identification                      C an..17
+  Cont: 1131 Code list qualifier                          C an..3
+  Cont: 3055 Code list responsible agency, coded          C an..3
+  Cont: 4405 Status, coded                                C an..3
+
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+5.2.3  Element Variations
+
++ 1705   Message type identifier                                    AD
+  Desc:  Code identifying a type of message and assigned by its
+         controlling agency.
+  Repr: an..6       Min: 1     Max: 6     Datatype: an
+----------------------------------------------------------------------
++ 1706   Message type version number                                AD
+  Desc:  Version number of a message type.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 1707   Controlling agency                                         AD
+  Desc:  Code identifying the agency controlling the specification,
+         maintenance and publication of the message type.
+  Repr: an..2       Min: 1     Max: 2     Datatype: an
+----------------------------------------------------------------------
++ 1708   Message type release number                                AD
+  Desc:  Release number within the current message type version
+         number (0052).
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 1709   Association assigned code                                  AD
+  Desc:  Code, assigned by the association responsible for the
+         design and maintenance of the message type concerned,
+         which further identifies the message.
+  Repr: an..6       Min: 1     Max: 6     Datatype: an
+----------------------------------------------------------------------
++ 4815   Maintenance operation, coded                               AD
+  Desc:  To indicate the type of data maintenance operation for an
+         object, such as add, delete, replace
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 4815   Maintenance operation, coded                               AD
+  Desc:  To indicate the type of data maintenance operation for an
+         object, such as add, delete, replace
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 5724   Value list name                                            AD
+  Desc:  The name of a value list.
+  Repr: an..70      Min: 1     Max: 70    Datatype: an
+----------------------------------------------------------------------
++ 5791   Value list type, coded                                     AD
+  Desc:  A code indicating the type of value list.
+  Repr: an..3       Min: 1     Max: 3     Datatype: id
+----------------------------------------------------------------------
++ 5792   Value list identifier                                      AD
+  Desc:  The identifier of a coded or non coded value list.
+  Repr: an..35      Min: 1     Max: 35    Datatype: an
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+* 7405   Identity number qualifier
+ |Desc:  Code specifying the type/source of identity number.        FU
+ |Repr: an..3       Min: 1     Max: 3     Datatype: id
+----------------------------------------------------------------------
++ 9858   Simple data element tag                                    AD
+  Desc:  Tag of a simple data element.
+  Repr: an4         Min: 4     Max: 4     Datatype: an
+----------------------------------------------------------------------
++ 9860   Composite data element tag                                 AD
+  Desc:  Tag of a composite data element.
+  Repr: an4         Min: 4     Max: 4     Datatype: an
+----------------------------------------------------------------------
++ 9862   Data element tag                                           AD
+  Desc:  Tag of a data element.
+  Repr: an4         Min: 4     Max: 4     Datatype: an
+----------------------------------------------------------------------
++ 9864   Segment tag                                                AD
+  Desc:  Tag of a segment.
+  Repr: an3         Min: 3     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9866   Directory status                                           AD
+  Desc:  Identification of the status of a directory set.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9868   Code name                                                  AD
+  Desc:  Name of a code.
+  Repr: an..70      Min: 1     Max: 70    Datatype: an
+----------------------------------------------------------------------
++ 9871   Class designator, coded                                    AD
+  Desc:  To identify a designated class.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9873   Simple data element character type, coded                  AD
+  Desc:  To specify the type of character of simple data element.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9875   Simple data element length indicator, coded                AD
+  Desc:  Code identifying the type of length of a simple data
+         element.
+  Repr: a 1         Min: 1     Max: 1     Datatype: a
+----------------------------------------------------------------------
++ 9876   Simple data element maximum length                         AD
+  Desc:  To indicate the maximum length of a simple data element.
+  Repr: n ..3       Min: 1     Max: 3     Datatype: n
+----------------------------------------------------------------------
++ 9878   Message type name                                          AD
+  Desc:  Name of a message type.
+  Repr: an..70      Min: 1     Max: 70    Datatype: an
+----------------------------------------------------------------------
+
+
+
+
+
+
++ 9880   Simple data element minimum length                         AD
+  Desc:  To indicate the minimum length of a simple data element
+  Repr: n ..3       Min: 1     Max: 3     Datatype: n
+----------------------------------------------------------------------
++ 9883   Code set indicator, coded                                  AD
+  Desc:  To indicate if a data element has an associated code set.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9885   Requirement designator, coded                              AD
+  Desc:  To specify the designated requirement.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9886   Maximum number of occurences                               AD
+  Desc:  To specify the maximum number of occurences.
+  Repr: n ..7       Min: 1     Max: 7     Datatype: n
+----------------------------------------------------------------------
++ 9888   Level number                                               AD
+  Desc:  To specify the level of a segment in the message branching
+         diagram.
+  Repr: n 1         Min: 1     Max: 1     Datatype: n
+----------------------------------------------------------------------
++ 9890   Group id                                                   AD
+  Desc:  To identify a group within a message type structure.
+  Repr: an..4       Min: 1     Max: 4     Datatype: an
+----------------------------------------------------------------------
++ 9895   Section identification, coded                              AD
+  Desc:  To identify the section of a message type.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9896   Directory version                                          AD
+  Desc:  Identification of the version of a directory set.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9898   Directory release                                          AD
+  Desc:  Identification of the release of a directory set.
+  Repr: an..3       Min: 1     Max: 3     Datatype: an
+----------------------------------------------------------------------
++ 9900   Code value                                                 AD
+  Desc:  Value of the code.
+  Repr: an..35      Min: 1     Max: 35    Datatype: an
+----------------------------------------------------------------------
++ 9902   Segment name                                               AD
+  Desc:  Name of a segment.
+  Repr: an..70      Min: 1     Max: 70    Datatype: an
+----------------------------------------------------------------------
++ 9904   Composite data element name                                AD
+  Desc:  Name of a composite data element.
+  Repr: an..70      Min: 1     Max: 70    Datatype: an
+----------------------------------------------------------------------
+
+
+
+
+
+
++ 9906   Simple data element name                                   AD
+  Desc:  Name of a simple data element.
+  Repr: an..70      Min: 1     Max: 70    Datatype: an
+----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Annex A  Example
+

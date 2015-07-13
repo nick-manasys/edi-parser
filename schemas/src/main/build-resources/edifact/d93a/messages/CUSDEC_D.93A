@@ -1,0 +1,1433 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+CUSTOMS DECLARATION MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :CUSDEC
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE: 
+
+
+                          CONTENTS 
+
+CUSTOMS DECLARATION MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification  provides the  definition of  the Customs
+Declaration Message  (CUSDEC) to  be used in Electronic Data
+Interchange   (EDI)    between    partners    involved    in
+administration, commerce and transport.
+
+
+1.  Scope
+
+1.1 Functional Definition
+
+This  Customs   Declaration  Message  (CUSDEC)  permits  the
+transfer of   data  from    a  declarant    to  a    customs
+administration for the purpose of meeting legislative and/or
+operational  requirements in  respect of  the declaration of
+goods for import, export or transit. The message may also be
+used, for example :
+
+- to  transmit data  from an  exporter in  one country to an
+  importer in another country;
+- to   transmit  consignment    data  from    one    customs
+  administration to another;
+- to  transmit  data  from  a  customs  authority  to  other
+  governments agencies and/or interested administrations.
+- to transmit data from a declarant to the appropriate data
+  collection agency on the movement of goods between
+  statistical territories.
+
+1.2 Field of Application
+
+This  Message   may  be   applied  for   both  national  and
+international trade.  It is  based on universal practice and
+is not dependent on the type of business or industry.
+
+1.3 Principles
+
+This  message     incorporates   the  necessary   transport,
+statistical and customs information. Provision has also been
+made for the inclusion of appropriate commercial information
+which may  be accepted  by customs  in  lieu  of  supporting
+documentation.
+
+The design  principles adopted  allow for referencing one or
+more commercial documents pertaining to the same declaration
+and for the grouping of document lines into a single customs
+item.   A customs  item consists  of the  grouping of  those
+document lines having the same customs characteristics (e.g.
+tariff  number,   declared   use,   etc).      The   message
+correspondingly permits the use of single or multi-packaging
+concepts and their identification to a customs item.
+
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A  service  segment  starting  and  uniquely  identifying  a
+message.
+
+Note: Customs   Declaration   messages   conforming  to  this
+      document  must  contain  the  following  data  in  UNH,
+      composite S009:
+
+      Data element  0065  CUSDEC
+                    0052  D
+                    0054  93A
+                    0051  UN
+
+BGM, Beginning of message
+A segment identifying the declaration type and reference.
+
+CST, Customs status of goods
+A segment  identifying the  customs procedure  and status of
+the goods relevant to the whole message.
+
+LOC, Place/location identification
+A segment  identifying a  place or  location relevant to the
+entire message.   For  example, port  of loading,  office of
+entry, etc.
+
+DTM, Date/time/period
+A segment  identifying dates,  times or  periods relevant to
+the whole  message.   For example,  actual date  of arrival,
+elected date of presentation, etc.
+
+GIS, General indicator
+A segment  identifying the  various indicators required by a
+customs system.   For  example,  special  programs,  release
+certification, duty free eligibility under GSP, etc.
+
+FII, Financial institution information
+A segment  identifying an  account and  a related  financial
+institution relevant to the whole message.
+
+MEA, Measurements
+A segment identifying  various measurement factors where
+these are required for the whole declaration (message).
+
+EQD, Equipment details
+A segment identifying the equipment (e.g. container id.)
+used to transport all the goods related to the whole
+declaration (message).
+
+SEL, Seal number
+A segment identifying Customs seals used in the transport of
+goods related to the whole declaration (message).
+
+
+Segment Group 1: RFF-DTM-SG2
+A group of segments identifying various references, manifest
+quantities and  package identities  relevant  to  the  whole
+message.
+
+  RFF, Reference
+  A segment  identifying the  various references  relevant
+  to the whole message.
+
+  DTM, Date/time/period
+  A segment  identifying a  date related  to the previous
+  RFF segment.
+
+
+  Segment Group 2: PAC-SG3
+  A group  of segment  identifying the  numbers of, the types
+  of, and the markings individual packages.
+
+    PAC, Package
+    A segment  identifying the  number and  type of  packages
+    manifested on a bill of lading, warehouse entry, etc.
+
+
+    Segment Group 3: PCI-FTX
+    A group  of segments  identifying markings  and labels on
+    manifested units.
+
+      PCI, Package identification
+      A segment identifying markings and labels on individual
+      manifested units.
+
+      FTX, Free text
+      A segment  describing the  goods identified  in PCI  in
+      narrative form.
+
+
+Segment Group 4: TDT-TPL
+A  group   of  segments  identifying  the  mode,  means  and
+identification of the transport used.
+
+  TDT, Details of transport
+  A segment identifying the mode and means of transport used.
+
+  TPL, Transport placement
+  A segment identifying the transport vehicle used.
+
+
+Segment Group 5: DOC-DTM-LOC
+A group  of segments  identifying  documentary  requirements
+where they  are needed  as supporting  information  for  the
+entire message.
+
+  DOC, Document/message details
+  A segment  identifying  a  specific  document  required  as
+  supporting information for the entire message.
+
+  DTM, Date/time/period
+  A  segment   identifying  dates  related  to  the  document
+  identified in DOC.
+
+  LOC, Place/location identification
+  A segment  identifying a  location related  to the document
+  identified in DOC.
+
+
+Segment Group 6: NAD-RFF-CTA-COM
+A group  of segments identifying the parties relevant to the
+whole message,  with their related references, contacts, and
+communication numbers.
+
+  NAD, Name and address
+  A segment  identifying the  parties relevant  to the entire
+  message.   For example importer, ultimate consignee, etc.
+
+  RFF, Reference
+  A segment  identifying references  relating  to  the  party
+  specified within the group.  For example, a special mailing
+  request  number   for  refunds   relating  to  the  customs
+  transaction.
+
+  CTA, Contact information
+  A segment  identifying a contact person(s) or department(s)
+  associated with the party specified in this group.
+
+  COM, Communication contact
+  A segment identifying the phone number, fax number or other
+  communications  number   of  the  party  and  (or)  contact
+  specified within this group.
+
+
+Segment Group 7: TOD-LOC-FTX
+A group  of  segments  identifying  the  terms  of  delivery
+pertinent to the entire message.
+
+  TOD, Terms of delivery
+  A segment  identifying terms  of delivery,  relevant to the
+  entire message, in a coded format.
+
+  LOC, Place/location identification
+  A segment  identifying a  location related  to the terms of
+  delivery identified in TOD.
+
+  FTX, Free text
+  A segment  identifying the  terms of  delivery in narrative
+  form.
+
+
+Segment Group 8: MOA-SG9
+A group of segments identifying monetary amounts, currencies
+and their  exchange  rates,  when  required  for  the  whole
+declaration.
+
+  MOA, Monetary amount
+  A segment  identifying a  monetary function  and up to five
+  monetary amounts.
+
+
+  Segment Group 9: CUX-DTM
+  A group  of segments  identifying  currencies,  a  rate  of
+  exchange  and   a  related   date  for  a  monetary  amount
+  identified within this group.
+
+    CUX, Currencies
+    A segment identifying currencies and the rate of exchange
+    for a monetary amount identified within this group.
+
+    DTM, Date/time/period
+    A segment  identifying a  date related to the information
+    contained in the CUX.
+
+
+UNS, Section control
+A service  segment placed at the beginning of the detail
+section to indicate the beginning of that section.
+
+
+Segment Group 10: DMS-DTM-MEA-SG11-SG13-SG14-SG16-SG18-SG19-SG21
+A group  of segments  identifying line  item details  for  a
+commercial document.
+
+  DMS, Document/message summary
+  A segment  identifying the  commercial document number, the
+  document type  and the  number of  detail lines  within the
+  document heading this group.
+
+  DTM, Date/time/period
+  A segment  identifying a  date related  to  the  commercial
+  document identified in DMS.
+
+  MEA, Measurements
+  A segment  providing  measurements  values  for  the  whole
+  commercial document where required by an administration.
+
+
+  Segment Group 11: MOA-SG12
+  A group  of segments  identifying various monetary amounts,
+  currencies and  rates of exchange that pertain to the whole
+  commercial document.
+
+    MOA, Monetary amount
+    A segment  identifying a  monetary amount  related to the
+    whole commercial document.
+
+
+    Segment Group 12: CUX-DTM
+    A group  of  segments  identifying  currencies,  rate  of
+    exchange and an associated date.
+
+      CUX, Currencies
+      A segment  identifying currency  details and  a rate of
+      exchange related to the preceding MOA.
+
+      DTM, Date/time/period
+      The effective  date of the rate of exchange reported in
+      this group.
+
+
+  Segment Group 13: TOD-LOC-FTX
+  A group  of segments  identifying  the  terms  of  delivery
+  pertinent to the whole commercial document.
+
+    TOD, Terms of delivery
+    A segment  identifying, in  a coded  format, the terms of
+    delivery relevant to the entire document.
+
+    LOC, Place/location identification
+    A  segment   identifying  a   location  related   to  the
+    information contained in the TOD.
+
+    FTX, Free text
+    A segment  identifying the terms of delivery in narrative
+    form.
+
+
+  Segment Group 14: NAD-SG15
+  A group  of segments  identifying  the  parties  and  other
+  related documentary  requirements associated with the whole
+  commercial document.
+
+    NAD, Name and address
+    A segment  identifying the parties and addresses relevant
+    to  the   whole  commercial   document.     For  example,
+    manufacturer, invoicer, buyer, etc.
+
+
+    Segment Group 15: DOC-DTM-LOC
+    A  segment  identifying  other  documentary  requirements
+    associated with  a party  identified in the preceding NAD
+    segment.   For example,  purchase order, contract number,
+    etc.
+
+      DOC, Document/message details
+      A segment  identifying documents  associated  with  the
+      party identified in the preceding NAD.
+
+      DTM, Date/time/period
+      A  segment  identifying  a  date  associated  with  the
+      information contained in DOC.
+
+      LOC, Place/location identification
+      A  segment   identifying  a  location  related  to  the
+      preceding DOC.
+
+
+  Segment Group 16: PAC-SG17
+  A group  of segments  identifying  the  number,  type,  and
+  contents of  the shipping  units associated with the entire
+  commercial document.
+
+    PAC, Package
+    A segment  identifying the  number and  type of  shipping
+    units covered by the whole document.
+
+
+    Segment Group 17: PCI-FTX-RFF
+    A group  of segments  identifying  marks  and  labels  of
+    shipping  units  associated  with  the  whole  commercial
+    document.
+
+      PCI, Package identification
+      A segment  identifying marks  and  labels  on  specific
+      shipping units covered by the entire document.
+
+      FTX, Free text
+      A segment  describing the  goods identified  in PCI  in
+      narrative form.
+
+      RFF, Reference
+      A segment  identifying a  reference associated with the
+      information contained in PCI.
+
+
+  Segment Group 18: PAT-MOA-PCD-FTX
+  A group  of segments  identifying the payment terms for the
+  whole commercial document.
+
+    PAT, Payment terms basis
+    A segment  identifying the  payment terms in coded format
+    for the whole commercial document.
+
+    MOA, Monetary amount
+    A segment  identifying a  monetary amount associated with
+    the preceding PAT.
+
+    PCD, Percentage details
+    A segment  identifying percentage details associated with
+    the preceding PAT.
+
+    FTX, Free text
+    A segment  identifying the  payment terms  in a narrative
+    form.
+
+
+  Segment Group 19: ALC-RTE-MOA-PCD-QTY-SG20
+  A group  of segments  identifying allowances,  charges,  or
+  adjustments and  related details  for the  whole commercial
+  document.
+
+    ALC, Allowance or charge
+    A segment identifying allowances, charges and adjustments
+    related to the whole commercial document.
+
+    RTE, Rate details
+    A segment  identifying rate  information related  to  the
+    preceding ALC.
+
+    MOA, Monetary amount
+    A segment identifying the monetary amount associated with
+    the ALC.
+
+    PCD, Percentage details
+    A segment  identifying percentage  information associated
+    with the ALC.
+
+    QTY, Quantity
+    A segment identifying a quantity associated with the ALC.
+
+
+    Segment Group 20: CUX-DTM
+    A group  of segments  identifying currencies,  a rate  of
+    exchange, and an associated date for an allowance, charge
+    or adjustment reported in the preceding ALC segment.
+
+      CUX, Currencies
+      A segment  identifying currency  details and  a rate of
+      exchange related to the preceding MOA.
+
+      DTM, Date/time/period
+      A  segment  identifying  a  date  associated  with  the
+      preceding CUX.
+
+
+  Segment Group 21: LIN-PIA-QTY-PRI-PCD-MEA-QVA-MOA-NAD-GIR-SG22-SG23-SG25-SG26-SG27-SG28
+  A group  of segments  identifying line  item details  for a
+  commercial document.
+
+    LIN, Line item
+    A segment  identifying the  line item number and the item
+    number identification of a particular commercial document
+    line.
+
+    PIA, Additional product id
+    A segment  identifying additional  or substitutional item
+    identification codes related to the information in LIN.
+
+    QTY, Quantity
+    A segment  identifying a  specific  quantity  related  to
+    information in LIN.
+
+    PRI, Price details
+    A segment  identifying price information for a particular
+    line item identified in LIN.
+
+    PCD, Percentage details
+    A  segment   identifying  percentage  information  for  a
+    particular line item identified in LIN.
+
+    MEA, Measurements
+    A  segment  identifying  secondary  quantity  information
+    where more  than one  quantity is required to be reported
+    for a commercial document line.
+
+    QVA, Quantity variances
+    A segment  identifying the  quantity  difference  an  the
+    reason  for   this  difference   between  the  commercial
+    document line and the actual line item.
+
+    MOA, Monetary amount
+    A  segment   identifying  monetary  amounts  required  by
+    customs, but  not otherwise  captured by  the  commercial
+    document line value.
+
+    NAD, Name and address
+    A segment  identifying the parties and addresses relevant
+    to a  particular commercial  document line.  For example,
+    manufacturer, ultimate consignee etc.
+
+    GIR, Related identification numbers
+    A segment  identifying a  serial numbers or other related
+    numbers associated  with the  merchandise on  a  specific
+    commercial document line.
+
+
+    Segment Group 22: DOC-DTM
+    A  group  of  segments  identifying  customs  documentary
+    requirements for  a commercial  document line  item.  For
+    example, an import or export license.
+
+      DOC, Document/message details
+      A segment  identifying a  specific customs  documentary
+      requirement for a commercial line item.
+
+      DTM, Date/time/period
+      A segment  identifying dates  related to  the preceding
+      DOC.
+
+
+    Segment Group 23: ALC-RTE-MOA-PCD-QTY-SG24
+    A group  of segments  identifying allowances, charges, or
+    adjustments  and   related  details  for  the  commercial
+    document line.
+
+      ALC, Allowance or charge
+      A   segment    identifying   allowances,   charges   or
+      adjustments specific to a commercial document line.
+
+      RTE, Rate details
+      A segment  identifying rate  information related to the
+      preceding ALC.
+
+      MOA, Monetary amount
+      A segment  identifying the  monetary amount  associated
+      with the preceding ALC.
+
+      PCD, Percentage details
+      A segment identifying percentage information associated
+      with the preceding ALC.
+
+      QTY, Quantity
+      A segment  identifying a  quantity associated  with the
+      preceding ALC.
+
+
+      Segment Group 24: CUX-DTM
+      A group  of segments  identifying currencies,  rates of
+      exchange and associated dates for an allowance, charge,
+      or adjustment reported in the preceding ALC.
+
+        CUX, Currencies
+        A segment  identifying currencies  and  the  rate  of
+        exchange  for  an  allowance, charge,  or  adjustment
+        reported in the preceding ALC segment.
+
+        DTM, Date/time/period
+        A segment identifying a specific date related to CUX.
+
+
+    Segment Group 25: TOD-LOC
+    A group  of segments  identifying the  terms of  delivery
+    pertinent to a commercial document line.
+
+      TOD, Terms of delivery
+      A segment  identifying, in  coded format,  the terms of
+      delivery particular to a commercial document line.
+
+      LOC, Place/location identification
+      A  segment   identifying  a  location  related  to  the
+      information contained in the preceding TOD segment.
+
+
+    Segment Group 26: PAT-MOA-PCD-FTX
+    A group  of segments  identifying the payment terms for a
+    commercial document line.
+
+      PAT, Payment terms basis
+      A segment  identifying the terms of payment, in a coded
+      format, for a particular commercial document line.
+
+      MOA, Monetary amount
+      A segment identifying a monetary amount associated with
+      the preceding PAT.
+
+      PCD, Percentage details
+      A segment  identifying  percentage  details  associated
+      with the preceding PAT.
+
+      FTX, Free text
+      A segment  starting the  terms of  payment in narrative
+      form.
+
+
+    Segment Group 27: IMD-FTX
+    A group  of segments identifying a commercial description
+    for a  documented commodity  that is associated with this
+    Customs, item line.
+
+      IMD, Item description
+      A segment identifying a documented item via an industry
+      coded format, or a restricted narrative.
+
+      FTX, Free text
+      A segment  identifying the item description in extended
+      narrative form.
+
+
+    Segment Group 28: PAC-SG29
+    A  group   of  segments  identifying  the  number,  type,
+    contents and  description of the packing units associated
+    with the commercial document line.
+
+      PAC, Package
+      A segment  identifying the  number and  type of packing
+      units particular to a document line.
+
+
+      Segment Group 29: PCI-FTX-RFF
+      A group  of  segments  identifying  marks,  labels  and
+      description of packages relating to a document line.
+
+        PCI, Package identification
+        A segment identifying a particular package associated
+        with the preceding PAC.
+
+        FTX, Free text
+        A  segment identifying  a  particular  packing  unit,
+        associated with the preceding PCI, in narrative form.
+
+        RFF, Reference
+        A segment identifying  a  reference  related  to  the
+        preceding PCI.
+
+
+Segment Group 30:  CST-FTX-LOC-DTM-MEA-NAD-TDT-SG31-SG33-SG35-SG37-SG38-SG39-SG40-SG41-SG42-SG44
+A group  of segments  identifying detailed information for a
+single customs item of a customs declaration.
+
+  CST, Customs status of goods
+  A segment  identifying the  customs tariff  of  the  goods,
+  their required  treatment and, where these are different to
+  the header  information, the  type of  declaration and  the
+  current status of the goods.
+
+  FTX, Free text
+  A segment  identifying the  goods, related to the preceding
+  LOC, Place/location identification
+  A segment  identifying the  places relevant  to  a  customs
+  item.   For example,  country of origin, country of export,
+  etc.
+
+  DTM, Date/time/period
+  A segment identifying dates particular to the customs item.
+  For example, date of original exportation.
+
+  MEA, Measurements
+  A segment identifying the necessary statistical information
+  requirements related  to a tariff number.  For example, net
+  weights, volumes, etc.
+
+  NAD, Name and address
+  A segment  identifying a  party particular  to the  customs
+  item when  required by  customs.  For example, manufacturer
+  of the  goods.
+
+  TDT, Details of transport
+  A segment identifying transport details, for statistical
+  purposes, on goods crossing statistical boundaries.
+
+
+  Segment Group 31: PAC-SG32
+  A group  of  segments  identifying  the  number,  type  and
+  reference of  the packing units associated with the customs
+  item.
+
+    PAC, Package
+    A segment  identifying the  number and  type of  packages
+    relating to the customs item.
+
+
+    Segment Group 32: PCI-FTX
+    A group  of segments  identifying marks  and labels,  and
+    giving the description of single packages associated with
+    a customs item.
+
+      PCI, Package identification
+      A segment  identifying markings  and labels on the type
+      of packages reported in the preceding PAC.
+
+      FTX, Free text
+      A segment  describing the  goods identified  in PCI  in
+      narrative form.
+
+
+  Segment Group 33: MOA-SG34
+  A group  of segments  identifying various monetary amounts,
+  currencies and  rates  of  exchange  that  pertain  to  the
+  customs item.
+
+    MOA, Monetary amount
+    A segment  identifying the monetary amounts necessary for
+    statistical and duty purposes.
+
+
+    Segment Group 34: CUX-DTM
+    A group  of segments  identifying currencies,  a rate  of
+    exchange and  an associated date related to the preceding
+    MOA.
+
+      CUX, Currencies
+      A  segment  identifying  currencies  and  the  rate  of
+      exchange for an amount reported in the preceding MOA.
+
+      DTM, Date/time/period
+      A segment identifying a date related to the preceding
+      CUX.
+
+
+  Segment Group 35: RFF-DTM-GIN-MOA-SG36
+  A group  of segments  identifying references, descriptions,
+  and monetary amounts associated with a customs item.
+
+    RFF, Reference
+    A segment  identifying particular  references relating to
+    the customs item.  For example, the invoice number of any
+    invoice that contains merchandise on this customs item.
+
+    DTM, Date/time/period
+    A  segment   identifying  a   date  associated  with  the
+    preceding RFF.
+
+    GIN, Goods identity number
+    A segment  identifying any  line or range of lines on the
+    commercial  document   reported  in   the  preceding  RFF
+    segment, that contains goods on this customs item.
+
+    MOA, Monetary amount
+    A segment  identifying commercial  document line monetary
+    amounts where  the Commercial Group is not offered but an
+    administration requires this information.
+
+
+    Segment Group 36: IMD-FTX
+    A group  of segments identifying a commercial description
+    for a  documented commodity  that is associated with this
+    customs line item.
+
+      IMD, Item description
+       A segment identifying the coded industry description
+       of  the  merchandise  on  the  document  line(s)
+       identified in the preceding GIN segment.
+
+      FTX, Free text
+       A segment  identifying the documented  merchandise  in
+       narrative form.
+
+
+  Segment Group 37: DOC-DTM-LOC-NAD
+  A  group   of  segments   identifying  report   documentary
+  requirements of  particular government  agencies, with  the
+  optional name and address of the agency involved.
+
+    DOC, Document/message details
+    A segment  identifying a  document related  to a  customs
+    item.
+
+    DTM, Date/time/period
+    A segment identifying dates associated with the preceding
+    DOC.
+
+    LOC, Place/location identification
+    A segment  identifying a  location  associated  with  the
+    preceding DOC.
+
+    NAD, Name and address
+    A segment  identifying the  identity and  address of  the
+    agency related to the documentary requirement.
+
+
+  Segment Group 38: TOD-LOC-FTX
+  A group  of segments  identifying  the  terms  of  delivery
+  pertinent to a customs item.
+
+    TOD, Terms of delivery
+    A segment  identifying, in  coded format,  the  terms  of
+    delivery of  the entered  goods, where these are specific
+    to the customs item.
+
+    LOC, Place/location identification
+    A segment  identifying the  place of  delivery associated
+    with the preceding TOD.
+
+    FTX, Free text
+    A segment  identifying the terms of delivery in narrative
+    form.
+
+
+  Segment Group 39: GDS-FTX
+  A group  of segments identifying the customs description of
+  merchandise entered on a customs item.
+
+    GDS, Nature of cargo
+    A segment  identifying a  customs description,  in  coded
+    format, of the goods declared on the customs item.
+
+    FTX, Free text
+    A  segment   identifying  the   customs  description   in
+    narrative form.
+
+
+  Segment Group 40: GIS-PCD-DTM-RFF
+  A group of segments identifying special indicators or value
+  data related to the customs item.
+
+    GIS, General indicator
+    A segment identifying any necessary processing indicators
+    where these are required by customs at the item level.
+
+    PCD, Percentage details
+    A  segment  identifying  percentage  details  related  to
+    adjustments where  a relationship  is identified  between
+    the buyer and seller.
+
+    DTM, Date/time/period
+    A segment identifying a date related the preceding GIS.
+
+    RFF, Reference
+    A  segment   identifying  a   reference  related  to  the
+    preceding GIS.
+
+
+  Segment Group 41: TAX-MOA-GIS
+  A  group  of  segments  identifying  duties/taxes/fees  and
+  methods of payment related to a customs item.
+
+    TAX, Duty/tax/fee details
+    A  segment  identifying  the  tax  type,  rate  and  base
+    associated with a customs item.
+
+    MOA, Monetary amount
+    A segment  identifying  monetary  amounts  (e.g.  tax/fee
+    amount) associated with the preceding TAX.
+
+    GIS, General indicator
+    A segment  identifying an  indicator (e.g. method payment
+    indicator) associated with the preceding TAX.
+
+
+  Segment Group 42: QVA-QTY-SG43
+  A group  of  segments  identifying  variances  between  the
+  quantity commercially documented and/or produced to Customs
+  and the quantity declared.
+
+    QVA, Quantity variances
+    A segment  identifying quantity difference and the reason
+    for the  difference between the declared and commercially
+    documented amounts.
+
+    QTY, Quantity
+    A  segment   identifying  the  quantity  related  to  the
+    preceding QVA.
+
+
+    Segment Group 43: RFF-DTM
+    A  group  of  segments  identifying  an  earlier  customs
+    declaration  in  order  to  balance  the  total  quantity
+    declared with the total quantity presented to Customs.
+
+      RFF, Reference
+      A segment identifying a reference to a previous customs
+      declaration.
+
+      DTM, Date/time/period
+      A  segment  identifying  a  date  associated  with  the
+      preceding RFF.
+
+
+  Segment Group 44: GIR-GIS-NAD-MEA-SG45-SG47-SG48
+  A  group   of  segments   identifying   customs   reporting
+  requirements associated with a secondary tariff number.
+
+    GIR, Related identification numbers
+    A  segment   identifying  the  tariff  number  where  the
+    published tariff requires more than one tariff number.
+
+    GIS, General indicator
+    A segment identifying any necessary processing indicators
+    related  to  the  tariff  number  in  the  preceding  GIR
+    segment, where these are required by customs.
+
+    NAD, Name and address
+    A segment  identifying a  party particular  to the  goods
+    governed by  the  tariff  number  in  the  preceding  GIR
+    segment.  For example, manufacturer of the goods.
+
+    MEA, Measurements
+    A   segment   identifying   the   necessary   statistical
+    information requirements  related to the tariff number in
+    the GIR segment.  For example, net weight, volume, etc.
+
+
+    Segment Group 45: MOA-SG46
+    A group of segments identifying various monetary amounts,
+    currencies and  rates  of  exchange  that  pertain  to  a
+    secondary tariff number within a customs item.
+
+      MOA, Monetary amount
+      A segment identifying the monetary amount necessary for
+      statistical and/or  duty purposes, as it relates to the
+      tariff number in the preceding GIR segment.
+
+
+      Segment Group 46: CUX-DTM
+      A group  of segments  identifying currencies, a rate of
+      exchange and related date for an amount reported in the
+      preceding MOA.
+
+        CUX, Currencies
+        A segment  identifying  currencies  and  the  rate
+        of exchange for  an amount  reported in the preceding
+        MOA segment.
+
+        DTM, Date/time/period
+        A segment identifying a date related to the preceding
+        CUX.
+
+
+    Segment Group 47: TAX-MOA-GIS
+    A group of segments identifying the duties, taxes, and/or
+    fees pertinent  to the  tariff number reported in the GIR
+    segment.
+
+      TAX, Duty/tax/fee details
+      A segment  identifying the  tax  type,  rate  and  base
+      associated with the preceding GIR.
+
+      MOA, Monetary amount
+      A segment  identifying monetary  amounts (e.g.  tax/fee
+      amount) associated with the preceding TAX.
+
+      GIS, General indicator
+      A segment  identifying an indicator associated with the
+      preceding TAX, (e.g. method of payment indicator).
+
+
+    Segment Group 48: DOC-DTM-LOC
+    A group  of  segments  identifying  specific  documentary
+    information which may be required by the tariff number in
+    the GIR segment.  For example, a textile category number.
+
+      DOC, Document/message details
+      A segment  identifying a  specific document  related to
+      the preceding GIR.
+
+      DTM, Date/time/period
+      A  segment  identifying  a  date  associated  with  the
+      preceding DOC.
+
+      LOC, Place/location identification
+      A segment  identifying  a  place  associated  with  the
+      preceding DOC.
+
+
+UNS, Section control
+A service  segment placed at the beginning of the summary
+section to indicate  the start of that section.
+
+CNT, Control total
+A segment  specifying control  totals.    For  example,  the
+number of  commercial documents, the total number of customs
+item, values, and packages reported in the message.
+
+
+Segment Group 49: TAX-MOA-GIS
+A segment identifying the totals and duty/tax/fee levels due
+for the  declaration and  summarizing  this  total  by  each
+accounting code included in the total due.
+
+  TAX, Duty/tax/fee details
+  A segment  identifying the summary tax type, rates and base
+  for a full declaration.
+
+  MOA, Monetary amount
+  A segment identifying amounts associated with the preceding
+  TAX (e.g. total amounts for each duty/tax/fee).
+
+  GIS, General indicator
+  A segment identifying an indicator related to the preceding
+  TAX (e.g. summary method of payment).
+
+
+Segment Group 50: AUT-DTM
+A group  of segments  permitting  the  verification  of  the
+authenticity of the sender and the integrity of the data.
+
+  AUT, Authentication result
+  A segment containing the result of the algorithm permitting
+  the verification  of the authenticity of the sender and the
+  integrity of the data.
+
+  DTM, Date/time/period
+  A segment  identifying a date associated with the preceding
+  AUT.
+
+UNT, Message trailer
+A service  segment ending a message, giving the total number
+of segments  in the message and the message reference number
+of the message.
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+                                 HEADER SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  CST  Customs status of goods              C      1                  
+  LOC  Place/location identification        C     99                  
+  DTM  Date/time/period                     C     15                  
+  GIS  General indicator                    C     25                  
+  FII  Financial institution information    C      1                  
+  MEA  Measurements                         C      5                  
+  EQD  Equipment details                    C    999                  
+  SEL  Seal number                          C    999                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄÄÄ¿
+  RFF  Reference                            M      1                 ³
+  DTM  Date/time/period                     C      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  PAC  Package                              M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄ¿³³
+  PCI  Package identification               M      1               ³³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+                                                                      
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄÄ¿
+  TDT  Details of transport                 M      1                 ³
+  TPL  Transport placement                  C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄÄ¿
+  DOC  Document/message details             M      1                 ³
+  DTM  Date/time/period                     C      2                 ³
+  LOC  Place/location identification        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  RFF  Reference                            C     10                 ³
+  CTA  Contact information                  C      1                 ³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄÄ¿
+  TOD  Terms of delivery                    M      1                 ³
+  LOC  Place/location identification        C      2                 ³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     25 ÄÄÄÄÄÄ¿
+  MOA  Monetary amount                      M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄ¿³
+  CUX  Currencies                           M      1                ³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNS  Section control                      M      1                  
+                                                                      
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄÄÄ¿
+  DMS  Document/message summary             M      1                 ³
+  DTM  Date/time/period                     C      1                 ³
+  MEA  Measurements                         C      5                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     25 ÄÄÄÄÄ¿³
+  MOA  Monetary amount                      M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 12 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  CUX  Currencies                           M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 13 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄ¿³
+  TOD  Terms of delivery                    M      1                ³³
+  LOC  Place/location identification        C      2                ³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 14 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  NAD  Name and address                     M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 15 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  DOC  Document/message details             M      1               ³³³
+  DTM  Date/time/period                     C      2               ³³³
+  LOC  Place/location identification        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 16 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  PAC  Package                              M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 17 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄ¿³³
+  PCI  Package identification               M      1               ³³³
+  FTX  Free text                            C      1               ³³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 18 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  PAT  Payment terms basis                  M      1                ³³
+  MOA  Monetary amount                      C      1                ³³
+  PCD  Percentage details                   C      1                ³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 19 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  ALC  Allowance or charge                  M      1                ³³
+  RTE  Rate details                         C      1                ³³
+  MOA  Monetary amount                      C      1                ³³
+  PCD  Percentage details                   C      1                ³³
+  QTY  Quantity                             C      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 20 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  CUX  Currencies                           M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 21 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄ¿³
+  LIN  Line item                            M      1                ³³
+  PIA  Additional product id                C      1                ³³
+  QTY  Quantity                             C      1                ³³
+  PRI  Price details                        C      2                ³³
+  PCD  Percentage details                   C      1                ³³
+  MEA  Measurements                         C      5                ³³
+  QVA  Quantity variances                   C      5                ³³
+  MOA  Monetary amount                      C     15                ³³
+  NAD  Name and address                     C     10                ³³
+  GIR  Related identification numbers       C   9999                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 22 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  DOC  Document/message details             M      1               ³³³
+  DTM  Date/time/period                     C      2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 23 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  ALC  Allowance or charge                  M      1               ³³³
+  RTE  Rate details                         C      1               ³³³
+  MOA  Monetary amount                      C      1               ³³³
+  PCD  Percentage details                   C      1               ³³³
+  QTY  Quantity                             C      1               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 24 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  CUX  Currencies                           M      1              ³³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 25 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  TOD  Terms of delivery                    M      1               ³³³
+  LOC  Place/location identification        C      2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 26 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  PAT  Payment terms basis                  M      1               ³³³
+  MOA  Monetary amount                      C      1               ³³³
+  PCD  Percentage details                   C      1               ³³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 27 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  IMD  Item description                     M      1               ³³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 28 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  PAC  Package                              M      1               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 29 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄ¿³³³
+  PCI  Package identification               M      1              ³³³³
+  FTX  Free text                            C      1              ³³³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÁÙ
+                                                                      
+  ÄÄÄ Segment Group 30 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄ¿
+  CST  Customs status of goods              M      1                 ³
+  FTX  Free text                            C      9                 ³
+  LOC  Place/location identification        C     25                 ³
+  DTM  Date/time/period                     C      5                 ³
+  MEA  Measurements                         C     20                 ³
+  NAD  Name and address                     C      5                 ³
+  TDT  Details of transport                 C      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 31 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  PAC  Package                              M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 32 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄ¿³³
+  PCI  Package identification               M      1               ³³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 33 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     25 ÄÄÄÄÄ¿³
+  MOA  Monetary amount                      M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 34 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  CUX  Currencies                           M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 35 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄÄ¿³
+  RFF  Reference                            M      1                ³³
+  DTM  Date/time/period                     C      1                ³³
+  GIN  Goods identity number                C     99                ³³
+  MOA  Monetary amount                      C      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 36 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  IMD  Item description                     M      1               ³³³
+  FTX  Free text                            C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 37 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     25 ÄÄÄÄÄ¿³
+  DOC  Document/message details             M      1                ³³
+  DTM  Date/time/period                     C      2                ³³
+  LOC  Place/location identification        C      1                ³³
+  NAD  Name and address                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 38 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄ¿³
+  TOD  Terms of delivery                    M      1                ³³
+  LOC  Place/location identification        C      2                ³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 39 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄ¿³
+  GDS  Nature of cargo                      M      1                ³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 40 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     25 ÄÄÄÄÄ¿³
+  GIS  General indicator                    M      1                ³³
+  PCD  Percentage details                   C      1                ³³
+  DTM  Date/time/period                     C      1                ³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 41 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  TAX  Duty/tax/fee details                 M      1                ³³
+  MOA  Monetary amount                      C      2                ³³
+  GIS  General indicator                    C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 42 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄ¿³
+  QVA  Quantity variances                   M      1                ³³
+  QTY  Quantity                             C      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 43 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  RFF  Reference                            M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 44 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     50 ÄÄÄÄÄ¿³
+  GIR  Related identification numbers       M      1                ³³
+  GIS  General indicator                    C     10                ³³
+  NAD  Name and address                     C      1                ³³
+  MEA  Measurements                         C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 45 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  MOA  Monetary amount                      M      1               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 46 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  CUX  Currencies                           M      1              ³³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 47 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  TAX  Duty/tax/fee details                 M      1               ³³³
+  MOA  Monetary amount                      C      2               ³³³
+  GIS  General indicator                    C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 48 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  DOC  Document/message details             M      1               ³³³
+  DTM  Date/time/period                     C      2               ³³³
+  LOC  Place/location identification        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNS  Section control                      M      1                  
+  CNT  Control total                        C      5                  
+                                                                      
+  ÄÄÄ Segment Group 49 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     50 ÄÄÄÄÄÄ¿
+  TAX  Duty/tax/fee details                 M      1                 ³
+  MOA  Monetary amount                      C      2                 ³
+  GIS  General indicator                    C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 50 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄÄÄ¿
+  AUT  Authentication result                M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+ALC  Allowance or charge
+AUT  Authentication result
+BGM  Beginning of message
+CNT  Control total
+COM  Communication contact
+CST  Customs status of goods
+CTA  Contact information
+CUX  Currencies
+DMS  Document/message summary
+DOC  Document/message details
+DTM  Date/time/period
+EQD  Equipment details
+FII  Financial institution information
+FTX  Free text
+GDS  Nature of cargo
+GIN  Goods identity number
+GIR  Related identification numbers
+GIS  General indicator
+IMD  Item description
+LIN  Line item
+LOC  Place/location identification
+MEA  Measurements
+MOA  Monetary amount
+NAD  Name and address
+PAC  Package
+PAT  Payment terms basis
+PCD  Percentage details
+PCI  Package identification
+PIA  Additional product id
+PRI  Price details
+QTY  Quantity
+QVA  Quantity variances
+RFF  Reference
+RTE  Rate details
+SEL  Seal number
+TAX  Duty/tax/fee details
+TDT  Details of transport
+TOD  Terms of delivery
+TPL  Transport placement
+UNH  Message header
+UNS  Section control
+UNT  Message trailer

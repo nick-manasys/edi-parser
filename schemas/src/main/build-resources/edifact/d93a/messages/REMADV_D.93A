@@ -1,0 +1,573 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+REMITTANCE ADVICE MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :REMADV
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE:  Joint development by WEEB-MD1-MD4 and PAEB 
+
+
+                          CONTENTS 
+
+REMITTANCE ADVICE MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification provides the definition of the Remittance Advice
+message (REMADV) to be used in Electronic Data Interchange (EDI)
+between partners involved in administration, commerce and transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+The Remittance Advice is a communication between trading partners,
+e.g.  seller, buyer, financial institutions, which provides a detailed
+accounting relative to a payment, or other form of financial
+settlement, for the provision of goods and/or services as detailed in
+the advice.
+
+1.2 Field of Application
+
+This message may be applied for both national and international
+settlements. It is based on universal practice and is not dependent on
+the type of business or industry.
+
+1.3 Principles
+
+- A Remittance Advice is a notice of a payment to be made.
+
+- A Remittance Advice may cover one or more commercial trade
+transactions (and related financial transactions), such as invoices,
+credit notes, debit notes, etc.
+
+- A Remittance Advice may include a cross reference to a Payment
+Order.
+
+- A single Remittance Advice may relate to both national and
+international settlements.
+
+- Each Remittance Advice shall be calculated in only one currency even
+if the related transaction is denominated in different currencies.
+
+- Each Remittance Advice shall relate to only one settlement date.
+
+- Where remittance advice relates to a dispute, the message :
+   . does not necessarily relate to one settlement date
+   . is not necessarily a notice for a payment to be made
+
+- A Remittance Advice may be initiated by either party according to
+agreements.
+
+
+
+
+
+
+
+
+
+
+
+
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying a message. The
+message type code for the UN Remittance Advice Message is REMADV.
+Note: Remittance Advice Message conforming to this document must
+contain the following data in UNH, composite S009:
+Data element   0065 REMADV
+               0052 D
+               0054 93A
+               0051 UN
+
+BGM, Beginning of message
+A segment for unique identification of the Remittance Advice Message,
+the type of Remittance Advice and its function.
+
+DTM, Date/time/period
+A segment specifying the dates, and when relevant, the times related
+to the whole message. The segment must be specified at least once to
+specify the message date as allocated by the sender.
+
+RFF, Reference
+A segment for referencing documents which relate to the whole message.
+
+FII, Financial institution information
+A segment identifying the financial institution (e.g. bank) and
+account number and, where relevant, the currency of the account, for
+each party involved in the transaction. The Payer may indicate the
+previously agreed choice of financial institution for payment.
+
+PAI, Payment instructions
+A segment specifying the conditions, guarantee, method and channel of
+payment for the Remittance Advice.
+
+FTX, Free text
+A segment with free text information, in coded or clear form, used
+when additional information is needed but cannot be accommodated
+within other segments. In computer to computer exchanges such text
+will normally require the receiver to process this segment manually.
+
+
+Segment Group 1: NAD-SG2
+A group of segments identifying the parties involved in the
+transaction and, optionally the contact points and numbers.
+
+  NAD, Name and address
+  A segment to identify a party name and address, either by coded
+  identification or in clear form.
+
+  It is recommended that where possible only the coded form of the
+  party ID should be specified e.g. the Buyer and Seller are known to
+  each other, thus only the coded ID is required.
+
+
+  Segment Group 2: CTA-COM
+  A group of segments identifying the contact person or department for
+  a trading party and specifying the communication channel and number.
+
+    CTA, Contact information
+    A segment to identify a person or department and their function,
+    to whom communications should be directed.
+
+
+
+
+
+
+
+
+
+
+
+    COM, Communication contact
+    A segment specifying the communication channel and number for the
+    specified contact.
+
+
+Segment Group 3: CUX-DTM
+A group of segments specifying the currencies and related
+dates/periods valid for the whole Remittance Advice. Currency data may
+be omitted in national applications but will be required for
+international transactions.
+
+  CUX, Currencies
+  A segment identifying the currencies required in the Remittance
+  Advice. A rate of exchange may be given to convert a reference
+  currency into a target currency.
+
+  DTM, Date/time/period
+  A segment specifying the date/time/period related to the rate of
+  exchange.
+
+
+Segment Group 4: DOC-MOA-DTM-RFF-NAD-SG5-SG6-SG7-SG8
+A group of segments providing details of all documents, e.g. invoices,
+statements, despatch advices, etc, to which the Remittance Advice
+refers. It includes information on the monetary amounts for each
+document and on any adjustments (with an indication of the reason for
+adjustments) and discounts. For information purposes an indication of
+the tax element can be provided.
+
+  DOC, Document/message details
+  A segment for identifying the reference document against which
+  payment is being made.
+
+  MOA, Monetary amount
+  A segment giving the monetary amounts for the amount due and the
+  amount to be remitted.
+
+  DTM, Date/time/period
+  A segment to specify the date of the referenced document and to
+  indicate any other relevant dates applicable,e.g. Due date, Tax
+  point date, etc.
+
+  RFF, Reference
+  A segment for the inclusion of any additional references related to
+  the reference document.
+
+  NAD, Name and address
+  A segment to identify a party name and address, either by coded
+  identification or in a clear form, e.g; original seller or issuer of
+  the document.
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Segment Group 5: CUX-DTM
+  A group of segments specifying the currencies and the related
+  dates/periods valid of the referenced document where different to
+  the remittance currency.
+
+    CUX, Currencies
+    A segment identifying the currency and associated exchange rate of
+    the referenced document where different to the remittance
+    currency.
+
+    DTM, Date/time/period
+    A segment specifying the date/time/period related to the rate of
+    exchange.
+
+
+  Segment Group 6: AJT-MOA-RFF-FTX
+  A group of segments to indicate adjustment amounts and their
+  referenced documents.
+
+    AJT, Adjustment details
+    A segment indicating any adjustments to the amounts originally
+    specified in the referenced document, and to which items such
+    adjustments apply, with the associated reason for adjustment.
+
+    MOA, Monetary amount
+    A segment giving the monetary amounts of the adjustments of each
+    reference document (e.g. original amount, discount amount, etc).
+    The currency data elements should not be used.
+
+    RFF, Reference
+    A segment for the inclusion of any additional references related
+    to the reference document.
+
+
+  Segment Group 7: DLI-MOA-PIA-DTM-SG9-SG10
+  A group of segments which may be used when required to provide
+  details of individual line items in the reference document.
+
+
+
+
+
+
+
+
+
+
+    DLI, Document line identification
+    A segment identifying a specific line item within the referenced
+    document.
+
+    MOA, Monetary amount
+    A segment giving the monetary amounts for the amount due and the
+    amount to be remitted.
+
+    PIA, Additional product id
+    A segment specifying item identification codes where required.
+
+    DTM, Date/time/period
+    A segment specifying the date/time/period related to the line
+    item, e.g. date of receiving of the goods, delivery date.
+
+
+    Segment Group 8: CUX-DTM
+    A group of segments identifying the currency and the related
+    dates/periods of the line item where different to the remittance
+    and document currency.
+
+      CUX, Currencies
+      A segment identifying the currency and associated exchange rate
+      of the line item, where different to the remittance and document
+      currency.
+
+      DTM, Date/time/period
+      A segment specifying the date/time/period related to the rate of
+      exchange.
+
+
+    Segment Group 9: AJT-MOA-RFF-FTX
+    A group of segments to indicate adjustment amounts and their
+    referenced documents for this line item.
+
+      AJT, Adjustment details
+      A segment indicating any adjustments to the amounts originally
+      specified for this line item and the reason for the adjustments.
+
+      MOA, Monetary amount
+      A segment giving the monetary amounts of the adjustment for this
+      line item.
+
+      RFF, Reference
+      A segment for the inclusion of any additional references related
+      to the reference document.
+
+UNS, Section control
+A service segment placed at the start of the summary section to avoid
+segment collision.
+
+MOA, Monetary amount
+A segment giving the total amount of the payment to be made or other
+amounts. It is taken as given, i.e. is not subject to recalculation.
+It may be used for check operations, such as message validation.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number of
+segments in the message and the control reference number of the
+message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  DTM  Date/time/period                     M      5                  
+  RFF  Reference                            C      5                  
+  FII  Financial institution information    C      5                  
+  PAI  Payment instructions                 C      1                  
+  FTX  Free text                            C      5                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+                                                                      
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄÄ¿
+  CUX  Currencies                           M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄ¿
+  DOC  Document/message details             M      1                 ³
+  MOA  Monetary amount                      M      5                 ³
+  DTM  Date/time/period                     C      5                 ³
+  RFF  Reference                            C      5                 ³
+  NAD  Name and address                     C      2                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CUX  Currencies                           M      1                ³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    100 ÄÄÄÄÄ¿³
+  AJT  Adjustment details                   M      1                ³³
+  MOA  Monetary amount                      C      1                ³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄ¿³
+  DLI  Document line identification         M      1                ³³
+  MOA  Monetary amount                      C      5                ³³
+  PIA  Additional product id                C      5                ³³
+  DTM  Date/time/period                     C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  CUX  Currencies                           M      1               ³³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  AJT  Adjustment details                   M      1               ³³³
+  MOA  Monetary amount                      C      1               ³³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+  UNS  Section control                      M      1                  
+  MOA  Monetary amount                      M      5                  
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+AJT  Adjustment details
+BGM  Beginning of message
+COM  Communication contact
+CTA  Contact information
+CUX  Currencies
+DLI  Document line identification
+DOC  Document/message details
+DTM  Date/time/period
+FII  Financial institution information
+FTX  Free text
+MOA  Monetary amount
+NAD  Name and address
+PAI  Payment instructions
+PIA  Additional product id
+RFF  Reference
+UNH  Message header
+UNS  Section control
+UNT  Message trailer

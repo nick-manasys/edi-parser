@@ -1,0 +1,1345 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+ESTABLISHMENT OF CONTRACT MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :CONEST
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE:  Western European EDIFACT Board - MD5 
+
+
+                          CONTENTS 
+
+ESTABLISHMENT OF CONTRACT MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification provides the definition of the message
+Establishment of Contract (CONEST) to be used in Electronic Data
+Interchange (EDI) between partners involved in Administration,
+Commerce and Transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+Upon completion of the tendering process, there is a requirement for
+the client or his representative to formally establish and issue the
+contractual Bill of Quantities. This documentation becomes the
+contractual basis for all future work and payment for the project.
+
+1.2 Field of Application
+
+This message type may be applied for both national and international
+trade. it is based on universal practice and is not dependent on the
+type of business or industry.
+The following descriptions refer to the construction industry as an
+example, but do not exclude other business sectors' implementation.
+
+1.3 Principles
+
+A BoQ is a set of documentation that describes the various facets of
+work that make up a construction project. This documentation is often
+quite voluminous and typically contains information structured in
+accordance with several industry standards.
+This documentation, or parts of it, is frequently exchanged between
+the parties involved in the project.
+A project is typically subdivided into individual groupings of work
+and within these groups are detailed work items. It is at the level of
+these detailed items that progress and payments are evaluated. During
+the life of a project numerous amendments to the original contractual
+BoQ will be made. This CONEST message will be used to establish all
+such approved amendments.
+The post tender exchange of contractual information occurs many times
+in the life cycle of a project, thus there is a role for this CONEST
+message throughout the duration of a project.
+The initial exchange takes place at the point the two principal
+parties in the project, the Client and the Main Contractor, agree a
+contract. At this point the entire BoQ will be issued by the Client's
+representative to the Main Contractor. This will replace any previous
+versions of BoQ's used during the tendering process.
+Further BoQ exchanges continue from the Client's representative to the
+Main Contractor as the project progress. These subsequent exchanges
+reflect the evaluation of the project and are used to amend the
+original contractual documentation with changes approved by both
+
+
+
+
+
+
+
+
+
+
+parties.
+The other major area of use for this message standard is during the
+exchange between the Main Contractor and those companies that have
+contracts to undertake subcontracted work within the project. The
+procedures are similar to those described above, as they too are
+establishing and maintaining contractual details, this time for
+subdivisions of the overall project with the Main Contractor as the
+"Client".
+This is only one of a number of messages being designed for the BoQ
+and the principles for this CONEST message are consistent with those
+adopted for each of the BoQ messages.
+There are several concepts to be understood and these are key to some
+of the design principles adopted. Most of these have been created to
+respond to two base problems associated with the BoQ documentation:
+i) A BoQ is often a very large document, it is not unusual for it to
+run to several volumes in its paper form.
+ii) Given the size of the documents, there is also the problem of how
+to advise on the structure to which the documents conforms and the
+accurate indexing and sequencing of information within such a volume
+of data.
+
+1.3.1 Work Items
+
+Each individual component of work referred to in the BoQ is called a
+"work item" and it is at this level that progress and payments are
+evaluated.
+For each work item a description is provided and this description is
+very precise in its wording. This results in two things:
+i) A lot of repetitive descriptions for like items at least at the
+higher levels within these leveled descriptions.
+ii) A lot of similar work items, indeed the same descriptions, often
+occurs a number of times throughout the project but assigned to
+different work items. Point ii) above has been addressed by a concept
+called "standard items", this enables an equivalent to standard
+library of descriptions to be exchanged and individual work items to
+reference a standard description that need be sent, only once.
+Frequently within a BoQ, elements of an item's description are common
+to adjacent items. When this happens the items which share the same
+description are grouped together and the common part of the
+description is presented once at the start of the group. This concept
+is used extensively and it is possible to have quite a number of
+layers of shared heading.
+Two distinctions need to be established: firstly, the existence of
+Heading text which is related to an item. There can be multiples of
+these as in the levels of a standard description. The second
+distinction is that of "Groups". Where a group is a collection of more
+than one work item and all of these items have a common theme.
+For example:
+- they all belong to the same trade
+- all for the same part of the  project, building or structure.
+
+
+
+
+
+
+
+
+
+
+Despite the large number of items that they may embrace, or the fact
+that they represent substantial parts of the project, all of these are
+recognised as "groups".
+Thus, there can be several or many items within a group and there can
+be layers of groups within groups, all of which collectively
+constitute the project.
+
+1.3.2 Indexing
+
+There are numerous variations for structuring the information that
+makes up the BoQ. Although, it is possible to introduce some
+standardisation it is clear that any message must allow the freedom to
+structure the data according to the dictates of a individual project.
+The design therefore, includes the ability to convey the document's
+structure as part of the BoQ message. Indeed the design allows for a
+different set of document structuring information, to be defined at
+group level as well as globally for the project. This means that a set
+of indexing rules can be defined to apply to the entire project and
+that a different set of indexing rules can be used to override these
+for a given group(s).
+To complement the indexing concept there is a component referred to as
+the "Project Index Reference". This is a faceted code assigned to all
+items of data that are to be used in conjunction with the index. In
+other words, all pieces of data that are to be structured using the
+index must contain a structured code composed in accordance with the
+index, and this is used a a "sorting" mechanism to ensure that the
+data is correctly structured.
+
+1.3.3 Message format
+
+The actual appearance of the message bears no relation to the
+appearance of the current paper document!
+As there are unlimited permutations for assembling the BoQ data it has
+not been possible, nor desirable to make the appearance similar. The
+CONEST appearance is similar to the results of the data analysis
+exercise. Namely that there are 4 blocks or groupings of data, each of
+which can appear many times and that all of the mechanisms for linking
+and relating the components together are data elements within these
+blocks. The task of interpreting the indexing rules and subsequently
+assembling the data in the message will fall to local software.
+This approach has several advantages over the existing rigidity of the
+paper document. It is clear to the message design team that BoQ
+documentation exchanged using EDI will deliver a variety of new
+opportunities to its users.
+This last principle offers the solution to the volume problem too. On
+message has a definitive number of occurrences for each block of data.
+If for a "large" project this number is exceeded then multiple
+versions of the same message are built. It also enables a BoQ to be
+exchanged in subdivisions if so desired.
+
+
+
+
+
+
+
+
+
+
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment which starts and uniquely identifies a message. The
+message type identifier for the UN Establishment of Contract message
+is 'CONEST.
+Note: The CONEST message conforming to this document must contain the
+following data in UNH composite S009:
+Data element   0065 CONEST
+               0052 D
+               0054 93A
+               0051 UN
+
+BGM, Beginning of message
+A segment which identifies the document name and the message function
+code.
+
+RFF, Reference
+This segment is used to identify the unique project reference number
+
+DTM, Date/time/period
+The document date will be recorded using this DTM segment.
+
+AUT, Authentication result
+A segment used to authenticate the message by exchanging a password or
+some other form of identification agreed between the trading partners.
+
+AGR, Agreement identification
+This segment will be used to identify the "type of contract and form
+of tender" that apply to this contract.
+
+
+
+
+
+
+
+
+
+
+
+
+Segment Group 1: IND-RCS-SG2
+A group of segments to record both the structure and contents of the
+indexing used for the BoQ document.
+
+  IND, Index details
+  A segment to qualify whether the index applies to the whole project,
+  part of a project (a group of items), or whether the index provides
+  an alternative view (analysis) of the work items. The segment also
+  indicates in the index qualifier whether it contains index structure
+  information or describes the index contents.
+
+  RCS, Requirements and conditions
+  A segment used to indicate the action request (add , change etc.) to
+  be applied to the index data.
+
+
+  Segment Group 2: GIS-SG3
+  A group of segments to specify the position and detailed component
+  parts of the index information.
+
+    GIS, General indicator
+    This indicator segment specifies one of six positions within the
+    index structure to which the detailed information applies.
+
+
+    Segment Group 3: BII-IMD
+    A group of segments to specify the detailed components of the
+    index information.
+
+      BII, Bill item identification
+      A segment used to specify a structured index number that is to
+      be associated with the descriptions that follow in segment IMD.
+
+      IMD, Item description
+      A segment to specify the descriptions in both full text and
+      abbreviated form . These descriptions to be associated with the
+      contents of segment BII.
+
+
+Segment Group 4: BII-RCS-GIS-NAD-LOC-API-ALI-QTY-DTM-RTE-SG5-SG6-SG7-SG9-SG10-SG18
+This information is subordinate to the data provided within the Header
+section and relates to groups of work items as described in section
+1.3.1 of this document. A segment group recording all the details that
+apply to a group of items. There can be many "Groups of items" within
+a project and all are to be recorded within this part of the message.
+
+  BII, Bill item identification
+  A segment used to convey a structured index number that uniquely
+  identifies each group of items recorded for the project.
+
+  RCS, Requirements and conditions
+  The action to be applied to segment group 4 data is recorded here.
+
+
+
+
+
+
+
+
+
+
+  GIS, General indicator
+  This indicator segment identifies what category of item grouping
+  Segment Group 4 applies to. There will be two permitted categories -
+  Project or Group.
+  
+  NAD, Name and address
+  The recording of the name and address information applying to this
+  group of items.
+
+  LOC, Place/location identification
+  In addition to the name and address details above this is the
+  identification of a location description and an abbreviated or short
+  name by which the grouping is to be known.
+
+  API, Additional price information
+  A segment to record a multiplication factor called "Timesing" that
+  applies to the entire project or a specific grouping of items.
+
+  ALI, Additional information
+  This segment would be used to denote, in a coded form, what rules
+  were adopted for the rounding of all financial values within this
+  group of items.
+
+  QTY, Quantity
+  This segment enables grouping control quantities to be recorded.
+  These are not to be confused with message control totals that appear
+  later and use the CNT segment.
+
+  DTM, Date/time/period
+  Any date details required for the group of items will be recorded
+  using the DTM segment. There are a considerable number of different
+  date qualifiers that could apply.
+
+  RTE, Rate details
+  This segment is used to record a cost rate that may apply to this
+  grouping.
+
+
+  Segment Group 5: RFF-DTM-GIS-FTX
+  Some base data about how the information for this group of items was
+  compiled. It will identify the standard method conventions adopted,
+  the author of the data and it will also refer to any "request for
+  quotation" messages that are to be read in conjunction .
+
+    RFF, Reference
+    This segment will be used to specify a series of references,
+    including the reference to a "Request for Quotation" message,
+    standard method identity, the identity of the author of the data
+    and the identity, if appropriate any software tool used during the
+    preparation process.
+
+
+
+
+
+
+
+
+
+
+
+    DTM, Date/time/period
+    The date of the Request for Quotation message that is to be
+    processed in conjunction with this BoQ message.
+
+    GIS, General indicator
+    An entry in this segment will acknowledge or note the existence of
+    variations to the standard method rules referenced in the
+    associated RFF.
+
+    FTX, Free text
+    In the event of variations to the standard method rules this
+    segment will provide any necessary narrative to explain the
+    changes.
+
+
+  Segment Group 6: CUX-DTM-FTX
+  Details of which currency rules apply to this group of items.
+
+    CUX, Currencies
+    Recording details of the currency that applies to the group of
+    items being defined.
+
+    DTM, Date/time/period
+    This segment will be used to recorded any dates that are
+    applicable to qualify the currency details recorded in CUX.
+
+    FTX, Free text
+    Any narrative necessary to explain or qualify the currency
+    information.
+
+
+  Segment Group 7: ALC-RFF-DTM-RNG-FTX-SG8
+  A group of segments used to convey details of the price fluctuation
+  calculations to be applied.
+
+    ALC, Allowance or charge
+    A segment to identity whether the data recorded in this segment
+    group represents an actualization or a revision figure.
+
+    RFF, Reference
+    A segment providing a reference to the (usually standard) formula
+    rules to be applied.
+
+    DTM, Date/time/period
+    A segment to record the contract base or control date to be used
+    in the formula.
+
+    RNG, Range details
+    Where the formula makes reference to data within a range the
+    details of the range will be identified in this segment.
+
+
+
+
+
+
+
+
+
+
+
+
+    FTX, Free text
+    A segment to convey the actual formula and narrative relating to
+    the formula. This will be used only in the exceptional case of a
+    non- standard formula being used.
+
+
+    Segment Group 8: PCD-RFF
+    A group of segments to specify the remaining components of the
+    price fluctuation calculation.
+
+      PCD, Percentage details
+      A segment to specify a percentage value to be used as a
+      coefficient in conjunction with the reference given in the
+      following RFF.
+
+      RFF, Reference
+      A segment to specify the reference of a work section applicable
+      to a set of calculation components.
+
+
+  Segment Group 9: RCS-BII-FTX
+  This segment group is used to record, in textual form, any terms and
+  conditions that are deemed to apply to part or all of the group of
+  items.
+
+    RCS, Requirements and conditions
+    The identity of the particular conditions that are to apply and a
+    coded reference to denote whether this is to be added or changed
+    etc.
+
+    BII, Bill item identification
+    A structured index reference to identify to what range within the
+    group of items the conditions apply.
+
+    FTX, Free text
+    The narrative description of the condition or term identified by
+    this segment group.
+
+
+  Segment Group 10: ARD-MOA-FTX-SG11-SG12
+  This segment group is used to record any financial values that apply
+  for a group of items. There are considerable number of different
+  values and qualifiers that will apply.
+
+    ARD, Amounts relationship details
+    A segment to record the qualifier to the financial value. This
+    qualifier is in addition to the qualifier used within the
+    following MOA segment.
+
+    MOA, Monetary amount
+    A segment to record the value of the monetary amount being
+    defined.
+
+
+
+
+
+
+
+
+
+
+
+    FTX, Free text
+    Any narrative qualification necessary to complete the details
+    about a financial value will be recorded in this segment.
+
+
+    Segment Group 11: TAX-MOA-LOC
+    Where specific tax rules apply to the entire project or a grouping
+    within the project they will be recorded in this segment group.
+
+      TAX, Duty/tax/fee details
+      Where the financial value being described within segment group
+      10 is a taxation or duty value, details of the tax or duty will
+      be recorded here.
+
+      MOA, Monetary amount
+      A segment to specify the actual monetary amount of the tax or
+      duty.
+
+      LOC, Place/location identification
+      A segment to specify any location details used to qualify the
+      tax details.
+
+
+    Segment Group 12: ALC-ALI-SG13-SG14-SG15-SG16-SG17
+    Where it is necessary to express the components that contribute to
+    a monetary value this segment group will be used.
+
+      ALC, Allowance or charge
+      A segment identifying the charge or allowance and where
+      necessary it's calculation sequence.
+
+      ALI, Additional information
+      A segment indicating that the allowance or charge specified is
+      subject to special conditions owing to origin, customs
+      preference or commercial factors.
+
+
+      Segment Group 13: QTY-RNG
+      Components of a financial value expressed in terms of quantities
+      are recorded in this segment group.
+
+        QTY, Quantity
+        Any quantity details used to define or make precise the
+        monetary value are recorded in this segment.
+
+        RNG, Range details
+        Details of the range that applies to the quantity components
+        are expressed in this segment.
+
+
+      Segment Group 14: PCD-RNG
+      Components of a financial value expressed in terms of a
+      percentage are recorded in this segment group.
+
+
+
+
+
+
+
+
+
+
+
+        PCD, Percentage details
+        This segment is used where the financial information is
+        expressed as a percentage or a percentage is required for
+        further qualification.
+
+        RNG, Range details
+        Details of the range that applies to the percentage components
+        are expressed in this segment.
+
+
+      Segment Group 15: MOA-RNG
+      Any components of a monetary amount that are themselves
+      expressed as monetary amounts are recorded in this segment
+      group.
+
+        MOA, Monetary amount
+        The monetary amount component is recorded in this segment.
+
+        RNG, Range details
+        Details of the range that applies to the monetary amount
+        components are expressed in this segment.
+
+
+      Segment Group 16: RTE-RNG
+      Components of a financial value expressed in terms of a rate are
+      recorded in this segment group.
+
+        RTE, Rate details
+        Any rate details used to define or make precise the monetary
+        value are recorded in this segment.
+
+        RNG, Range details
+        Details of the range that applies to the rate components are
+        expressed in this segment.
+
+
+      Segment Group 17: TAX-MOA
+      Components of a financial value expressed in terms of a tax or
+      duty are recorded in this segment group.
+
+        TAX, Duty/tax/fee details
+        Any tax details used to define or make precise the monetary
+        value are recorded in this segment.
+
+        MOA, Monetary amount
+        A segment to specify the actual monetary amount of the tax or
+        duty component.
+
+
+  Segment Group 18: NAD-LOC-FII-FTX-SG19-SG20-SG21
+  Name and address information relating to Parties, Banks and Contacts
+  are recorded in this segment group.
+
+
+
+
+
+
+
+
+
+
+
+
+    NAD, Name and address
+    Company name and address that relate to this group of items and
+    that have not been previously notified are recorded in this
+    segment. Each name and address recorded is qualified by the use of
+    the party qualifier 3035.
+
+    LOC, Place/location identification
+    A segment used to record more specific location information of the
+    party specified in the NAD segment, e.g. a location within a
+    construction site.
+
+    FII, Financial institution information
+    Bank details associated with these parties recorded in the
+    preceding NAD segment are given here.
+
+    FTX, Free text
+    This segment allows for any narrative that may need to accompany
+    the name and address information about a company.
+
+
+    Segment Group 19: RFF-DTM
+    This group of segments will record unique reference numbers by which
+    the party will be known and referenced. This will ensure that each
+    party is uniquely identified even if there is more than one party
+    with a similar qualifier.
+
+      RFF, Reference
+      Details of any unique referencing used within the project to
+      identify the party. Not to be confused with the party qualifier
+      in the NAD.
+
+      DTM, Date/time/period
+      Date and time details that are used to qualify the party
+      reference number are recorded in this segment.
+
+
+    Segment Group 20: DOC-DTM
+    This segment group is used to identify documentation related
+    specifically to the party being defined.
+
+      DOC, Document/message details
+      The identity of the documentation is recorded in this segment.
+
+      DTM, Date/time/period
+      Date details used to qualify the documentation are recorded in
+      this segment.
+
+
+    Segment Group 21: CTA-COM
+    The information about who to contact within each of the parties
+    detailed in this segment group.
+
+
+
+
+
+
+
+
+
+
+
+
+      CTA, Contact information
+      This segment will contain the identity of the individual, within
+      a company, who is the contact point.
+
+      COM, Communication contact
+      Here is recorded the telephone number etc. that the contact can
+      be reached via.
+
+UNS, Section control
+A service segment placed at the beginning of the detail section to
+avoid collision.
+
+
+Segment Group 22: BII-RCS-GIS-SG23-SG24-SG25-SG27-SG30-SG31-SG32-SG34
+A group of segments recording all the details that apply to an item.
+There can be many items within a project, details of all items,
+regardless of where they appear in the BOQ will be recorded in this
+segment group.
+
+  BII, Bill item identification
+  A segment used to convey a structured index number that uniquely
+  identifies each item recorded for the project.
+
+  RCS, Requirements and conditions
+  The action to be applied to this segment group data is recorded
+  here.
+
+  GIS, General indicator
+  Through a list of coded qualifiers this segment is used to define
+  precisely various features about this item e.g.: -.it will
+  distinguish between standard, work or sub item types. - identify
+  whether this item is of an agreed, disputed or provisional status.
+  -.a qualification of the type of rate that has been associated with
+  this item. -.identifying to what category this item resides.
+
+
+  Segment Group 23: RFF-DTM
+  A group of segments recording additional reference information
+  against an item of work.
+
+    RFF, Reference
+    Where project documentation has been prepared in accordance with a
+    Standard Methodology the item's reference to that Standard Method
+    is recorded here. Also recorded here is the unique reference
+    number assigned to a sub item. This reference would be used in
+    conjunction with the item index no. in the BII of this segment
+    group.
+
+    DTM, Date/time/period
+    A segment to record a date for the Standard Method of Measurement
+    reference.
+
+
+  Segment Group 24: DIM-API-FTX
+  A group of segments which may be used where Segment Group 23 refers
+  to a sub-item number. It would contain sets of dimension details to
+  further describe the quantities.
+
+
+
+
+
+
+
+
+
+
+    DIM, Dimensions
+    A segment used to record where applicable, the length, width and
+    height for portions of work measured.
+
+    API, Additional price information
+    A segment to record a multiplication factor called "Timesing" that
+    applies to a set of dimensions.
+
+    FTX, Free text
+    A segment to record an annotation for each set of dimensions.
+
+
+  Segment Group 25: LIN-SG26
+  A group of segments to record descriptive text for items and
+  headings for groupings of items.
+
+    LIN, Line item
+    A segment to record a qualifier as to whether it is a description
+    for an item or a heading for a group of items. This would also
+    include a number identifying the level the description applies to,
+    within a set of leveled headings.
+
+
+    Segment Group 26: IMD-RFF-GIS
+    A group of segments to record the description line details
+    together with text reference numbers and change action codes used
+    to identify who is authorised to apply changes.
+
+      IMD, Item description
+      This segment is used to convey any descriptive material to be
+      recorded for the item. This descriptive material can apply to
+      the item description and item heading information. The
+      distinction is explained in section 1.3 of this paper.
+
+      RFF, Reference
+      A segment used to record up to five text reference numbers per
+      item description line.
+
+      GIS, General indicator
+      A segment used to record up to five text change action codes per
+      item description line.
+
+
+  Segment Group 27: QTY-GIS-API-SG28
+  This segment group is used to record the complex range of quantity
+  values and prices that apply to an item.
+
+    QTY, Quantity
+    Many different quantity values can be applied to an item during
+    it's execution. All of these quantities will be recorded in this
+    segment.
+
+
+
+
+
+
+
+
+
+
+
+
+    GIS, General indicator
+    This segment is used to provide the qualifiers that apply to the
+    various quantities in the previous segment.
+
+    API, Additional price information
+    Item quantities are frequently accompanied by some multiplicands.
+    This API segment is used to record these.
+
+
+    Segment Group 28: PRI-GIS-SG29
+    A group of segments to record a series of prices and monetary
+    amounts relating to each QTY value.
+
+      PRI, Price details
+      A segment to record up to three price values for each QTY value.
+
+      GIS, General indicator
+      A segment to record up to three qualifiers for each price.
+
+
+      Segment Group 29: ARD-MOA
+      A group of segments to record the monetary amounts , currency,
+      tax details resulting from the multiplication of QTY and PRI
+      values.
+
+        ARD, Amounts relationship details
+        A segment to qualify the monetary amount as to it's purpose in
+        the business exchange.
+
+        MOA, Monetary amount
+        A segment to record the value and currency of the monetary
+        amount.
+
+
+  Segment Group 30: TAX-MOA-LOC
+  A group of segments in which is detailed taxation information, which
+  applies to the item . There are often several different types of tax
+  which need to be applied.
+
+    TAX, Duty/tax/fee details
+    Details of the taxation to be applied is recorded here.
+
+    MOA, Monetary amount
+    A segment to record the value and currency of the monetary amount.
+
+    LOC, Place/location identification
+    A segment to specify location codes relating to the tax details
+    recorded in this segment group.
+
+
+  Segment Group 31: BII-GIS
+  Where it is necessary to record a relationship about the current
+  item and it's association with another item, this segment group will
+  be used.
+
+
+
+
+
+
+
+
+
+
+    BII, Bill item identification
+    Record here the structured index number of the other item to which
+    the current item relates.
+
+    GIS, General indicator
+    This is the segment where a coded reference describing the item
+    relationship is recorded.
+
+
+  Segment Group 32: ALC-RFF-DTM-RNG-FTX-SG33
+  A group of segments used to convey details of the price fluctuation
+  calculations to be applied to the item.
+
+    ALC, Allowance or charge
+    A segment to identity whether the data recorded in this segment
+    group represents an actualization or a revision figure.
+
+    RFF, Reference
+    A segment providing a reference to the (usually standard) formula
+    rules to be applied.
+
+    DTM, Date/time/period
+    A segment to record the contract base or control date to be used
+    in the formula.
+
+    RNG, Range details
+    Where the formula makes reference to data within a range the
+    details of the range will be identified in this segment.
+
+    FTX, Free text
+    A segment to convey the actual formula and narrative relating to
+    the formula . This will be used only in the exceptional case of a
+    non- standard formula being used.
+
+
+    Segment Group 33: PCD-RFF
+    A group of segments to specify the remaining components of the
+    price fluctuation calculation.
+
+      PCD, Percentage details
+      A segment to specify a percentage value to be used as a
+      coefficient in conjunction with the reference given in the
+      following RFF.
+
+      RFF, Reference
+      A segment to specify the reference of a work section applicable
+      to a set of calculation components.
+
+
+  Segment Group 34: IMD-QTY-MOA-PRI
+  A segment group to record where necessary alternative index
+  information for an item. The validity of an alternative index would
+  be defined in the Segment Group 3 IMD.
+
+
+
+
+
+
+
+
+
+
+    IMD, Item description
+    A segment used to record an alternative index description
+    (previously defined in Segment Group 3 IMD), that relates to this
+    item.
+  
+    QTY, Quantity
+    A segment to record the quantity and measurement unit that relates
+    to the coded entry for the item.
+
+    MOA, Monetary amount
+    A segment to record the currency and value associated with the
+    item.
+
+    PRI, Price details
+    A segment to record the monetary rate of the code associated with
+    the item.
+
+CNT, Control total
+Various control total checks may be taken and the resultant values
+would be recorded in this segment. Typically these checks will be
+counts of quantity and monetary values that apply to the entire
+message.
+
+UNT, Message trailer
+A service segment ending a message, giving the total numbers of
+segments in the message and the control reference number of the
+message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+                                 HEADER SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  RFF  Reference                            M      1                  
+  DTM  Date/time/period                     M      1                  
+  AUT  Authentication result                C      2                  
+  AGR  Agreement identification             C      2                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   1000 ÄÄÄÄÄÄ¿
+  IND  Index details                        M      1                 ³
+  RCS  Requirements and conditions          M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M      1 ÄÄÄÄÄ¿³
+  GIS  General indicator                    M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M      1 ÄÄÄÄ¿³³
+  BII  Bill item identification             M      1               ³³³
+  IMD  Item description                     M      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+                                                                      
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   1000 ÄÄÄÄÄÄ¿
+  BII  Bill item identification             M      1                 ³
+  RCS  Requirements and conditions          M      1                 ³
+  GIS  General indicator                    M     10                 ³
+  NAD  Name and address                     C      1                 ³
+  LOC  Place/location identification        C      1                 ³
+  API  Additional price information         C      1                 ³
+  ALI  Additional information               C      2                 ³
+  QTY  Quantity                             C      5                 ³
+  DTM  Date/time/period                     C     10                 ³
+  RTE  Rate details                         C      9                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  RFF  Reference                            M      1                ³³
+  DTM  Date/time/period                     C      2                ³³
+  GIS  General indicator                    C      5                ³³
+  FTX  Free text                            C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CUX  Currencies                           M      1                ³³
+  DTM  Date/time/period                     C      5                ³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄÄÄ¿³
+  ALC  Allowance or charge                  M      1                ³³
+  RFF  Reference                            C      1                ³³
+  DTM  Date/time/period                     C      1                ³³
+  RNG  Range details                        C      1                ³³
+  FTX  Free text                            C     10                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     20 ÄÄÄÄ¿³³
+  PCD  Percentage details                   M      1               ³³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    100 ÄÄÄÄÄ¿³
+  RCS  Requirements and conditions          M      1                ³³
+  BII  Bill item identification             M      1                ³³
+  FTX  Free text                            C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M    100 ÄÄÄÄÄ¿³
+  ARD  Amounts relationship details         M      1                ³³
+  MOA  Monetary amount                      M      6                ³³
+  FTX  Free text                            C     10                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  TAX  Duty/tax/fee details                 M      1               ³³³
+  MOA  Monetary amount                      C      1               ³³³
+  LOC  Place/location identification        C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 12 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     15 ÄÄÄÄ¿³³
+  ALC  Allowance or charge                  M      1               ³³³
+  ALI  Additional information               C      5               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 13 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  QTY  Quantity                             M      1              ³³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 14 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  PCD  Percentage details                   M      1              ³³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 15 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  MOA  Monetary amount                      M      1              ³³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 16 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  RTE  Rate details                         M      1              ³³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 17 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄ¿³³³
+  TAX  Duty/tax/fee details                 M      1              ³³³³
+  MOA  Monetary amount                      C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 18 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     20 ÄÄÄÄÄ¿³
+  NAD  Name and address                     M      1                ³³
+  LOC  Place/location identification        C     25                ³³
+  FII  Financial institution information    C      9                ³³
+  FTX  Free text                            C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 19 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  RFF  Reference                            M      1               ³³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 20 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  DOC  Document/message details             M      1               ³³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 21 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  CTA  Contact information                  M      1               ³³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNS  Section control                      M      1                  
+                                                                      
+  ÄÄÄ Segment Group 22 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M   1000 ÄÄÄÄÄÄ¿
+  BII  Bill item identification             M      1                 ³
+  RCS  Requirements and conditions          M      1                 ³
+  GIS  General indicator                    M     10                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 23 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  RFF  Reference                            M      1                ³³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 24 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    100 ÄÄÄÄÄ¿³
+  DIM  Dimensions                           M      1                ³³
+  API  Additional price information         C      1                ³³
+  FTX  Free text                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 25 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    100 ÄÄÄÄÄ¿³
+  LIN  Line item                            M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 26 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   1000 ÄÄÄÄ¿³³
+  IMD  Item description                     M      1               ³³³
+  RFF  Reference                            C      5               ³³³
+  GIS  General indicator                    C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 27 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M   1000 ÄÄÄÄÄ¿³
+  QTY  Quantity                             M      1                ³³
+  GIS  General indicator                    C      3                ³³
+  API  Additional price information         C      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 28 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      3 ÄÄÄÄ¿³³
+  PRI  Price details                        M      1               ³³³
+  GIS  General indicator                    M      3               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 29 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄ¿³³³
+  ARD  Amounts relationship details         M      1              ³³³³
+  MOA  Monetary amount                      C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 30 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  TAX  Duty/tax/fee details                 M      1                ³³
+  MOA  Monetary amount                      C      1                ³³
+  LOC  Place/location identification        C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 31 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  BII  Bill item identification             M      1                ³³
+  GIS  General indicator                    M      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 32 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄÄÄ¿³
+  ALC  Allowance or charge                  M      1                ³³
+  RFF  Reference                            C      1                ³³
+  DTM  Date/time/period                     C      1                ³³
+  RNG  Range details                        C      1                ³³
+  FTX  Free text                            C     10                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 33 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     20 ÄÄÄÄ¿³³
+  PCD  Percentage details                   M      1               ³³³
+  RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 34 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄ¿³
+  IMD  Item description                     M      1                ³³
+  QTY  Quantity                             C      1                ³³
+  MOA  Monetary amount                      C      1                ³³
+  PRI  Price details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+  CNT  Control total                        C     10                  
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+AGR  Agreement identification
+ALC  Allowance or charge
+ALI  Additional information
+API  Additional price information
+ARD  Amounts relationship details
+AUT  Authentication result
+BGM  Beginning of message
+BII  Bill item identification
+CNT  Control total
+COM  Communication contact
+CTA  Contact information
+CUX  Currencies
+DIM  Dimensions
+DOC  Document/message details
+DTM  Date/time/period
+FII  Financial institution information
+FTX  Free text
+GIS  General indicator
+IMD  Item description
+IND  Index details
+LIN  Line item
+LOC  Place/location identification
+MOA  Monetary amount
+NAD  Name and address
+PCD  Percentage details
+PRI  Price details
+QTY  Quantity
+RCS  Requirements and conditions
+RFF  Reference
+RNG  Range details
+RTE  Rate details
+TAX  Duty/tax/fee details
+UNH  Message header
+UNS  Section control
+UNT  Message trailer

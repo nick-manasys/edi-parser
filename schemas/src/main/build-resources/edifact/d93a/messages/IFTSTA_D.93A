@@ -1,0 +1,509 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+INTERNATIONAL MULTIMODAL STATUS REPORT MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :IFTSTA
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :1 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE:  WESTERN EUROPEAN EDIFACT BOARD 
+
+
+                          CONTENTS 
+
+INTERNATIONAL MULTIMODAL STATUS REPORT MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification provides the definition of the International
+Multimodal Status Report Message (IFTSTA) to be used in Electronic
+Data Interchange (EDI) between partners involved in Administration,
+Commerce and Transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+A message to report the transport status and/or a change in the
+transport status (i.e. event) between agreed parties.
+
+1.2 Field of Application
+
+This message type may be applied for both national and international
+trade. It is based on universal practice and is not dependent on the
+type of business or industry.
+
+1.3 Principles
+
+This message allows for the exchange of information regarding the
+status of the physical movement of consignments, goods or equipment at
+any point (in time or place) within the full transport chain.
+
+A status message may be sent:
+- as the result of request/s for consignment/s or equipment status/es
+- on a scheduled basis at predetermined times
+- on the occurrence of a selected event/s
+- on the occurrence of an exceptional event as agreed by the partners
+involved.
+
+This message can relate to a status (or statuses) that has or have
+been reached in a transport chain.
+
+Data requirements for tracking equipment where equipment is not
+associated with a consignment (such as repair container) are NOT
+addressed in this message.
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying a message. The
+message type code for the UN International Multimodal Status Report
+Message is IFTSTA.
+Note: International Multimodal Status Report messages conforming to
+this document must contain the following data in segment UNH,
+composite S009:
+Data element   0065 IFTSTA
+               0052 D
+               0054 93A
+               0051 UN
+
+BGM, Beginning of message
+A segment indicating the beginning of a message and identifying the
+consignment for which status is being reported.
+
+DTM, Date/time/period
+A segment indicating the date of the message.
+
+TSR, Transport service requirements
+A segment identifying the transport service relating to the
+consignment.
+
+NAD, Name and address
+A segment identifying a party to the consignment such as shipper or
+consignee.
+
+RFF, Reference
+A segment identifying a reference which applies to the entire
+consignment.
+
+LOC, Place/location identification
+A segment identifying a place/location which applies to the
+consignment such as consignment origin and destination.
+
+FTX, Free text
+A segment specifying free form or processable supplementary or other
+information.
+
+CNT, Control total
+A segment specifying a total for the consignment.
+
+
+
+
+
+
+
+
+
+
+
+
+Segment Group 1: CNI-SG2
+A group of segments to identify a consignment and status details
+relating to it.
+
+  CNI, Consignment information
+  A segment to identify a consignment for which status details are
+  given.
+
+
+  Segment Group 2: STS-RFF-DTM-FTX-NAD-LOC-PCI-SG3-SG4-SG6
+  A group of segments indicating the status and/or identifying an
+  event and specifying relevant details.
+
+    STS, Transport status report
+    A segment specifying the status relating to a consignment (e.g.
+    loaded).
+
+    RFF, Reference
+    A segment identifying a reference relating to the status (e.g
+    House Bill of Lading number).
+
+    DTM, Date/time/period
+    A segment indicating the date and time of the status or event.
+
+    FTX, Free text
+    A segment specifying processable information relating to the
+    status.
+
+    NAD, Name and address
+    A segment specifying the name and/or address associated with the
+    event such as notify party, terminal address, trucking company for
+    gate move.
+
+    LOC, Place/location identification
+    A segment identifying the location at which the status or event
+    occurs.
+
+    PCI, Package identification
+    A segment to specify individual packages (transportable units)
+    relating to the consignment status.
+
+
+    Segment Group 3: TDT-RFF-LOC-DTM
+    A group of segments indicating conveyance details related to the
+    status or event.
+
+      TDT, Details of transport
+      A segment identifying conveyance related to the status or event
+      such as flight, vessel/voyage.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      RFF, Reference
+      A segment specifying an additional reference related to the
+      conveyance such as transfer manifest number, truck license
+      number.
+
+      LOC, Place/location identification
+      A segment indicating locations related to conveyance such as
+      flight origin/destination.
+
+      DTM, Date/time/period
+      A segment indicating dates related to conveyance such as
+      destination and/or arrival date/time.
+
+
+    Segment Group 4: EQD-MEA-DIM-SEL-SG5
+    A group of segments indicating the equipment details relating to
+    the status or event.
+
+      EQD, Equipment details
+      A segment identifying equipment related to status or event such
+      as a container of a multi-container consignment.
+
+      MEA, Measurements
+      A segment specifying measurements related to the equipment such
+      as gross weight, tare weight, capacity.
+
+      DIM, Dimensions
+      A segment specifying the dimensions of the equipment such as
+      height.
+
+      SEL, Seal number
+      A segment identifying seal and seal issuer associated with the
+      equipment.
+
+
+      Segment Group 5: EQA-SEL
+      A group of segments specifying the attached equipment and the
+      associated seal information.
+
+        EQA, Attached equipment
+        A segment identifying attached equipment or related equipment
+        such as a chassis attached to a container.
+
+        SEL, Seal number
+        A segment identifying seal and seal issuer associated with the
+        equipment.
+
+
+    Segment Group 6: GID-HAN-PCI-SG7-SG8
+    A group of segments describing the goods item related to the
+    status or event.
+
+
+
+
+
+
+
+
+
+
+
+
+      GID, Goods item details
+      A segment identifying a goods item.
+
+      HAN, Handling instructions
+      A segment identifying handling instructions.
+
+      PCI, Package identification
+      A segment specifying marks and numbers.
+
+
+      Segment Group 7: MEA-EQN
+      A group of segments specifying measurements.
+
+        MEA, Measurements
+        A segment specifying measurements, other than dimension, of a
+        goods item.
+
+        EQN, Number of units
+        A segment specifying the number of units to which the given
+        measurement is applicable.
+
+
+      Segment Group 8: DIM-EQN
+      A group of segments specifying dimensions of a goods item.
+
+        DIM, Dimensions
+        A segment specifying dimensions of a goods item.
+
+        EQN, Number of units
+        A segment specifying the number of units to which the given
+        dimension is applicable.
+
+UNT, Message trailer
+A segment ending a message giving the total number of segments in the
+message and the control reference of the message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+* DTM  Date/time/period                     C      9                  
+  TSR  Transport service requirements       C      1                  
+  NAD  Name and address                     C      9                  
+  RFF  Reference                            C      9                  
+  LOC  Place/location identification        C      9                  
+  FTX  Free text                            C      9                  
+  CNT  Control total                        C      9                  
+                                                                      
++ ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄÄÄ¿
++ CNI  Consignment information              M      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M     99 ÄÄÄÄÄ¿³
+  STS  Transport status report              M      1                ³³
+  RFF  Reference                            C      9                ³³
+  DTM  Date/time/period                     C      1                ³³
+* FTX  Free text                            C      9                ³³
+  NAD  Name and address                     C      9                ³³
+  LOC  Place/location identification        C      1                ³³
++ PCI  Package identification               C     99                ³³
+                                                                    ³³
+* ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄÄ¿³³
+  TDT  Details of transport                 M      1               ³³³
+  RFF  Reference                            C      9               ³³³
+  LOC  Place/location identification        C      9               ³³³
+  DTM  Date/time/period                     C      9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄ¿³³
+  EQD  Equipment details                    M      1               ³³³
+  MEA  Measurements                         C      9               ³³³
+  DIM  Dimensions                           C      9               ³³³
+  SEL  Seal number                          C      9               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄ¿³³³
+  EQA  Attached equipment                   M      1              ³³³³
+  SEL  Seal number                          C     99 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    999 ÄÄÄÄ¿³³
+  GID  Goods item details                   M      1               ³³³
+  HAN  Handling instructions                C      9               ³³³
+* PCI  Package identification               C     99               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄ¿³³³
+  MEA  Measurements                         M      1              ³³³³
+  EQN  Number of units                      C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     99 ÄÄÄ¿³³³
+  DIM  Dimensions                           M      1              ³³³³
+  EQN  Number of units                      C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÁÙ
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+BGM  Beginning of message
+CNI  Consignment information
+CNT  Control total
+DIM  Dimensions
+DTM  Date/time/period
+EQA  Attached equipment
+EQD  Equipment details
+EQN  Number of units
+FTX  Free text
+GID  Goods item details
+HAN  Handling instructions
+LOC  Place/location identification
+MEA  Measurements
+NAD  Name and address
+PCI  Package identification
+RFF  Reference
+SEL  Seal number
+STS  Transport status report
+TDT  Details of transport
+TSR  Transport service requirements
+UNH  Message header
+UNT  Message trailer

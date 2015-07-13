@@ -1,0 +1,73 @@
+                                                   File: D410_D.93A
+UN/EDIFACT DRAFT DIRECTORY
+
+
+
+
+Note for Draft directories:
+
+All references to the UNTDID (UN/EDIFACT Standard directory)
+made in the following text apply equally to the Standard (UNTDID)
+and the Draft directory with the following exceptions:
+
+A) All references to "UNSM" (United Nations Standard Message)
+   should be replaced with "Draft message"
+
+B) All file and directory names should be changed from EDXX or
+   UNEDXX to TRXX or UNTRXX for the Draft directory (where XX
+   changes depending upon the file/directory in question)
+
+C) All information found in Part 5 of the Draft directories
+   is presented in a draft and NOT a standard version
+
+PART 4, UNITED NATIONS RULES FOR ELECTRONIC DATA INTERCHANGE FOR
+        ADMINISTRATION, COMMERCE AND TRANSPORT
+
+Chapter 1  Introduction
+
+This part of UNTDID has been prepared by the UN/EDIFACT Rapporteurs
+teams with representation from interested WP.4 members and is
+approved by UN/ECE/TRADE/WP.4 in accordance with the procedure
+outlined in chapter 2.1.
+
+It contains in chapter 2 the rules and general information on the
+establishment and use of EDIFACT message types. Together with Part 5
+which contains the directories, it constitutes a UNSM manual.
+
+The EDIFACT Rapporteurs are responsible for proposing to WP.4 for
+agreement, additions, changes and deletions to maintain this part of
+UNTDID. The EDIFACT syntax in chapter 2.2 is ISO standard 9735. Parts
+of the UN Trade data elements directory (UNTDED), of which the
+EDIFACT data elements in Part 5 are an excerpt, is ISO 7372. For ISO
+9735 the ISO maintenance rules apply for ISO 7372 an agreement on
+a Maintenance Agency is in force.
+
+The message types in Part 5, chapter 2, and their supporting material
+in the chapters thereafter, are based on business requirements;
+representatives from interested industries and organizations have
+participated in their preparation.
+
+EDIFACT favours the principle of general usefulness. A UNSM should be
+generally usable in all applications within its defined function. The
+same applies for segments in relation to messages and for composite-
+and simple data elements in relation to segments. To ascertain such
+alignment, each message type and its components, new or amended, are
+checked by Maintenance Advisory Groups (MAG) and Technical Assessment
+Groups (TAG), often combined, within the respective Rapporteurs'
+Teams and before submittance to WP.4 by its Directories Reference
+Group (DRG).
+
+In order to be generally useful in all application areas within its
+defined function, it is evident that a UNSM will allow for more data
+than will normally be used in any single message. This might
+discourage some prospective users fearing a large overhead; however,
+since sub-sets of message types can be defined, messages can be
+reduced in size to meet user requirements. Similarly, since the
+syntax rules allow for omission and truncation of unused units
+remaining in the UNSM, the number of characters transmitted can be
+reduced significantly.
+
+* Part 5 of this manual includes the UN Standard Message types (UNSM)
+agreed by WP.4 and their supporting material. New issues of UNTDID 
+will be published two months after WP.4 agreement.  Additions, changes
+and deletions in reference to the previous issue will be marked.

@@ -1,0 +1,1142 @@
+                         UN/EDIFACT
+
+
+                    DRAFT RECOMMENDATION
+                    
+                    
+                    
+
+PAYMENT VALUATION MESSAGE
+
+
+
+
+
+
+------------------------------------------------------------
+This  message is available  for formal  trial in the present
+version for a period of at least twelve months from the date
+of approval by the UN/ECE/TRADE/WP.4.
+
+Organisations are  invited to  trial this  message  and  are
+requested to  notify  their  Rapporteur Team  Secretariat of
+their intention.  Comments on  the results  from  the  trial
+should also  be forwarded to the Secretariat as soon as they
+are available.  Based on  the results  of the trials, a UNSM
+will be issued.
+
+It should be  noted  that this  material is  contained in  a
+Trial Directory;  however, it may differ from that in the UN
+Directories (UNTDID)  having  the  same identfying tags. Any
+differences will be reconciled prior to the message becoming
+a UNSM.
+------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+                                     Message Type  :CONPVA
+                                     Version       :D 
+                                     Release       :93A 
+                                     Contr. Agency :UN  
+
+                                     Status        :2 
+                                     Date          :93-07
+
+
+
+
+
+
+SOURCE:  Western European EDIFACT Board - MD5 
+
+
+                          CONTENTS 
+
+PAYMENT VALUATION MESSAGE MESSAGE
+
+
+
+
+0.  Introduction
+
+1.  Scope
+
+    1.1  Functional Definition
+    1.2  Field of Application
+    1.3  Principles
+
+2.  References
+
+3.  Message Definition
+
+4.  Message Definition
+
+    4.1  Data Segment Clarification
+    4.2  Message structure
+
+         4.2.1  Branching Diagram
+         4.2.2  Segment Table
+
+    4.3  Data Segment Index (Alphabetic Sequence)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------
+For general  information on  UN standard message types see UN
+Trade Data  Interchange Directory,  UNTDID, Part  4,  Section
+2.5, UN/ECE UNSM General Introduction.
+-------------------------------------------------------------
+0.  Introduction
+
+
+
+This specification provides the definition of the Payment Valuation
+message (CONPVA) to be used in Electronic Data Interchange (EDI)
+between partners involved in Administration, Commerce and Transport.
+
+1.  Scope
+
+1.1 Functional Definition
+
+Typically this message will be used between a contractor and the
+client's representative, during the process of approving the value and
+payment for work completed for a given period of time.
+
+1.2 Field of Application
+
+This message type may be applied for both national and international
+trade. It is based on universal practice and is not dependent on the
+type of business or industry.
+The following descriptions refer to the  construction industry as an
+example, but do not exclude other business sectors' implementation.
+
+1.3 Principles
+
+This message is to be used to support the business process of
+communicating the value of progress against groups of work items which
+make up a construction project.
+There are several examples within the  construction process where one
+party is required to advise another party about the value of work
+performed during a specific time period or since the start of the
+project.
+A project may be subdivided into individual groupings of  work,
+referred to as items and it is against these items that progress
+quantities are reported.
+Similar exchanges take place on the entire or part of the project and
+between other parties also involved in the construction of the
+project.
+Within the Construction industry there are numerous rules  which
+govern this part of the process. Although, efforts have been made to
+keep the design of the message generic, other potential users of this
+message are cautioned about the specific and original role for which
+this message has been designed.
+This is only one of a number of  messages being designed for the
+construction industry. This particular message refers to already
+established items of work, these items will have been defined at the
+start of the project. Work is well advanced for suitable EDI messages
+to address this part of the process.
+Allowance has been made within  CONPVA message for "new" items of
+work. There are a number of reasons why additional items of work will
+occur once a project has started.
+
+
+
+
+
+
+
+
+
+
+Each work item may contain more than one quantity and this has been
+accommodated. An example of this would be the inclusion of both a
+cumulative and a "this period" quantity.
+In addition to conveying  specific payment values this message is
+designed to record details of revisions and fluctuation to standard
+tables of rates and payment factors which are used in the calculation
+of the payment value.
+Confirmation of values processed for direct  payment by the client are
+also catered for. These relate to individual entries within a CONDPV
+message.
+
+2.  References
+
+See UNTDID,  Part 4  Section 2.5  UN/ECE  UNSM  -  General
+Introduction, Section 1.
+
+
+3.  Terms and Definitions
+
+See UNTDID,  Part 4,  Section 2.5  UN/ECE  UNSM -  General 
+Introduction, Section 2.
+
+
+4.   Message Definition
+
+4.1  Data Segment Clarification
+
+This section should be read in conjunction with the Branching
+Diagram and  the  Segment  Table  which  indicate  mandatory,
+conditional and repeating requirements.
+
+UNH, Message header
+A service segment starting and uniquely identifying a message. The
+message type identifier for the UN Payment Valuation Message is
+'CONPVA'.
+Note: Payment Valuation Message conforming to this document must
+contain the following data in UNH, composite S009:
+Data element   0065 CONPVA
+               0052 D
+               0054 93A
+               0051 UN
+
+BGM, Beginning of message
+A segment for unique identification of the Payment Valuation document
+name, number and function.
+
+DTM, Date/time/period
+A segment specifying the dates that apply, e.g. date of valuation,
+date of submission, acceptance date, etc.
+
+
+
+
+
+
+
+
+
+
+
+
+
+AUT, Authentication result
+A segment used to authenticate the message by exchanging a password or
+some other form of identification agreed between the trading partners.
+
+FTX, Free text
+A segment with free text information, in coded or clear form, used for
+any textual qualification. In computer to computer exchanges, such
+text will require the receiver to process this segment manually.
+
+
+Segment Group 1: RFF-DTM
+A group of segments for quoting references and their relevant dates
+that are applicable to the message.
+
+  RFF, Reference
+  A segment for quoting references that are applicable to this whole
+  message. e.g. contract identity, operational references, former
+  valuation reference number.
+
+  DTM, Date/time/period
+  Dates of references quoted in the previous RFF segment.
+
+
+Segment Group 2: NAD-LOC-FII-SG3-SG4-SG5
+A group of segments identifying the parties with associated
+information.
+
+  NAD, Name and address
+  A segment identifying names and addresses of the parties, in coded
+  or clear form, and their functions relevant to the valuation.
+  Identification of the contractor and client parties is mandatory for
+  the valuation message. It is recommended that where possible only
+  the coded form of the party ID should be specified.
+
+  LOC, Place/location identification
+  A segment giving more specific location information of the party
+  specified in the NAD segment e.g. internal site/building number.
+
+  FII, Financial institution information
+  A segment identifying the financial institution (e.g. bank) and
+  relevant account numbers for the contractor, client and where
+  necessary other parties.
+
+
+  Segment Group 3: RFF-DTM
+  A group of segments for giving references only relevant to the
+  specified party rather than the whole valuation.
+
+    RFF, Reference
+    A segment identifying the reference by its number and where
+    appropriate a line number within a document.
+
+
+
+
+
+
+
+
+
+
+
+
+    DTM, Date/time/period
+    A segment specifying the date and/or time related to the
+    reference.
+
+
+  Segment Group 4: DOC-DTM
+  A group of segments identifying the documentary requirements of the
+  specified party.
+
+    DOC, Document/message details
+    A segment identifying and providing information relating to the
+    documents required by the party specified by the NAD.
+
+    DTM, Date/time/period
+    A segment specifying the date and/or time of the document.
+
+
+  Segment Group 5: CTA-COM
+  A group of segments giving contact details of the specific person or
+  department within the party identified in the NAD segment.
+
+    CTA, Contact information
+    A segment to identify a person or department, and their function,
+    to whom communications should be directed.
+
+    COM, Communication contact
+    A segment to identify a communications type and number for the
+    contact specified in the CTA segment.
+
+
+Segment Group 6: CUX-DTM
+A group of segments specifying the currencies and related
+dates/periods valid for the whole valuation. Currency data may be
+omitted in national applications but will be required for
+international transactions.
+
+  CUX, Currencies
+  A segment identifying the currencies required in the valuation e.g.
+  the valuation currency. A rate of exchange may be given to convert a
+  reference currency into a target currency.
+
+  DTM, Date/time/period
+  A segment specifying the date/time/period related to the rate of
+  exchange.
+
+
+Segment Group 7: IND-RFF-DTM
+A group of segments to convey the new fluctuation indices values.
+
+  IND, Index details
+  A segment to provide a new value of the quoted index.
+
+  RFF, Reference
+  A segment to indicate the reference of the index.
+
+
+
+
+
+
+
+
+
+
+  DTM, Date/time/period
+  A segment to convey the new date of value of the quoted index.
+
+
+Segment Group 8: BII-RCS-PAI-PAT-SG9-SG10-SG18
+A group of segments to indicate: - the financial total amounts of the
+valuation or parts of it - conditions of payments - conditions of
+allowances and charges, bonuses and penalties - the total amounts to
+be paid directly to subcontractors (request or confirmation)
+
+  BII, Bill item identification
+  A segment to identify the group of items to which the valuation
+  amounts stated in the group of segments apply. The identification of
+  the groups of items referred to here has already been conveyed
+  through another appropriate EDI message.
+
+  RCS, Requirements and conditions
+  A segment to provide requirements that are applicable to the whole
+  group of items referred to in BII.
+
+  PAI, Payment instructions
+  A segment indicating conditions of payment, guarantee and method of
+  payment for the whole group of items referred to in BII.
+
+  PAT, Payment terms basis
+  A segment indicating the payment terms, date/time basis, and
+  additional terms valid for the whole group of items referred to in
+  BII.
+
+
+  Segment Group 9: API-DTM
+  A group of segments to convey the results of the computation of the
+  fluctuation formulas and the relevant dates/periods.
+
+    API, Additional price information
+    A segment to indicate the price fluctuation computation.
+
+    DTM, Date/time/period
+    A segment to indicate the date or period of application of the
+    factor quoted in API.
+
+
+  Segment Group 10: ARD-MOA-FTX-SG11-SG12
+  A group of segments to convey the financial amounts related to the
+  group of items referred to in BII and their relevant taxes and if
+  necessary the details of their computation.
+
+    ARD, Amounts relationship details
+    A segment to convey a financial status of the following
+    information.
+
+
+
+
+
+
+
+
+
+
+
+
+
+    MOA, Monetary amount
+    A segment to convey monetary amounts related to the group of items
+    referred to in BII and to the financial nature quoted in ARD.
+
+    FTX, Free text
+    A segment with free text information, in coded or clear form, used
+    for any textual qualification. In computer to computer exchanges,
+    such text will require the receiver to process this segment
+    manually.
+
+
+    Segment Group 11: TAX-MOA-LOC
+    A group of segments specifying tax related information, and when
+    necessary, the location(s) to which that tax information relates.
+
+      TAX, Duty/tax/fee details
+      A segment specifying a tax type, category and rate, or
+      exemption, relating to the group of items referred to in BII.
+      e.g. Value Added Tax at the standard rate is applicable for all
+      items.
+
+      MOA, Monetary amount
+      A segment specifying the amount for the identified tax/fee.
+
+      LOC, Place/location identification
+      A segment indicating the location to which the tax or exemption
+      specified in the TAX segment applies, e.g. city or state or
+      country tax.
+
+
+    Segment Group 12: ALC-ALI-SG13-SG14-SG15-SG16-SG17
+    A group of segments specifying allowances and charges for the
+    group of items referred to in BII. The allowance or charge
+    specified within this Segment group may either relate to the group
+    of items referred to in BII in which case it cannot be overridden
+    at item level, or it can relate to the line items as a default
+    allowance/charge and can be overridden by the ALC Segment group
+    within the item section. Where relevant, additional information,
+    tax and alternate currency details are to be indicated in the TAX
+    and MOA segments. The basis for the calculation of the
+    allowance/charge may be a quantity, a percentage, an amount or a
+    rate and one of the Segment group 13-16 should be used
+    accordingly.
+    
+      ALC, Allowance or charge
+      A segment identifying the charge or allowance and, where
+      necessary its calculation sequence.
+
+      ALI, Additional information
+      A segment indicating that allowance or charge specified is
+      subject to special conditions owing to origin, customs
+      preference or commercial factors.
+
+
+
+
+
+
+
+
+
+
+
+      Segment Group 13: QTY-RNG
+      A group of segments specifying the quantity of the allowance or
+      charge with its measure unit specifier. A range to which the
+      allowance or charge applies may be specified. e.g. An allowance
+      of a free quantity of 20 pieces may be specified if the quantity
+      ordered is greater than 1000 pieces.
+
+        QTY, Quantity
+        A segment identifying the type of quantity and the quantity
+        related to the allowance or charge.
+
+        RNG, Range details
+        A segment specifying, if required, the range to which the
+        allowance or charge applies.
+
+
+      Segment Group 14: PCD-RNG
+      A group of segments specifying the percentage for the allowance
+      or charge, e.g. The allowance/charge amount is calculated as 5%
+      of the goods value or a price reduction of 5% may be specified
+      if the goods quantity ordered is within the range 5 tons to 10
+      tons.
+
+        PCD, Percentage details
+        A segment identifying the percentage and the percentage basis
+        for the calculation of the allowance or charge.
+
+        RNG, Range details
+        A segment specifying, if required, a range for the application
+        of the percentage.
+
+
+      Segment Group 15: MOA-RNG
+      A group of segments specifying a monetary amount for an
+      allowance or charge. A range to which the allowance or charge
+      applies can be specified.
+
+        MOA, Monetary amount
+        A segment identifying the monetary amount for the allowance or
+        charge.
+
+        RNG, Range details
+        A segment specifying, if required, a range for the application
+        of the allowance/charge amount.
+
+
+      Segment Group 16: RTE-RNG
+      A group of segments specifying the rate per unit and basis to
+      which the allowance or charge applies, e.g. The allowance/charge
+      amount is 3 DEM per 10 tons.
+
+
+
+
+
+
+
+
+
+
+
+
+
+        RTE, Rate details
+        A segment specifying the rate per unit and the basis for
+        calculation.
+
+        RNG, Range details
+        A segment specifying, if required, the range for the
+        application of the allowance/charge rate.
+
+
+      Segment Group 17: TAX-MOA
+      A group of segments specifying tax related information for the
+      allowance or charge and, when necessary, the location(s) to
+      which that tax information relates.
+
+        TAX, Duty/tax/fee details
+        A segment specifying the tax type, category, and rate, or
+        exemption, related to the allowance or charge.
+
+        MOA, Monetary amount
+        A segment specifying the amount for the allowance or charge.
+
+
+  Segment Group 18: NAD-LOC-FII-SG19-SG20-SG21
+  A group of segments identifying the parties with associated
+  information for the group of items referred to in BII.
+
+    NAD, Name and address
+    A segment identifying names and addresses of the parties, in coded
+    or clear form, and their functions relevant to the valuation.
+    Identification of the contractor and client parties is mandatory
+    for the valuation message. It is recommended that where possible
+    only the coded form of the party ID should be specified. e.g. The
+    contractor and client are known to each other, thus only the coded
+    ID is required, but the subcontractors addresses may vary and
+    would have to be clearly specified, preferably in structured
+    format.
+
+    LOC, Place/location identification
+    A segment giving more specific location information of the party
+    specified in the NAD segment e.g. internal site/building number.
+
+    FII, Financial institution information
+    A segment identifying the financial institution (e.g. bank) and
+    relevant account numbers for the contractor, client and where
+    necessary other parties.
+
+
+    Segment Group 19: RFF-DTM
+    A group of segments for giving references only relevant to the
+    specified party rather than the whole valuation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+      RFF, Reference
+      A segment identifying the reference by its number and where
+      appropriate a line number within a document.
+
+      DTM, Date/time/period
+      A segment specifying the date and/or time related to the
+      reference.
+
+
+    Segment Group 20: DOC-DTM
+    A group of segments identifying the documentary requirements of
+    the specified party.
+
+      DOC, Document/message details
+      A segment identifying and providing information relating to the
+      documents required by the party specified by the NAD.
+
+      DTM, Date/time/period
+      A segment specifying the date and/or time of the document.
+
+
+    Segment Group 21: CTA-COM
+    A group of segments giving contact details of the specific person
+    or department within the party identified in the NAD segment.
+
+      CTA, Contact information
+      A segment to identify a person or department, and their
+      function, to whom communications should be directed.
+
+      COM, Communication contact
+      A segment to identify a communication type and number for the
+      contract specified in the CTA segment.
+
+UNS, Section control
+A service segment placed at the beginning of the detail section to
+avoid collision.
+
+
+Segment Group 22: BII-RCS-QTY-PRI-MOA-SG23-SG25-SG26-SG27
+A group of segments providing the quantities and the corresponding
+prices of the works performed for each item, or group of items.
+
+  BII, Bill item identification
+  A segment to identify the item of work (or group of items) to which
+  the quantities apply.
+
+  RCS, Requirements and conditions
+  A segment to provide requirements that are applicable to the whole
+  group of segments: financial status (when an item is added to
+  the BOQ, day works for example), and an action request.
+
+  QTY, Quantity
+  A segment giving the quantity of works performed, in cumulative,
+  last period cumulative, quantity of the period, and other forms as
+  required.
+
+  PRI, Price details
+  A segment used to indicate the unit price of the items.
+
+  MOA, Monetary amount
+  A segment used to indicate monetary amount which are the computation
+  of the unit price and quantities quoted in QTY.
+
+
+  Segment Group 23: LIN-SG24
+  A group of segments to record descriptive text for items that are
+  added into existing groups during the completion of the works. e.g.
+  Day works.
+
+    LIN, Line item
+    A segment to record a qualifier specifying that we are at item
+    level.
+
+
+    Segment Group 24: IMD-RFF-GIS
+    A group of segments to record the description line details
+    together with text reference numbers and change action codes used
+    to identify who is authorised to apply changes.
+
+      IMD, Item description
+      This segment is used to convey any descriptive material to be
+      recorded for the item. This descriptive material can apply to
+      the item description and item heading information.
+
+      RFF, Reference
+      A segment used to record up to two text reference numbers per
+      item description line.
+
+      GIS, General indicator
+      A segment used to record up to two text change action codes per
+      item description line. In this context suppression is not
+      allowed.
+
+
+  Segment Group 25: API-DTM
+  A group of segments to convey the results of the computation of the
+  fluctuation formulas and the relevant dates/periods for this item
+  when it is different from the group to which this item belongs.
+
+    API, Additional price information
+    A segment to indicate the price fluctuation computation.
+
+    DTM, Date/time/period
+    A segment to indicate the date or period of application of the
+    factor quoted in API.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Segment Group 26: TAX-MOA-LOC
+  A group of segments specifying tax related information for this item
+  when it is specific to this item or different from the group to
+  which it belongs, and when necessary, the location(s) to which that
+  tax information relates.
+
+    TAX, Duty/tax/fee details
+    A segment specifying a tax type, category and rate, or exemption,
+    relating to the group of items referred to in BII. e.g. Value
+    Added Tax at the standard rate is applicable for all items.
+
+    MOA, Monetary amount
+    A segment specifying the amount for the identified tax/fee.
+
+    LOC, Place/location identification
+    A segment indicating the location to which the tax or exemption
+    specified in the TAX segment applies, e.g. city or state or
+    country tax.
+
+
+  Segment Group 27: ALC-ALI-SG28-SG29-SG30-SG31-SG32
+  A group of segments specifying allowances and charges for the item
+  referred to in BII where this is different to or not specified
+  within the group of items to which it belongs.
+
+    ALC, Allowance or charge
+    A segment identifying the charge or allowance and, where necessary
+    its calculation sequence.
+
+    ALI, Additional information
+    A segment indicating that allowance or charge specified is subject
+    to special conditions owing to origin, customs preference or
+    commercial factors.
+
+
+    Segment Group 28: QTY-RNG
+    A group of segments specifying the quantity of the allowance or
+    charge with its measure unit specifier. A range to which the
+    allowance or charge applies may be specified. e.g. An allowance of
+    a free quantity of 20 pieces may be specified if the quantity
+    ordered is greater than 1000 pieces.
+
+      QTY, Quantity
+      A segment identifying the type of quantity and the quantity
+      related to the allowance or charge.
+
+      RNG, Range details
+      A segment specifying, if required, the range to which the
+      allowance or charge applies.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    Segment Group 29: PCD-RNG
+    A group of segments specifying the percentage for the allowance or
+    charge, e.g. The allowance/charge amount is calculated as 5% of
+    the goods value or a price reduction of 5% may be specified if the
+    goods quantity ordered is within the range 5 tons to 10 tons.
+
+      PCD, Percentage details
+      A segment identifying the percentage and the percentage basis
+      for the calculation of the allowance or charge.
+
+      RNG, Range details
+      A segment specifying, if required, a range for the application
+      of the percentage.
+
+
+    Segment Group 30: MOA-RNG
+    A group of segments specifying a monetary amount for an allowance
+    or charge. A range to which the allowance or charge applies can be
+    specified.
+
+      MOA, Monetary amount
+      A segment identifying the monetary amount for the allowance or
+      charge.
+
+      RNG, Range details
+      A segment specifying, if required, a range for the application
+      of the allowance/charge amount.
+
+
+    Segment Group 31: RTE-RNG
+    A group of segments specifying the rate per unit and basis to
+    which the allowance or charge applies, e.g. The allowance/charge
+    amount is 3 DEM per 10 tons.
+
+      RTE, Rate details
+      A segment specifying the rate per unit and the basis for
+      calculation.
+
+      RNG, Range details
+      A segment specifying, if required, the range for the application
+      of the allowance/charge rate.
+
+
+    Segment Group 32: TAX-MOA
+    A group of segments specifying tax related information for the
+    allowance or charge and, when necessary, the location(s) to which
+    that tax information relates.
+
+      TAX, Duty/tax/fee details
+      A segment specifying the tax type, category, and rate, or
+      exemption, related to the allowance or charge.
+
+
+
+
+
+
+
+
+
+
+
+
+      MOA, Monetary amount
+      A segment specifying the amount for the allowance or charge.
+
+UNS, Section control
+A service segment placed at the beginning of the summary section to
+avoid collision.
+
+
+Segment Group 33: TAX-MOA
+A group of segments specifying taxes totals for the valuation.
+
+  TAX, Duty/tax/fee details
+  A segment specifying the tax type to be summarized.
+
+  MOA, Monetary amount
+  A segment specifying the amount for the tax specified.
+
+CNT, Control total
+A segment by which control totals may be provided by the sender for
+checking by the receiver.
+
+UNT, Message trailer
+A service segment ending a message, giving the total number of
+segments in the message, and the control reference number of the
+message.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+4.2  Message Structure
+
+4.2.1 Branching Diagram
+
+4.2.2 Segment Table
+
+
+                                 HEADER SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNH  Message header                       M      1                  
+  BGM  Beginning of message                 M      1                  
+  DTM  Date/time/period                     M      9                  
+  AUT  Authentication result                C      2                  
+  FTX  Free text                            C      5                  
+                                                                      
+  ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      9 ÄÄÄÄÄÄ¿
+  RFF  Reference                            M      1                 ³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M      9 ÄÄÄÄÄÄ¿
+  NAD  Name and address                     M      1                 ³
+  LOC  Place/location identification        C     25                 ³
+  FII  Financial institution information    C      5                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄ¿³
+  RFF  Reference                            M      1                ³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  DOC  Document/message details             M      1                ³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  CTA  Contact information                  M      1                ³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+                                                                      
+  ÄÄÄ Segment Group 6 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄÄ¿
+  CUX  Currencies                           M      1                 ³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 7 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    100 ÄÄÄÄÄÄ¿
+  IND  Index details                        M      1                 ³
+  RFF  Reference                            M      1                 ³
+  DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                                      
+  ÄÄÄ Segment Group 8 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   1000 ÄÄÄÄÄÄ¿
+  BII  Bill item identification             M      1                 ³
+  RCS  Requirements and conditions          C      1                 ³
+  PAI  Payment instructions                 C      1                 ³
+  PAT  Payment terms basis                  C      1                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 9 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄÄÄ¿³
+  API  Additional price information         M      1                ³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 10 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M    100 ÄÄÄÄÄ¿³
+  ARD  Amounts relationship details         M      1                ³³
+  MOA  Monetary amount                      M      6                ³³
+  FTX  Free text                            C     10                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 11 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  TAX  Duty/tax/fee details                 M      1               ³³³
+  MOA  Monetary amount                      C      1               ³³³
+  LOC  Place/location identification        C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 12 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     20 ÄÄÄÄ¿³³
+  ALC  Allowance or charge                  M      1               ³³³
+  ALI  Additional information               C      5               ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 13 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  QTY  Quantity                             M      1              ³³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 14 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  PCD  Percentage details                   M      1              ³³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 15 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  MOA  Monetary amount                      M      1              ³³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 16 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  RTE  Rate details                         M      1              ³³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³³
+                                                                   ³³³
+  ÄÄÄ Segment Group 17 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄ¿³³³
+  TAX  Duty/tax/fee details                 M      1              ³³³³
+  MOA  Monetary amount                      C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 18 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     20 ÄÄÄÄÄ¿³
+  NAD  Name and address                     M      1                ³³
+  LOC  Place/location identification        C     25                ³³
+  FII  Financial institution information    C      5                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 19 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
+  RFF  Reference                            M      1               ³³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 20 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  DOC  Document/message details             M      1               ³³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 21 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄ¿³³
+  CTA  Contact information                  M      1               ³³³
+  COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNS  Section control                      M      1                  
+                                                                      
+  ÄÄÄ Segment Group 22 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M   9999 ÄÄÄÄÄÄ¿
+  BII  Bill item identification             M      1                 ³
+  RCS  Requirements and conditions          C      1                 ³
+  QTY  Quantity                             M      6                 ³
+  PRI  Price details                        C      1                 ³
+  MOA  Monetary amount                      M      6                 ³
+                                                                     ³
+  ÄÄÄ Segment Group 23 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M    100 ÄÄÄÄÄ¿³
+  LIN  Line item                            M      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 24 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   1000 ÄÄÄÄ¿³³
+  IMD  Item description                     M      1               ³³³
+  RFF  Reference                            C      5               ³³³
+  GIS  General indicator                    C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 25 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      2 ÄÄÄÄÄ¿³
+  API  Additional price information         M      1                ³³
+  DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 26 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
+  TAX  Duty/tax/fee details                 M      1                ³³
+  MOA  Monetary amount                      C      1                ³³
+  LOC  Place/location identification        C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³
+                                                                     ³
+  ÄÄÄ Segment Group 27 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     20 ÄÄÄÄÄ¿³
+  ALC  Allowance or charge                  M      1                ³³
+  ALI  Additional information               C      1                ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 28 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  QTY  Quantity                             M      1               ³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 29 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  PCD  Percentage details                   M      1               ³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 30 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  MOA  Monetary amount                      M      1               ³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 31 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  RTE  Rate details                         M      1               ³³³
+  RNG  Range details                        C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ³³
+                                                                    ³³
+  ÄÄÄ Segment Group 32 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      1 ÄÄÄÄ¿³³
+  TAX  Duty/tax/fee details                 M      1               ³³³
+  MOA  Monetary amount                      C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
+  UNS  Section control                      M      1                  
+                                                                      
+  ÄÄÄ Segment Group 33 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄÄÄ¿
+  TAX  Duty/tax/fee details                 M      1                 ³
+  MOA  Monetary amount                      C      2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+  CNT  Control total                        C      5                  
+  UNT  Message trailer                      M      1                  
+
+
+4.3 Data Segment Index (Alphabetic Sequence)
+
+ALC  Allowance or charge
+ALI  Additional information
+API  Additional price information
+ARD  Amounts relationship details
+AUT  Authentication result
+BGM  Beginning of message
+BII  Bill item identification
+CNT  Control total
+COM  Communication contact
+CTA  Contact information
+CUX  Currencies
+DOC  Document/message details
+DTM  Date/time/period
+FII  Financial institution information
+FTX  Free text
+GIS  General indicator
+IMD  Item description
+IND  Index details
+LIN  Line item
+LOC  Place/location identification
+MOA  Monetary amount
+NAD  Name and address
+PAI  Payment instructions
+PAT  Payment terms basis
+PCD  Percentage details
+PRI  Price details
+QTY  Quantity
+RCS  Requirements and conditions
+RFF  Reference
+RNG  Range details
+RTE  Rate details
+TAX  Duty/tax/fee details
+UNH  Message header
+UNS  Section control
+UNT  Message trailer
