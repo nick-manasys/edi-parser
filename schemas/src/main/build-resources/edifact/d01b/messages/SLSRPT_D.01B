@@ -712,6 +712,9 @@ Pos    Tag Name                                      S   R
 0660   DTM Date/time/period                          C   9        ≥≥≥≥
 0670   RFF Reference                                 C   9        ≥≥≥≥
 0680   STS Status                                    C   9ƒƒƒƒƒƒƒƒ¡¡¡Ÿ
+
+           SUMMARY SECTION
+
 0690   UNS Section control                           M   1     
 0700   MOA Monetary amount                           C   9     
 0710   UNT Message trailer                           M   1     

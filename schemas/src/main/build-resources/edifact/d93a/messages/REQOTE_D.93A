@@ -1450,6 +1450,7 @@ message.
 4.2.2 Segment Table
 
 
+                                 HEADER SECTION
 
   TAG  NAME                                 S   REPT  S   REPT
 
@@ -1575,7 +1576,11 @@ message.
   ÄÄÄ Segment Group 25 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
   TAX  Duty/tax/fee details                 M      1                ³³
   MOA  Monetary amount                      C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
-                                                                      
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   ÄÄÄ Segment Group 26 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M 200000 ÄÄÄÄÄÄ¿
   LIN  Line item                            M      1                 ³
   PIA  Additional product id                C     25                 ³
@@ -1707,6 +1712,11 @@ message.
   ÄÄÄ Segment Group 51 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
   QTY  Quantity                             M      1               ³³³
   DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   UNS  Section control                      M      1                  
   MOA  Monetary amount                      C     15                  
   CNT  Control total                        C     10                  

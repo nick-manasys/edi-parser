@@ -488,6 +488,8 @@ General Introduction
 
 Pos    Tag Name                                      S   R
 
+           HEADER SECTION
+
 0010   UNH Message header                            M   1     
 0020   BGM Beginning of message                      M   1     
 0030   DTM Date/time/period                          M   99    
@@ -506,6 +508,8 @@ Pos    Tag Name                                      S   R
 0130       ----- Segment group 3  ------------------ C   99----------+
 0140   CCI Characteristic/class id                   M   1           |
 0150   CAV Characteristic value                      C   1-----------+
+
+           DETAIL SECTION
 
 0160       ----- Segment group 4  ------------------ M   999---------+
 0170   DTM Date/time/period                          M   1           |
@@ -550,6 +554,9 @@ Pos    Tag Name                                      S   R
 0490   RFF Reference                                 C   1          ||
 0500   DTM Date/time/period                          C   1          ||
 0510   MOA Monetary amount                           M   9----------++
+
+           SUMMARY SECTION
+
 0520   UNS Section control                           M   1     
 
 0530       ----- Segment group 12 ------------------ M   1-----------+

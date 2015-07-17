@@ -432,12 +432,12 @@ message.
   MOA  Monetary amount                      M      1               ≥≥≥
   DTM  Date/time/period                     C      3               ≥≥≥
   FTX  Free text                            C      3 ƒƒƒƒƒƒƒƒƒƒƒƒƒƒ¡¡Ÿ
-  UNS  Section control                      M      1                  
 
                                  SUMMARY SECTION
 
   TAG  NAME                                 S   REPT  S   REPT
 
+  UNS  Section control                      M      1                  
   MOA  Monetary amount                      M      1                  
   CNT  Control total                        C      9                  
   AUT  Authentication result                C      1                  

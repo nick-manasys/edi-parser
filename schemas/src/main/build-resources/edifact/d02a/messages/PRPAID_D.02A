@@ -391,6 +391,8 @@ General Introduction
 
 Pos    Tag Name                                      S   R
 
+           HEADER SECTION
+
 0010   UNH Message header                            M   1     
 0020   BGM Beginning of message                      C   1     
 0030 X GIS General indicator                         M   1     
@@ -403,6 +405,8 @@ Pos    Tag Name                                      S   R
 0090   CTA Contact information                       C   1           |
 0100   COM Communication contact                     C   3           |
 0110   RFF Reference                                 C   9-----------+
+
+           DETAIL SECTION
 
 0120       ----- Segment group 2  ------------------ C   9999--------+
 0130   DOC Document/message details                  M   1           |
@@ -429,6 +433,9 @@ Pos    Tag Name                                      S   R
 0300   ATT Attribute                                 M   1          ||
 0310   PCD Percentage details                        C   1----------+|
 0320   CUX Currencies                                C   1-----------+
+
+           SUMMARY SECTION
+
 0330   UNS Section control                           M   1     
 
 0340       ----- Segment group 7  ------------------ C   99----------+

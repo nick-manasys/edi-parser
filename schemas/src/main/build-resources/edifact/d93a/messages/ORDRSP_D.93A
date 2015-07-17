@@ -1445,6 +1445,7 @@ message.
 4.2.2 Segment Table
 
 
+                                 HEADER SECTION
 
   TAG  NAME                                 S   REPT  S   REPT
 
@@ -1564,7 +1565,11 @@ message.
   RFF  Reference                            C      5                 ³
   DTM  Date/time/period                     C      5                 ³
   FTX  Free text                            C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-                                                                      
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   ÄÄÄ Segment Group 25 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C 200000 ÄÄÄÄÄÄ¿
   LIN  Line item                            M      1                 ³
   PIA  Additional product id                C     25                 ³
@@ -1697,6 +1702,11 @@ message.
   RFF  Reference                            C      5                ³³
   DTM  Date/time/period                     C      5                ³³
   FTX  Free text                            C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   UNS  Section control                      M      1                  
   MOA  Monetary amount                      C     12                  
   CNT  Control total                        C     10                  

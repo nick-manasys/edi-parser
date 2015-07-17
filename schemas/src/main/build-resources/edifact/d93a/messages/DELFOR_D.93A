@@ -948,6 +948,7 @@ message.
 4.2.2 Segment Table
 
 
+                                 HEADER SECTION
 
   TAG  NAME                                 S   REPT  S   REPT
 
@@ -966,6 +967,11 @@ message.
   ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
   CTA  Contact information                  M      1                ³³
   COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   UNS  Section control                      M      1                  
                                                                       
   ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C    500 ÄÄÄÄÄÄ¿
@@ -1103,6 +1109,11 @@ message.
   ÄÄÄ Segment Group 31 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C     10 ÄÄÄÄ¿³³
   TDT  Details of transport                 M      1               ³³³
   DTM  Date/time/period                     C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   UNS  Section control                      M      1                  
   CNT  Control total                        C      5                  
   FTX  Free text                            C      5                  

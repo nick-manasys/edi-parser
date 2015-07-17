@@ -413,9 +413,10 @@ Pos    Tag Name                                      S   R
 0230   DTM Date/time/period                          C   1         |||
 0240   COM Communication contact                     C   1         |||
 0250   FTX Free text                                 C   1---------+++
-0260   UNS Section control                           M   1     
 
            SUMMARY SECTION
+
+0260   UNS Section control                           M   1     
 
 0270       ----- Segment group 5  ------------------ C   99----------+
 0280   MOA Monetary amount                           M   1           |

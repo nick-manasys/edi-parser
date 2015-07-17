@@ -189,7 +189,7 @@ object EdifactTablesConverter {
       }
 
     val (first :: rest) = starts
-        
+
     /** Merged fields for wrapped line. */
     def mergeWrapping(fields: List[String]): List[String] = {
       def checkWrapped = {
@@ -387,25 +387,32 @@ object EdifactTablesConverter {
             liner(acc)
           }
         } else {
-          val fields = parseTemplate(tmpl, true, 3, lines)
-          val usage = convertUsage(fields(4))
-          val repeat = fields(5).filter { _.isDigit }.toInt
-          if (fields(2) == "") {
-            // start of a new loop definition
-            if (fields(3) == "") throw new IllegalArgumentException("Missing expected group name")
-            val discard = fields(3).charAt(0)
-            val name = fields(3).filter { _ != discard }.trim
-            val comps = convert(table, depth + 1)
-            val group = GroupComponent(name, usage, repeat, comps, None, Nil)
-            liner(group :: acc)
-          } else segments.get(fields(2)) match {
-            case Some(s) => {
-              val segref = ReferenceComponent(s, SegmentPosition(table, fields(0)), usage, repeat)
-              liner(segref :: acc)
+          val length = lines.peek.length
+          val nesting = if (length > limit) lines.peek.substring(limit).filter(c => !c.isDigit && c != ' ').length else 0
+          if (depth > nesting) {
+            acc.reverse
+          } else {
+            val fields = parseTemplate(tmpl, true, 3, lines)
+            val usage = convertUsage(fields(4))
+            val repeat = fields(5).filter { _.isDigit }.toInt
+            if (fields(2) == "") {
+              // start of a new loop definition
+              if (fields(3) == "") throw new IllegalArgumentException("Missing expected group name")
+              val discard = fields(3).charAt(0)
+              val name = fields(3).filter { _ != discard }.trim
+              val comps = convert(table, depth + 1)
+              val group = GroupComponent(name, usage, repeat, comps, None, Nil)
+              liner(group :: acc)
+            } else segments.get(fields(2)) match {
+              case Some(s) => {
+                if ("UNS" == fields(2) && (depth > 0 || !acc.isEmpty)) throw new IllegalArgumentException(s"UNS out of order in $ident")
+                val segref = ReferenceComponent(s, SegmentPosition(table, fields(0)), usage, repeat)
+                liner(segref :: acc)
+              }
+              case _ =>
+                if (Set("UNH", "UNT", "UGH", "UGT") contains fields(2)) liner(acc)
+                else throw new IllegalArgumentException(s"Unknown segment reference ${fields(2)}")
             }
-            case _ =>
-              if (Set("UNH", "UNT", "UGH", "UGT") contains fields(2)) liner(acc)
-              else throw new IllegalArgumentException(s"Unknown segment reference ${fields(2)}")
           }
         }
       }
@@ -463,7 +470,10 @@ object EdifactTablesConverter {
 
     // position of segment tag, or separator characters if a segment group start
     val tagstart = tmpl1(2)
-    
+
+    // last column for data in normal segment reference line (following characters show nesting)
+    val lastcol = tmpl1(6)
+
     var position = 10000
 
     /** Convert input to a component definition, checking and handling loops. This is called recursively to handle nested
@@ -501,19 +511,28 @@ object EdifactTablesConverter {
           val comps = convert(table, depth + 1)
           val group = GroupComponent(name, usage, repeat, comps, None, Nil)
           liner(group :: acc)
+          //        } else if ((lines.peek.length > lastcol && lines.peek.substring(lastcol).length < depth) || lines.peek.length <= lastcol && depth > 0) {
+          //          acc.reverse
         } else {
-          position += 10
-          val fields = parseTemplate(tmpl1, false, 3, lines)
-          val usage = convertUsage(fields(4))
-          val repeat = fields(5).takeWhile { _.isDigit }.toInt
-          segments.get(fields(2)) match {
-            case Some(s) => {
-              val segref = ReferenceComponent(s, SegmentPosition(table, position.toString.substring(1)), usage, repeat)
-              liner(segref :: acc)
+          val length = lines.peek.length
+          val nesting = if (length > lastcol) lines.peek.substring(lastcol).trim.length else 0
+          if (depth > nesting) {
+            acc.reverse
+          } else {
+            position += 10
+            val fields = parseTemplate(tmpl1, false, 3, lines)
+            val usage = convertUsage(fields(4))
+            val repeat = fields(5).takeWhile { _.isDigit }.toInt
+            segments.get(fields(2)) match {
+              case Some(s) => {
+                if ("UNS" == fields(2) && (depth > 0 || !acc.isEmpty)) throw new IllegalArgumentException(s"UNS out of order in $ident")
+                val segref = ReferenceComponent(s, SegmentPosition(table, position.toString.substring(1)), usage, repeat)
+                liner(segref :: acc)
+              }
+              case _ =>
+                if (Set("UNH", "UNT", "UGH", "UGT") contains fields(2)) liner(acc)
+                else throw new IllegalArgumentException(s"Unknown segment reference ${fields(2)}")
             }
-            case _ =>
-              if (Set("UNH", "UNT", "UGH", "UGT") contains fields(2)) liner(acc)
-              else throw new IllegalArgumentException(s"Unknown segment reference ${fields(2)}")
           }
         }
       }
@@ -542,7 +561,9 @@ object EdifactTablesConverter {
         else throw new IllegalStateException("Missing expected DETAIL SECTION")
       } else Nil
       val summary = if (atSection && lines.trimmed.startsWith("SUMMARY")) convertSection else Nil
-      if (lines.hasNext && !atEnd) throw new IllegalStateException("Not at end of description")
+      if (lines.hasNext && !atEnd) {
+        throw new IllegalStateException("Not at end of description")
+        }
       Transaction(ident, name, None, header, detail, summary)
     } else {
       val comps = convertSection

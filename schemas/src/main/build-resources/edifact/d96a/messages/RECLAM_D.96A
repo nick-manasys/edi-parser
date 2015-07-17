@@ -499,9 +499,10 @@ Pos    Tag Name                                      S   R
 0400       ÄÄÄÄÄ Segment group 7  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   13ÄÄÄÄÄÄÄÄÄ¿³
 0410   NAD Name and address                          M   1          ³³
 0420   PCD Percentage details                        C   1ÄÄÄÄÄÄÄÄÄÄÁÙ
-0430   UNS Section control                           M   1     
 
            SUMMARY SECTION
+
+0430   UNS Section control                           M   1     
 
 0440       ÄÄÄÄÄ Segment group 8  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   3ÄÄÄÄÄÄÄÄÄÄÄ¿
 0450   CUX Currencies                                M   1           ³

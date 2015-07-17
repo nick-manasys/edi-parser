@@ -482,12 +482,12 @@ of the message.
   ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
   CTA  Contact information                  M      1                ³³
   COM  Communication contact                C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
-  UNS  Section control                      M      1                  
 
                                  DETAIL SECTION
 
   TAG  NAME                                 S   REPT  S   REPT
 
+  UNS  Section control                      M      1                  
                                                                       
   ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M 999999 ÄÄÄÄÄÄ¿
   NAD  Name and address                     M      1                 ³

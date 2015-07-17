@@ -617,6 +617,7 @@ message.
 4.2.2 Segment Table
 
 
+                                 HEADER SECTION
 
   TAG  NAME                                 S   REPT  S   REPT
 
@@ -625,6 +626,10 @@ message.
   DTM  Date/time/period                     M      7                  
 - RFF  Reference                            C      3                  
   BUS  Business function                    C      1                  
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
                                                                       
 + ÄÄÄ Segment Group 1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      3 ÄÄÄÄÄÄ¿
 + RFF  Reference                            M      1                 ³
@@ -699,6 +704,11 @@ message.
   AJT  Adjustment details                   M      1               ³³³
   MOA  Monetary amount                      C      1               ³³³
   RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   UNS  Section control                      M      1                  
   MOA  Monetary amount                      C      5                  
                                                                       

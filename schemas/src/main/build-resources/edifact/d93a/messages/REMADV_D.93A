@@ -494,6 +494,7 @@ message.
 4.2.2 Segment Table
 
 
+                                 HEADER SECTION
 
   TAG  NAME                                 S   REPT  S   REPT
 
@@ -515,7 +516,11 @@ message.
   ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄÄ¿
   CUX  Currencies                           M      1                 ³
   DTM  Date/time/period                     C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
-                                                                      
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   ÄÄÄ Segment Group 4 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999 ÄÄÄÄÄÄ¿
   DOC  Document/message details             M      1                 ³
   MOA  Monetary amount                      M      5                 ³
@@ -546,6 +551,11 @@ message.
   AJT  Adjustment details                   M      1               ³³³
   MOA  Monetary amount                      C      1               ³³³
   RFF  Reference                            C      1 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÁÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   UNS  Section control                      M      1                  
   MOA  Monetary amount                      M      5                  
   UNT  Message trailer                      M      1                  

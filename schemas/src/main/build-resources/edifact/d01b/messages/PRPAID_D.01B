@@ -391,12 +391,16 @@ General Introduction
 
 Pos    Tag Name                                      S   R
 
+           HEADER SECTION
+
 0010   UNH Message header                            M   1     
 0020   BGM Beginning of message                      C   1     
 0030 X GIS General indicator                         M   1     
 0040   RFF Reference                                 M   9     
 0050   DTM Date/time/period                          M   9     
 0060   ICD Insurance cover description               C   1     
+
+           DETAIL SECTION
 
 0070       ÄÄÄÄÄ Segment group 1  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M   9ÄÄÄÄÄÄÄÄÄÄÄ¿
 0080   NAD Name and address                          M   1           ³
@@ -429,6 +433,9 @@ Pos    Tag Name                                      S   R
 0300   ATT Attribute                                 M   1          ³³
 0310   PCD Percentage details                        C   1ÄÄÄÄÄÄÄÄÄÄÙ³
 0320   CUX Currencies                                C   1ÄÄÄÄÄÄÄÄÄÄÄÙ
+
+           SUMMARY SECTION
+
 0330   UNS Section control                           M   1     
 
 0340       ÄÄÄÄÄ Segment group 7  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   99ÄÄÄÄÄÄÄÄÄÄ¿

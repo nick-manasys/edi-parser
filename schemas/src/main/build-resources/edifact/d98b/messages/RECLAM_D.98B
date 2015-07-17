@@ -471,11 +471,12 @@ Pos    Tag Name                                      S   R
 0110   GIS General indicator                         C   2           ³
 0120   FTX Free text                                 C   2           ³
 0130 + DTM Date/time/period                          C   9ÄÄÄÄÄÄÄÄÄÄÄÙ
+
+           DETAIL SECTION
+
 0140 + UNS Section control                           M   1     
 0150   DTM Date/time/period                          M   8     
 0160   FTX Free text                                 C   999   
-
-           DETAIL SECTION
 
 0170       ÄÄÄÄÄ Segment group 3  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9ÄÄÄÄÄÄÄÄÄÄÄ¿
 0180   RFF Reference                                 M   1           ³
@@ -509,10 +510,10 @@ Pos    Tag Name                                      S   R
 0420 *     ÄÄÄÄÄ Segment group 7  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   99ÄÄÄÄÄÄÄÄÄ¿³
 0430   NAD Name and address                          M   1          ³³
 0440   PCD Percentage details                        C   1ÄÄÄÄÄÄÄÄÄÄÁÙ
-0450   UNS Section control                           M   1     
 
            SUMMARY SECTION
 
+0450   UNS Section control                           M   1     
 0460       ÄÄÄÄÄ Segment group 8  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   3ÄÄÄÄÄÄÄÄÄÄÄ¿
 0470   CUX Currencies                                M   1           ³
                                                                      ³

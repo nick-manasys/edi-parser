@@ -415,9 +415,10 @@ Pos    Tag Name                                      S   R
 0310   RFF Reference                                 C   2         ³³³
 0320   GIS General indicator                         C   1         ³³³
 0330   MOA Monetary amount                           M   1ÄÄÄÄÄÄÄÄÄÁÁÙ
-0340   UNS Section control                           M   1     
 
            SUMMARY SECTION
+
+0340   UNS Section control                           M   1     
 
 0350 *     ÄÄÄÄÄ Segment group 6  ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   99ÄÄÄÄÄÄÄÄÄÄ¿
 0360   MOA Monetary amount                           M   1           ³

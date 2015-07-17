@@ -333,6 +333,7 @@ message.
 4.2.2 Segment Table
 
 
+                                 HEADER SECTION
 
   TAG  NAME                                 S   REPT  S   REPT
 
@@ -348,12 +349,21 @@ message.
   ÄÄÄ Segment Group 2 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C      5 ÄÄÄÄÄ¿³
   CTA  Contact information                  M      1                ³³
   COM  Communication contact                C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÁÙ
-                                                                      
+
+                                 DETAIL SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   ÄÄÄ Segment Group 3 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ M 200000 ÄÄÄÄÄÄ¿
   DOC  Document/message details             M      1                 ³
   MOA  Monetary amount                      M      5                 ³
   DTM  Date/time/period                     C      5                 ³
   RFF  Reference                            C      5 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                                 SUMMARY SECTION
+
+  TAG  NAME                                 S   REPT  S   REPT
+
   UNS  Section control                      M      1                  
   MOA  Monetary amount                      M      5                  
   FTX  Free text                            C      5                  

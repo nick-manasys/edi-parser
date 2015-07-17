@@ -1268,6 +1268,8 @@ General Introduction
 
 Pos    Tag Name                                      S   R
 
+           HEADER SECTION
+
 0010   UNH Message header                            M   1     
 0020   BGM Beginning of message                      M   1     
 0030 X GIS General indicator                         C   1     
@@ -1389,6 +1391,8 @@ Pos    Tag Name                                      S   R
 1030   MOA Monetary amount                           C   9         ³³³
 1040   LOC Place/location identification             C   1         ³³³
 1050   PCD Percentage details                        M   1ÄÄÄÄÄÄÄÄÄÁÁÙ
+
+           DETAIL SECTION
 
 1060       ÄÄÄÄÄ Segment group 17 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   9999ÄÄÄÄÄÄÄÄ¿
 1070   ROD Risk object type                          M   1           ³
@@ -1522,6 +1526,9 @@ Pos    Tag Name                                      S   R
 2200   RFF Reference                                 C   9        ³³³³
 2210   CTA Contact information                       C   1        ³³³³
 2220   COM Communication contact                     C   9ÄÄÄÄÄÄÄÄÁÁÁÙ
+
+           SUMMARY SECTION
+
 2230   UNS Section control                           M   1     
 
 2240       ÄÄÄÄÄ Segment group 33 ÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ C   99ÄÄÄÄÄÄÄÄÄÄ¿
