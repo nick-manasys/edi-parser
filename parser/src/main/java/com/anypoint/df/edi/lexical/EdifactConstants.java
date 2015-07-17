@@ -30,9 +30,6 @@ public final class EdifactConstants extends EdiConstants
     /** EDIFACT Level B character set. */
     public static final boolean[] levelBCharacterSet;
     
-    /** General character set (allows everything above ASCII control character range). */
-    public static final boolean[] generalCharacterSet;
-    
     static {
         levelACharacterSet = new boolean[128];
         fillChars('A', 'Z', levelACharacterSet);
@@ -42,8 +39,6 @@ public final class EdifactConstants extends EdiConstants
         System.arraycopy(levelACharacterSet, 0, levelBCharacterSet, 0, levelACharacterSet.length);
         fillChars('a', 'z', levelBCharacterSet);
         setChars(" .,-()/'+:=?!\"%&*;<>\014\015\017".toCharArray(), levelBCharacterSet);
-        generalCharacterSet = new boolean[0x10000];
-        fillChars((char)0x20, (char)0xFFFF, generalCharacterSet);
     }
     
     // standard character sets
@@ -76,9 +71,8 @@ public final class EdifactConstants extends EdiConstants
     }
     public static final SyntaxIdentifier LEVELA = new SyntaxIdentifier("UNOA", ASCII_CHARSET, levelACharacterSet);
     public static final SyntaxIdentifier LEVELB = new SyntaxIdentifier("UNOB", ASCII_CHARSET, levelBCharacterSet);
-    public static final SyntaxIdentifier LEVELC = new SyntaxIdentifier("UNOC", Charset.forName("ISO8859_1"),
-        generalCharacterSet);
-    public static final SyntaxIdentifier LEVELY = new SyntaxIdentifier("UNOY", ASCII_CHARSET, generalCharacterSet);
+    public static final SyntaxIdentifier LEVELC = new SyntaxIdentifier("UNOC", Charset.forName("ISO8859_1"), null);
+    public static final SyntaxIdentifier LEVELY = new SyntaxIdentifier("UNOY", ASCII_CHARSET, null);
     public static final Map<String,SyntaxIdentifier> EDIFACT_CHARSETS;
     static {
         EDIFACT_CHARSETS = new HashMap<>();
@@ -86,20 +80,20 @@ public final class EdifactConstants extends EdiConstants
         EDIFACT_CHARSETS.put(LEVELB.syntaxCode, LEVELB);
         EDIFACT_CHARSETS.put(LEVELC.syntaxCode, LEVELC);
         EDIFACT_CHARSETS.put(LEVELY.syntaxCode, LEVELY);
-        addSyntax("UNOD", "ISO8859_2", generalCharacterSet);
-        addSyntax("UNOE", "ISO8859_5", generalCharacterSet);
-        addSyntax("UNOF", "ISO8859_7", generalCharacterSet);
-        addSyntax("UNOG", "ISO8859_3", generalCharacterSet);
-        addSyntax("UNOH", "ISO8859_4", generalCharacterSet);
-        addSyntax("UNOI", "ISO8859_6", generalCharacterSet);
-        addSyntax("UNOJ", "ISO8859_8", generalCharacterSet);
-        addSyntax("UNOK", "ISO8859_9", generalCharacterSet);
-        addSyntax("UNOX", "ISO2375", generalCharacterSet);
+        addSyntax("UNOD", "ISO8859_2");
+        addSyntax("UNOE", "ISO8859_5");
+        addSyntax("UNOF", "ISO8859_7");
+        addSyntax("UNOG", "ISO8859_3");
+        addSyntax("UNOH", "ISO8859_4");
+        addSyntax("UNOI", "ISO8859_6");
+        addSyntax("UNOJ", "ISO8859_8");
+        addSyntax("UNOK", "ISO8859_9");
+        addSyntax("UNOX", "ISO2375");
     }
-    public static void addSyntax(String code, String chname, boolean[] flags) {
+    public static void addSyntax(String code, String chname) {
         try {
             Charset chset = Charset.forName(chname);
-            SyntaxIdentifier synid = new SyntaxIdentifier(code, chset, flags);
+            SyntaxIdentifier synid = new SyntaxIdentifier(code, chset, null);
             EDIFACT_CHARSETS.put(code, synid);
         } catch (Throwable e) { /* unsupported encoding, ignore */ }
     }
@@ -135,10 +129,10 @@ public final class EdifactConstants extends EdiConstants
             if (this == VERSION4) {
                 return version4Delimiters;
             }
-            if (this == VERSION3 && sid == LEVELB) {
-                return alternateDelimiters;
+            if (sid == LEVELA) {
+                return basicDelimiters;
             }
-            return basicDelimiters;
+            return alternateDelimiters;
         }
     }
     

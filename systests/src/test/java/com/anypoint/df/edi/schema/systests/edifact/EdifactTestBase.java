@@ -153,7 +153,7 @@ public abstract class EdifactTestBase extends TestBase {
         test.prepareOutput(result);
         checkWrite(test, text, result);
     }
-
+    
     /**
      * Replace date/time fields in an acknowledgment with X characters, allowing it to be compared with a static string.
      * 
@@ -223,7 +223,7 @@ public abstract class EdifactTestBase extends TestBase {
         String interchangeQualifier) {
         EdifactIdentityInformation identity =
             new EdifactIdentityInformation(interchangeId, interchangeQualifier, null, null);
-        EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, -1,
+        EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, false, -1,
             new EdifactIdentityInformation[0], new EdifactIdentityInformation[] { identity });
 
         DocumentTest test = new DocumentTestEdifact(schema, config);

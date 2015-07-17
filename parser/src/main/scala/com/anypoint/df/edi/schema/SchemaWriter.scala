@@ -184,7 +184,9 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       list.asScala.foreach { map => writeSection(map, group.items) }
 
     def checkMissing = comp.usage match {
-      case MandatoryUsage => throw new WriteException(s"missing required value '${comp.key}'")
+      case MandatoryUsage => {
+        throw new WriteException(s"missing required value '${comp.key}'")
+      }
       case _ =>
     }
     def writeGroup(key: String, group: GroupBase) =

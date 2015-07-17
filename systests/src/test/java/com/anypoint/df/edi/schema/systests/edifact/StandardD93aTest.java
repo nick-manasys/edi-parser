@@ -6,20 +6,22 @@ import org.junit.Test;
 public class StandardD93aTest extends EdifactTestBase {
     
     @Test
-    @Ignore
     public void verifyDESADV() throws Exception {
         loadSchema("/edifact/d93a/DESADV.esl");
         parseAndCheckWrite("/edifact/d93a/DESADV.edi");
     }
     
+    // needs 8859-1 encoding
     @Test
     @Ignore
     public void verifyINVOIC() throws Exception {
         loadSchema("/edifact/d93a/INVOIC.esl");
+        parseAndCheckWrite("/edifact/d93a/INVOIC-german.edi");
         parseAndCheckWrite("/edifact/d93a/invoic-d93a.edi");
         parseAndCheckWrite("/edifact/d93a/multiple-invoic-d93a.edi");
     }
     
+    // needs 8859-1 encoding
     @Test
     @Ignore
     public void verifyORDERS() throws Exception {

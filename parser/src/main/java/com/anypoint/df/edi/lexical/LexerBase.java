@@ -351,7 +351,7 @@ public abstract class LexerBase
      * @throws IOException
      */
     public String peek() throws IOException {
-        if (peekToken == null) {
+        if (peekToken == null && peekType != ItemType.END) {
             
             // start by skipping whitespace, if necessary
             int value = reader.read();

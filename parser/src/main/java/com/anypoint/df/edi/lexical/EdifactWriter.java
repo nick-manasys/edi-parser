@@ -26,18 +26,20 @@ public class EdifactWriter extends WriterBase
      * @param encoding override character set encoding (<code>null</code> if none)
      * @param version syntax version
      * @param syntax syntax identifier
+     * @param enforce character set restrictions for syntax level UNOA and UNOB enforced flag
      * @param delims override delimiters (<code>null</code> if none)
      * @param segsep inter-segment separator (following segment terminator; <code>null</code> if none)
      * @param subst substitution character for invalid character in string (-1 if unused)
      * @param mark decimal mark character
      */
     public EdifactWriter(OutputStream os, Charset encoding, SyntaxVersion version, SyntaxIdentifier syntax,
-        String delims, String segsep, int subst, char mark) {
+        boolean enforce, String delims, String segsep, int subst, char mark) {
         super(os, encodingOrDefault(encoding, syntax), delimsOrDefault(delims, version, syntax).charAt(0),
             delimsOrDefault(delims, version, syntax).charAt(1), -1,
             charNonBlank(delimsOrDefault(delims, version, syntax).charAt(2)),
             delimsOrDefault(delims, version, syntax).charAt(3), segsep,
-            charNonBlank(delimsOrDefault(delims, version, syntax).charAt(4)), subst, mark, syntax.flags());
+            charNonBlank(delimsOrDefault(delims, version, syntax).charAt(4)), subst, mark,
+            enforce ? syntax.flags() : null);
         String dfltdelims = version.defaultDelimiters(syntax);
         needUna = delims != null && !delims.equals(dfltdelims);
         overrideDelimiters = delims;

@@ -25,14 +25,18 @@ public class EdifactLexer extends LexerBase
         VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR
     }
     
+    private final boolean enforceCharacterSet;
+    
     /**
      * Constructor.
      *
      * @param is input
+     * @param enforce character set restrictions for syntax level UNOA and UNOB enforced flag
      * @param subst substitution character for invalid character in string (-1 if unused)
      */
-    public EdifactLexer(InputStream is, int subst) {
+    public EdifactLexer(InputStream is, boolean enforce, int subst) {
         super(is, subst, ',');
+        enforceCharacterSet = enforce;
         componentSeparator = ':';
         dataSeparator = '+';
         releaseIndicator = '?';
@@ -184,7 +188,7 @@ public class EdifactLexer extends LexerBase
             }
             
             // turn stream into reader with appropriate character set
-            allowedChars = syntax.flags();
+            allowedChars = enforceCharacterSet ? syntax.flags() : null;
             reader = new BufferedReader(new InputStreamReader(stream, charset));
             advance(ItemType.DATA_ELEMENT);
             return version;
