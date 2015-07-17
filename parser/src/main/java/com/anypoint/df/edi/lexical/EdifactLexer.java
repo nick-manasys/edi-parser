@@ -27,14 +27,18 @@ public class EdifactLexer extends LexerBase
     
     private final boolean enforceCharacterSet;
     
+    private final String delimiterDefaults;
+    
     /**
      * Constructor.
      *
      * @param is input
      * @param enforce character set restrictions for syntax level UNOA and UNOB enforced flag
      * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param delims default delimiter characters string (data sep, comp sep, rep sep, seg term, release),
+     * <code>null</code> if using standard defaults)
      */
-    public EdifactLexer(InputStream is, boolean enforce, int subst) {
+    public EdifactLexer(InputStream is, boolean enforce, int subst, String delims) {
         super(is, subst, ',');
         enforceCharacterSet = enforce;
         componentSeparator = ':';
@@ -43,6 +47,7 @@ public class EdifactLexer extends LexerBase
         segmentTerminator = '\'';
         repetitionSeparator = '*';
         subCompSeparator = -1;
+        delimiterDefaults = delims;
     }
     
     /**
@@ -114,7 +119,7 @@ public class EdifactLexer extends LexerBase
             
             // make sure delimiter characters are set
             if (!unaseen) {
-                String delims = version.defaultDelimiters(syntax);
+                String delims = delimiterDefaults == null ? version.defaultDelimiters(syntax) : delimiterDefaults;
                 dataSeparator = delims.charAt(0);
                 componentSeparator = delims.charAt(1);
                 repetitionSeparator = charNonBlank(delims.charAt(2));

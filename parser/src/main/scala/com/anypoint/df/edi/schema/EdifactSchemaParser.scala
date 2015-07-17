@@ -33,8 +33,8 @@ case class EdifactIdentityInformation(identification: String, codeQualifier: Str
   */
 case class EdifactParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
   val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
-  val enforceChars: Boolean, val substitutionChar: Int, val receiverIds: Array[EdifactIdentityInformation],
-  val senderIds: Array[EdifactIdentityInformation]) {
+  val enforceChars: Boolean, val substitutionChar: Int, val defaultDelims: String,
+  val receiverIds: Array[EdifactIdentityInformation], val senderIds: Array[EdifactIdentityInformation]) {
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
 
@@ -96,7 +96,8 @@ case class EdifactInterchangeException(error: SyntaxError, text: String, cause: 
 
 /** Parser for EDIFACT EDI documents. */
 case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNumberValidator, config: EdifactParserConfig)
-  extends SchemaParser(new EdifactLexer(in, config.enforceChars, config.substitutionChar), sc) with UtilityBase {
+  extends SchemaParser(new EdifactLexer(in, config.enforceChars, config.substitutionChar, config.defaultDelims), sc)
+  with UtilityBase {
 
   import EdifactSchemaDefs._
 
