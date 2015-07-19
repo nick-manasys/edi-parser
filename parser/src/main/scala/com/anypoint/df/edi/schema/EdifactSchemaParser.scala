@@ -560,8 +560,6 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     }
 
     val map = new ValueMapImpl
-    val interAckList = new MapListImpl
-    map put (interchangeAcksGenerated, interAckList)
     val funcAckList = new MapListImpl
     map put (functionalAcksGenerated, funcAckList)
     val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
