@@ -103,8 +103,6 @@ public final class EdifactConstants extends EdiConstants
     private static final String alternateDelimiters = "\035\037 \034 ";
     private static final String version4Delimiters = "+:*'?";
     
-    public static final Map<String,SyntaxVersion> EDIFACT_VERSIONS = new HashMap<>();
-    
     public enum SyntaxVersion {
         VERSION2("2"), VERSION3("3"), VERSION4("4");
         
@@ -112,7 +110,6 @@ public final class EdifactConstants extends EdiConstants
         
         SyntaxVersion(String code) {
             codeValue = code;
-            EDIFACT_VERSIONS.put(code, this);
         }
         
         public String code() {
@@ -133,6 +130,13 @@ public final class EdifactConstants extends EdiConstants
                 return basicDelimiters;
             }
             return alternateDelimiters;
+        }
+    }
+    
+    public static final Map<String,SyntaxVersion> EDIFACT_VERSIONS = new HashMap<>();
+    static {
+        for (SyntaxVersion version: SyntaxVersion.values()) {
+            EDIFACT_VERSIONS.put(version.code(), version);
         }
     }
     
