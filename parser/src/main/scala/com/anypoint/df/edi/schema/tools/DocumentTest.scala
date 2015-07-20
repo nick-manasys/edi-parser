@@ -224,7 +224,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val syntax = EDIFACT_CHARSETS.get(getAs(unbSyntax.components(0).key, "UNOA", inter))
     val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", inter))
     val config = EdifactWriterConfig(syntax, version, false, -1, '.', ASCII_CHARSET,
-      getRequiredString(delimiterCharacters, map), "", false)
+      getAs(delimiterCharacters, null, map), "", false)
     val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val transacts = getRequiredValueMap(messagesMap, map)
     writer.write(map).get
@@ -236,7 +236,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val os = new ByteArrayOutputStream
     val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", getAsMap(interchangeKey, map)))
     val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION3, false, -1, '.', ASCII_CHARSET,
-      getRequiredString(delimiterCharacters, map), "", false)
+      getAs(delimiterCharacters, "", map), "", false)
     val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val outmap = new ValueMapImpl
     outmap put (interchangeKey, map.get(interchangeKey))

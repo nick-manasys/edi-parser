@@ -16,7 +16,7 @@ import com.anypoint.df.edi.lexical.EdifactConstants._
 case class EdifactWriterConfig(val syntax: SyntaxIdentifier, val version: SyntaxVersion, val enforceChars: Boolean,
   val subChar: Int, val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String,
   val forceUNA: Boolean) {
-  if (delims.size != 0 && delims.size != 5) throw new IllegalArgumentException("delimiter string must be empty or 5 characters")
+  if (delims != null && delims.size != 5) throw new IllegalArgumentException("delimiter string must be 5 characters")
 }
 
 /** Provider interface for control numbers. */
@@ -146,8 +146,8 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
         val interref = numprov nextInterchange (context)
         interProps put (interHeadReferenceKey, interref)
         setStrings(List(config.syntax.code, config.version.code), unbSyntax.components, interProps)
-        setStrings(List(partnerId, partnerQual), unbSender.components, interProps)
-        setStrings(List(selfId, selfQual), unbRecipient.components, interProps)
+        setStrings(List(selfId, selfQual), unbSender.components, interProps)
+        setStrings(List(partnerId, partnerQual), unbRecipient.components, interProps)
         if (!interProps.containsKey(interHeadDateKey)) {
           val calendar = new GregorianCalendar
           val yearnum = calendar.get(Calendar.YEAR)

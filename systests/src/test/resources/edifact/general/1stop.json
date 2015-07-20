@@ -1,0 +1,24 @@
+{Transactions:
+{CONTRL:
+[{Name:"Application error and acknowledgement message",
+Detail:{},
+Heading:{0020_UCI:{UCI05:"43",
+UCI0301:HPAPB,
+UCI04:"4",
+UCI0302:ZZ,
+UCI01:"0000034588",
+UCI0201:"1STOP",
+UCI0202:ZZ}},
+Id:CONTRL,
+Interchange:{UNB0102:3,
+UNB0402:1614,
+UNB05:0000034588,
+UNB0401:150316,
+UNB0101:UNOC,
+UNB0301:"1STOP",
+UNB0302:ZZ,
+UNB0202:ZZ,
+UNB0201:HPAPB},
+Summary:{}}]}
+Interchange:{}}
+

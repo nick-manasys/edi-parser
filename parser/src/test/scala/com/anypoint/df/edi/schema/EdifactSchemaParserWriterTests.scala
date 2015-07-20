@@ -178,18 +178,6 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     provider
   }
 
-  /** Prepare a test input message to be output as the same mesaage. Removes the interchange information from the
-    * actual message(s) and swaps interchange sender and receipient information in the root interchange map.
-    */
-  def prepareToSend(input: ValueMap) = {
-    getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).asScala.foreach {
-      map => map.remove(interchangeKey)
-    }
-    val inter = getRequiredValueMap(interchangeKey, input)
-    swap(interHeadSenderQualKey, interHeadRecipientQualKey, inter)
-    swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, inter)
-  }
-
   behavior of "EdifactSchemaWriter"
 
   it should "write the UNB/UNZ envelope when initialized and then terminated" in {
@@ -224,7 +212,6 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, false, -1, '.', ASCII_CHARSET, "+:*'?", "\n", false)
     val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
-    prepareToSend(input)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     text should be (testDoc)
@@ -235,7 +222,6 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, false, -1, '.', ASCII_CHARSET, "+:*'?", "\n", true)
     val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
-    prepareToSend(input)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     text should be ("UNA:+.?*'" + testDoc)
@@ -247,7 +233,6 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION2, false, -1, '.', ASCII_CHARSET, "+: '?", "\n", false)
     val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
-    prepareToSend(input)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     text should be (modDoc)
@@ -259,7 +244,6 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION3, false, -1, '.', ASCII_CHARSET, "+: '?", "\n", false)
     val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
-    prepareToSend(input)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     text should be (modDoc)
@@ -273,8 +257,8 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
     val interMsg = getRequiredValueMap(interchangeKey, message)
     val interRoot = new ValueMapImpl(interMsg)
-    swap(interHeadSenderQualKey, interHeadRecipientQualKey, interMsg)
-    swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, interMsg)
+    swap(interHeadSenderQualKey, interHeadRecipientQualKey, interRoot)
+    swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, interRoot)
     input put (interchangeKey, interRoot)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)

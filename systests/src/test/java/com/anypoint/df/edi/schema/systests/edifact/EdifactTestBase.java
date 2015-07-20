@@ -150,7 +150,6 @@ public abstract class EdifactTestBase extends TestBase {
         DocumentTest test = new DocumentTestEdifact(schema);
         String text = readAsString(path);
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
-        test.prepareOutput(result);
         checkWrite(test, text, result);
     }
     
@@ -176,8 +175,8 @@ public abstract class EdifactTestBase extends TestBase {
      * @param result
      */
     protected void printAcknowledgments(Map<String, Object> result) {
-        List<Map<String, Object>> acks = (List<Map<String, Object>>) result.get(SchemaJavaValues
-            .functionalAcksGenerated());
+        List<Map<String, Object>> acks = (List<Map<String, Object>>)
+            result.get(SchemaJavaValues.functionalAcksGenerated());
         if (acks != null) {
             Map<String, Object> inter = new HashMap<>();
             inter.put(((CompositeComponent)EdifactSchemaDefs.segUNBv4().components().head()).composite().components().apply(1).key(), "4");
@@ -189,7 +188,8 @@ public abstract class EdifactTestBase extends TestBase {
     }
 
     /**
-     * Parse a document, then write out and return the generated CONTRL acknowledgment.
+     * Parse a document, then write out and return the generated CONTRL acknowledgment with sender/receiver information
+     * reversed (as it would be sent back to the sender of the original message).
      * 
      * @param path
      * @return acknowledgment
@@ -203,6 +203,7 @@ public abstract class EdifactTestBase extends TestBase {
         try {
             DocumentTest test = new DocumentTestEdifact(schema);
             Map<String, Object> result = test.parse(is);
+            test.prepareOutput(result);
             printAcknowledgments(result);
             return test.printAck(result);
         } catch (Exception e) {
@@ -229,7 +230,21 @@ public abstract class EdifactTestBase extends TestBase {
         DocumentTest test = new DocumentTestEdifact(schema, config);
         InputStream is = EdifactTestBase.class.getResourceAsStream(inputFilePath);
         Map<String, Object> result = test.parse(is);
+        test.prepareOutput(result);
         printAcknowledgments(result);
         return test.printAck(result);
+    }
+    
+    /**
+     * Write document as string.
+     * 
+     * @param map
+     * @return text
+     */
+    public String testWrite(Map<String, Object> map) {
+        EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, false, -1, null,
+            new EdifactIdentityInformation[0], new EdifactIdentityInformation[0]);
+        DocumentTest test = new DocumentTestEdifact(schema, config);
+        return test.printDoc(map);
     }
 }

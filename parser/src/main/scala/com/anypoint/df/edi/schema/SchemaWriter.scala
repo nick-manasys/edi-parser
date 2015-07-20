@@ -176,7 +176,7 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
   def writeSection(map: ValueMap, comps: List[TransactionComponent]): Unit = comps.foreach(comp => {
 
     /** Write a (potentially) repeating segment from a list of maps. */
-    def writeRepeatingSegment(list: MapList, segment: Segment, limit: Int): Unit =
+    def writeRepeatingSegment(list: MapList, segment: Segment): Unit =
       list.asScala.foreach { map => writeSegment(map, segment) }
 
     /** Write a (potentially) repeating group from a list of maps. */
@@ -204,8 +204,8 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
               if (list.isEmpty) ref.usage match {
                 case MandatoryUsage => throw new WriteException(s"no values present for segment ${ref.key}")
                 case _ =>
-              }
-              else writeRepeatingSegment(list, ref.segment, ref.count)
+              } else if (ref.count == 0 || list.size <= ref.count) writeRepeatingSegment(list, ref.segment)
+              else throw new WriteException(s"too many values present for segment ${ref.key} (maximum ${ref.count})")
             } else writeSegment(getRequiredValueMap(key, map), ref.segment)
           } else checkMissing
         }
