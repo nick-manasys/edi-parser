@@ -103,8 +103,11 @@ object EdifactTablesConverter {
       else acc
     }
 
-    /** Get next trimmed line of text, ignoring first two character positions of line (change indicators). */
-    def nextBlob: String = merger(lines.next.substring(2).trim)
+    /** Get next trimmed line of text, ignoring leading character positions of line (change indicators). */
+    def nextBlob: String = {
+      val line = lines.next.dropWhile { _ != ' ' }
+      merger(line.trim)
+    }
 
     @tailrec
     def buildr(acc: List[Element]): List[Element] =
