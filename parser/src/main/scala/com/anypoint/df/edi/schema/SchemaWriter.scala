@@ -119,7 +119,10 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
       case cc: CompositeComponent if (cc.count == 1) =>
         if (cc.composite.components.exists { ccc => map containsKey ccc.key }) {
           writeComponent(map, false)
-        } else skipAtLevel
+        } else cc.usage match {
+          case MandatoryUsage => throw new WriteException(s"missing required value '${cc.name}'")
+          case _ => skipAtLevel
+        }
       case _ =>
         if (map.containsKey(comp.key)) {
           val value = map.get(comp.key)
