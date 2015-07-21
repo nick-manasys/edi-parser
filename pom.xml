@@ -13,6 +13,7 @@
     <jdk.version>1.7</jdk.version>
     <base.scala.version>2.11</base.scala.version>
     <scala.version>${base.scala.version}.5</scala.version>
+    <snakeyaml.version>1.15</snakeyaml.version>
   </properties>
 
   <modules>

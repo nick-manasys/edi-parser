@@ -13,10 +13,6 @@
     <relativePath>..</relativePath>
   </parent>
 
-  <properties>
-    <snakeyaml.version>1.15</snakeyaml.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>org.yaml</groupId>

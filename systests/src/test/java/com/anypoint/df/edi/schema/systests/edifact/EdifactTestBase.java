@@ -6,6 +6,7 @@ import static org.junit.Assert.assertFalse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -18,6 +19,7 @@ import com.anypoint.df.edi.schema.EdifactParserConfig;
 import com.anypoint.df.edi.schema.EdifactSchemaDefs;
 import com.anypoint.df.edi.schema.EdiSchema.*;
 import com.anypoint.df.edi.schema.systests.TestBase;
+import com.anypoint.df.edi.schema.systests.YamlSupport;
 import com.anypoint.df.edi.schema.tools.DecodeContrl;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestEdifact;
@@ -141,7 +143,23 @@ public abstract class EdifactTestBase extends TestBase {
     }
 
     /**
-     * Parse a document, write out the parsed data as a new document, and compare the original and the written document.
+     * Parse a document from text, write out the parsed data as a new document, and compare the original and the written
+     * text.
+     * 
+     * @param path
+     * @throws IOException
+     */
+    protected void parseAndCheckWrite(String text, DocumentTest test) throws IOException {
+        Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
+//        StringWriter writer = new StringWriter();
+//        YamlSupport.writeMap(result, writer);
+//        System.out.println(writer.toString());
+        checkWrite(test, text, result);
+    }
+
+    /**
+     * Parse a document using default parser configuration, write out the parsed data as a new document, and compare the
+     * original and the written document.
      * 
      * @param path
      * @throws IOException
@@ -149,8 +167,7 @@ public abstract class EdifactTestBase extends TestBase {
     protected void parseAndCheckWrite(String path) throws IOException {
         DocumentTest test = new DocumentTestEdifact(schema);
         String text = readAsString(path);
-        Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
-        checkWrite(test, text, result);
+        parseAndCheckWrite(text, test);
     }
     
     /**
@@ -188,20 +205,16 @@ public abstract class EdifactTestBase extends TestBase {
     }
 
     /**
-     * Parse a document, then write out and return the generated CONTRL acknowledgment with sender/receiver information
-     * reversed (as it would be sent back to the sender of the original message).
+     * Parse an input stream using supplied test configuration, then write out and return the generated CONTRL
+     * acknowledgment with sender/receiver information reversed (as it would be sent back to the sender of the original
+     * message).
      * 
-     * @param path
+     * @param test
+     * @param is
      * @return acknowledgment
-     * @throws IOException
      */
-    protected String parseAndReturnAck(String path) {
-        InputStream is = EdifactTestBase.class.getResourceAsStream(path);
-        if (is == null) {
-            throw new IllegalArgumentException("File " + path + " not found");
-        }
+    protected String parseAndReturnAck(DocumentTest test, InputStream is) {
         try {
-            DocumentTest test = new DocumentTestEdifact(schema);
             Map<String, Object> result = test.parse(is);
             test.prepareOutput(result);
             printAcknowledgments(result);
@@ -210,6 +223,23 @@ public abstract class EdifactTestBase extends TestBase {
             e.printStackTrace();
             return e.getMessage();
         }
+    }
+
+    /**
+     * Parse a document from path with default parser configuration, then write out and return the generated CONTRL
+     * acknowledgment with sender/receiver information reversed (as it would be sent back to the sender of the original
+     * message).
+     * 
+     * @param path
+     * @return acknowledgment
+     */
+    protected String parseAndReturnAck(String path) {
+        InputStream is = EdifactTestBase.class.getResourceAsStream(path);
+        if (is == null) {
+            throw new IllegalArgumentException("File " + path + " not found");
+        }
+        DocumentTest test = new DocumentTestEdifact(schema);
+        return parseAndReturnAck(test, is);
     }
 
     /**
