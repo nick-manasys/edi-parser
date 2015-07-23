@@ -1,17 +1,15 @@
 package com.anypoint.df.edi.schema
 
 import java.io.OutputStream
-import java.math.BigDecimal
-import java.util.Calendar
-import java.util.Date
+import java.math.{ BigDecimal, BigInteger }
+import java.util.{ Calendar, Date }
 import scala.collection.JavaConverters._
 import scala.util.Try
 import org.apache.log4j.Logger
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
-import com.anypoint.df.edi.lexical.WriteException
-import com.anypoint.df.edi.lexical.WriterBase
+import com.anypoint.df.edi.lexical.{ WriteException, WriterBase }
 import com.anypoint.df.edi.schema.EdiSchema._
 import scala.annotation.tailrec
 
@@ -82,7 +80,12 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
         case _ => throw new WriteException(s"Date value must be Date or Calendar instance, not ${value.getClass.getName}")
       }
       case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue, min, max)
-      case NUMBER | REAL => writer.writeDecimal(value.asInstanceOf[BigDecimal], min, max)
+      case NUMBER | REAL => value match {
+        case bigdec: BigDecimal => writer.writeDecimal(bigdec, min, max)
+        case integer: Integer => writer.writeInt(integer, min, max)
+        case bigint: BigInteger => writer.writeBigInteger(bigint, min, max)
+        case _ => throw new WriteException(s"Value type ${value.getClass.getName} is not compatible with expected type BigDecimal")
+      }
       case NUMERIC => writer.writeNumeric(value.asInstanceOf[Number], min, max)
       case SEQID => writer.writeSeqId(value.asInstanceOf[Integer].intValue)
       case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)

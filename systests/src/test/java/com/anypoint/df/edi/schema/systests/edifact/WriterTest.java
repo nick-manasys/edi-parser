@@ -63,7 +63,11 @@ public class WriterTest extends EdifactTestBase {
         loadSchema("/edifact/d96a/ORDERS.esl");
         String text = readAsString("/edifact/write/ORDERS96a-base.yaml");
         Map<String, Object> map = YamlSupport.readMap(text);
-        testWrite(map);
+        String baseout = testWrite(map);
+        text = readAsString("/edifact/write/ORDERS96a-numbers.yaml");
+        map = YamlSupport.readMap(text);
+        String numsout = testWrite(map);
+        assertEquals(baseout, numsout);
         text = readAsString("/edifact/write/ORDERS96a-rff-too-long.yaml");
         map = YamlSupport.readMap(text);
         try {
