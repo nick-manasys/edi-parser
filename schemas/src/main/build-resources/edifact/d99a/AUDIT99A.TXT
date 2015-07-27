@@ -1,0 +1,42 @@
+Audit Statement for the UN/EDIFACT Directory D.99A
+     
+This directory set is the official approved version of UN/EDIFACT 
+Directory D.99A.
+     
+Following the preparation of the directory by the Directory 
+Production Team (DPT), it was examined by the Directory Audit Team 
+(DAT) which has confirmed in a report to the UN/EDIFACT Working Group 
+(EWG) that the content was prepared in accordance with approved 
+procedures and is considered satisfactory for implementation.
+     
+Based on the DAT report, EWG has agreed to forward this directory for 
+publication by the UN/ECE.
+     
+As required by the U.N. document TRADE/R.650 (Recommendations for the 
+establishment of CEFACT, 1996-10-11), and on the base of the DAT 
+Report, the decision of EWG has been confirmed by the CEFACT Steering 
+Group (CSG).
+     
+A copy of the full audit report is available from the UN/ECE 
+secretariat, e-mail: <cefact@unece.org>.
+     
+The directory is the final version of D.99A for user implementation. 
+Under no circumstances will any corrigenda, addenda or revisions be 
+issued.
+     
+If during implementation a user identifies what is considered to be 
+an error, this should be notified in a Data Maintenance Request (DMR) 
+to allow possible amendments in a subsequent official approved 
+version of UN/EDIFACT Directory.
+     
+A DMR form can be obtained from the nearest UN/EDIFACT Processing 
+Point in either Brussels, Sydney, Tokyo or Washington D.C., who will 
+advise the process to be followed for its submission and may assist 
+in the completion of the form. The text section of the "Business 
+Needs" section of this DMR, should read "Possible Directory Error".
+     
+     
+Klaus-Dieter Naujok
+Chair, Directory Audit Team
+1999-14-01
+---------------------------------------------------------------

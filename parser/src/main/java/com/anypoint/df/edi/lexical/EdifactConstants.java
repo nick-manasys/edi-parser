@@ -138,6 +138,7 @@ public final class EdifactConstants extends EdiConstants
         for (SyntaxVersion version: SyntaxVersion.values()) {
             EDIFACT_VERSIONS.put(version.code(), version);
         }
+        EDIFACT_VERSIONS.put("1", SyntaxVersion.VERSION2);
     }
     
     /**

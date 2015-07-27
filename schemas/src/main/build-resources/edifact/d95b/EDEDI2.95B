@@ -1,0 +1,473 @@
+1.2  Index of data elements by name
+
+     Change indicators
+
+     a plus sign (+)    for an addition
+     an asterisk (*)    for an amendment to structure
+     a hash sign (#)    for changes to names
+     a vertical bar (|) for changes to text for descriptions,
+                        notes and functions
+     a minus sign (-)   for a deletion
+     a X sign (X)       for marked for deletion
+
+   Tag   Name
+
+   3192  Account holder name
+   3194  Account holder number
+   1228  Action request/notification
+   1229  Action request/notification, coded
+   6428  Actual stage count
++  4038  Additional safety information
++  4039  Additional safety information, coded
++  3286  Address component
++  3477  Address format, coded
++  3299  Address purpose, coded
++  3474  Address status, coded
++  3131  Address type, coded
+   4465  Adjustment reason, coded
+   7434  Agreement type description
+   7431  Agreement type qualifier
+   7433  Agreement type, coded
+   1230  Allowance or charge number
+   5463  Allowance or charge qualifier
+*# 9321  Application error identification
+   9424  Array cell information
+   9428  Array structure identifier
+   7011  Article availability, coded
++  1523  Association assigned identification
+   9018  Attribute
+   9017  Attribute function qualifier
+   9021  Attribute type, coded
+   9019  Attribute, coded
+   4455  Back order, coded
+   4383  Bank operation, coded
+   4022  Business description
+   4027  Business function qualifier
+   4025  Business function, coded
+   1227  Calculation sequence indicator, coded
+   3127  Carrier identification
+   3128  Carrier name
+   8325  Category of means of transport, coded
+   4294  Change reason
+   4295  Change reason, coded
+   7036  Characteristic
+   7037  Characteristic identification
++  7110  Characteristic value
++  7111  Characteristic value, coded
+   5237  Charge category, coded
+   5189  Charge/allowance description, coded
+   3164  City name
+   1507  Class designator, coded
+   4043  Class of trade, coded
+   1131  Code list qualifier
+   3055  Code list responsible agency, coded
+   9434  Code name
++  9161  Code set indicator, coded
+   9426  Code value
+   7357  Commodity/rate identification
+   3153  Communication channel identifier, coded
+   3155  Communication channel qualifier
+   3148  Communication number
+   7497  Component function qualifier
+   7506  Component material
+   7507  Component material, coded
++  9146  Composite data element tag
+   1510  Computer environment
+   1501  Computer environment details qualifier
+   1511  Computer environment, coded
+   6074  Confidence limit
+   1222  Configuration level
+   7083  Configuration, coded
+   1312  Consignment load sequence number
+   1490  Consolidation item number
+   3139  Contact function, coded
+   8275  Container/package status, coded
+   4065  Contract and carriage condition, coded
+   5047  Contribution qualifier
+   5048  Contribution type
+   5049  Contribution type, coded
++  1476  Control agency
+   6069  Control qualifier
+   6066  Control value
+   8028  Conveyance reference number
+   3239  Country of origin, coded
++  3228  Country sub-entity
+   3229  Country sub-entity identification
+   3207  Country, coded
+   4509  Credit cover reason, coded
+   4505  Credit cover request, coded
+   4507  Credit cover response, coded
+   6347  Currency details qualifier
+   6341  Currency market exchange, coded
+   6343  Currency qualifier
+   6348  Currency rate base
+   6345  Currency, coded
+   7130  Customer authorization number
+   7361  Customs code identification
+   7502  Damage area
+   7503  Damage area identification
+   7493  Damage details qualifier
+   7508  Damage severity
+   7509  Damage severity, coded
+   7088  Dangerous goods flashpoint
+   8246  Dangerous goods label marking
+   8273  Dangerous goods regulations, coded
++  9162  Data element tag
+   1502  Data format
+   1503  Data format, coded
+   1520  Data set identifier
+   2380  Date/time/period
+   2379  Date/time/period format qualifier
+   2005  Date/time/period qualifier
+   4017  Delivery plan status indicator, coded
+   4493  Delivery requirements, coded
+   3412  Department or employee
+   3413  Department or employee identification
+   2017  Despatch pattern timing, coded
+   2015  Despatch pattern, coded
+   6145  Dimension qualifier
++  9148  Directory status
+   4221  Discrepancy, coded
+   1073  Document line indicator, coded
+   1000  Document/message name
+   1001  Document/message name, coded
+   1004  Document/message number
+   1366  Document/message source
+   1373  Document/message status, coded
+   5289  Duty/tax/fee account identification
+   5286  Duty/tax/fee assessment basis
+   5305  Duty/tax/fee category, coded
+   5283  Duty/tax/fee function qualifier
+   5278  Duty/tax/fee rate
+   5273  Duty/tax/fee rate basis identification
+   5279  Duty/tax/fee rate identification
+   5152  Duty/tax/fee type
+   5153  Duty/tax/fee type, coded
+   9004  Employment category
+   9005  Employment category, coded
+   9003  Employment qualifier
+   8364  EMS number
+   8260  Equipment identification number
+   8332  Equipment plan
+   8053  Equipment qualifier
+   8154  Equipment size and type
+   8155  Equipment size and type identification
+   8249  Equipment status, coded
+   8077  Equipment supplier, coded
+   8457  Excess transportation reason, coded
+   8459  Excess transportation responsibility, coded
+   1516  File format
+   1508  File name
+   9432  Footnote identifier
+   9430  Footnote set identifier
+   4440  Free text
+   4441  Free text, coded
+   8022  Freight and charges
+   8023  Freight and charges identification
+   6071  Frequency qualifier
+   6072  Frequency value
+   2013  Frequency, coded
+   8169  Full/empty indicator, coded
+   3279  Geographic environment, coded
+   1496  Goods item number
+   9417  Government action, coded
+   9415  Government agency, coded
+   9411  Government involvement, coded
+   9353  Government procedure, coded
++  9164  Group identification
+   4078  Handling instructions
+   4079  Handling instructions, coded
+   8341  Haulage arrangements, coded
+   8351  Hazard code identification
+   8092  Hazard code version number
+   8158  Hazard identification number, upper part
+   8078  Hazard substance/item/page number
+   7419  Hazardous material class code, identification
+   6008  Height dimension
+   7164  Hierarchical id. number
+   7166  Hierarchical parent id.
+   8213  Id. of means of transport identification
+   8212  Id. of the means of transport
+   7495  Identification qualifier
+   7402  Identity number
+   7405  Identity number qualifier
+   5013  Index qualifier
+   5027  Index type, coded
+   5030  Index value
+   5039  Index value representation, coded
+   7429  Indexing structure qualifier
+   3434  Institution branch number
+   3436  Institution branch place
+   3432  Institution name
+   3433  Institution name identification
+   4400  Instruction
+   4403  Instruction qualifier
+   4401  Instruction, coded
+   4494  Insurance cover
+   4495  Insurance cover identification
+   4497  Insurance cover type, coded
+   4463  Intra-company payment, coded
+   4503  Inventory balance method, coded
+   4501  Inventory movement direction, coded
+   7081  Item characteristic, coded
+   7008  Item description
+*  7009  Item description identification
+   7077  Item description type, coded
+   7140  Item number
+   7143  Item number type, coded
+   3494  Job title
++  3452  Language
++  3455  Language qualifier
+   3453  Language, coded
+   6168  Length dimension
+   7444  Level five id.
+   7442  Level four id.
++  7168  Level number
+   7436  Level one id.
+   7446  Level six id.
+   7440  Level three id.
+   7438  Level two id.
+   1082  Line item number
+   1156  Line number
+   4513  Maintenance operation, coded
++  3478  Marital status
++  3479  Marital status, coded
+   4233  Marking instructions, coded
++  6176  Maximum number of occurrences
+   6411  Measure unit qualifier
+   6311  Measurement application qualifier
+   6154  Measurement attribute
+   6155  Measurement attribute, coded
+   6313  Measurement dimension, coded
+   6321  Measurement significance, coded
+   6314  Measurement value
+   7450  Membership category
+   7451  Membership category identification
+   7456  Membership level
+   7457  Membership level identification
+   7455  Membership level qualifier
+   7449  Membership qualifier
+   7452  Membership status
+   7453  Membership status, coded
+   1225  Message function, coded
+   1052  Message item number
+   1049  Message section, coded
+   1054  Message sub-item number
++  1475  Message type identifier
+   8410  MFAG
+   8066  Mode of transport
+   8067  Mode of transport, coded
+   5004  Monetary amount
+   5025  Monetary amount type qualifier
+   5007  Monetary function, coded
+   8334  Movement type
+   8335  Movement type, coded
+   3124  Name and address line
++  3398  Name component
++  3295  Name component original representation, coded
++  3405  Name component qualifier
++  3401  Name component status, coded
++  3397  Name status, coded
++  3403  Name type, coded
++  3292  Nationality
+   8453  Nationality of means of transport, coded
++  3493  Nationality qualifier
++  3293  Nationality, coded
+   7085  Nature of cargo, coded
+   1220  Number of copies of document required
+   1218  Number of originals of document required
+   7224  Number of packages
+   2152  Number of periods
+   6426  Number of stages
+   6350  Number of units
+   6353  Number of units qualifier
+   9008  Occupation
+   9009  Occupation, coded
+   7075  Packaging level, coded
+   7233  Packaging related information, coded
+   7073  Packaging terms and conditions, coded
+   8339  Packing group, coded
+   8255  Packing instruction, coded
+   3301  Party enacting instruction identification
+   3039  Party id. identification
+   3036  Party name
+   3045  Party name format, coded
+   3035  Party qualifier
+   3446  Party tax identification number
+   4435  Payment channel, coded
+   4439  Payment conditions, coded
+   4431  Payment guarantee, coded
+   4461  Payment means, coded
+   4279  Payment terms type qualifier
+   2475  Payment time reference, coded
+   5482  Percentage
+   5249  Percentage basis, coded
+   5245  Percentage qualifier
+   8211  Permission for transport, coded
++  3289  Person characteristic qualifier
++  3310  Person inherited characteristic
++  3311  Person inherited characteristic identification
+   3224  Place/location
+   3225  Place/location identification
+   3227  Place/location qualifier
+   3251  Postcode identification
+   4237  Prepaid/collect indicator, coded
+   5118  Price
+   5377  Price change indicator, coded
+   5394  Price multiplier
+   5393  Price multiplier qualifier
+   5125  Price qualifier
+   5387  Price type qualifier
+   5375  Price type, coded
++  4036  Priority
++  4035  Priority qualifier
++  4037  Priority, coded
+   7186  Process type
+   7187  Process type identification
+   7365  Processing indicator, coded
+   5388  Product group
+   5379  Product group type, coded
+   5389  Product group, coded
+   4347  Product id. function qualifier
+   4457  Product/service substitution, coded
+   7059  Property class, coded
++  9035  Qualification area, coded
+   9006  Qualification classification
+   9007  Qualification classification, coded
+   6060  Quantity
+   6064  Quantity difference
+   6063  Quantity qualifier
+   6152  Range maximum
+   6162  Range minimum
+   6167  Range type qualifier
+   5402  Rate of exchange
+   5420  Rate per unit
+   5419  Rate type qualifier
+   5242  Rate/tariff class
+   5243  Rate/tariff class identification
+   4499  Reason for inventory movement, coded
+   3285  Recipient of the instruction identification
+   1154  Reference number
+   1153  Reference qualifier
+   4000  Reference version number
+   3222  Related place/location one
+   3223  Related place/location one identification
+   3232  Related place/location two
+   3233  Related place/location two identification
+   5479  Relation, coded
+   9142  Relationship
+   9141  Relationship qualifier
+   9143  Relationship, coded
+   1058  Release
++  3482  Religion
++  3483  Religion, coded
++  5314  Remuneration type
++  5315  Remuneration type, coded
+   4510  Requested information
+   4511  Requested information, coded
++  7299  Requirement designator, coded
+   7294  Requirement or condition
+   7295  Requirement/condition identification
+   4343  Response type, coded
+   8395  Returnable package freight payment responsibility, coded
+   8393  Returnable package load contents, coded
+   1060  Revision number
++  4046  Safety section
++  4044  Safety section name
+   3496  Sales channel identifier
+   7045  Sample description, coded
+   7047  Sample direction, coded
+   3236  Sample location
+   3237  Sample location, coded
+   4407  Sample process status, coded
+   7039  Sample selection method, coded
+   4517  Seal condition, coded
+   9308  Seal number
+   9302  Sealing party
+   9303  Sealing party, coded
+   7293  Sector/subject identification qualifier
++  9166  Segment tag
+   1050  Sequence number
+   1159  Sequence number source, coded
+   9419  Service layer, coded
+   7273  Service requirement, coded
+   7297  Set identification qualifier
+   4471  Settlement, coded
++  3499  Sex, coded
+   7106  Shipment flashpoint
+   7102  Shipping marks
+   6432  Significant digits
++  9153  Simple data element character representation, coded
++  9155  Simple data element length type, coded
++  9156  Simple data element maximum length
++  9158  Simple data element minimum length
++  9150  Simple data element tag
+   6174  Size
+   6173  Size qualifier
+   4183  Special conditions, coded
+   7160  Special service
+   7161  Special services, coded
+   9421  Stages qualifier
+   6331  Statistic type, coded
+   6434  Statistical concept identifier
+   9010  Status event
+   9011  Status event, coded
+   1245  Status indicator, coded
+   9012  Status reason
+   9013  Status reason, coded
+   9015  Status type, coded
+|  4405  Status, coded
+   3042  Street and number/p.o. box
+   7512  Structure component identifier
+   5495  Sub-line indicator, coded
+   5213  Sub-line price change, coded
+   8186  Substance identification number, lower part
+   5275  Supplementary rate/tariff basis identification
+   7383  Surface/layer indicator, coded
+   6245  Temperature qualifier
+   6246  Temperature setting
+   4052  Terms of delivery or transport
+   4055  Terms of delivery or transport function, coded
+   4053  Terms of delivery or transport, coded
+   4276  Terms of payment
+   4277  Terms of payment identification
+   4416  Test description
+   3077  Test media, coded
+   4415  Test method identification
+   4424  Test reason
+   4425  Test reason identification
+   7188  Test revision number
+   4419  Test route of administering, coded
+   4453  Text function, coded
+   4451  Text subject qualifier
+   2009  Time relation, coded
+   7240  Total number of items
+   8101  Transit direction, coded
+   4215  Transport charges method of payment, coded
+   8323  Transport movement, coded
+   8281  Transport ownership, coded
+   4219  Transport priority, coded
+   8051  Transport stage qualifier
+   8126  Trem card number
+   7500  Type of damage
+   7501  Type of damage, coded
+   9213  Type of duty regime, coded
+   4487  Type of financial transaction, coded
+   7491  Type of inventory affected, coded
+   7511  Type of marking, coded
+   8178  Type of means of transport
+   8179  Type of means of transport identification
+   7064  Type of packages
+   7065  Type of packages identification
+   2151  Type of period, coded
+   7504  Type of unit/component
+   7505  Type of unit/component, coded
+   7124  UNDG number
+   5284  Unit price basis
+   9282  Validation key identification
+   9280  Validation result
+   1518  Value list identifier
+   1514  Value list name
+   1505  Value list type, coded
+   1056  Version
+   6140  Width dimension
