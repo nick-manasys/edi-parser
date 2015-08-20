@@ -1,12 +1,13 @@
 package com.anypoint.df.edi.schema
 
+import scala.annotation.tailrec
+import scala.collection.mutable.Buffer
+import scala.util.{ Success, Try }
+
 import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.util.{ Calendar, GregorianCalendar }
-import scala.annotation.tailrec
-import scala.collection.mutable.Buffer
-import scala.util.Try
-import scala.util.Success
+
 import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, HL7Lexer }
 import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
@@ -39,8 +40,8 @@ trait HL7NumberValidator {
 }
 
 /** Parser for HL7 EDI documents. */
-case class HL7SchemaParser(in: InputStream, sc: EdiSchema, numval: HL7NumberValidator, config: HL7ParserConfig)
-    extends SchemaParser(new HL7Lexer(in, config.substitutionChar), sc) {
+case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7NumberValidator, config: HL7ParserConfig)
+    extends SchemaParser(new HL7Lexer(in, config.substitutionChar)) {
 
   import HL7SchemaDefs._
   import HL7Acknowledgment._
@@ -56,6 +57,9 @@ case class HL7SchemaParser(in: InputStream, sc: EdiSchema, numval: HL7NumberVali
 
   /** Accumulated segment errors for message. */
   val messageErrors = Buffer[ValueMap]()
+
+  /** Check if an envelope segment (handled directly, outside of structure). */
+  def isEnvelopeSegment(ident: String) = HL7.isEnvelopeSegment(ident)
 
   /** Lexical error handler. */
   case object HL7ErrorHandler extends ErrorHandler {
@@ -176,7 +180,7 @@ case class HL7SchemaParser(in: InputStream, sc: EdiSchema, numval: HL7NumberVali
     logErrorInMessage(true, false, error.text)
     acknowledgmentCode = AcknowledgedApplicationReject
     val errmap = new ValueMapImpl
-    discardTransaction
+    discardStructure
   }
 
   def convertSectionControl = None
@@ -184,7 +188,7 @@ case class HL7SchemaParser(in: InputStream, sc: EdiSchema, numval: HL7NumberVali
   def convertLoop = None
 
   /** Discard input past end of current message. */
-  def discardTransaction = while (lexer.currentType != END) discardSegment
+  def discardStructure = while (lexer.currentType != END) discardSegment
 
   def init(data: ValueMap) = {
     val delims = lexer.asInstanceOf[HL7Lexer].init(data)
@@ -204,14 +208,14 @@ case class HL7SchemaParser(in: InputStream, sc: EdiSchema, numval: HL7NumberVali
     val sender = buildIdentityInformation(mshSendingApplication, mshSendingFacility, mshmap)
     val receiver = buildIdentityInformation(mshReceivingApplication, mshReceivingFacility, mshmap)
     if (numval.validateMessage(sender, receiver, messageControl)) {
-      if (getRequiredString(mshVersionKey, mshmap) == schema.version) (
-        schema.transactions(getRequiredString(mshStructureKey, mshmap)) match {
-          case t: Transaction => {
-            map put (transactionId, t.ident)
-            map put (transactionName, t.name)
+      if (getRequiredString(mshVersionKey, mshmap) == schema.ediVersion.version) (
+        schema.structures(getRequiredString(mshStructureKey, mshmap)) match {
+          case t: Structure => {
+            map put (structureId, t.ident)
+            map put (structureName, t.name)
             val dataMap = new ValueMapImpl
             map put (dataKey, dataMap)
-            dataMap put (t.ident, parseTransaction(t, true))
+            dataMap put (t.ident, parseStructure(t, true))
           }
           case _ => messageError(ErrorMessageType)
         })

@@ -2,6 +2,8 @@ package com.anypoint.df.edi.schema
 
 import scala.annotation.tailrec
 
+import java.{ util => ju }
+
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 
@@ -93,18 +95,18 @@ object EdiSchema {
     */
   sealed abstract class OccurrenceRule(val code: String, val components: List[SegmentComponent]) {
     if (components isEmpty) throw new IllegalArgumentException("components list must not be empty")
-    def hasHead(map: java.util.Map[String, Object]) = map containsKey (components.head key)
-    def verify(map: java.util.Map[String, Object]): Boolean
+    def hasHead(map: ju.Map[String, Object]) = map containsKey (components.head key)
+    def verify(map: ju.Map[String, Object]): Boolean
   }
   // X12 Required, EDIFACT One or more
   val OneOrMoreCode = "R"
   case class OneOrMore(comps: List[SegmentComponent]) extends OccurrenceRule(OneOrMoreCode, comps) {
-    def verify(map: java.util.Map[String, Object]) = !comps.find(comp => map containsKey (comp key)).isEmpty
+    def verify(map: ju.Map[String, Object]) = !comps.find(comp => map containsKey (comp key)).isEmpty
   }
   // X12 Conditional, EDIFACT If first, then all
   val IfFirstThenAllCode = "C"
   case class IfFirstThenAll(comps: List[SegmentComponent]) extends OccurrenceRule(IfFirstThenAllCode, comps) {
-    def verify(map: java.util.Map[String, Object]) =
+    def verify(map: ju.Map[String, Object]) =
       if (hasHead(map)) {
         comps.find(comp => !(map containsKey (comp key))).isEmpty
       } else true
@@ -112,13 +114,13 @@ object EdiSchema {
   // X12 Exclusion, EDIFACT One or none
   val OneOrNoneCode = "E"
   case class OneOrNone(comps: List[SegmentComponent]) extends OccurrenceRule(OneOrNoneCode, comps) {
-    def verify(map: java.util.Map[String, Object]) =
+    def verify(map: ju.Map[String, Object]) =
       comps.count(comp => map containsKey (comp key)) <= 1
   }
   // X12 List Conditional, EDIFACT If first, then at least one
   val IfFirstThenMoreCode = "L"
   case class IfFirstThenMore(comps: List[SegmentComponent]) extends OccurrenceRule(IfFirstThenMoreCode, comps) {
-    def verify(map: java.util.Map[String, Object]) =
+    def verify(map: ju.Map[String, Object]) =
       if (hasHead(map)) {
         !comps.tail.find(comp => map containsKey (comp key)).isEmpty
       } else true
@@ -126,7 +128,7 @@ object EdiSchema {
   // X12 Paired, EDIFACT All or none
   val AllOrNoneCode = "P"
   case class AllOrNone(comps: List[SegmentComponent]) extends OccurrenceRule(AllOrNoneCode, comps) {
-    def verify(map: java.util.Map[String, Object]) = {
+    def verify(map: ju.Map[String, Object]) = {
       val first = hasHead(map)
       comps.tail.find(comp => (map containsKey (comp key)) != first).isEmpty
     }
@@ -134,13 +136,13 @@ object EdiSchema {
   // EDIFACT One and only one
   val OneAndOnlyOneCode = "O"
   case class OneAndOnlyOne(comps: List[SegmentComponent]) extends OccurrenceRule(OneAndOnlyOneCode, comps) {
-    def verify(map: java.util.Map[String, Object]) =
+    def verify(map: ju.Map[String, Object]) =
       comps.count(comp => map containsKey (comp key)) == 1
   }
   // EDIFACT If first, then none
   val IfFirstThenNoneCode = "X"
   case class IfFirstThenNone(comps: List[SegmentComponent]) extends OccurrenceRule(IfFirstThenNoneCode, comps) {
-    def verify(map: java.util.Map[String, Object]) =
+    def verify(map: ju.Map[String, Object]) =
       if (hasHead(map)) {
         comps.find(comp => map containsKey (comp key)).isEmpty
       } else true
@@ -182,7 +184,7 @@ object EdiSchema {
   case class Segment(val ident: String, val name: String, val components: List[SegmentComponent],
     val rules: List[OccurrenceRule])
 
-  /** Segment position within a transaction. Position numbers are reused across different tables of a transaction
+  /** Segment position within a structure. Position numbers are reused across different tables of a structure
     * definition, so this gives a unique value for every segment.
     * @param table
     * @param position
@@ -192,27 +194,27 @@ object EdiSchema {
       table < other.table || (table == other.table && position < other.position)
   }
 
-  /** Base for all transaction components.
+  /** Base for all structure components.
     * @param key map key for data
     * @param position segment (or starting segment) position
     * @param usage
     * @param count maximum repetition count (0 for unlimited)
     */
-  sealed abstract class TransactionComponent(val key: String, val position: SegmentPosition, val usage: Usage,
+  sealed abstract class StructureComponent(val key: String, val position: SegmentPosition, val usage: Usage,
     val count: Int)
 
-  /** Build map from segment id to transaction component at level.
+  /** Build map from segment id to structure component at level.
     * @param comps
     */
-  def componentsById(comps: List[TransactionComponent]) =
-    comps.foldLeft(Map[String, TransactionComponent]())((acc, comp) => comp match {
+  def componentsById(comps: List[StructureComponent]) =
+    comps.foldLeft(Map[String, StructureComponent]())((acc, comp) => comp match {
       case ref: ReferenceComponent => acc + (ref.segment.ident -> ref)
       case wrap: LoopWrapperComponent => acc + (wrap.open.ident + wrap.ident -> wrap)
       case grp: GroupComponent => acc + (grp.leadSegmentRef.segment.ident -> grp)
       case _ => acc
     })
 
-  /** Key for a transaction component. */
+  /** Key for a structure component. */
   def componentKey(ident: String, pos: SegmentPosition) = pos.position + " " + ident
 
   /** Segment reference.
@@ -222,7 +224,7 @@ object EdiSchema {
     * @param cnt
     */
   case class ReferenceComponent(val segment: Segment, pos: SegmentPosition, use: Usage, cnt: Int)
-    extends TransactionComponent(componentKey(segment.ident, pos), pos, use, cnt)
+    extends StructureComponent(componentKey(segment.ident, pos), pos, use, cnt)
 
   /** Any segment reference.
     * @param ident
@@ -231,7 +233,7 @@ object EdiSchema {
     * @param cnt
     */
   case class WildcardComponent(val ident: String, pos: SegmentPosition, use: Usage, cnt: Int)
-    extends TransactionComponent(componentKey(ident, pos), pos, use, cnt)
+    extends StructureComponent(componentKey(ident, pos), pos, use, cnt)
 
   /** Loop wrapper component.
     * @param open
@@ -244,7 +246,7 @@ object EdiSchema {
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
     val endPosition: SegmentPosition, use: Usage, val ident: String, grp: GroupComponent)
-      extends TransactionComponent(componentKey(open.ident, start), start, use, 1) {
+      extends StructureComponent(componentKey(open.ident, start), start, use, 1) {
     val loopGroup = GroupComponent(grp.ident, grp.usage, grp.count, grp.items, grp.varkey, grp.variants, Some(key))
     val compsById = Map((open.ident + ident) -> ReferenceComponent(open, start, MandatoryUsage, 1),
       (close.ident + ident) -> ReferenceComponent(close, endPosition, MandatoryUsage, 1))
@@ -257,7 +259,7 @@ object EdiSchema {
     * @param items
     */
   sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int, val choice: Boolean,
-      val items: List[TransactionComponent]) extends TransactionComponent(ky, pos, use, cnt) {
+      val items: List[StructureComponent]) extends StructureComponent(ky, pos, use, cnt) {
 
     /** Components in group by segment identifier. */
     val compsById = componentsById(items)
@@ -270,15 +272,15 @@ object EdiSchema {
     * @param itms
     */
   case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
-    itms: List[TransactionComponent])
+    itms: List[StructureComponent])
       extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, itms)
 
-  /** Get lead reference from list of transaction components. If the first component is not a reference this recursively
+  /** Get lead reference from list of structure components. If the first component is not a reference this recursively
     * descends until a first component reference is found.
     * @param ident
     * @param comps
     */
-  def leadReference(ident: String, comps: List[TransactionComponent]): ReferenceComponent = comps match {
+  def leadReference(ident: String, comps: List[StructureComponent]): ReferenceComponent = comps match {
     case (ref: ReferenceComponent) :: t => ref
     case (grp: GroupBase) :: t => leadReference(ident, grp.items)
     case _ => throw new IllegalStateException(s"first item in group $ident is not a segment reference")
@@ -293,7 +295,7 @@ object EdiSchema {
     * @param variants group variant forms
     * @param ky explicit key value (ident used by default)
     */
-  case class GroupComponent(val ident: String, use: Usage, cnt: Int, itms: List[TransactionComponent],
+  case class GroupComponent(val ident: String, use: Usage, cnt: Int, itms: List[StructureComponent],
     val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None, ch: Boolean = false)
       extends GroupBase(ky.getOrElse(componentKey(ident, leadReference(ident, itms).position)),
         leadReference(ident, itms).position, use, cnt, ch, itms) {
@@ -313,21 +315,22 @@ object EdiSchema {
     val varbyval = Map(variants map { v => (v.elemval, v) }: _*)
   }
 
-  /** Transaction set definition.
+  /** Structure definition.
     * @param ident
     * @param name
     * @param group
     * @param heading
     * @param detail
     * @param summary
+    * @param version
     */
-  case class Transaction(val ident: String, val name: String, val group: Option[String],
-      val heading: List[TransactionComponent], val detail: List[TransactionComponent],
-      val summary: List[TransactionComponent]) {
+  case class Structure(val ident: String, val name: String, val group: Option[String],
+      val heading: List[StructureComponent], val detail: List[StructureComponent],
+      val summary: List[StructureComponent], val version: EdiSchemaVersion) {
 
-    /** Segments used in transaction set. */
+    /** Segments used in structure. */
     val segmentsUsed = {
-      def referencer(comps: List[TransactionComponent], segments: Set[Segment]): Set[Segment] =
+      def referencer(comps: List[StructureComponent], segments: Set[Segment]): Set[Segment] =
         comps.foldLeft(segments)((acc, comp) => comp match {
           case ref: ReferenceComponent => acc + ref.segment
           case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.items, acc) + wrap.open + wrap.close
@@ -336,7 +339,7 @@ object EdiSchema {
       referencer(summary, referencer(detail, referencer(heading, Set[Segment]())))
     }
 
-    /** Composites used in transaction set. */
+    /** Composites used in structure. */
     val compositesUsed = {
       def referencer(comps: List[SegmentComponent], composites: Set[Composite]): Set[Composite] =
         comps.foldLeft(composites)((acc, comp) => comp match {
@@ -346,7 +349,7 @@ object EdiSchema {
       segmentsUsed.foldLeft(Set[Composite]())((acc, seg) => referencer(seg.components, acc))
     }
 
-    /** Elements used in transaction set. */
+    /** Elements used in structure. */
     val elementsUsed = {
       def referencer(comps: List[SegmentComponent], elements: Set[Element]): Set[Element] =
         comps.foldLeft(elements)((acc, comp) => comp match {
@@ -356,7 +359,7 @@ object EdiSchema {
       segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
     }
 
-    /** Ids of all segments used in transaction set at any level. */
+    /** Ids of all segments used in structure at any level. */
     val segmentIds = segmentsUsed.map(segment => segment.ident)
 
     /** Top-level components in heading by segment id. */
@@ -368,11 +371,11 @@ object EdiSchema {
     /** Top-level components in summary by segment id. */
     val summaryById = componentsById(summary)
 
-    /** All top-level components in transaction. */
+    /** All top-level components in structure. */
     val compsById = headingById ++ detailById ++ summaryById
   }
 
-  type TransactionMap = Map[String, Transaction]
+  type StructureMap = Map[String, Structure]
 
   sealed abstract class EdiForm(val text: String) {
     def isEnvelopeSegment(ident: String): Boolean
@@ -411,18 +414,20 @@ object EdiSchema {
   }
 }
 
-case class EdiSchema(val ediForm: EdiSchema.EdiForm, val version: String, val elements: Map[String, EdiSchema.Element],
+case class EdiSchemaVersion(val ediForm: EdiSchema.EdiForm, val version: String)
+
+case class EdiSchema(val ediVersion: EdiSchemaVersion, val elements: Map[String, EdiSchema.Element],
     val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
-    val transactions: EdiSchema.TransactionMap) {
-  def this(form: EdiSchema.EdiForm, ver: String) = this(form, ver, Map[String, EdiSchema.Element](),
-    Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]())
-  def merge(other: EdiSchema) = EdiSchema(ediForm, version, elements ++ other.elements, composites ++ other.composites,
-    segments ++ other.segments, transactions ++ other.transactions)
-  def merge(transact: EdiSchema.Transaction) = {
+    val structures: EdiSchema.StructureMap) {
+  def this(ver: EdiSchemaVersion) = this(ver, Map[String, EdiSchema.Element](),
+    Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Structure]())
+  def merge(other: EdiSchema) = EdiSchema(ediVersion, elements ++ other.elements, composites ++ other.composites,
+    segments ++ other.segments, structures ++ other.structures)
+  def merge(transact: EdiSchema.Structure) = {
     val elemMap = elements ++ (transact.elementsUsed.foldLeft(Map[String, EdiSchema.Element]())((map, elem) => map + (elem.ident -> elem)))
     val compMap = composites ++ (transact.compositesUsed.foldLeft(Map[String, EdiSchema.Composite]())((map, comp) => map + (comp.ident -> comp)))
     val segMap = segments ++ (transact.segmentsUsed.foldLeft(Map[String, EdiSchema.Segment]())((map, seg) => map + (seg.ident -> seg)))
-    val transMap = transactions + (transact.ident -> transact)
-    EdiSchema(ediForm, version, elemMap, compMap, segMap, transMap)
+    val transMap = structures + (transact.ident -> transact)
+    EdiSchema(ediVersion, elemMap, compMap, segMap, transMap)
   }
 }

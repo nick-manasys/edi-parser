@@ -13,6 +13,7 @@ import org.junit.Test;
 
 import com.anypoint.df.edi.lexical.WriteException;
 import com.anypoint.df.edi.schema.EdiSchema;
+import com.anypoint.df.edi.schema.EdiSchemaVersion;
 import com.anypoint.df.edi.schema.EdiSchema.EdiForm;
 import com.anypoint.df.edi.schema.systests.TestBase;
 import com.anypoint.df.edi.schema.systests.YamlSupport;
@@ -34,7 +35,7 @@ public class WriterTest extends EdifactTestBase {
         InputStreamReader reader = new InputStreamReader(is, "ASCII");
         JsonReader json = new JsonReader();
         Map<String, Object> map = json.read(reader);
-        schema = new EdiSchema((EdiForm)EdiSchema.convertEdiForm("EDIFACT"), "D93A");
+        schema = new EdiSchema(new EdiSchemaVersion((EdiForm)EdiSchema.convertEdiForm("EDIFACT"), "D93A"));
         System.out.println(testWrite(map));
     }
     

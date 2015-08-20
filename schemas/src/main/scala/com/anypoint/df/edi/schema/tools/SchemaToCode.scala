@@ -11,7 +11,7 @@ import com.anypoint.df.edi.schema.YamlReader
 import scala.annotation.migration
 import scala.annotation.tailrec
 
-/** Print the code to create a segment or transaction. Note that this does not handle variant groups. */
+/** Print the code to create a segment or structure. Note that this does not handle variant groups. */
 class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
 
   val BREAK_LINE_LENGTH = 100
@@ -75,7 +75,7 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
         val cname = compnames(ident)._2
         val comp =
           if (ccomp.count != 1 || compnames(ident)._1) cname
-          else s"""$cname.rewrite("${ccomp.key}", convertEdiForm("${schema.ediForm}"))"""
+          else s"""$cname.rewrite("${ccomp.key}", convertEdiForm("${schema.ediVersion.ediForm}"))"""
         s"""CompositeComponent($comp, Some("${ccomp.name}"), "${ccomp.key}", ${ccomp.position}, ${ccomp.usage}, ${ccomp.count})"""
       }
     }
@@ -128,7 +128,7 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
     builder.break
   }
 
-  def componentList(comps: List[TransactionComponent]): Unit = {
+  def componentList(comps: List[StructureComponent]): Unit = {
     builder.prepend = ""
     comps.foreach(comp => {
       comp match {
@@ -139,7 +139,7 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
           else builder.append(text)
         }
         case group: GroupComponent => {
-          builder.breakAppend(s"""GroupComponent("${group.ident}", ${group.use}, ${group.count}, List[TransactionComponent](""")
+          builder.breakAppend(s"""GroupComponent("${group.ident}", ${group.use}, ${group.count}, List[StructureComponent](""")
           builder.indent
           builder.break
           componentList(group.items)
@@ -209,9 +209,9 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
     segments.toList.sortBy(segment => segment.ident).foreach(segment => defineSegment(segment, compnames, elemreps))
   }
 
-  def toCode(trans: Transaction, composites: Map[String, Composite]): Unit = {
-    def referencedSegments(comps: List[TransactionComponent]): Set[Segment] = {
-      def referencer(comps: List[TransactionComponent], segments: Set[Segment]): Set[Segment] =
+  def toCode(trans: Structure, composites: Map[String, Composite]): Unit = {
+    def referencedSegments(comps: List[StructureComponent]): Set[Segment] = {
+      def referencer(comps: List[StructureComponent], segments: Set[Segment]): Set[Segment] =
         comps.foldLeft(segments)((segs, comp) => comp match {
           case ref: ReferenceComponent => segs + ref.segment
           case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.items, segs + wrap.open + wrap.close)
@@ -219,7 +219,7 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
         })
       referencer(comps, Set[Segment]())
     }
-    def dumpSection(comps: List[TransactionComponent]) =
+    def dumpSection(comps: List[StructureComponent]) =
       if (comps.nonEmpty) {
         builder.break
         componentList(comps)
@@ -229,12 +229,12 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
       referencedSegments(trans.summary)
     toCode(segments.toList, composites)
     builder.break
-    builder.append(s"""val trans${trans.ident} = Transaction("${trans.ident}", "${trans.name}", ${optionText(trans.group)}, List[TransactionComponent](""")
+    builder.append(s"""val trans${trans.ident} = Structure("${trans.ident}", "${trans.name}", ${optionText(trans.group)}, List[StructureComponent](""")
     builder.indent
     dumpSection(trans.heading)
-    builder.append("), List[TransactionComponent](")
+    builder.append("), List[StructureComponent](")
     dumpSection(trans.detail)
-    builder.append("), List[TransactionComponent](")
+    builder.append("), List[StructureComponent](")
     dumpSection(trans.summary)
     builder.append("))")
     builder.outdent
@@ -258,14 +258,14 @@ object SegmentsToCode {
 
 object SchemaToCode {
 
-  /** Reads a schema definition and outputs the transactions as Scala code dumped to the console.
+  /** Reads a schema definition and outputs the structures as Scala code dumped to the console.
     */
   def main(args: Array[String]): Unit = {
     val yamlin = new InputStreamReader(new FileInputStream(new File(args(0))), "UTF-8")
     val schema = new YamlReader().loadYaml(yamlin, Array())
     val writer = new PrintWriter(System.out)
     val dumper = new SchemaDump(schema, writer)
-    schema.transactions.values.foreach(transact => dumper.toCode(transact, schema.composites))
+    schema.structures.values.foreach(transact => dumper.toCode(transact, schema.composites))
     writer.flush
     writer.close
   }

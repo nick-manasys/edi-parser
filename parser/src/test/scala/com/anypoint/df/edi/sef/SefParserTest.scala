@@ -257,10 +257,10 @@ class SetsParserTest extends FlatSpec with TestBase with ShouldMatchers {
     assert(result1.successful)
     val segref1 = SegmentReference("ABC", None, None, 0, MandatoryRequirement, UsageDefault)
     val segref2 = SegmentReference("DTM", None, None, 0, RequirementDefault, UsageDefault)
-    assert(TransactionTable(List(segref1, segref2)) === result1.get)
+    assert(StructureTable(List(segref1, segref2)) === result1.get)
     val result2 = table(new CharArrayReader("^+5[ABC,M][DTM]+1{LOOP:[ABC,M][DTM]}".toArray))
     assert(result2.successful)
-    assert(TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2)))) === result2.get)
+    assert(StructureTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2)))) === result2.get)
   }
 
   it should "fail on other value" in {
@@ -276,12 +276,12 @@ class SetsParserTest extends FlatSpec with TestBase with ShouldMatchers {
     assert(result1.successful)
     val segref1 = SegmentReference("ABC", None, None, 0, MandatoryRequirement, UsageDefault)
     val segref2 = SegmentReference("DTM", None, None, 0, RequirementDefault, UsageDefault)
-    val transtab1 = TransactionTable(List(segref1, segref2));
-    assert(TransactionSet("ORDER", List(transtab1)) === result1.get)
+    val transtab1 = StructureTable(List(segref1, segref2));
+    assert(StructureSet("ORDER", List(transtab1)) === result1.get)
     val result2 = transSet(new CharArrayReader(("""ORDER=^[ABC,M][DTM]^+5[ABC,M][DTM]+1{LOOP:[ABC,M][DTM]}""").toArray))
     assert(result2.successful)
-    val transtab2 = TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2))))
-    assert(TransactionSet("ORDER", List(transtab1, transtab2)) === result2.get)
+    val transtab2 = StructureTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2))))
+    assert(StructureSet("ORDER", List(transtab1, transtab2)) === result2.get)
   }
 
   it should "fail on other value" in {
@@ -292,17 +292,17 @@ class SetsParserTest extends FlatSpec with TestBase with ShouldMatchers {
 
   behavior of "set"
 
-  it should "parse a .SETS section with zero or more transaction" in {
+  it should "parse a .SETS section with zero or more structure" in {
     val result1 = setsSection(new CharArrayReader(".SETS\nORDER=^[ABC,M][DTM]".toArray))
     assert(result1.successful)
     val segref1 = SegmentReference("ABC", None, None, 0, MandatoryRequirement, UsageDefault)
     val segref2 = SegmentReference("DTM", None, None, 0, RequirementDefault, UsageDefault)
-    val transtab1 = TransactionTable(List(segref1, segref2));
-    assert(TransactionsSection(Seq(TransactionSet("ORDER", List(transtab1)))) === result1.get)
+    val transtab1 = StructureTable(List(segref1, segref2));
+    assert(StructuresSection(Seq(StructureSet("ORDER", List(transtab1)))) === result1.get)
     val result2 = setsSection(new CharArrayReader(".SETS\nORDER=^[ABC,M][DTM]\nOTHER=^[ABC,M][DTM]^+5[ABC,M][DTM]+1{LOOP:[ABC,M][DTM]}\n".toArray))
     assert(result2.successful)
-    val transtab2 = TransactionTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2))))
-    assert(TransactionsSection(Seq(TransactionSet("ORDER", List(transtab1)), TransactionSet("OTHER", List(transtab1, transtab2)))) === result2.get)
+    val transtab2 = StructureTable(List(PositionIncrement(5), segref1, segref2, PositionIncrement(1), TransGroup("LOOP", None, None, MandatoryRequirement, 1, List(segref1, segref2))))
+    assert(StructuresSection(Seq(StructureSet("ORDER", List(transtab1)), StructureSet("OTHER", List(transtab1, transtab2)))) === result2.get)
   }
 
   it should "fail on other value" in {
@@ -857,9 +857,9 @@ class SefParserTest extends FlatSpec with TestBase with ShouldMatchers {
   val sval2 = BaseValue("C001", None, None, DefaultMinMaxPair, RequirementDefault, 1)
   val seg1 = SegmentDef("AAA", Seq(sval1, sval2), Nil, Nil)
   val ref1 = SegmentReference("AAA", Some(MustUseMark), None, 0, MandatoryRequirement, UsageDefault)
-  val table1 = TransactionTable(Seq(ref1))
-  val set1 = TransactionSet("ORDERS", Seq(table1))
-  val doc1 = Seq(TransactionsSection(Seq(set1)), SegmentsSection(Seq(seg1)), CompositesSection(Seq(com1)), ElementsSection(Seq(elm1, elm2)))
+  val table1 = StructureTable(Seq(ref1))
+  val set1 = StructureSet("ORDERS", Seq(table1))
+  val doc1 = Seq(StructuresSection(Seq(set1)), SegmentsSection(Seq(seg1)), CompositesSection(Seq(com1)), ElementsSection(Seq(elm1, elm2)))
 
   behavior of "sefParser"
 

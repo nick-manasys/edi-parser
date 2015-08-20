@@ -1,30 +1,18 @@
 package com.anypoint.df.edi.schema.tools
 
 import collection.JavaConverters._
-import com.anypoint.df.edi.schema.EdiSchema._
-import com.anypoint.df.edi.schema.SchemaJavaDefs
-import com.anypoint.df.edi.schema.WritesYaml
-import com.anypoint.df.edi.schema.YamlDefs
-import com.anypoint.df.edi.schema.YamlReader
-import java.io.InputStreamReader
-import java.io.FileInputStream
-import java.io.Reader
-import java.io.File
-import com.anypoint.df.edi.schema.X12ParserConfig
-import com.anypoint.df.edi.schema.X12SchemaParser
-import scala.util.Failure
-import scala.util.Success
-import com.anypoint.df.edi.schema.IdentityInformation
-import com.anypoint.df.edi.schema.SchemaJavaValues._
-import com.anypoint.df.edi.schema.EdiSchema
-import java.io.Writer
-import scala.annotation.tailrec
-import com.anypoint.df.edi.schema.X12SchemaDefs
-import com.anypoint.df.edi.schema.SchemaParser
-import scala.collection.mutable.Buffer
+import collection.mutable.Buffer
+import annotation.tailrec
+import util.{ Failure, Success }
+
+import java.io.{ File, FileInputStream, FileWriter, InputStreamReader, Reader, Writer }
+import java.{ util => ju }
+
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.X12Constants._
-import java.io.FileWriter
+import com.anypoint.df.edi.schema._
+import com.anypoint.df.edi.schema.EdiSchema._
+import com.anypoint.df.edi.schema.SchemaJavaValues._
 
 object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
 
@@ -54,28 +42,28 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     map2
   }
 
-  sealed abstract class TransactionModification(val ident: String, val position: String)
-  case class DropSegment(id: String, pos: String) extends TransactionModification(id, pos)
-  case class ModifyLoop(id: String, pos: String, val nested: List[TransactionModification])
-    extends TransactionModification(id, pos)
-  case class ModifyWrapper(id: String, pos: String, val nested: List[TransactionModification])
-    extends TransactionModification(id, pos)
+  sealed abstract class StructureModification(val ident: String, val position: String)
+  case class DropSegment(id: String, pos: String) extends StructureModification(id, pos)
+  case class ModifyLoop(id: String, pos: String, val nested: List[StructureModification])
+    extends StructureModification(id, pos)
+  case class ModifyWrapper(id: String, pos: String, val nested: List[StructureModification])
+    extends StructureModification(id, pos)
 
-  case class TransactionChanges(ident: String, headMods: List[TransactionModification],
-    detailMods: List[TransactionModification], summaryMods: List[TransactionModification])
+  case class StructureChanges(ident: String, headMods: List[StructureModification],
+    detailMods: List[StructureModification], summaryMods: List[StructureModification])
 
   case class SegmentModification(val ident: String, val trim: Option[Int], val drops: List[Int])
 
-  /** How to write overlays? Since segments are separate from transactions in the schema, I need to collect all the
+  /** How to write overlays? Since segments are separate from structures in the schema, I need to collect all the
     * information for trnasactions in one set of maps, and all the information for segments in another set of maps.
-    * Then I can use the first map for writing the transaction overlay, and the second map for writing the segment
+    * Then I can use the first map for writing the structure overlay, and the second map for writing the segment
     * overlay. This doesn't allow customizing segments on a per-occurrance basis, though. Is that a problem?
     */
-  def writeOverlay(base: EdiSchema, basePath: String, transmods: List[TransactionChanges],
+  def writeOverlay(base: EdiSchema, basePath: String, transmods: List[StructureChanges],
     segmods: List[SegmentModification], writer: Writer) {
 
-    /** Write list of modifications to segments in a transaction. Recurses when a loop has embedded changes. */
-    def writeMods(indent: Int, mods: List[TransactionModification]): Unit = mods.foreach {
+    /** Write list of modifications to segments in a structure. Recurses when a loop has embedded changes. */
+    def writeMods(indent: Int, mods: List[StructureModification]): Unit = mods.foreach {
       case DropSegment(id, pos) =>
         writeIndented(s"""- { ${keyValueQuote(idRefKey, id)}, ${keyValueQuote(positionKey, pos)}, ${keyValuePair(usageKey, UnusedUsage.code)} }""", indent, writer)
       case ModifyLoop(id, posThere, nested) =>
@@ -89,19 +77,19 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
         else writeSection(indent + 1, groupKey, nested)
     }
 
-    /** Write list of modifications to segments in a transaction with leading label. */
-    def writeSection(indent: Int, label: String, mods: List[TransactionModification]) = {
+    /** Write list of modifications to segments in a structure with leading label. */
+    def writeSection(indent: Int, label: String, mods: List[StructureModification]) = {
       writeIndented(s"$label:", indent, writer)
       writeMods(indent, mods)
     }
 
     // start with schema type and version, and import base
-    writeIndented(keyValuePair(formKey, base.ediForm.text), 0, writer)
-    writeIndented(keyValueQuote(versionKey, base.version), 0, writer)
+    writeIndented(keyValuePair(formKey, base.ediVersion.ediForm.text), 0, writer)
+    writeIndented(keyValueQuote(versionKey, base.ediVersion.version), 0, writer)
     writer.append(s"$importsKey: [ '$basePath' ]\n")
     if (transmods.nonEmpty) {
 
-      // write transaction modifications
+      // write structure modifications
       writeIndented(s"$structuresKey:", 0, writer)
       transmods foreach (transmod => {
         writeIndented(s"- ${keyValueQuote(idRefKey, transmod.ident)}", 0, writer)
@@ -144,10 +132,10 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val is = yaml.findSchema(args(0), Array())
     val schema = yaml.loadYaml(new InputStreamReader(is), Array())
     val examples = args.toList.tail.tail
-    val config = X12ParserConfig(true, true, true, true, true, true, true, true, false, -1, CharacterRestriction.EXTENDED,
-      ASCII_CHARSET, Array[IdentityInformation](), Array[IdentityInformation](), Array[String]())
+    val config = X12ParserConfig(true, true, true, true, true, true, true, true, false, -1,
+      CharacterRestriction.EXTENDED)
 
-    /** Strip metadata (transaction set and group links) out of transaction data to avoid excess overhead on merge. */
+    /** Strip metadata (structure set and group links) out of structure data to avoid excess overhead on merge. */
     def stripMeta(trans: ValueMap) = trans.asScala.foreach {
       case (_, list: MapList) => list.asScala.foreach {
         case m: ValueMap => {
@@ -155,35 +143,35 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
           m.remove(groupKey)
           m.remove(interchangeKey)
         }
-        case _ => throw new IllegalStateException("transaction list items must be maps")
+        case _ => throw new IllegalStateException("structure list items must be maps")
       }
-      case _ => throw new IllegalStateException("transaction map values must be lists")
+      case _ => throw new IllegalStateException("structure map values must be lists")
     }
 
-    /** Recursively scan transaction component structure to find modifications. */
-    def transactionMods(segments: List[TransactionComponent], data: ValueMap): List[TransactionModification] =
-      segments.foldLeft(List[TransactionModification]())((acc, comp) => comp match {
+    /** Recursively scan structure component structure to find modifications. */
+    def structureMods(segments: List[StructureComponent], data: ValueMap): List[StructureModification] =
+      segments.foldLeft(List[StructureModification]())((acc, comp) => comp match {
         case group: GroupComponent =>
           if (data.containsKey(comp.key)) {
-            val nested = transactionMods(group.items, getRequiredValueMap(comp.key, data))
+            val nested = structureMods(group.items, getRequiredValueMap(comp.key, data))
             if (nested.isEmpty) acc
             else ModifyLoop(group.ident, group.position.position, nested) :: acc
           } else DropSegment(group.ident, group.position.position) :: acc
         case wrap: LoopWrapperComponent =>
           if (data.containsKey(comp.key)) {
-            val nested = transactionMods(wrap.loopGroup :: Nil, getRequiredValueMap(comp.key, data))
+            val nested = structureMods(wrap.loopGroup :: Nil, getRequiredValueMap(comp.key, data))
             if (nested.isEmpty) acc
             else ModifyWrapper(wrap.ident, wrap.position.position, nested) :: acc
           } else ModifyWrapper(wrap.ident, wrap.position.position, Nil) :: acc
         case ref: ReferenceComponent =>
-          if (data.containsKey(comp.key) || schema.ediForm.isEnvelopeSegment(ref.segment.ident)) acc
+          if (data.containsKey(comp.key) || schema.ediVersion.ediForm.isEnvelopeSegment(ref.segment.ident)) acc
           else DropSegment(ref.segment.ident, ref.position.position) :: acc
       }).reverse
 
-    /** Recursively scan transaction component structure to collect segment item usage information. */
-    def collectSegments(segments: List[TransactionComponent], data: ValueMap, prior: SegmentKeys): SegmentKeys = {
+    /** Recursively scan structure component structure to collect segment item usage information. */
+    def collectSegments(segments: List[StructureComponent], data: ValueMap, prior: SegmentKeys): SegmentKeys = {
       def mergeSet(data: ValueMap, used: Set[String]) = data.keySet.asScala.foldLeft(used)((acc, key) => acc + key)
-      def collectr(segments: List[TransactionComponent], data: ValueMap, segmaps: SegmentKeys): SegmentKeys =
+      def collectr(segments: List[StructureComponent], data: ValueMap, segmaps: SegmentKeys): SegmentKeys =
         segments.foldLeft(segmaps)((acc, comp) => comp match {
           case group: GroupComponent =>
             if (data.containsKey(comp.key)) collectr(group.items, getRequiredValueMap(comp.key, data), acc)
@@ -227,12 +215,12 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
         }
       }.reverse
 
-    // merge transaction data from all documents into a single map structure (excluding 997s, since those are fixed)
+    // merge structure data from all documents into a single map structure (excluding 997s, since those are fixed)
     val merged = new ValueMapImpl
     examples.foreach (path => {
       println(s"merging $path")
       val is = yaml.findSchema(path, Array())
-      val parser = X12SchemaParser(is, schema, new DefaultX12NumberValidator, config)
+      val parser = new X12InterchangeParser(is, ASCII_CHARSET, new DefaultX12EnvelopeHandler(config, schema))
       parser.parse match {
         case Success(x) => {
           val transacts = x.get(transactionsMap).asInstanceOf[ValueMap]
@@ -249,18 +237,18 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     // match resulting map against schema structure, writing differences as output overlay
     val overFile = new File(args(1))
     val writer = new FileWriter(overFile)
-    val buffer = Buffer[TransactionChanges]()
+    val buffer = Buffer[StructureChanges]()
     val segmaps = merged.asScala.toList.foldLeft(Map[Segment, Set[String]]()) {
       case (acc, (key, map: ValueMap)) => {
-        val transact = schema.transactions(key)
+        val transact = schema.structures(key)
         println(map)
-        val headmap = map.get(transactionHeading).asInstanceOf[ValueMap]
-        val headmods = transactionMods(transact.heading, headmap)
-        val detailmap = map.get(transactionDetail).asInstanceOf[ValueMap]
-        val detailmods = transactionMods(transact.detail, detailmap)
-        val summarymap = map.get(transactionSummary).asInstanceOf[ValueMap]
-        val summarymods = transactionMods(transact.summary, summarymap)
-        if (headmods.nonEmpty || detailmods.nonEmpty || summarymods.nonEmpty) buffer += TransactionChanges(transact.ident, headmods, detailmods, summarymods)
+        val headmap = map.get(structureHeading).asInstanceOf[ValueMap]
+        val headmods = structureMods(transact.heading, headmap)
+        val detailmap = map.get(structureDetail).asInstanceOf[ValueMap]
+        val detailmods = structureMods(transact.detail, detailmap)
+        val summarymap = map.get(structureSummary).asInstanceOf[ValueMap]
+        val summarymods = structureMods(transact.summary, summarymap)
+        if (headmods.nonEmpty || detailmods.nonEmpty || summarymods.nonEmpty) buffer += StructureChanges(transact.ident, headmods, detailmods, summarymods)
         collectSegments(transact.summary, summarymap, collectSegments(transact.detail, detailmap, collectSegments(transact.heading, headmap, acc)))
       }
     }

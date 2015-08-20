@@ -29,9 +29,9 @@ trait EdifactNumberProvider {
 
 /** Writer for EDIFACT EDI documents.
   */
-case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
+case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
     extends SchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax, config.enforceChars,
-      config.delims, config.suffix, config.subChar, config.decimalMark), sc) {
+      config.delims, config.suffix, config.subChar, config.decimalMark)) {
 
   import EdiSchema._
   import SchemaJavaValues._
@@ -41,8 +41,8 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
   var setSegmentBase = 0
   var inGroup = false
 
-  /** Write top-level section of transaction. */
-  def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]) = comps match {
+  /** Write top-level section of structure. */
+  def writeTopSection(index: Int, map: ValueMap, comps: List[StructureComponent]) = comps match {
     case (ref: ReferenceComponent) :: tail if (ref.segment.ident == "UNS") => {
       writer.writeToken("UNS")
       writer.writeDataSeparator
@@ -83,22 +83,22 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
     writeSegment(props, segUNE)
   }
 
-  /** Write start of a transaction set (modifies passed in map). */
+  /** Write start of a structure set (modifies passed in map). */
   def openSet(ident: String, props: ValueMap) = {
     props put (msgHeadReferenceKey, ident)
     setSegmentBase = writer.getSegmentCount
     writeSegment(props, unhSegment(config.version))
   }
 
-  /** Write close of a transaction set (modifies passed in map). */
+  /** Write close of a structure set (modifies passed in map). */
   def closeSet(props: ValueMap) = {
     props put (msgTrailCountKey, Integer.valueOf(writer.getSegmentCount - setSegmentBase + 1))
     props put (msgTrailReferenceKey, props.get(msgHeadReferenceKey))
     writeSegment(props, segUNT)
   }
 
-  /** Check if an envelope segment (handled directly, outside of transaction). */
-  def isEnvelopeSegment(segment: Segment) = schema.ediForm.isEnvelopeSegment(segment.ident)
+  /** Check if an envelope segment (handled directly, outside of structure). */
+  def isEnvelopeSegment(segment: Segment) = schema.ediVersion.ediForm.isEnvelopeSegment(segment.ident)
 
   /** Stores list of string values matching the simple value components. */
   def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
@@ -123,11 +123,11 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
         (0 until msgMaps.size) map { i =>
           val msgMap = msgMaps(i)
           msgMap put (msgIndexKey, Integer.valueOf(i))
-          if (msgMap.containsKey(transactionId)) {
-            if (ident != msgMap.get(transactionId)) {
-              logAndThrow(s"$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)")
+          if (msgMap.containsKey(structureId)) {
+            if (ident != msgMap.get(structureId)) {
+              logAndThrow(s"$ident at position $i has type ${msgMap.get(structureId)} (wrong message list)")
             }
-          } else msgMap put (transactionId, ident)
+          } else msgMap put (structureId, ident)
         }
         groupSends(msgMaps, SchemaJavaValues.interchangeKey, acc)
       }
@@ -170,19 +170,19 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
               val setProps =
                 if (msgData.containsKey(messageHeaderKey)) new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
                 else new ValueMapImpl
-              val msgType = getRequiredString(transactionId, msgData)
-              schema.transactions(msgType) match {
-                case t: Transaction => {
+              val msgType = getRequiredString(structureId, msgData)
+              schema.structures(msgType) match {
+                case t: Structure => {
                   setProps put (msgHeadMessageTypeKey, msgType)
                   if (!setProps.containsKey(msgHeadMessageAgencyKey)) setProps put (msgHeadMessageAgencyKey, "UN")
                   val msgAgency = getAsString(msgHeadMessageVersionKey, setProps)
-                  val fullVersion = schema.version.toUpperCase
+                  val fullVersion = schema.ediVersion.version.toUpperCase
                   val msgVersion = fullVersion.substring(0, 1)
                   val msgRelease = fullVersion.substring(1)
                   setProps put (msgHeadMessageVersionKey, msgVersion)
                   setProps put (msgHeadMessageReleaseKey, msgRelease)
                   openSet(numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency), setProps)
-                  writeTransaction(msgData, t)
+                  writeStructure(msgData, t)
                   closeSet(setProps)
                   setCount += 1
                 }
@@ -190,7 +190,7 @@ case class EdifactSchemaWriter(out: OutputStream, sc: EdiSchema, numprov: Edifac
               }
             } catch {
               case e: Throwable => {
-                logAndThrow(s"${e.getMessage} in ${msgData.get(transactionId)} at index ${msgData.get(msgIndexKey)}", e)
+                logAndThrow(s"${e.getMessage} in ${msgData.get(structureId)} at index ${msgData.get(msgIndexKey)}", e)
               }
             })
           }

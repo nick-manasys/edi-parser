@@ -6,19 +6,19 @@ import com.anypoint.df.edi.schema.SchemaJavaValues._
 import com.anypoint.df.edi.schema.X12Acknowledgment._
 
 /** X12 997 functional acknowledgment decoder. This is set up for received 997, with the interchange information linked
- * from the transaction map.
+ * from the structure map.
   */
 object Decode997 extends SchemaJavaDefs {
   
   import X12SchemaDefs._
 
   def decode(root: ValueMap) = {
-    if (getRequiredString(transactionId, root) != trans997.ident) throw new IllegalArgumentException("Not a 997 transaction")
+    if (getRequiredString(structureId, root) != trans997.ident) throw new IllegalArgumentException("Not a 997 structure")
     val builder = new StringBuilder
     val inter = getRequiredValueMap(interchangeKey, root)
     builder ++= s"From ${getRequiredString(SENDER_ID_QUALIFIER, inter)}:${getRequiredString(SENDER_ID, inter)}\n"
     builder ++= s"To ${getRequiredString(RECEIVER_ID_QUALIFIER, inter)}:${getRequiredString(RECEIVER_ID, inter)}\n"
-    val ackhead = getRequiredValueMap(transactionHeading, root)
+    val ackhead = getRequiredValueMap(structureHeading, root)
     val ak1data = getRequiredValueMap(trans997Keys(1), ackhead)
     builder ++= s"Acknowledged group code ${getRequiredString(segAK1Comps(0) key, ak1data)} with control number ${getRequiredInt(segAK1Comps(1) key, ak1data)}"
     applyIfPresent[String](segAK1Comps(2) key, ak1data, value => builder ++= s", version $value")
@@ -26,7 +26,7 @@ object Decode997 extends SchemaJavaDefs {
     applyIfPresent[MapList](groupAK2_997 key, ackhead, list =>
       foreachMapInList(list, { map => {
           val ak2data = getRequiredValueMap(groupAK2_997Keys(0), map)
-          builder ++= s" Transaction ${getRequiredString(segAK2Comps(0) key, ak2data)} with control number ${getRequiredString(segAK2Comps(1) key, ak2data)}"
+          builder ++= s" Structure ${getRequiredString(segAK2Comps(0) key, ak2data)} with control number ${getRequiredString(segAK2Comps(1) key, ak2data)}"
           applyIfPresent[String](segAK2Comps(2) key, ak2data, value => builder ++= s", implementation reference $value")
           builder ++= "\n"
           applyIfPresent[MapList](groupAK3 key, map, list =>
@@ -49,7 +49,7 @@ object Decode997 extends SchemaJavaDefs {
                 }}))
             }}))
           val ak5data = getRequiredValueMap(groupAK2_997Keys(2), map)
-          builder ++= s" Transaction ${TransactionAcknowledgmentCodes(getRequiredString(segAK5Comps(0) key, ak5data))}\n"
+          builder ++= s" Structure ${TransactionAcknowledgmentCodes(getRequiredString(segAK5Comps(0) key, ak5data))}\n"
           applyIfPresent[String](segAK5Comps(1) key, ak5data, value => {
             builder ++= " Error codes: "
             (1 to 5) foreach (i => applyIfPresent[String](segAK5Comps(i).key, ak5data,
@@ -58,7 +58,7 @@ object Decode997 extends SchemaJavaDefs {
           })
         }}))
     val ak9data = getRequiredValueMap(trans997Keys(3), ackhead)
-    builder ++= s"Group result: ${GroupAcknowledgmentCodes(getRequiredString(segAK9Comps(0) key, ak9data))}, contained ${getRequiredInt(segAK9Comps(1) key, ak9data)} transaction set(s) with ${getRequiredInt(segAK9Comps(2) key, ak9data)} received and ${getRequiredInt(segAK9Comps(3) key, ak9data)} accepted\n"
+    builder ++= s"Group result: ${GroupAcknowledgmentCodes(getRequiredString(segAK9Comps(0) key, ak9data))}, contained ${getRequiredInt(segAK9Comps(1) key, ak9data)} structure set(s) with ${getRequiredInt(segAK9Comps(2) key, ak9data)} received and ${getRequiredInt(segAK9Comps(3) key, ak9data)} accepted\n"
     applyIfPresent[String](segAK9Comps(4) key, ak9data, value => {
       builder ++= " Error codes: "
       (4 to 8) foreach (i => applyIfPresent[String](segAK9Comps(i).key, ak9data,

@@ -24,11 +24,11 @@ public final class BadInputFiles {
 	
 	/** Missing SE Segment**/
 	public static final String MISSING_SE= "/x12/005010/bad-input/850-missing-se.edi"; 
-	public static final String MISSING_SE_EX = "Error codes:  MissingTrailerTransaction";
+	public static final String MISSING_SE_EX = "Error codes:  MissingTrailerStructure";
     
     /** Missing SE Segment**/
     public static final String BAD_REPLACES_SE= "/x12/005010/bad-input/850-unknown-segment-se.edi"; 
-    public static final String BAD_REPLACES_SE_EX = "Error codes:  MissingTrailerTransaction";
+    public static final String BAD_REPLACES_SE_EX = "Error codes:  MissingTrailerStructure";
     
     /** Missing GE Segment**/
     public static final String MISSING_GE= "/x12/005010/bad-input/850-missing-ge.edi"; 

@@ -1,14 +1,16 @@
 package com.anypoint.df.edi.schema
 
+import java.{ util => ju }
+
 /** Definitions used for compatibility with Java code using schemas. */
 trait SchemaJavaDefs {
 
-  type ValueMap = java.util.Map[String, Object]
-  type ValueMapImpl = java.util.HashMap[String, Object]
-  type MapList = java.util.List[ValueMap]
-  type MapListImpl = java.util.ArrayList[ValueMap]
-  type SimpleList = java.util.List[Object]
-  type SimpleListImpl = java.util.ArrayList[Object]
+  type ValueMap = ju.Map[String, Object]
+  type ValueMapImpl = ju.HashMap[String, Object]
+  type MapList = ju.List[ValueMap]
+  type MapListImpl = ju.ArrayList[ValueMap]
+  type SimpleList = ju.List[Object]
+  type SimpleListImpl = ju.ArrayList[Object]
   type RealNumber = java.math.BigDecimal
   type IntegerNumber = Integer
 
@@ -41,7 +43,13 @@ trait SchemaJavaDefs {
     else throw new IllegalArgumentException(s"not a map list '$key'")
   }
   
-  def getAs[T](key: String, map: ValueMap): T = map.get(key).asInstanceOf[T]
+  def getAs[T <: Object](key: String, map: ValueMap): T = map.get(key).asInstanceOf[T]
+  
+  def getAsRequired[T <: Object](key: String, map: ValueMap): T = {
+    val result = map.get(key).asInstanceOf[T]
+    if (result eq null) throw new IllegalArgumentException(s"value $key not present in map")
+    result
+  }
   
   def getAsString(key: String, map: ValueMap) = getAs[String](key, map)
   
@@ -49,9 +57,17 @@ trait SchemaJavaDefs {
   
   def getAsMap(key: String, map: ValueMap) = getAs[ValueMap](key, map)
   
-  def getAs[T](key: String, dflt: T, map: ValueMap): T =
+  def getAs[T <: Object](key: String, dflt: => T, map: ValueMap): T =
     if (map.containsKey(key)) map.get(key).asInstanceOf[T]
     else dflt
+  
+  def getOrSet[T <: Object](key: String, dflt: => T, map: ValueMap): T =
+    if (map.containsKey(key)) map.get(key).asInstanceOf[T]
+    else {
+      val inst = dflt
+      map.put(key, inst)
+      inst
+    }
   
   def swap(key1: String, key2: String, map: ValueMap) =
     if (map.containsKey(key1)) {
@@ -108,14 +124,15 @@ object SchemaJavaValues {
   val interchangeAcksReceived = "InterchangeAcksReceived"
   val interchangeAcksToSend = "InterchangeAcksToSend"
   
-  // value keys for envelope data maps in root and transaction set maps
+  // value keys for envelope data maps in root and structure set maps
   val interchangeKey = "Interchange"
   val groupKey = "Group"
 
-  // value keys for top-level transaction set map
-  val transactionId = "Id"
-  val transactionName = "Name"
-  val transactionHeading = "Heading"
-  val transactionDetail = "Detail"
-  val transactionSummary = "Summary"
+  // value keys for top-level structure map
+  val structureId = "Id"
+  val structureName = "Name"
+  val structureHeading = "Heading"
+  val structureDetail = "Detail"
+  val structureSummary = "Summary"
+  val structureSchema = "Structure"
 }

@@ -7,10 +7,10 @@ import scala.io.Source
 
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.schema.{ EdiSchema, YamlReader, YamlWriter }
+import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 
-/** Application to generate X12 transaction schemas from table data.
+/** Application to generate X12 structure schemas from table data.
   */
 object X12TablesConverter {
 
@@ -130,17 +130,17 @@ object X12TablesConverter {
         }
       })
 
-  /** Build map from transaction ids to definitions. */
-  def defineTransactions(segments: Map[String, Segment], transHeads: Map[String, (String, String)],
-    groups: ListOfKeyedLists, excludeSegs: Set[Segment]) = {
+  /** Build map from structure ids to definitions. */
+  def defineStructures(segments: Map[String, Segment], transHeads: Map[String, (String, String)],
+    groups: ListOfKeyedLists, excludeSegs: Set[Segment], version: EdiSchemaVersion) = {
 
-    /** Converted form of component information from transaction details row. */
+    /** Converted form of component information from structure details row. */
     case class ComponentInfo(segment: Segment, seq: String, usage: Usage, repeat: Int, loop: List[ComponentInfo])
 
     /** Map from area name to component information list. */
     type AreaMap = Map[String, List[ComponentInfo]]
 
-    /** Convert transaction components from lists of strings to trees of data tuples, grouping them by area. */
+    /** Convert structure components from lists of strings to trees of data tuples, grouping them by area. */
     def convertComponents(rows: List[List[String]]): AreaMap = {
 
       /** Convert string values to component information structure. */
@@ -186,11 +186,11 @@ object X12TablesConverter {
       rows.groupBy(_.head) map { case (key, list) => key -> convertr(list, 0, false, Nil)._2 }
     }
 
-    /** Recursively convert component information list into transaction component list. */
+    /** Recursively convert component information list into structure component list. */
     def buildComps(table: Int, infos: List[ComponentInfo]) = {
       def descend(remain: List[ComponentInfo]) = buildr(remain, Nil)
       @tailrec
-      def buildr(remain: List[ComponentInfo], acc: List[TransactionComponent]): List[TransactionComponent] =
+      def buildr(remain: List[ComponentInfo], acc: List[StructureComponent]): List[StructureComponent] =
         remain match {
           case ComponentInfo(segment, seq, usage, repeat, loop) :: tail =>
             if (loop.isEmpty) {
@@ -217,7 +217,7 @@ object X12TablesConverter {
       buildr(infos, Nil)
     }
 
-    groups.foldLeft(Map.empty[String, Transaction]) {
+    groups.foldLeft(Map.empty[String, Structure]) {
       case (map, (key, list)) => map + (key -> {
         val tables = convertComponents(list).map {
           case (key, list) => {
@@ -226,7 +226,7 @@ object X12TablesConverter {
           }
         }
         val (name, group) = transHeads(key)
-        Transaction(key, name, Some(group), tables.getOrElse(1, Nil), tables.getOrElse(2, Nil), tables.getOrElse(3, Nil))
+        Structure(key, name, Some(group), tables.getOrElse(1, Nil), tables.getOrElse(2, Nil), tables.getOrElse(3, Nil), version)
       })
     }
   }
@@ -265,8 +265,8 @@ object X12TablesConverter {
 
   /** Builds schemas from X12 table data and outputs the schemas in YAML form. The arguments are 1) path to the
     * directory containing the X12 table data files, and 2) path to the directory for the YAML output files. All
-    * existing files are deleted from the output directory before writing any output files. Each transaction is output
-    * as a separate file, with the transaction ID used as the file name (with extension ".yaml").
+    * existing files are deleted from the output directory before writing any output files. Each structure is output
+    * as a separate file, with the structure ID used as the file name (with extension ".yaml").
     */
   def main(args: Array[String]): Unit = {
     val x12dir = new File(args(0))
@@ -281,6 +281,7 @@ object X12TablesConverter {
     val yamlrdr = new YamlReader()
     x12dir.listFiles.foreach (version => {
       println(s"Processing ${version.getName}")
+      val schemaVersion = EdiSchemaVersion(X12, version.getName)
       val elemNames = nameMap(fileInput(version, elementHeadersName))
       val elemDefs = foldInput(fileInput(version, elementDetailsName), Map.empty[String, Element])((map, list) =>
         list match {
@@ -301,18 +302,18 @@ object X12TablesConverter {
         })
       val setGroups = gatherGroups(transDetailsName, fileInput(version, transDetailsName), 9, None)
       val vnum = version.getName
-      val baseSchema = EdiSchema(X12, vnum, elemDefs, compDefs, segDefs, Map[String, Transaction]())
+      val baseSchema = EdiSchema(schemaVersion, elemDefs, compDefs, segDefs, Map[String, Structure]())
       val outdir = new File(yamldir, version.getName)
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
       verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
       val binSegs = segDefs.get("BIN").toSet ++ segDefs.get("BDS").toSet
-      val transactions = defineTransactions(segDefs, setHeads, setGroups, binSegs).values.filter {
+      val structures = defineStructures(segDefs, setHeads, setGroups, binSegs, schemaVersion).values.filter {
         trans => binSegs.forall { seg => !trans.segmentsUsed.contains(seg) }
       }.toSeq.sortBy { _.ident }
       val listWriter = new FileWriter(new File(outdir, "structures.txt"))
-      transactions foreach (transact => {
-        val schema = EdiSchema(X12, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
+      structures foreach (transact => {
+        val schema = EdiSchema(schemaVersion, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
           Map(transact.ident -> transact))
         writeSchema(schema, transact.ident, Array(s"/x12/${version.getName}/basedefs$yamlExtension"), outdir)
         listWriter.write(transact.ident + '\n')

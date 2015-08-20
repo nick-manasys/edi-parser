@@ -7,10 +7,10 @@ import scala.io.Source
 
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.schema.{ EdiSchema, EdifactSchemaDefs, YamlReader, YamlWriter }
+import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, EdifactSchemaDefs, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 
-/** Application to generate EDIFACT transaction schemas from table data.
+/** Application to generate EDIFACT structure schemas from table data.
   */
 object EdifactTablesConverter {
 
@@ -341,17 +341,18 @@ object EdifactTablesConverter {
 
   /** Build message from file input in standard (post-D.93A) form. This looks for the message name as the third
     * non-blank line of the input, then skips everything to the expected "4.3.1 Segment table" heading. It parses the
-    * rest of the input as the transaction set description.
+    * rest of the input as the structure set description.
     */
-  def readMessage(ident: String, lines: LineIterator, tmpl: List[Int], segments: Map[String, Segment]) = {
+  def readMessage(ident: String, lines: LineIterator, tmpl: List[Int], segments: Map[String, Segment],
+    version: EdiSchemaVersion) = {
 
     /** Skip message description to start of segment table. */
     def skipToTable = {
       while (lines.hasNext && !lines.nextLine.startsWith("4.3.1")) lines.next
-      if (!lines.hasNext) throw new IllegalArgumentException("Missing transaction segment table")
-      if (!lines.trimmed.endsWith("Segment table")) throw new IllegalArgumentException("Missing transaction segment table")
+      if (!lines.hasNext) throw new IllegalArgumentException("Missing structure segment table")
+      if (!lines.trimmed.endsWith("Segment table")) throw new IllegalArgumentException("Missing structure segment table")
       lines.skipBlankLine
-      if (!lines.next.startsWith("Pos")) throw new IllegalArgumentException("Missing expected column headers in transaction segment table")
+      if (!lines.next.startsWith("Pos")) throw new IllegalArgumentException("Missing expected column headers in structure segment table")
       lines.skipBlankLine
     }
 
@@ -370,14 +371,14 @@ object EdifactTablesConverter {
       * @param depth current nesting depth
       * @return components
       */
-    def convert(table: Int, depth: Int): List[TransactionComponent] = {
+    def convert(table: Int, depth: Int): List[StructureComponent] = {
 
       /** Recursively convert input to a component definition, checking and handling loops. This needs to process all
         * input up to the end of the current loop (as indicated by a line which is blank, except for up to the depth
         * character count) or the end of the current area (as indicated by a new section header, or end of input).
         */
       @tailrec
-      def liner(acc: List[TransactionComponent]): List[TransactionComponent] = {
+      def liner(acc: List[StructureComponent]): List[StructureComponent] = {
         def spaceCount = lines.peek.takeWhile { _ == ' ' }.length
         val count = if (lines.hasNext) spaceCount else 0
         if (!lines.hasNext || atSection || atAnnex) acc.reverse
@@ -436,25 +437,26 @@ object EdifactTablesConverter {
       } else Nil
       val summary = if (atSection && lines.trimmed.startsWith("SUMMARY")) convert(0, 0) else Nil
       if (lines.hasNext && !atAnnex) throw new IllegalStateException("Not at end of description")
-      Transaction(ident, name, None, header, detail, summary)
+      Structure(ident, name, None, header, detail, summary, version)
     } else {
       val comps = convert(0, 0)
       if (lines.hasNext && !atAnnex) throw new IllegalStateException("Not at end of description")
-      Transaction(ident, name, None, comps, Nil, Nil)
+      Structure(ident, name, None, comps, Nil, Nil, version)
     }
   }
 
   /** Build message from file input in D.93A form. This looks for the message name as the third non-blank line of the
     * input, then skips everything to the expected "4.2.2 Segment Table" heading. It parses the rest of the input as the
-    * transaction set description until reaching the "4.3" heading.
+    * structure set description until reaching the "4.3" heading.
     */
-  def readMessageD93A(ident: String, lines: LineIterator, tmpl1: List[Int], tmpl2: List[Int], segments: Map[String, Segment]) = {
+  def readMessageD93A(ident: String, lines: LineIterator, tmpl1: List[Int], tmpl2: List[Int], segments: Map[String, Segment],
+    version: EdiSchemaVersion) = {
 
     /** Skip message description to start of segment table. */
     def skipToTable = {
       // normally the segment table is in section 4.3.1, but for D93A it's in 4.2.2
       while (lines.hasNext && !lines.next.startsWith("4.2.2 Segment Table")) {}
-      if (!lines.hasNext) throw new IllegalArgumentException("Missing transaction segment table")
+      if (!lines.hasNext) throw new IllegalArgumentException("Missing structure segment table")
       lines.skipBlankLines
     }
 
@@ -485,14 +487,14 @@ object EdifactTablesConverter {
       * @param depth current nesting depth
       * @return components
       */
-    def convert(table: Int, depth: Int): List[TransactionComponent] = {
+    def convert(table: Int, depth: Int): List[StructureComponent] = {
 
       /** Recursively convert input to a component definition, checking and handling loops. This needs to process all
         * input up to the end of the current loop (as indicated by a line which is blank, except for up to the depth
         * character count) or the end of the current area (as indicated by a new section header, or end of input).
         */
       @tailrec
-      def liner(acc: List[TransactionComponent]): List[TransactionComponent] = {
+      def liner(acc: List[StructureComponent]): List[StructureComponent] = {
         def spaceCount = lines.peek.takeWhile { _ == ' ' }.length
         if (!lines.hasNext || atSection || atEnd) acc.reverse
         else if (lines.peek.length == 0 || spaceCount > limit) {
@@ -567,11 +569,11 @@ object EdifactTablesConverter {
       if (lines.hasNext && !atEnd) {
         throw new IllegalStateException("Not at end of description")
         }
-      Transaction(ident, name, None, header, detail, summary)
+      Structure(ident, name, None, header, detail, summary, version)
     } else {
       val comps = convertSection
       if (lines.hasNext && !atEnd) throw new IllegalStateException("Not at end of description")
-      Transaction(ident, name, None, comps, Nil, Nil)
+      Structure(ident, name, None, comps, Nil, Nil, version)
     }
   }
 
@@ -593,8 +595,8 @@ object EdifactTablesConverter {
 
   /** Builds schemas from EDIFACT table data and outputs the schemas in YAML form. The arguments are 1) path to the
     * directory containing the EDIFACT table data files, and 2) path to the directory for the YAML output files. All
-    * existing files are deleted from the output directory before writing any output files. Each transaction is output
-    * as a separate file, with the transaction ID used as the file name (with extension ".esl"). A separate base YAML
+    * existing files are deleted from the output directory before writing any output files. Each structure is output
+    * as a separate file, with the structure ID used as the file name (with extension ".esl"). A separate base YAML
     * named "base.esl" contains the segment, composite, and element definitions.
     */
   def main(args: Array[String]): Unit = {
@@ -636,22 +638,22 @@ object EdifactTablesConverter {
       val segments = processFile(segmentDefsName + extension, iter =>
         readSegments(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemDefs, compDefs))
       val segDefs = buildMap[Segment](segments, (s: Segment) => s.ident)
-      val vnum = version.getName
-      val baseSchema = EdiSchema(EdiFact, vnum, elemDefs, compDefs, segDefs, Map[String, Transaction]())
+      val schemaVersion = EdiSchemaVersion(EdiFact, version.getName)
+      val baseSchema = EdiSchema(schemaVersion, elemDefs, compDefs, segDefs, Map[String, Structure]())
       val outdir = new File(yamldir, version.getName)
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
       verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
 
-      /** Build transactions from directory. */
-      def buildTransactions(builder: (String, LineIterator) => Transaction, indir: File, outdir: File) = {
+      /** Build structures from directory. */
+      def buildStructures(builder: (String, LineIterator) => Structure, indir: File, outdir: File) = {
         indir.listFiles.sorted.map { f =>
           try {
             val stream = new FileInputStream(f)
             try {
               val name = f.getName.takeWhile { _ != '_' }
               val transact = builder(name, LineIterator(stream, "ISO-8859-1"))
-              val schema = EdiSchema(EdiFact, vnum, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
+              val schema = EdiSchema(schemaVersion, Map[String, Element](), Map[String, Composite](), Map[String, Segment](),
                 Map(transact.ident -> transact))
               writeSchema(schema, transact.ident, Array(s"/edifact/${version.getName}/basedefs$yamlExtension"), outdir)
               println(s"Processed ${f.getName}")
@@ -667,12 +669,12 @@ object EdifactTablesConverter {
       if (!messagesdir.exists) throw new IllegalArgumentException(s"Missing required $messagesDirName directory")
       val builder = if (version.getName == "d93a") {
         val (msgtmpl1, msgtmpl2) = processFile(messageTemplateName, iter => (buildTemplate(iter.next), buildTemplate(iter.next)))
-        (name: String, lines: LineIterator) => readMessageD93A(name, lines, msgtmpl1, msgtmpl2, segDefs)
+        (name: String, lines: LineIterator) => readMessageD93A(name, lines, msgtmpl1, msgtmpl2, segDefs, schemaVersion)
       } else {
         val msgtmpl = processFile(messageTemplateName, iter => buildTemplate(iter.next))
-        (name: String, lines: LineIterator) => readMessage(name, lines, msgtmpl, segDefs)
+        (name: String, lines: LineIterator) => readMessage(name, lines, msgtmpl, segDefs, schemaVersion)
       }
-      val transacts = buildTransactions(builder, messagesdir, outdir)
+      val transacts = buildStructures(builder, messagesdir, outdir)
 
       val listWriter = new FileWriter(new File(outdir, "structures.txt"))
       transacts.foreach { transact => listWriter.write(transact.ident + '\n') }

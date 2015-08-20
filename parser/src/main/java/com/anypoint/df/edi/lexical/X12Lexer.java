@@ -33,10 +33,20 @@ public class X12Lexer extends LexerBase
      * @param subst substitution character for invalid character in string (-1 if unused)
      * @param chset character set selection
      */
-    public X12Lexer(InputStream is, Charset charset, int subst, CharacterRestriction chset) {
-        super(is, subst, -1);
-        subCompSeparator = -1;
+    public X12Lexer(InputStream is, Charset charset) {
+        super(is);
         reader = new BufferedReader(new InputStreamReader(stream, charset));
+    }
+    
+    /**
+     * Configure character processing differences for partners. This is intended for use once the specifics of an
+     * interchange are known.
+     * 
+     * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param chset character set selection
+     */
+    public void configure(int subst, CharacterRestriction chset) {
+        substitutionChar = subst;
         allowedChars = chset.flags();
     }
     

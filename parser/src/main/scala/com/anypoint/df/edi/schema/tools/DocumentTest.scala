@@ -1,13 +1,11 @@
 package com.anypoint.df.edi.schema.tools
 
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
-import java.io.InputStreamReader
+import java.io.{ ByteArrayOutputStream, File, FileInputStream, InputStream, InputStreamReader }
+import java.{ util => ju }
+
 import scala.collection.mutable.Set
-import scala.util.Failure
-import scala.util.Success
+import scala.util.{ Failure, Success }
+
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.X12Constants._
 import com.anypoint.df.edi.lexical.EdifactConstants._
@@ -33,19 +31,53 @@ class DefaultX12NumberProvider extends X12NumberProvider {
   }
 }
 
-class DefaultX12NumberValidator extends X12NumberValidator {
+class DefaultX12EnvelopeHandler(config: X12ParserConfig, schema: EdiSchema) extends X12EnvelopeHandler with SchemaJavaDefs {
+
+  import X12Acknowledgment._
+  import X12SchemaDefs._
+
   var groupNums = Set[Int]()
   var setNums = Set[String]()
-  def contextToken(senderQual: String, senderId: String, receiverQual: String, receiverId: String) = ""
-  def validateInterchange(num: Int, interchange: String) = {
+  var groupCode = ""
+
+  /** Handle ISA segment data, returning either an InterchangeNoteCode (if there's a problem that prevents processing of
+    * the interchange) or the parser configuration to be used for reading the interchange.
+    */
+  def handleIsa(map: ju.Map[String, Object]) = {
     groupNums = Set[Int]()
-    true
+    config
   }
-  def validateGroup(num: Int, interchange: String, senderCode: String, receiverCode: String) = {
+
+  /** Handle GS segment data, returning either an GroupSyntaxError (if there's a problem that prevents processing of
+    * the group) or null.
+    */
+  def handleGs(map: ju.Map[String, Object]) = {
     setNums = Set[String]()
-    groupNums.add(num)
+    groupCode = getRequiredString(groupFunctionalIdentifierKey, map)
+    val unique = groupNums.add(getRequiredInt(groupControlNumberHeaderKey, map))
+    if (!unique) GroupControlNumberNotUnique else null
   }
-  def validateSet(number: String, interchange: String, senderCode: String, receiverCode: String) = setNums.add(number)
+
+  /** Handle ST segment data, returning either a StructureSyntaxError (if there's a problem that prevents processing of
+    * the transaction set) or the transaction schema definition for parsing and validating the transaction set data.
+    */
+  def handleSt(map: ju.Map[String, Object]) = {
+    val unique = setNums.add(getRequiredString(setControlNumberHeaderKey, map))
+    if (!unique) X12Acknowledgment.BadTransactionSetControl
+    else {
+      val setId = getAsString(setIdentifierCodeKey, map)
+      val structure = schema.structures.get(setId) match {
+        case Some(structure) => structure
+        case None => setId match {
+          case "997" => trans997
+          case "999" => trans999
+          case _ => null
+        }
+      }
+      if (structure == null) NotSupportedTransaction
+      else if (structure.group.get == groupCode) structure else SetNotInGroup
+    }
+  }
 }
 
 class DefaultEdifactNumberProvider extends EdifactNumberProvider {
@@ -120,16 +152,17 @@ sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs
 case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends DocumentTest(es) {
 
   def this(sch: EdiSchema, ack999: Boolean) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true,
-    ack999, -1, CharacterRestriction.EXTENDED, ASCII_CHARSET, Array[IdentityInformation](),
-    Array[IdentityInformation](), Array[String]()))
+    ack999, -1, CharacterRestriction.EXTENDED))
 
   import com.anypoint.df.edi.schema.SchemaJavaValues._
   import com.anypoint.df.edi.schema.X12Acknowledgment._
   import com.anypoint.df.edi.schema.X12SchemaDefs._
 
+  val transactionListKey = s"v${es.ediVersion.version}"
+
   /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found. */
   def parse(is: InputStream): ValueMap = {
-    val parser = X12SchemaParser(is, schema, new DefaultX12NumberValidator, config)
+    val parser = new X12InterchangeParser(is, ASCII_CHARSET, new DefaultX12EnvelopeHandler(config, schema))
     parser.parse match {
       case Success(x) => x
       case Failure(e) => throw e
@@ -152,8 +185,8 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     val os = new ByteArrayOutputStream
     if (!map.containsKey(interchangeKey)) map put (interchangeKey, new ValueMapImpl)
     val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
-    val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, config)
-    val transacts = getRequiredValueMap(transactionsMap, map)
+    val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, config)
+    val transacts = getRequiredValueMap(transactionListKey, map)
     writer.write(map).get
     os.toString
   }
@@ -162,13 +195,13 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
   def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
     val wconfig = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
-    val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, wconfig)
+    val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, wconfig)
     val outmap = new ValueMapImpl(map)
-    val transactions = new ValueMapImpl
+    val structures = new ValueMapImpl
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     val ackcode = if (config generate999) "999" else "997"
-    transactions put (ackcode, acks)
-    outmap put (transactionsMap, transactions)
+    structures put (ackcode, acks)
+    outmap put (transactionListKey, structures)
     if (!outmap.containsKey(interchangeKey)) outmap put (interchangeKey, new ValueMapImpl)
     writer.write(outmap).get
     os.toString
@@ -178,7 +211,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
   def printInterchangeAcks(delims: String, list: MapList) = {
     val os = new ByteArrayOutputStream
     val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, delims, null)
-    val writer = X12SchemaWriter(os, schema, new DefaultX12NumberProvider, config)
+    val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, config)
     foreachMapInList(list, map => writer.writeSegment(map, segTA1))
     writer.close
     os.close
@@ -240,10 +273,10 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val outmap = new ValueMapImpl
     outmap put (interchangeKey, map.get(interchangeKey))
-    val transactions = new ValueMapImpl
+    val structures = new ValueMapImpl
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
-    transactions put ("CONTRL", acks)
-    outmap put (messagesMap, transactions)
+    structures put ("CONTRL", acks)
+    outmap put (messagesMap, structures)
     writer.write(outmap).get
     os.toString
   }
@@ -257,7 +290,7 @@ object DocumentTest {
   def main(args: Array[String]): Unit = {
     val schemaFile = new File(args(0))
     val schema = new YamlReader().loadYaml(new InputStreamReader(new FileInputStream(schemaFile)), Array(args(1)))
-    val parse = schema.ediForm match {
+    val parse = schema.ediVersion.ediForm match {
       case EdiSchema.X12 => new DocumentTestX12(schema, false)
       case EdiSchema.EdiFact => new DocumentTestEdifact(schema)
     }

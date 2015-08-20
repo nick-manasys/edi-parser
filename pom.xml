@@ -19,7 +19,7 @@
   <modules>
     <module>parser</module>
     <module>schemas</module>
-    <module>systests</module>
+<!--    <module>systests</module> -->
   </modules>
 
   <build>

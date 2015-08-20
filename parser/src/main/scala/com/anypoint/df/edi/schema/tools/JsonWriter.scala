@@ -1,12 +1,14 @@
 package com.anypoint.df.edi.schema.tools
 
-import java.io.Writer
-import java.io.StringWriter
 import scala.annotation.tailrec
+
+import java.io.{ Writer, StringWriter }
+import java.{ util => ju }
+
 import collection.JavaConverters._
 
 trait Maps {
-  type ValueMap = java.util.Map[String, Object]
+  type ValueMap = ju.Map[String, Object]
   type ValueMapImpl = java.util.HashMap[String, Object]
   type MapList = java.util.List[ValueMap]
   type MapListImpl = java.util.ArrayList[ValueMap]

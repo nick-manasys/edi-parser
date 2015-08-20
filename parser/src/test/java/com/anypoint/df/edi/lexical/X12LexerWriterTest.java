@@ -27,7 +27,8 @@ public class X12LexerWriterTest
     @Test
     public void roundTripEnvelope() throws Exception {
         InputStream in = new ByteArrayInputStream(ENVELOPE.getBytes("UTF-8"));
-        X12Lexer lexer = new X12Lexer(in, ASCII_CHARSET, -1, CharacterRestriction.EXTENDED);
+        X12Lexer lexer = new X12Lexer(in, ASCII_CHARSET);
+        lexer.configure(-1, CharacterRestriction.EXTENDED);
         Map<String, Object> props = new HashMap<>();
         lexer.init(props);
         lexer.term(props);

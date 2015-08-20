@@ -7,7 +7,7 @@ import scala.io.Source
 
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.schema.{ EdiSchema, YamlReader, YamlWriter }
+import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 
 /** Application to generate HL7 message schemas from table data.
@@ -188,7 +188,7 @@ object HL7TablesConverter {
     })
   }
 
-  def buildStructures(grouped: Map[String, LineFields], segs: Map[String, Segment]) = {
+  def buildStructures(grouped: Map[String, LineFields], segs: Map[String, Segment], version: EdiSchemaVersion) = {
     @tailrec
     def zeroPad(value: String, length: Int): String = if (value.length < length) zeroPad("0" + value, length) else value
     def buildGroup(lines: LineFields, close: String) = {
@@ -198,7 +198,7 @@ object HL7TablesConverter {
         case _ => throw new IllegalArgumentException(s"Missing expected segment group close '$close'")
       }
     }
-    def buildr(remain: LineFields, comps: List[TransactionComponent]): (LineFields, List[TransactionComponent]) =
+    def buildr(remain: LineFields, comps: List[StructureComponent]): (LineFields, List[StructureComponent]) =
       remain match {
         case h :: t => {
           val code = h(2)
@@ -241,9 +241,9 @@ object HL7TablesConverter {
         case _ => (Nil, comps.reverse)
       }
 
-    grouped.foldLeft(List[Transaction]()){
+    grouped.foldLeft(List[Structure]()){
       case (list, (ident, lines)) => {
-        Transaction(ident, ident, None, buildr(lines, Nil)._2, Nil, Nil)
+        Structure(ident, ident, None, buildr(lines, Nil)._2, Nil, Nil, version)
       } :: list
     }
   }
@@ -251,7 +251,7 @@ object HL7TablesConverter {
   /** Builds schemas from HL7 table data and outputs the schemas in YAML form. The arguments are 1) path to the
     * directory containing the HL7 table data files, and 2) path to the directory for the YAML output files. All
     * existing files are deleted from the output directory before writing any output files. Each message is output
-    * as a separate file, with the transaction ID used as the file name (with extension ".yaml").
+    * as a separate file, with the structure ID used as the file name (with extension ".yaml").
     */
   def main(args: Array[String]): Unit = {
     val hl7dir = new File(args(0))
@@ -266,6 +266,7 @@ object HL7TablesConverter {
     val yamlrdr = new YamlReader()
     hl7dir.listFiles.foreach (version => {
       println(s"Processing ${version.getName}")
+      val schemaVersion = EdiSchemaVersion(HL7, version.getName)
 
       // comp_no, description, table_id, data_type_code, data_structure
       val compDetails = nameMap(fileInput(version, componentDetails))
@@ -320,10 +321,10 @@ object HL7TablesConverter {
 
       // message_structure, seq_no, seg_code, groupname, repetitional, optional
       val groupedMsgStructs = lineList(fileInput(version, messageStructures)).reverse.groupBy { _(0) }
-      val structures = buildStructures(groupedMsgStructs, segments).sortBy { _.ident }
+      val structures = buildStructures(groupedMsgStructs, segments, schemaVersion).sortBy { _.ident }
 
       val vernum = version.getName.drop(1).replace('_', '.')
-      val baseSchema = EdiSchema(HL7, vernum, elemDefs, compDefs, segments, Map[String, Transaction]())
+      val baseSchema = EdiSchema(schemaVersion, elemDefs, compDefs, segments, Map[String, Structure]())
       val outdir = new File(yamldir, version.getName)
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
@@ -331,7 +332,7 @@ object HL7TablesConverter {
       
       val listWriter = new FileWriter(new File(outdir, "structures.txt"))
       structures foreach (struct => {
-        val schema = EdiSchema(HL7, vernum, Map[String, Element](), Map[String, Composite](),
+        val schema = EdiSchema(schemaVersion, Map[String, Element](), Map[String, Composite](),
           Map[String, Segment](), Map(struct.ident -> struct))
         writeSchema(schema, struct.ident, Array(s"/hl7/${version.getName}/basedefs$yamlExtension"), outdir)
         listWriter.write(struct.ident + '\n')

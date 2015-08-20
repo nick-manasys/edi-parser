@@ -15,7 +15,7 @@ import scala.annotation.tailrec
 
 /** Write EDI document based on schema. */
 
-abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) extends SchemaJavaDefs {
+abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
 
   import SchemaJavaValues._
 
@@ -176,10 +176,10 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     writer.writeSegmentTerminator
   }
 
-  /** Write a portion of transaction data represented by a list of components (which may be segment references or
+  /** Write a portion of structure data represented by a list of components (which may be segment references or
     * loops) from a map.
     */
-  def writeSection(map: ValueMap, comps: List[TransactionComponent]): Unit = comps.foreach(comp => {
+  def writeSection(map: ValueMap, comps: List[StructureComponent]): Unit = comps.foreach(comp => {
 
     /** Write a (potentially) repeating segment from a list of maps. */
     def writeRepeatingSegment(list: MapList, segment: Segment): Unit =
@@ -237,24 +237,24 @@ abstract class SchemaWriter(val writer: WriterBase, val schema: EdiSchema) exten
     }
   })
 
-  /** Write top-level section of transaction. */
-  def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]): Unit
+  /** Write top-level section of structure. */
+  def writeTopSection(index: Int, map: ValueMap, comps: List[StructureComponent]): Unit
 
-  /** Write a complete transaction. The supplied map has a maximum of five values: the transaction id and name, and
-    * separate child maps for each of the three sections of a transaction (heading, detail, and summary). Each child map
+  /** Write a complete structure. The supplied map has a maximum of five values: the structure id and name, and
+    * separate child maps for each of the three sections of a structure (heading, detail, and summary). Each child map
     * is keyed by segment name (with the ID suffixed in parenthesis) or group id. For a segment with no repeats allowed
     * the associated value is the map of the values in the segment. For a segment with repeats allowed the value is a
     * list of maps, one for each occurrence of the segment. For a group the value is also a list of maps, with each map
     * of the same form as the child maps of the top-level result (so keys are segment or nested group names, values are
     * maps or lists).
     */
-  def writeTransaction(map: ValueMap, transaction: Transaction) {
-    if (!transaction.heading.isEmpty) writeTopSection(0, getRequiredValueMap(transactionHeading, map), transaction.heading)
-    if (!transaction.detail.isEmpty) writeTopSection(1, getRequiredValueMap(transactionDetail, map), transaction.detail)
-    if (!transaction.summary.isEmpty) writeTopSection(2, getRequiredValueMap(transactionSummary, map), transaction.summary)
+  def writeStructure(map: ValueMap, structure: Structure) {
+    if (!structure.heading.isEmpty) writeTopSection(0, getRequiredValueMap(structureHeading, map), structure.heading)
+    if (!structure.detail.isEmpty) writeTopSection(1, getRequiredValueMap(structureDetail, map), structure.detail)
+    if (!structure.summary.isEmpty) writeTopSection(2, getRequiredValueMap(structureSummary, map), structure.summary)
   }
 
-  /** Check if an envelope segment (handled directly, outside of transaction). */
+  /** Check if an envelope segment (handled directly, outside of structure). */
   def isEnvelopeSegment(segment: Segment): Boolean
 
   /** Close output, intended for testing rather than application. */

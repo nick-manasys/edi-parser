@@ -26,7 +26,8 @@ public class HL7Lexer extends LexerBase
      * @param subst substitution character for invalid character in string (-1 if unused)
      */
     public HL7Lexer(InputStream is, int subst) {
-        super(is, subst, -1);
+        super(is);
+        substitutionChar = subst;
         segmentTerminator = (char)0x0D;
     }
     

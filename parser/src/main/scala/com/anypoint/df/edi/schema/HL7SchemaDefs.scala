@@ -145,9 +145,11 @@ object HL7SchemaDefs {
     ElementComponent(elemTX, None, "SFT-05", 5, OptionalUsage, 1),
     CompositeComponent(compTS.rewrite("SFT-06", convertEdiForm("HL7")), Some("Time Stamp"), "SFT-06", 6, OptionalUsage, 1)), Nil)
 
-  val transACK = Transaction("ACK", "ACK", None, List[TransactionComponent](
+  val ackVersion = EdiSchemaVersion(EdiSchema.HL7, null)
+  val transACK = Structure("ACK", "ACK", None, List[StructureComponent](
     ReferenceComponent(segMSH, SegmentPosition(0, "01"), MandatoryUsage, 1), ReferenceComponent(segSFT, SegmentPosition(0, "02"), OptionalUsage, -1),
-    ReferenceComponent(segMSA, SegmentPosition(0, "03"), MandatoryUsage, 1), ReferenceComponent(segERR, SegmentPosition(0, "04"), OptionalUsage, -1)), List[TransactionComponent](), List[TransactionComponent]())
+    ReferenceComponent(segMSA, SegmentPosition(0, "03"), MandatoryUsage, 1), ReferenceComponent(segERR, SegmentPosition(0, "04"), OptionalUsage, -1)),
+    List[StructureComponent](), List[StructureComponent](), ackVersion)
 
   val mshEncodingCharsKey = segMSH.components(0).key
   val mshControlKey = segMSH.components(8).key

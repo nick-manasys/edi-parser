@@ -13,7 +13,6 @@ import java.util.Map;
 
 import com.anypoint.df.edi.lexical.EdiConstants;
 import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
-import com.anypoint.df.edi.schema.IdentityInformation;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.X12ParserConfig;
 import com.anypoint.df.edi.schema.systests.TestBase;
@@ -246,7 +245,7 @@ public abstract class X12TestBase extends TestBase {
      * @param interchangeType
      * @return acknowledgment
      */
-    protected String parseWithSenderIdentityInformation(String inputFilePath, String interchangeQualifier,
+/*    protected String parseWithSenderIdentityInformation(String inputFilePath, String interchangeQualifier,
         String interchangeId, String interchangeType) {
         IdentityInformation identity = new IdentityInformation(interchangeQualifier, interchangeId, interchangeType);
         IdentityInformation[] senders = new IdentityInformation[1];
@@ -263,5 +262,5 @@ public abstract class X12TestBase extends TestBase {
         } catch (Exception e) {
             return e.getMessage();
         }
-    }
+    }*/
 }

@@ -45,27 +45,27 @@ object MessageParser extends RegexParsers {
   case object IntegerType extends ElementType('N', '0') // integer digits, optional minus
   case class DecimalType(places: Int) extends ElementType('N', 0) // digits with implied decimal point, optional minus
 
-  /** Every kind of item in a transaction definition. */
-  sealed trait TransactionItem
+  /** Every kind of item in a structure definition. */
+  sealed trait StructureItem
   /** Position increment change. */
-  case class PositionIncrement(val increment: Int) extends TransactionItem
+  case class PositionIncrement(val increment: Int) extends StructureItem
   /**
-   * Actual component of a transaction definition, either a segment reference or a loop/group definition.
+   * Actual component of a structure definition, either a segment reference or a loop/group definition.
    *  @param ident segment or loop/group identifier
    *  @param mark usage notation (optional, overrides requirement)
    *  @param require segment requirement (optional, defaults to C)
    *  @param ordinal optional override of sequencing
    *  @param usage maximum usage (optional, defaults to 1)
    */
-  abstract class TransactionComponent(val ident: String, val mark: Option[UsageNotationMark], val ordinal: Option[Int], val require: SegmentRequirement) extends TransactionItem
-  case class SegmentReference(id: String, mrk: Option[UsageNotationMark], ord: Option[Int], val mask: Int, req: SegmentRequirement, val usage: MaximumUsage) extends TransactionComponent(id, mrk, ord, req)
-  case class TransGroup(id: String, mrk: Option[UsageNotationMark], ord: Option[Int], req: SegmentRequirement, val repeat: Int, val items: Seq[TransactionItem]) extends TransactionComponent(id, mrk, ord, req)
+  abstract class StructureComponent(val ident: String, val mark: Option[UsageNotationMark], val ordinal: Option[Int], val require: SegmentRequirement) extends StructureItem
+  case class SegmentReference(id: String, mrk: Option[UsageNotationMark], ord: Option[Int], val mask: Int, req: SegmentRequirement, val usage: MaximumUsage) extends StructureComponent(id, mrk, ord, req)
+  case class TransGroup(id: String, mrk: Option[UsageNotationMark], ord: Option[Int], req: SegmentRequirement, val repeat: Int, val items: Seq[StructureItem]) extends StructureComponent(id, mrk, ord, req)
 
-  case class TransactionTable(val comps: Seq[TransactionItem])
+  case class StructureTable(val comps: Seq[StructureItem])
 
-  case class TransactionSet(val ident: String, val tables: Seq[TransactionTable])
+  case class StructureSet(val ident: String, val tables: Seq[StructureTable])
 
-  case class TransactionsSection(val defs: Seq[TransactionSet]) extends Section
+  case class StructuresSection(val defs: Seq[StructureSet]) extends Section
 
   // Grammar for .SETS section
   //
@@ -140,7 +140,7 @@ object MessageParser extends RegexParsers {
 
   // parser for group definition = ordNum? "{" groupLead? transItem* "}"
   @tailrec
-  def firstSegment(items: Seq[TransactionItem]): SegmentReference = items match {
+  def firstSegment(items: Seq[StructureItem]): SegmentReference = items match {
     case (segref: SegmentReference) :: _ => segref
     case (group: TransGroup) :: _ => firstSegment(group.items)
     case _ :: tail => firstSegment(tail)
@@ -163,22 +163,22 @@ object MessageParser extends RegexParsers {
     case "-" ~ num => PositionIncrement(-num)
   }
 
-  // parser for transaction item = segRef | transGroup | increment
-  val transItem: Parser[TransactionItem] = segRef | transGroup | increment
+  // parser for structure item = segRef | transGroup | increment
+  val transItem: Parser[StructureItem] = segRef | transGroup | increment
 
   // parser for table = "^"+ transItem*
-  val table: Parser[TransactionTable] = ("""\^""".r+) ~> transItem.+ ^^ {
-    case list => TransactionTable(list)
+  val table: Parser[StructureTable] = ("""\^""".r+) ~> transItem.+ ^^ {
+    case list => StructureTable(list)
   }
 
-  // parser for transaction set = id "=" table* "\n"
-  val transSet: Parser[TransactionSet] = (id <~ "=") ~ table.+ <~ separator ^^ {
-    case id ~ tables => TransactionSet(id, tables)
+  // parser for structure set = id "=" table* "\n"
+  val transSet: Parser[StructureSet] = (id <~ "=") ~ table.+ <~ separator ^^ {
+    case id ~ tables => StructureSet(id, tables)
   }
 
   // parser for .SETS section = ".SETS\n" transSet*
-  val setsSection: Parser[TransactionsSection] = ".SETS" ~> separator ~> transSet.* ^^ {
-    case sets => TransactionsSection(sets)
+  val setsSection: Parser[StructuresSection] = ".SETS" ~> separator ~> transSet.* ^^ {
+    case sets => StructuresSection(sets)
   }
 
   //
@@ -427,8 +427,8 @@ object MessageParser extends RegexParsers {
   //
   // Convert parsed SEF data into EDI schema
   // work in progress, suspended for now
-//  def parseSef(reader: Reader[Char]): Try[TransactionMap] = {
-//    def convert(sections: Seq[Section]): TransactionMap = {
+//  def parseSef(reader: Reader[Char]): Try[StructureMap] = {
+//    def convert(sections: Seq[Section]): StructureMap = {
 //
 //      // first build maps of elements and composites
 //      val elementMap = sections.foldLeft(Map[String, ElementDef]())((map, section) => section match {
@@ -517,7 +517,7 @@ object MessageParser extends RegexParsers {
 //      })
 //
 //      // convert composites
-//      Map[String, Transaction]()
+//      Map[String, Structure]()
 //    }
 //    val phraseParser = phrase(sefParser)
 //    phraseParser(reader) match {

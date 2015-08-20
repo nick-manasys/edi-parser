@@ -165,15 +165,15 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     rules.asScala.toList.map(map => convertRule(map))
   }
 
-  /** Build transaction components from input data.
+  /** Build structure components from input data.
     * @param maps list of maps of component data
     * @param form EDI form
-    * @param table transaction table index
+    * @param table structure table index
     * @param segments known segments map
     * @returns components
     */
-  def parseTransactionComponents(maps: List[ValueMap], form: EdiForm, table: Int, segments: Map[String, Segment]) = {
-    def convertComponent(values: ValueMap): TransactionComponent = {
+  def parseStructureComponents(maps: List[ValueMap], form: EdiForm, table: Int, segments: Map[String, Segment]) = {
+    def convertComponent(values: ValueMap): StructureComponent = {
       val use = convertUsage(getRequiredString(usageKey, values))
       val count = values.get(countKey) match {
         case n: Integer => n.toInt
@@ -202,7 +202,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       }
     }
     @tailrec
-    def parseComponent(remain: List[ValueMap], prior: List[TransactionComponent]): List[TransactionComponent] =
+    def parseComponent(remain: List[ValueMap], prior: List[StructureComponent]): List[StructureComponent] =
       remain match {
         case values :: t => parseComponent(t, convertComponent(values) :: prior)
         case _ => prior.reverse
@@ -210,36 +210,36 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     parseComponent(maps, Nil)
   }
 
-  /** Build transaction part from input data.
+  /** Build structure part from input data.
     * @param name part name
     * @param values map of component data lists
     * @param form EDI form
-    * @param table transaction table index
+    * @param table structure table index
     * @param segments known segments map
     * @returns components
     */
-  def parseTransactionPart(name: String, values: ValueMap, form: EdiForm, table: Int, segments: Map[String, Segment]) =
+  def parseStructurePart(name: String, values: ValueMap, form: EdiForm, table: Int, segments: Map[String, Segment]) =
     if (values.containsKey(name)) {
       val vallist = getRequiredMapList(name, values).asScala.toList
-      parseTransactionComponents(vallist, form, table, segments)
+      parseStructureComponents(vallist, form, table, segments)
     } else Nil
 
-  /** Build transaction part as overlay to base part.
+  /** Build structure part as overlay to base part.
     * @param name part name
     * @param overs map of component data overlay lists
     * @param base original components
     * @param segments known segments map
     * @returns components
     */
-  def parseTransactionOverlayPart(name: String, overs: ValueMap, base: List[TransactionComponent],
+  def parseStructureOverlayPart(name: String, overs: ValueMap, base: List[StructureComponent],
     segments: Map[String, Segment]) =
     if (overs.containsKey(name)) {
-      def overLevel(overs: MapList, base: List[TransactionComponent]) =
+      def overLevel(overs: MapList, base: List[StructureComponent]) =
         overr(overs.asScala.toList, Nil, base)
       def overGroup(over: ValueMap, group: GroupComponent) =
         overr(over :: Nil, Nil, group :: Nil).head.asInstanceOf[GroupComponent]
       @tailrec
-      def overr(remain: List[ValueMap], prior: List[TransactionComponent], base: List[TransactionComponent]): List[TransactionComponent] = remain match {
+      def overr(remain: List[ValueMap], prior: List[StructureComponent], base: List[StructureComponent]): List[StructureComponent] = remain match {
         case values :: t => {
           val position = getRequiredString(positionKey, values)
           base match {
@@ -386,29 +386,29 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       } else throw new IllegalStateException(s"segment definition needs either $idKey or $idRefKey value"))
   }
 
-  /** Convert transaction definitions. */
-  private def convertTransactions(input: ValueMap, form: EdiForm, segments: Map[String, Segment],
-    basedefs: EdiSchema.TransactionMap) =
+  /** Convert structure definitions. */
+  private def convertStructures(input: ValueMap, version: EdiSchemaVersion, segments: Map[String, Segment],
+    basedefs: EdiSchema.StructureMap) =
     getRequiredMapList(structuresKey, input).asScala.toList.
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
         val name = getRequiredString(nameKey, transmap)
         val group = if (transmap.containsKey(classKey)) Some(transmap.get(classKey).asInstanceOf[String]) else None
-        val heading = parseTransactionPart(headingKey, transmap, form, 0, segments)
-        val detail = parseTransactionPart(detailKey, transmap, form, 1, segments)
-        val summary = parseTransactionPart(summaryKey, transmap, form, 2, segments)
-        map + (ident -> Transaction(ident, name, group, heading, detail, summary))
+        val heading = parseStructurePart(headingKey, transmap, version.ediForm, 0, segments)
+        val detail = parseStructurePart(detailKey, transmap, version.ediForm, 1, segments)
+        val summary = parseStructurePart(summaryKey, transmap, version.ediForm, 2, segments)
+        map + (ident -> Structure(ident, name, group, heading, detail, summary, version))
       } else if (transmap.containsKey(idRefKey)) {
         val idref = getRequiredString(idRefKey, transmap)
-        if (!basedefs.contains(idref)) throw new IllegalStateException(s"referenced transaction $idref is not defined")
+        if (!basedefs.contains(idref)) throw new IllegalStateException(s"referenced structure $idref is not defined")
         val basedef = basedefs(idref)
         val name = getAs(nameKey, basedef.name, transmap)
         val group = getAs(classKey, basedef.group, transmap)
-        val heading = parseTransactionOverlayPart(headingKey, transmap, basedef.heading, segments)
-        val detail = parseTransactionOverlayPart(detailKey, transmap, basedef.detail, segments)
-        val summary = parseTransactionOverlayPart(summaryKey, transmap, basedef.summary, segments)
-        map + (idref -> Transaction(idref, name, group, heading, detail, summary))
-      } else throw new IllegalStateException(s"transaction definition needs either $idKey or $idRefKey value"))
+        val heading = parseStructureOverlayPart(headingKey, transmap, basedef.heading, segments)
+        val detail = parseStructureOverlayPart(detailKey, transmap, basedef.detail, segments)
+        val summary = parseStructureOverlayPart(summaryKey, transmap, basedef.summary, segments)
+        map + (idref -> Structure(idref, name, group, heading, detail, summary, version))
+      } else throw new IllegalStateException(s"structure definition needs either $idKey or $idRefKey value"))
 
   /** Find schema and return input stream. This first looks at using the file system, trying each base string as a
     * prefix to the supplied path. If none of the bases work, it tries loading off the classpath.
@@ -450,11 +450,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     /** Read schema from YAML document, recursively reading and building on imported schemas. */
     def loadFully(reader: Reader): EdiSchema = {
       val input = snake.loadAs(reader, classOf[ValueMap]).asInstanceOf[ValueMap];
-      val form = convertEdiForm(input.get(formKey).toString)
-      val version = getRequiredString(versionKey, input)
+      val version = EdiSchemaVersion(convertEdiForm(input.get(formKey).toString), getRequiredString(versionKey, input))
       val baseSchema = if (input.containsKey(importsKey)) {
         val impsin = getChildList(importsKey, input).asInstanceOf[java.util.List[String]]
-        impsin.asScala.toList.foldLeft(new EdiSchema(form, version))((acc, path) => {
+        impsin.asScala.toList.foldLeft(new EdiSchema(version))((acc, path) => {
           schemaCache.get(path) match {
             case Some(schema) => acc.merge(schema)
             case None => {
@@ -466,28 +465,28 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
             }
           }
         })
-      } else new EdiSchema(form, version)
+      } else new EdiSchema(version)
       val elements =
         if (input.containsKey(elementsKey)) convertElements(input, baseSchema.elements)
         else baseSchema.elements
       val composites =
-        if (input.containsKey(compositesKey)) convertComposites(input, form, elements, baseSchema.composites)
+        if (input.containsKey(compositesKey)) convertComposites(input, version.ediForm, elements, baseSchema.composites)
         else baseSchema.composites
       val segments =
-        if (input.containsKey(segmentsKey)) convertSegments(input, form, elements, composites, baseSchema.segments)
+        if (input.containsKey(segmentsKey)) convertSegments(input, version.ediForm, elements, composites, baseSchema.segments)
         else baseSchema.segments
-      val transactions =
-        if (input.containsKey(structuresKey)) convertTransactions(input, form, segments, baseSchema.transactions)
-        else baseSchema.transactions
-      val count = transactions.size
-      EdiSchema(form, version, elements, composites, segments, transactions)
+      val structures =
+        if (input.containsKey(structuresKey)) convertStructures(input, version, segments, baseSchema.structures)
+        else baseSchema.structures
+      val count = structures.size
+      EdiSchema(version, elements, composites, segments, structures)
     }
 
     val loaded = loadFully(reader)
-    EdiSchema(loaded.ediForm, loaded.version, loaded.elements, loaded.composites, loaded.segments,
-      loaded.transactions.map{
-        case (k, Transaction(ident, name, group, heading, detail, summary)) => (k,
-          Transaction(ident, name, group, heading, detail, summary))
+    EdiSchema(loaded.ediVersion, loaded.elements, loaded.composites, loaded.segments,
+      loaded.structures.map{
+        case (k, Structure(ident, name, group, heading, detail, summary, loaded.ediVersion)) => (k,
+          Structure(ident, name, group, heading, detail, summary, loaded.ediVersion))
       })
   }
 }

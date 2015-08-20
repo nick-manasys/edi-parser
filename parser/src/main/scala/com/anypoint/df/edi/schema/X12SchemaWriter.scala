@@ -15,7 +15,7 @@ import com.anypoint.df.edi.lexical.X12Writer
 /** Configuration parameters for X12 schema writer.
   */
 case class X12WriterConfig(val stringChars: CharacterRestriction, val subChar: Int, val charSet: Charset,
-  val delims: String, val suffix: String) {
+    val delims: String, val suffix: String) {
   if (delims.size < 4 || delims.size > 5) throw new IllegalArgumentException("delimiter string must be 4 or 5 characters")
   val repsep = if (delims(2) == 'U') -1 else delims(2)
 }
@@ -30,11 +30,9 @@ trait X12NumberProvider {
 
 /** Writer for X12 EDI documents.
   */
-case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberProvider, config: X12WriterConfig)
-  extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
-    config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars),
-    (if (sc.version == "005010") sc.merge(X12Acknowledgment.trans997).merge(X12Acknowledgment.trans999)
-      else sc.merge(X12Acknowledgment.trans997))) {
+case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config: X12WriterConfig)
+    extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
+      config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars)) {
 
   import EdiSchema._
   import SchemaJavaValues._
@@ -83,9 +81,9 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
     writeSegment(props, SESegment)
     setCount += 1
   }
-  
+
   /** Write top-level section of transaction. */
-  def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]) = writeSection(map, comps)
+  def writeTopSection(index: Int, map: ValueMap, comps: List[StructureComponent]) = writeSection(map, comps)
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment) = segment.ident == "ST" || segment.ident == "SE"
@@ -95,18 +93,22 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
     val interchanges = getRequiredValueMap(transactionsMap, map).asScala.foldLeft(EmptySendMap) {
-      case (acc, (ident, list)) => {
-        val transMaps = list.asInstanceOf[MapList].asScala
-        (0 until transMaps.size) map { i =>
-          val transMap = transMaps(i)
-          transMap put (transIndexKey, Integer.valueOf(i))
-          if (transMap.containsKey(transactionId)) {
-            if (ident != transMap.get(transactionId)) {
-              throw new WriteException("$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)")
+      case (acc, (version, vmap)) => {
+        vmap.asInstanceOf[ValueMap].asScala.foldLeft(acc) {
+          case (acc, (ident, list)) => {
+            val transMaps = list.asInstanceOf[MapList].asScala
+            (0 until transMaps.size) map { i =>
+              val transMap = transMaps(i)
+              transMap put (transIndexKey, Integer.valueOf(i))
+              if (transMap.containsKey(structureId)) {
+                if (ident != transMap.get(structureId)) {
+                  throw new WriteException("$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)")
+                }
+              } else transMap put (structureId, ident)
             }
-          } else transMap put (transactionId, ident)
+            groupSends(transMaps, SchemaJavaValues.interchangeKey, acc)
+          }
         }
-        groupSends(transMaps, SchemaJavaValues.interchangeKey, acc)
       }
     }
     if (interchanges.isEmpty) throw new WriteException("no transactions to be sent")
@@ -120,9 +122,6 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
         val senderId = getRequiredString(SENDER_ID, interProps)
         val receiverQual = getRequiredString(RECEIVER_ID_QUALIFIER, interProps)
         val receiverId = getRequiredString(RECEIVER_ID, interProps)
-        if (!interProps.containsKey(VERSION_ID)) {
-          interProps put (VERSION_ID, schema.version.substring(0, schema.version.length() - 1))
-        }
         val providerId = numprov interchangIdentifier (senderQual, senderId, receiverQual, receiverId)
         interProps put (INTER_CONTROL, Integer valueOf (numprov nextInterchange (providerId)))
         writer.init(interProps)
@@ -133,13 +132,7 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
         }
         groupSends(trans, SchemaJavaValues.groupKey, EmptySendMap) foreach {
           case (key, trans) =>
-            val transGroups = trans.groupBy { transMap =>
-              val ident = getAsString(transactionId, transMap)
-              schema.transactions.get(ident) match {
-                case Some(t) => t.group.get
-                case None => throw new WriteException("$ident at position $i has type ${transMap.get(transactionId)} (wrong message list)")
-              }
-            }
+            val transGroups = trans.groupBy { transMap => getAsRequired[Structure](structureSchema, transMap).group.get }
             transGroups.foreach {
               case (groupCode, transList) => try {
                 val groupProps = if (groupRoot == null) new ValueMapImpl else new ValueMapImpl(groupRoot)
@@ -154,13 +147,13 @@ case class X12SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: X12NumberP
                     if (transet.containsKey(setKey)) new ValueMapImpl(getAsMap(setKey, transet))
                     else new ValueMapImpl
                   setProps put (setControlNumberHeaderKey, zeroPad(numprov nextSet (providerId, senderGroup, receiverGroup), 4))
-                  val ident = getAsString(transactionId, transet)
+                  val ident = getAsString(structureId, transet)
                   openSet(ident, setProps)
-                  writeTransaction(transet, schema transactions (ident))
+                  writeStructure(transet, getAsRequired[Structure](structureSchema, transet))
                   closeSet(setProps)
                 } catch {
                   case e: Throwable => {
-                    logAndThrow(s"${e.getMessage} in transaction ${getAsString(transactionId, transet)} at index ${getAsInt(transIndexKey, transet)}", e)
+                    logAndThrow(s"${e.getMessage} in transaction ${getAsString(structureId, transet)} at index ${getAsInt(transIndexKey, transet)}", e)
                   }
                 })
                 closeGroup(groupProps)

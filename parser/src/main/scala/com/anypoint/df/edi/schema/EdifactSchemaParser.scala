@@ -2,6 +2,7 @@ package com.anypoint.df.edi.schema
 
 import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
+import java.{ util => ju }
 import java.util.{ Calendar, GregorianCalendar }
 import scala.annotation.tailrec
 import scala.collection.mutable.Buffer
@@ -95,8 +96,8 @@ case class EdifactInterchangeException(error: SyntaxError, text: String, cause: 
 }
 
 /** Parser for EDIFACT EDI documents. */
-case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNumberValidator, config: EdifactParserConfig)
-  extends SchemaParser(new EdifactLexer(in, config.enforceChars, config.substitutionChar, config.defaultDelims), sc)
+case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: EdifactNumberValidator, config: EdifactParserConfig)
+  extends SchemaParser(new EdifactLexer(in, config.enforceChars, config.substitutionChar, config.defaultDelims))
   with UtilityBase {
 
   import EdifactSchemaDefs._
@@ -378,7 +379,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     logErrorInMessage(true, false, error.text)
     if (messageErrorCode == null) messageErrorCode = error
     rejectMessage = true
-    discardTransaction
+    discardStructure
   }
 
   /** Check if at message set open segment. */
@@ -472,6 +473,8 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       contrlGroup1s += sg1
     }
   }
+  /** Check if an envelope segment (handled directly, outside of structure). */
+  def isEnvelopeSegment(ident: String) = EdiFact.isEnvelopeSegment(ident)
 
   /** Convert section control segment to next section number. If not at a section control, this just returns None. */
   def convertSectionControl =
@@ -491,7 +494,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
   def convertLoop = if (Set("LS", "LE").contains(lexer.token)) Some(lexer.token + lexer.peek) else None
 
   /** Discard input past end of current message. */
-  def discardTransaction = {
+  def discardStructure = {
     while (lexer.currentType != SEGMENT || lexer.token != segUNT.ident) discardSegment
     if (lexer.currentType == SEGMENT) closeSet(new ValueMapImpl)
   }
@@ -501,7 +504,7 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     while (!isGroupClose)
       if (isSetOpen) {
         groupMessageCount += 1
-        discardTransaction
+        discardStructure
       } else discardSegment
 
   /** Discard input past end of current interchange. */
@@ -562,15 +565,15 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     val map = new ValueMapImpl
     val funcAckList = new MapListImpl
     map put (functionalAcksGenerated, funcAckList)
-    val transLists = new ValueMapImpl().asInstanceOf[java.util.Map[String, MapList]]
-    schema.transactions.keys foreach { key => transLists put (key, new MapListImpl) }
+    val transLists = new ValueMapImpl().asInstanceOf[ju.Map[String, MapList]]
+    schema.structures.keys foreach { key => transLists put (key, new MapListImpl) }
     map put (messagesMap, transLists)
 
     /** Parse messages in group. */
     def parseGroup(group: ValueMap, groupCode: String, providerId: String, groupSender: String, groupReceiver: String) = {
       val (setid, setprops) = openSet
-      schema.transactions.get(setid) match {
-        case t: Transaction => transLists.get(setid).add(parseTransaction(t, false))
+      schema.structures.get(setid) match {
+        case t: Structure => transLists.get(setid).add(parseStructure(t, false))
         case _ => messageError(NoAgreementForValue)
       }
     }
@@ -578,8 +581,8 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
     def buildFuncCONTRL(interchange: ValueMap) = {
       val ctrlmap = new ValueMapImpl
       val msg = contrlMsg(syntaxVersion)
-      ctrlmap put (transactionId, msg.ident)
-      ctrlmap put (transactionName, msg.name)
+      ctrlmap put (structureId, msg.ident)
+      ctrlmap put (structureName, msg.name)
       val intercopy = new ValueMapImpl(interchange)
       swap(interHeadSenderQualKey, interHeadRecipientQualKey, intercopy)
       swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, intercopy)
@@ -630,9 +633,9 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
       contrlGroup3s.clear
       val ackroot = buildFuncCONTRL(inter)
       val ackhead = new ValueMapImpl
-      ackroot put (transactionHeading, ackhead)
-      ackroot put (transactionDetail, new ValueMapImpl)
-      ackroot put (transactionSummary, new ValueMapImpl)
+      ackroot put (structureHeading, ackhead)
+      ackroot put (structureDetail, new ValueMapImpl)
+      ackroot put (structureSummary, new ValueMapImpl)
       funcAckList add ackroot
       val interack = new ValueMapImpl
       val segUCI = uciSegment(syntaxVersion)
@@ -657,10 +660,10 @@ case class EdifactSchemaParser(in: InputStream, sc: EdiSchema, numval: EdifactNu
             getAsString(msgHeadMessageSubfunctionKey, setprops), context)) {
             val versionMatch = !setprops.containsKey(msgHeadMessageReleaseKey) ||
               (getAsString(msgHeadMessageVersionKey, setprops) +
-                getAsString(msgHeadMessageReleaseKey, setprops)).toLowerCase() == schema.version
-            if (versionMatch) schema.transactions(setid) match {
-              case t: Transaction => {
-                val data = parseTransaction(t, false)
+                getAsString(msgHeadMessageReleaseKey, setprops)).toLowerCase() == schema.ediVersion.version
+            if (versionMatch) schema.structures(setid) match {
+              case t: Structure => {
+                val data = parseStructure(t, false)
                 if (isSetClose) {
                   closeSet(setprops)
                   group.foreach { gmap => data.put(groupKey, gmap) }

@@ -30,9 +30,6 @@ public abstract class LexerBase
     /** Stream supplying document data. */
     final InputStream stream;
     
-    /** Substitution character for invalid character in string (-1 if unused). */
-    final int substitutionChar;
-    
     /** Allowed character set for string data (<code>null</code> if unrestricted). */
     boolean[] allowedChars;
     
@@ -56,6 +53,9 @@ public abstract class LexerBase
     
     /** Segment terminator. */
     char segmentTerminator;
+    
+    /** Substitution character for invalid character in string (-1 if unused). */
+    int substitutionChar;
     
     /** Alternative decimal mark character (-1 if unused). */
     int altDecimalMark;
@@ -100,13 +100,14 @@ public abstract class LexerBase
      * Constructor.
      *
      * @param is input
-     * @param subst substitution character for invalid character in string (-1 if unused)
-     * @param altdec alternative decimal mark character (to '.', -1 if unused)
      */
-    public LexerBase(InputStream is, int subst, int altdec) {
+    public LexerBase(InputStream is) {
         stream = is;
-        substitutionChar = subst;
-        altDecimalMark = altdec;
+        repetitionSeparator = -1;
+        subCompSeparator = -1;
+        releaseIndicator = -1;
+        substitutionChar = -1;
+        altDecimalMark = -1;
     }
     
     /**

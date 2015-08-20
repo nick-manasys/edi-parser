@@ -16,7 +16,7 @@ import com.anypoint.df.edi.lexical.ErrorHandler._
 import scala.collection.mutable.Buffer
 
 /** Parse EDI document based on schema. */
-abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends SchemaJavaDefs {
+abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
 
   import SchemaJavaValues._
 
@@ -118,17 +118,17 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     * @param lead segment starting the scope (allowed to go backward in position, since it'll be starting another loop)
     * @param current position string for current place at level
     */
-  case class ContainingScope(comps: Map[String, TransactionComponent], lead: Option[Segment], current: SegmentPosition)
+  case class ContainingScope(comps: Map[String, StructureComponent], lead: Option[Segment], current: SegmentPosition)
 
-  /** Parse a complete transaction body (not including any envelope segments). The returned map has a maximum of five
-    * values: the transaction id and name, and separate child maps for each of the three sections of a transaction
+  /** Parse a complete structure body (not including any envelope segments). The returned map has a maximum of five
+    * values: the structure id and name, and separate child maps for each of the three sections of a structure
     * (heading, detail, and summary). Each child map is keyed by segment name (with the ID suffixed in parenthesis) or
     * group id. For a segment with no repeats allowed the associated value is the map of the values in the segment. For
     * a segment with repeats allowed the value is a list of maps, one for each occurrence of the segment. For a group
     * the value is also a list of maps, with each map of the same form as the child maps of the top-level result (so
     * keys are segment or nested group names, values are maps or lists).
     */
-  def parseTransaction(transaction: Transaction, onepart: Boolean) = {
+  def parseStructure(structure: Structure, onepart: Boolean) = {
 
     /** Get list of maps for key. If the list is not already set, this creates and returns a new one. */
     def getList(key: String, values: ValueMap) =
@@ -155,11 +155,11 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       list
     }
 
-    /** Parse a transaction data table.
+    /** Parse a structure data table.
       * @param table index
       * @param comps segment id to component map
       */
-    def parseTable(table: Int, comps: Map[String, TransactionComponent]) = {
+    def parseTable(table: Int, comps: Map[String, StructureComponent]) = {
 
       /** Parse a (potentially) repeating group, with variants treated separately. The repeating group is represented as a
         * list of maps, one for each occurrence of the group not recognized as a variant. Variants which can occur
@@ -225,7 +225,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
       /** Check if current segment is known. */
       def checkSegmentKnown: Unit = lexer.currentType match {
         case SEGMENT =>
-          if (!transaction.segmentIds.contains(lexer.token)) {
+          if (!structure.segmentIds.contains(lexer.token)) {
             val ident = lexer.token
             segmentError(ident, None, ComponentErrors.UnknownSegment, true)
             while (ident == lexer.token) discardSegment
@@ -234,14 +234,14 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         case _ => throw new IllegalStateException("lexer in data when should be start of segment")
       }
 
-      /** Parse a portion of transaction data represented by a map of components (which may be segment references or
+      /** Parse a portion of structure data represented by a map of components (which may be segment references or
         * loops) into a map.
         * @param comps segment id to component map
         * @param scopes containing scope information for checking segment ordering and section termination (non-empty)
         * @param group containing group identifier
         * @param values result data map
         */
-      def parseSection(comps: Map[String, TransactionComponent], scopes: List[ContainingScope],
+      def parseSection(comps: Map[String, StructureComponent], scopes: List[ContainingScope],
         group: Option[GroupComponent], values: ValueMap) = {
         val startPos = scopes.head.current.position
         val grpid = group.map { _.ident }
@@ -262,7 +262,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
             case _ => {
               // segment not in any scope, report as out of order
               val error =
-                if (transaction.segmentIds.contains(compid)) ComponentErrors.OutOfOrderSegment
+                if (structure.segmentIds.contains(compid)) ComponentErrors.OutOfOrderSegment
                 else ComponentErrors.UnknownSegment
               segmentError(ident, None, error, true)
               discardSegment
@@ -365,21 +365,21 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         }
       }
 
-      val context = List(ContainingScope(transaction.compsById, None, SegmentPosition(table, "0000")))
+      val context = List(ContainingScope(structure.compsById, None, SegmentPosition(table, "0000")))
       val parse = new ValueMapImpl
       parseSection(comps, context, None, parse)
       parse
     }
 
-    if (onepart) parseTable(0, transaction.headingById)
+    if (onepart) parseTable(0, structure.headingById)
     else {
       val topMap: ValueMap = new ValueMapImpl
-      topMap put (transactionId, transaction.ident)
-      topMap put (transactionName, transaction.name)
-      topMap put (transactionHeading, parseTable(0, transaction.headingById))
+      topMap put (structureId, structure.ident)
+      topMap put (structureName, structure.name)
+      topMap put (structureHeading, parseTable(0, structure.headingById))
       convertSectionControl match {
         case Some(1) | None => {
-          topMap put (transactionDetail, parseTable(1, transaction.detailById))
+          topMap put (structureDetail, parseTable(1, structure.detailById))
         }
         case _ =>
       }
@@ -387,7 +387,7 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
         case Some(1) => segmentError(lexer.token, None, ComponentErrors.OutOfOrderSegment, true)
         case _ =>
       }
-      topMap put (transactionSummary, parseTable(2, transaction.summaryById))
+      topMap put (structureSummary, parseTable(2, structure.summaryById))
       topMap
     }
   }
@@ -398,8 +398,8 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
     while (lexer.currentType != SEGMENT && lexer.currentType != END) lexer.advance
   }
 
-  /** Discard input past end of current transaction. */
-  def discardTransaction: Unit
+  /** Discard input past end of current structure. */
+  def discardStructure: Unit
 
   /** Convert section control segment to next section number. If not at a section control, this just returns None. */
   def convertSectionControl: Option[Int]
@@ -407,9 +407,6 @@ abstract class SchemaParser(val lexer: LexerBase, val schema: EdiSchema) extends
   /** Convert loop start or end segment to identity form. If not at a loop segment, this just returns None. */
   def convertLoop: Option[String]
 
-  /** Check if an envelope segment (handled directly, outside of transaction). */
-  def isEnvelopeSegment(ident: String) = schema.ediForm.isEnvelopeSegment(ident)
-
-  /** Parse the input message. */
-  def parse: Try[ValueMap]
+  /** Check if an envelope segment (handled directly, outside of structure). */
+  def isEnvelopeSegment(ident: String): Boolean
 }

@@ -31,16 +31,16 @@ trait HL7NumberProvider {
 
 /** Writer for HL7 EDI documents.
   */
-case class HL7SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: HL7NumberProvider, config: HL7WriterConfig)
-  extends SchemaWriter(new HL7Writer(out, config.charSet, config.delims, config.subChar), sc) with UtilityBase {
+case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7NumberProvider, config: HL7WriterConfig)
+  extends SchemaWriter(new HL7Writer(out, config.charSet, config.delims, config.subChar)) with UtilityBase {
 
   import EdiSchema._
   import HL7Identity._
   import HL7SchemaDefs._
   import SchemaJavaValues._
 
-  /** Write top-level section of transaction. */
-  def writeTopSection(index: Int, map: ValueMap, comps: List[TransactionComponent]) = writeSection(map, comps)
+  /** Write top-level section of structure. */
+  def writeTopSection(index: Int, map: ValueMap, comps: List[StructureComponent]) = writeSection(map, comps)
 
   /** Output message header segment. */
   def init(props: ValueMap) = {
@@ -52,7 +52,7 @@ case class HL7SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: HL7NumberP
     val sender = buildIdentityInformation(mshSendingApplication, mshSendingFacility, props)
     val receiver = buildIdentityInformation(mshReceivingApplication, mshReceivingFacility, props)
     props put (mshControlKey, numprov.nextMessage(sender, receiver))
-    props put (mshVersionKey, schema.version)
+    props put (mshVersionKey, schema.ediVersion.version)
     writer.init(props)
     writeCompList(props, DATA_ELEMENT, false, segMSH.components.drop(1))
     writer.writeSegmentTerminator
@@ -61,8 +61,8 @@ case class HL7SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: HL7NumberP
   /** Output message trailer segment(s). */
   def term(props: ValueMap) = writer.term(props)
 
-  /** Check if an envelope segment (handled directly, outside of transaction). */
-  def isEnvelopeSegment(segment: Segment) = schema.ediForm.isEnvelopeSegment(segment.ident)
+  /** Check if an envelope segment (handled directly, outside of structure). */
+  def isEnvelopeSegment(segment: Segment) = schema.ediVersion.ediForm.isEnvelopeSegment(segment.ident)
 
   /** Stores list of string values matching the simple value components. */
   def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
@@ -80,10 +80,10 @@ case class HL7SchemaWriter(out: OutputStream, sc: EdiSchema, numprov: HL7NumberP
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
     val mshmap = getRequiredValueMap(mshKey, map)
-    val msgType = getRequiredString(transactionId, map)
+    val msgType = getRequiredString(structureId, map)
     val datamap = getRequiredValueMap(dataKey, map)
-    schema.transactions(msgType) match {
-      case t: Transaction => {
+    schema.structures(msgType) match {
+      case t: Structure => {
         mshmap put (mshStructureKey, msgType)
         init(mshmap)
         writeTopSection(0, getRequiredValueMap(msgType, datamap), t.heading)

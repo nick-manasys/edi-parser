@@ -60,7 +60,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "parse the MSH segment start when initialized" in {
     val in = new ByteArrayInputStream(lead.getBytes())
-    val parser = HL7SchemaParser(in, EdiSchema(HL7, "2.5.1", Map.empty, Map.empty, Map.empty, Map.empty),
+    val parser = HL7SchemaParser(in, EdiSchema(EdiSchemaVersion(HL7, "2.5.1"), Map.empty, Map.empty, Map.empty, Map.empty),
       new DefaultHL7NumberValidator, parserConfig)
     val props = new ValueMapImpl
     parser.init(props)
@@ -98,7 +98,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     msh.get("MSH-10") should be ("12869")
     msh.get("MSH-11-01") should be ("T")
     msh.get("MSH-12-01") should be ("2.5.1")
-    map.get(transactionId) should be ("ADT_A01")
+    map.get(structureId) should be ("ADT_A01")
     map.containsKey(dataKey) should be (true)
     val data = map.get(dataKey).asInstanceOf[ValueMap]
     data.containsKey("ADT_A01") should be (true)

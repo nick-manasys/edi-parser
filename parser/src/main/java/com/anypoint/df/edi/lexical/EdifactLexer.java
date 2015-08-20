@@ -39,7 +39,8 @@ public class EdifactLexer extends LexerBase
      * <code>null</code> if using standard defaults)
      */
     public EdifactLexer(InputStream is, boolean enforce, int subst, String delims) {
-        super(is, subst, ',');
+        super(is);
+        substitutionChar = subst;
         enforceCharacterSet = enforce;
         componentSeparator = ':';
         dataSeparator = '+';
@@ -48,6 +49,7 @@ public class EdifactLexer extends LexerBase
         repetitionSeparator = '*';
         subCompSeparator = -1;
         delimiterDefaults = delims;
+        altDecimalMark = ',';
     }
     
     /**

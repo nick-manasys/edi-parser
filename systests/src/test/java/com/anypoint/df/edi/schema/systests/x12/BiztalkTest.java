@@ -39,7 +39,7 @@ public class BiztalkTest extends X12TestBase {
         assertNotNull(translist);
         assertEquals(1, translist.size());
         Map<String, Object> transset = translist.get(0);
-        Map<String, Object> heading = (Map<String, Object>)transset.get(SchemaJavaValues.transactionHeading());
+        Map<String, Object> heading = (Map<String, Object>)transset.get(SchemaJavaValues.structureHeading());
         assertNotNull(heading);
         Map<String, Object> begseg = (Map<String, Object>)heading.get("0200 BEG");
         assertNotNull(begseg);
@@ -50,7 +50,7 @@ public class BiztalkTest extends X12TestBase {
     }
 
     @Test
-    public void verifyWriteWithoutTransactionId() throws Exception {
+    public void verifyWriteWithoutStructureId() throws Exception {
         DocumentTest test = new DocumentTestX12(schema, false);
         String text = readAsString("/x12/005010/biztalk-interop/850x1.edi");
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
@@ -60,8 +60,8 @@ public class BiztalkTest extends X12TestBase {
         assertNotNull(translist);
         assertEquals(1, translist.size());
         Map<String, Object> transset = translist.get(0);
-        assertEquals("850", transset.get(SchemaJavaValues.transactionId()));
-        transset.remove(SchemaJavaValues.transactionId());
+        assertEquals("850", transset.get(SchemaJavaValues.structureId()));
+        transset.remove(SchemaJavaValues.structureId());
         checkWrite(test, text, result);
     }
 

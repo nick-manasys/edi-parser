@@ -2,7 +2,7 @@ package com.anypoint.df.edi.schema.tools
 
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdifactConstants._
-import com.anypoint.df.edi.schema.{ SchemaJavaDefs, EdiSchema, EdifactSchemaDefs }
+import com.anypoint.df.edi.schema.{ SchemaJavaDefs, EdiSchema, EdiSchemaVersion, EdifactSchemaDefs }
 import com.anypoint.df.edi.schema.SchemaJavaValues._
 import com.anypoint.df.edi.schema.EdifactAcknowledgment._
 import com.anypoint.df.edi.schema.EdifactIdentityInformation
@@ -96,9 +96,9 @@ object DecodeContrl extends SchemaJavaDefs {
     val version = EDIFACT_VERSIONS.get(getRequiredString(interHeadSyntaxVersionKey, intermap))
     val transCONTRL = contrlMsg(version)
 //    val schemaDefs = versions(EDIFACT_VERSIONS.get(getRequiredString(interHeadSyntaxVersionKey, intermap)))
-    if (getRequiredString(transactionId, rootmap) != transCONTRL.ident) throw new IllegalArgumentException("Not a CONTRL message")
+    if (getRequiredString(structureId, rootmap) != transCONTRL.ident) throw new IllegalArgumentException("Not a CONTRL message")
     val builder = new StringBuilder
-    val headmap = getRequiredValueMap(transactionHeading, rootmap)
+    val headmap = getRequiredValueMap(structureHeading, rootmap)
     val msgcomps = transCONTRL.heading.toArray
 
     // interpret the required UCI segment
@@ -147,8 +147,9 @@ UNZ+1+50'"""
     val config = EdifactParserConfig(true, true, true, true, true, true, true, false, -1, null,
       Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
     val is = new ByteArrayInputStream(testMsg.getBytes)
-    val schema = EdiSchema(EdiSchema.EdiFact, "D01A", Map[String, EdiSchema.Element](), Map[String, EdiSchema.Composite](),
-      Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Transaction]()).merge(transCONTRLv4)
+    val schema = EdiSchema(EdiSchemaVersion(EdiSchema.EdiFact, "D01A"), Map[String, EdiSchema.Element](),
+      Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](),
+      Map[String, EdiSchema.Structure]()).merge(transCONTRLv4)
     val parser = EdifactSchemaParser(is, schema, new DefaultEdifactNumberValidator, config)
     parser.parse match {
       case Success(root) => println(decode(getRequiredMapList("CONTRL", getRequiredValueMap(messagesMap, root)).get(0)))

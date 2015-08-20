@@ -1,8 +1,8 @@
 package com.anypoint.df.edi.schema
 
-import java.io.Writer
-import java.io.StringWriter
 import scala.annotation.tailrec
+
+import java.io.{ StringWriter, Writer }
 
 trait WritesYaml {
 
@@ -75,10 +75,10 @@ object YamlWriter extends WritesYaml with YamlDefs {
       writeIndented("- " + keyValueQuote(groupIdKey, group.ident), indent, writer)
       writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1, writer)
       if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1, writer)
-      writeTransactionComps(itemsKey, group.items, indent + 1)
+      writeStructureComps(itemsKey, group.items, indent + 1)
     }
 
-    def writeTransactionComps(label: String, segments: List[TransactionComponent], indent: Int): Unit = {
+    def writeStructureComps(label: String, segments: List[StructureComponent], indent: Int): Unit = {
       writeIndented(label + ":", indent, writer)
       segments foreach (segbase => segbase match {
         case refer: ReferenceComponent => writeReferenceComponent(refer, indent)
@@ -115,8 +115,8 @@ object YamlWriter extends WritesYaml with YamlDefs {
     }
 
     // start with schema type and version
-    writeIndented(keyValuePair(formKey, schema.ediForm.text), 0, writer)
-    writeIndented(keyValueQuote(versionKey, schema.version), 0, writer)
+    writeIndented(keyValuePair(formKey, schema.ediVersion.ediForm.text), 0, writer)
+    writeIndented(keyValueQuote(versionKey, schema.ediVersion.version), 0, writer)
     if (imports.nonEmpty) {
 
       // write list of imports
@@ -125,20 +125,20 @@ object YamlWriter extends WritesYaml with YamlDefs {
       writer.append(" ]\n")
 
     }
-    if (!schema.transactions.isEmpty) {
+    if (!schema.structures.isEmpty) {
 
-      // write transaction details
+      // write structure details
       writeIndented(s"$structuresKey:", 0, writer)
-      schema.transactions.values.toList.sortBy { transact => transact.ident } foreach (transact => {
+      schema.structures.values.toList.sortBy { transact => transact.ident } foreach (transact => {
         writeIndented("- " + keyValueQuote(idKey, transact.ident), 0, writer)
         writeIndented(keyValuePair(nameKey, transact.name), 1, writer)
         transact.group match {
           case Some(g) => writeIndented(keyValuePair(classKey, g), 1, writer)
           case None =>
         }
-        if (transact.heading.size > 0) writeTransactionComps(headingKey, transact.heading, 1)
-        if (transact.detail.size > 0) writeTransactionComps(detailKey, transact.detail, 1)
-        if (transact.summary.size > 0) writeTransactionComps(summaryKey, transact.summary, 1)
+        if (transact.heading.size > 0) writeStructureComps(headingKey, transact.heading, 1)
+        if (transact.detail.size > 0) writeStructureComps(detailKey, transact.detail, 1)
+        if (transact.summary.size > 0) writeStructureComps(summaryKey, transact.summary, 1)
       })
     }
     if (!schema.segments.isEmpty) {

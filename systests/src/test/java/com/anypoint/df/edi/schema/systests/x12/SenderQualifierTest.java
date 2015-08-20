@@ -19,24 +19,24 @@ public class SenderQualifierTest extends X12TestBase {
 	}
 	
 	
-	@BeforeClass
-	public static void setUpClass() {
-		loadSchema(SCHEMA);
-	}
-	
-	@Test
-	@Ignore
-	public void qualifierMissmatch() throws Exception {
-	    // TODO: this results in a TA1 rejection, not an exception
-		String ediParseResult = parseWithSenderIdentityInformation(getInputFilePath(), "AA", "BB", "TEST");
-		Assert.assertTrue(ediParseResult.contains(getExceptionText()));
-	}
-	
-	@Test 
-	public void qualifierMatch() throws Exception {
-		String ediParseResult = parseWithSenderIdentityInformation(getInputFilePath(), "ZZ", "MODUS", "");
-		Assert.assertFalse(ediParseResult.contains(getExceptionText()));
-	}
+//	@BeforeClass
+//	public static void setUpClass() {
+//		loadSchema(SCHEMA);
+//	}
+//	
+//	@Test
+//	@Ignore
+//	public void qualifierMissmatch() throws Exception {
+//	    // TODO: this results in a TA1 rejection, not an exception
+//		String ediParseResult = parseWithSenderIdentityInformation(getInputFilePath(), "AA", "BB", "TEST");
+//		Assert.assertTrue(ediParseResult.contains(getExceptionText()));
+//	}
+//	
+//	@Test 
+//	public void qualifierMatch() throws Exception {
+//		String ediParseResult = parseWithSenderIdentityInformation(getInputFilePath(), "ZZ", "MODUS", "");
+//		Assert.assertFalse(ediParseResult.contains(getExceptionText()));
+//	}
 
 	
 	private String getInputFilePath(){

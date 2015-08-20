@@ -8,8 +8,8 @@ object X12SchemaDefs {
   import com.anypoint.df.edi.lexical.EdiConstants.DataType
   import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 
-  /** Key for map of transaction lists in root map of send or receive. */
-  val transactionsMap = "Transactions"
+  /** Key for map of transaction version maps in root map of send or receive. */
+  val transactionsMap = "TransactionSets"
 
   /** Key for transaction set header information in transaction data map. */
   val setKey = "SetHeader"
@@ -86,6 +86,28 @@ object X12SchemaDefs {
   val InterchangeStartSegment = ISASegment.ident
   val InterchangeEndSegment = IEASegment.ident
 
+  // value keys for ISA segment
+  val interAuthQualKey = ISASegment.components(0).key
+  val interAuthInfoKey = ISASegment.components(1).key
+  val interSecurityQualKey = ISASegment.components(2).key
+  val interSecurityInfoKey = ISASegment.components(3).key
+  val interSenderQualKey = ISASegment.components(4).key
+  val interSenderInfoKey = ISASegment.components(5).key
+  val interReceiverQualKey = ISASegment.components(6).key
+  val interReceiverInfoKey = ISASegment.components(7).key
+  val interDateKey = ISASegment.components(8).key
+  val interTimeKey = ISASegment.components(9).key
+  val interRepSepKey = ISASegment.components(10).key
+  val interControlVersionKey = ISASegment.components(11).key
+  val interControlNumberHeaderKey = ISASegment.components(12).key
+  val interAckRequestedKey = ISASegment.components(13).key
+  val interUsageIndicatorKey = ISASegment.components(14).key
+  val interCompSepKey = ISASegment.components(15).key
+
+  // value keys for GS segment
+  val interNumberGroupsIncludedKey = IEASegment.components(0).key
+  val interControlNumberTrailerKey = IEASegment.components(1).key
+
   // value keys for GS segment
   val groupFunctionalIdentifierKey = GSSegment.components(0).key
   val groupApplicationSenderKey = GSSegment.components(1).key
@@ -125,43 +147,43 @@ object X12Acknowledgment {
     values.toList.foldLeft(Map[K, V]())((acc, value) => acc + (value.code -> value))
 
   /** Interchange acknowledgment codes (TA1 I17 element codes). */
-  sealed abstract class InterchangeAcknowledgmentCode(val code: String) extends Coded[String]
-  case object AcknowledgedNoErrors extends InterchangeAcknowledgmentCode("A")
-  case object AcknowledgedWithErrors extends InterchangeAcknowledgmentCode("E")
-  case object AcknowledgedRejected extends InterchangeAcknowledgmentCode("R")
-  val InterchangeAcknowledgmentCode = instanceMap[String, InterchangeAcknowledgmentCode](AcknowledgedNoErrors,
+  sealed case class InterchangeAcknowledgmentCode(val code: String) extends Coded[String]
+  val AcknowledgedNoErrors = InterchangeAcknowledgmentCode("A")
+  val AcknowledgedWithErrors = InterchangeAcknowledgmentCode("E")
+  val AcknowledgedRejected = InterchangeAcknowledgmentCode("R")
+  val InterchangeAcknowledgmentCodes = instanceMap[String, InterchangeAcknowledgmentCode](AcknowledgedNoErrors,
     AcknowledgedWithErrors, AcknowledgedRejected)
 
   /** Interchange note codes (TA1 I18 element codes). */
-  sealed abstract class InterchangeNoteCode(val code: String, val text: String) extends Coded[String]
-  case object InterchangeNoError extends InterchangeNoteCode("000", "No error")
-  case object InterchangeControlNumberMismatch extends InterchangeNoteCode("001", "The Interchange Control Number in the Header and Trailer Do Not Match")
-  case object InterchangeUnsupportedStandard extends InterchangeNoteCode("002", "This Standard as Noted in the Control Standards Identifier is Not Supported")
-  case object InterchangeUnsupportedVersion extends InterchangeNoteCode("003", "This Version of the Controls is Not Supported")
-  case object InterchangeSegmentTerminator extends InterchangeNoteCode("004", "The Segment Terminator is Invalid")
-  case object InterchangeSenderIdQual extends InterchangeNoteCode("005", "Invalid Interchange ID Qualifier for Sender")
-  case object InterchangeSenderId extends InterchangeNoteCode("006", "Invalid Interchange Sender ID")
-  case object InterchangeReceiverIdQual extends InterchangeNoteCode("007", "Invalid Interchange ID Qualifier for Receiver")
-  case object InterchangeReceiverId extends InterchangeNoteCode("008", "Invalid Interchange Receiver ID")
-  case object InterchangeUnknownReceiverId extends InterchangeNoteCode("009", "Unknown Interchange Receiver ID")
-  case object InterchangeAuthorizationInfoQual extends InterchangeNoteCode("010", "Invalid Authorization Information Qualifier Value")
-  case object InterchangeAuthorizationInfo extends InterchangeNoteCode("011", "Invalid Authorization Information Value")
-  case object InterchangeSecurityInfoQual extends InterchangeNoteCode("012", "Invalid Security Information Qualifier Value")
-  case object InterchangeSecurityInfo extends InterchangeNoteCode("013", "Invalid Security Information Value")
-  case object InterchangeInvalidDate extends InterchangeNoteCode("014", "Invalid Interchange Date Value")
-  case object InterchangeInvalidTime extends InterchangeNoteCode("015", "Invalid Interchange Time Value")
-  case object InterchangeInvalidStandardsIdentifier extends InterchangeNoteCode("016", "Invalid Interchange Standards Identifier Value")
-  case object InterchangeInvalidVersionId extends InterchangeNoteCode("017", "Invalid Interchange Version ID Value")
-  case object InterchangeInvalidControlNumber extends InterchangeNoteCode("018", "Invalid Interchange Control Number Value")
-  case object InterchangeInvalidAcknowledgmentRequested extends InterchangeNoteCode("019", "Invalid Acknowledgment Requested Value")
-  case object InterchangeInvalidTestIndicator extends InterchangeNoteCode("020", "Invalid Test Indicator Value")
-  case object InterchangeInvalidGroupCount extends InterchangeNoteCode("021", "Invalid Number of Included Groups Value")
-  case object InterchangeInvalidControlStructure extends InterchangeNoteCode("022", "Invalid Control Structure")
-  case object InterchangeEndOfFile extends InterchangeNoteCode("023", "Improper (Premature) End-of-File (Transmission)")
-  case object InterchangeInvalidContent extends InterchangeNoteCode("024", "Invalid Interchange Content (e.g., Invalid GS Segment)")
-  case object InterchangeDuplicateNumber extends InterchangeNoteCode("025", "Duplicate Interchange Control Number")
-  case object InterchangeDataElementSeparator extends InterchangeNoteCode("026", "Invalid Data Element Separator")
-  case object InterchangeComponentElementSeparator extends InterchangeNoteCode("027", "Invalid Component Element Separator")
+  sealed case class InterchangeNoteCode(val code: String, val text: String) extends Coded[String]
+  val InterchangeNoError = InterchangeNoteCode("000", "No error")
+  val InterchangeControlNumberMismatch = InterchangeNoteCode("001", "The Interchange Control Number in the Header and Trailer Do Not Match")
+  val InterchangeUnsupportedStandard = InterchangeNoteCode("002", "This Standard as Noted in the Control Standards Identifier is Not Supported")
+  val InterchangeUnsupportedVersion = InterchangeNoteCode("003", "This Version of the Controls is Not Supported")
+  val InterchangeSegmentTerminator = InterchangeNoteCode("004", "The Segment Terminator is Invalid")
+  val InterchangeSenderIdQual = InterchangeNoteCode("005", "Invalid Interchange ID Qualifier for Sender")
+  val InterchangeSenderId = InterchangeNoteCode("006", "Invalid Interchange Sender ID")
+  val InterchangeReceiverIdQual = InterchangeNoteCode("007", "Invalid Interchange ID Qualifier for Receiver")
+  val InterchangeReceiverId = InterchangeNoteCode("008", "Invalid Interchange Receiver ID")
+  val InterchangeUnknownReceiverId = InterchangeNoteCode("009", "Unknown Interchange Receiver ID")
+  val InterchangeAuthorizationInfoQual = InterchangeNoteCode("010", "Invalid Authorization Information Qualifier Value")
+  val InterchangeAuthorizationInfo = InterchangeNoteCode("011", "Invalid Authorization Information Value")
+  val InterchangeSecurityInfoQual = InterchangeNoteCode("012", "Invalid Security Information Qualifier Value")
+  val InterchangeSecurityInfo = InterchangeNoteCode("013", "Invalid Security Information Value")
+  val InterchangeInvalidDate = InterchangeNoteCode("014", "Invalid Interchange Date Value")
+  val InterchangeInvalidTime = InterchangeNoteCode("015", "Invalid Interchange Time Value")
+  val InterchangeInvalidStandardsIdentifier = InterchangeNoteCode("016", "Invalid Interchange Standards Identifier Value")
+  val InterchangeInvalidVersionId = InterchangeNoteCode("017", "Invalid Interchange Version ID Value")
+  val InterchangeInvalidControlNumber = InterchangeNoteCode("018", "Invalid Interchange Control Number Value")
+  val InterchangeInvalidAcknowledgmentRequested = InterchangeNoteCode("019", "Invalid Acknowledgment Requested Value")
+  val InterchangeInvalidTestIndicator = InterchangeNoteCode("020", "Invalid Test Indicator Value")
+  val InterchangeInvalidGroupCount = InterchangeNoteCode("021", "Invalid Number of Included Groups Value")
+  val InterchangeInvalidControlStructure = InterchangeNoteCode("022", "Invalid Control Structure")
+  val InterchangeEndOfFile = InterchangeNoteCode("023", "Improper (Premature) End-of-File (Transmission)")
+  val InterchangeInvalidContent = InterchangeNoteCode("024", "Invalid Interchange Content (e.g., Invalid GS Segment)")
+  val InterchangeDuplicateNumber = InterchangeNoteCode("025", "Duplicate Interchange Control Number")
+  val InterchangeDataElementSeparator = InterchangeNoteCode("026", "Invalid Data Element Separator")
+  val InterchangeComponentElementSeparator = InterchangeNoteCode("027", "Invalid Component Element Separator")
   val InterchangeNoteCodes = instanceMap[String, InterchangeNoteCode](InterchangeNoError,
     InterchangeControlNumberMismatch, InterchangeUnsupportedStandard, InterchangeUnsupportedVersion,
     InterchangeSegmentTerminator, InterchangeSenderIdQual, InterchangeSenderId, InterchangeReceiverIdQual,
@@ -196,64 +218,64 @@ object X12Acknowledgment {
     (InterchangeEndStatus.GROUP_COUNT_ERROR -> InterchangeInvalidGroupCount))
 
   /** Functional group syntax error codes (X12 716 element codes). */
-  sealed abstract class GroupSyntaxError(val code: String, val text: String) extends Coded[String]
-  case object NotSupportedGroup extends GroupSyntaxError("1", "Functional Group Not Supported")
-  case object NotSupportedGroupVersion extends GroupSyntaxError("2", "Functional Group Version Not Supported")
-  case object MissingGroupTrailer extends GroupSyntaxError("3", "Functional Group Trailer Missing")
-  case object GroupControlNumberMismatch extends GroupSyntaxError("4", "Group Control Number in the Functional Group Header and Trailer Do Not Agree")
-  case object GroupTransactionCountError extends GroupSyntaxError("5", "Number of Included Transaction Sets Does Not Match Actual Count")
-  case object GroupControlNumberError extends GroupSyntaxError("6", "Group Control Number Violates Syntax")
-  case object GroupControlNumberNotUnique extends GroupSyntaxError("19", "Functional Group Control Number not Unique within Interchange")
+  sealed case class GroupSyntaxError(val code: String, val text: String) extends Coded[String]
+  val NotSupportedGroup = GroupSyntaxError("1", "Functional Group Not Supported")
+  val NotSupportedGroupVersion = GroupSyntaxError("2", "Functional Group Version Not Supported")
+  val MissingGroupTrailer = GroupSyntaxError("3", "Functional Group Trailer Missing")
+  val GroupControlNumberMismatch = GroupSyntaxError("4", "Group Control Number in the Functional Group Header and Trailer Do Not Agree")
+  val GroupTransactionCountError = GroupSyntaxError("5", "Number of Included Transaction Sets Does Not Match Actual Count")
+  val GroupControlNumberError = GroupSyntaxError("6", "Group Control Number Violates Syntax")
+  val GroupControlNumberNotUnique = GroupSyntaxError("19", "Functional Group Control Number not Unique within Interchange")
   val GroupSyntaxErrors = instanceMap[String, GroupSyntaxError](NotSupportedGroup, NotSupportedGroupVersion,
     MissingGroupTrailer, GroupControlNumberMismatch, GroupTransactionCountError, GroupControlNumberError,
     GroupControlNumberNotUnique)
 
   /** Functional group acknowledgment codes (X12 717 element codes). */
-  sealed abstract class GroupAcknowledgmentCode(val code: String, val text: String) extends Coded[String]
-  case object AcceptedGroup extends GroupAcknowledgmentCode("A", "Accepted")
-  case object AcceptedWithErrorsGroup extends GroupAcknowledgmentCode("E", "Accepted, But Errors Were Noted")
-  case object PartiallyAcceptedGroup extends GroupAcknowledgmentCode("P", "Partially Accepted, At Least One Transaction Set Was Rejected")
-  case object RejectedGroup extends GroupAcknowledgmentCode("R", "Rejected")
+  sealed case class GroupAcknowledgmentCode(val code: String, val text: String) extends Coded[String]
+  val AcceptedGroup = GroupAcknowledgmentCode("A", "Accepted")
+  val AcceptedWithErrorsGroup = GroupAcknowledgmentCode("E", "Accepted, But Errors Were Noted")
+  val PartiallyAcceptedGroup = GroupAcknowledgmentCode("P", "Partially Accepted, At Least One Transaction Set Was Rejected")
+  val RejectedGroup = GroupAcknowledgmentCode("R", "Rejected")
   val GroupAcknowledgmentCodes = instanceMap[String, GroupAcknowledgmentCode](AcceptedGroup, AcceptedWithErrorsGroup,
     PartiallyAcceptedGroup, RejectedGroup)
 
-  /** Transaction syntax error codes (X12 718 element codes). */
-  sealed abstract class TransactionSyntaxError(val code: String, val text: String) extends Coded[String]
-  case object NotSupportedTransaction extends TransactionSyntaxError("1", "Transaction Set Not Supported")
-  case object MissingTrailerTransaction extends TransactionSyntaxError("2", "Transaction Set Trailer Missing")
-  case object ControlNumberMismatch extends TransactionSyntaxError("3", "Transaction Set Control Number in Header and Trailer Do Not Match")
-  case object WrongSegmentCount extends TransactionSyntaxError("4", "Number of Included Segments Does Not Match Actual Count")
-  case object SegmentsInError extends TransactionSyntaxError("5", "One or More Segments in Error")
-  case object BadTransactionSetId extends TransactionSyntaxError("6", "Missing or Invalid Transaction Set Identifier")
-  case object BadTransactionSetControl extends TransactionSyntaxError("7", "Missing or Invalid Transaction Set Control Number")
-  case object SetNotInGroup extends TransactionSyntaxError("18", "Transaction Set not in Functional Group")
-  case object InvalidImplementationConvention extends TransactionSyntaxError("23", "Invalid Transaction Set Implementation Convention Reference")
+  /** Transaction set syntax error codes (X12 718 element codes). */
+  sealed case class TransactionSyntaxError(val code: String, val text: String) extends Coded[String]
+  val NotSupportedTransaction = TransactionSyntaxError("1", "Transaction Set Not Supported")
+  val MissingTrailerTransaction = TransactionSyntaxError("2", "Transaction Set Trailer Missing")
+  val ControlNumberMismatch = TransactionSyntaxError("3", "Transaction Set Control Number in Header and Trailer Do Not Match")
+  val WrongSegmentCount = TransactionSyntaxError("4", "Number of Included Segments Does Not Match Actual Count")
+  val SegmentsInError = TransactionSyntaxError("5", "One or More Segments in Error")
+  val BadTransactionSetId = TransactionSyntaxError("6", "Missing or Invalid Transaction Set Identifier")
+  val BadTransactionSetControl = TransactionSyntaxError("7", "Missing or Invalid Transaction Set Control Number")
+  val SetNotInGroup = TransactionSyntaxError("18", "Transaction Set not in Functional Group")
+  val InvalidImplementationConvention = TransactionSyntaxError("23", "Invalid Transaction Set Implementation Convention Reference")
   val TransactionSyntaxErrors = instanceMap[String, TransactionSyntaxError](NotSupportedTransaction,
     MissingTrailerTransaction, ControlNumberMismatch, WrongSegmentCount, SegmentsInError, BadTransactionSetId,
     BadTransactionSetControl, SetNotInGroup, InvalidImplementationConvention)
 
   /** Transaction set acknowledgment codes (X12 717 element codes). */
-  sealed abstract class TransactionAcknowledgmentCode(val code: String, val text: String) extends Coded[String]
-  case object AcceptedTransaction extends TransactionAcknowledgmentCode("A", "Accepted")
-  case object AcceptedWithErrorsTransaction extends TransactionAcknowledgmentCode("E", "Accepted But Errors Were Noted")
-  case object AuthenticationFailedTransaction extends TransactionAcknowledgmentCode("M", "Rejected, Message Authentication Code (MAC) Failed")
-  case object RejectedTransaction extends TransactionAcknowledgmentCode("R", "Rejected")
-  case object ValidityFailedTransaction extends TransactionAcknowledgmentCode("W", "Rejected, Assurance Failed Validity Tests")
-  case object DecryptionBadTransaction extends TransactionAcknowledgmentCode("X", "Rejected, Content After Decryption Could Not Be Analyzed")
+  sealed case class TransactionAcknowledgmentCode(val code: String, val text: String) extends Coded[String]
+  val AcceptedTransaction = TransactionAcknowledgmentCode("A", "Accepted")
+  val AcceptedWithErrorsTransaction = TransactionAcknowledgmentCode("E", "Accepted But Errors Were Noted")
+  val AuthenticationFailedTransaction = TransactionAcknowledgmentCode("M", "Rejected, Message Authentication Code (MAC) Failed")
+  val RejectedTransaction = TransactionAcknowledgmentCode("R", "Rejected")
+  val ValidityFailedTransaction = TransactionAcknowledgmentCode("W", "Rejected, Assurance Failed Validity Tests")
+  val DecryptionBadTransaction = TransactionAcknowledgmentCode("X", "Rejected, Content After Decryption Could Not Be Analyzed")
   val TransactionAcknowledgmentCodes = instanceMap[String, TransactionAcknowledgmentCode](AcceptedTransaction,
     AcceptedWithErrorsTransaction, AuthenticationFailedTransaction, RejectedTransaction, ValidityFailedTransaction,
     DecryptionBadTransaction)
 
   /** Segment syntax error codes (X12 720 element codes). */
-  sealed abstract class SegmentSyntaxError(val code: String, val text: String) extends Coded[String]
-  case object UnrecognizedSegment extends SegmentSyntaxError("1", "Unrecognized segment ID")
-  case object UnexpectedSegment extends SegmentSyntaxError("2", "Unexpected segment")
-  case object MissingMandatorySegment extends SegmentSyntaxError("3", "Mandatory segment missing")
-  case object TooManyLoops extends SegmentSyntaxError("4", "Loop Occurs Over Maximum Times")
-  case object TooManyOccurs extends SegmentSyntaxError("5", "Segment Exceeds Maximum Use")
-  case object NotInTransactionSegment extends SegmentSyntaxError("6", "Segment Not in Defined Transaction Set")
-  case object OutOfOrderSegment extends SegmentSyntaxError("7", "Segment Not in Proper Sequence")
-  case object DataErrorsSegment extends SegmentSyntaxError("8", "Segment Has Data Element Errors")
+  sealed case class SegmentSyntaxError(val code: String, val text: String) extends Coded[String]
+  val UnrecognizedSegment = SegmentSyntaxError("1", "Unrecognized segment ID")
+  val UnexpectedSegment = SegmentSyntaxError("2", "Unexpected segment")
+  val MissingMandatorySegment = SegmentSyntaxError("3", "Mandatory segment missing")
+  val TooManyLoops = SegmentSyntaxError("4", "Loop Occurs Over Maximum Times")
+  val TooManyOccurs = SegmentSyntaxError("5", "Segment Exceeds Maximum Use")
+  val NotInTransactionSegment = SegmentSyntaxError("6", "Segment Not in Defined Transaction Set")
+  val OutOfOrderSegment = SegmentSyntaxError("7", "Segment Not in Proper Sequence")
+  val DataErrorsSegment = SegmentSyntaxError("8", "Segment Has Data Element Errors")
   val SegmentSyntaxErrors = instanceMap[String, SegmentSyntaxError](UnrecognizedSegment, UnexpectedSegment,
     MissingMandatorySegment, TooManyLoops, TooManyOccurs, NotInTransactionSegment, OutOfOrderSegment, DataErrorsSegment)
 
@@ -262,19 +284,19 @@ object X12Acknowledgment {
     val error: Option[SegmentSyntaxError])
 
   /** Data element syntax error codes (X12 723 element codes). */
-  sealed abstract class ElementSyntaxError(val code: String, val text: String) extends Coded[String]
-  case object MissingRequiredElement extends ElementSyntaxError("1", "Mandatory data element missing")
-  case object MissingConditionalElement extends ElementSyntaxError("2", "Conditional required data element missing")
-  case object TooManyElements extends ElementSyntaxError("3", "Too many data elements (more data elements than defined for the segment)")
-  case object DataTooShort extends ElementSyntaxError("4", "Data element too short")
-  case object DataTooLong extends ElementSyntaxError("5", "Data element too long")
-  case object InvalidCharacter extends ElementSyntaxError("6", "Invalid character in data element")
-  case object InvalidCodeValue extends ElementSyntaxError("7", "Invalid code value")
-  case object InvalidDate extends ElementSyntaxError("8", "Invalid Date")
-  case object InvalidTime extends ElementSyntaxError("9", "Invalid Time")
-  case object ExclusionConditionViolated extends ElementSyntaxError("10", "Exclusion Condition Violated")
-  case object TooManyRepititions extends ElementSyntaxError("11", "Too Many Repetitions (more repetitions than defined for the segment)")
-  case object TooManyComponents extends ElementSyntaxError("12", "Too Many Components (more components than defined for the element)")
+  sealed case class ElementSyntaxError(val code: String, val text: String) extends Coded[String]
+  val MissingRequiredElement = ElementSyntaxError("1", "Mandatory data element missing")
+  val MissingConditionalElement = ElementSyntaxError("2", "Conditional required data element missing")
+  val TooManyElements = ElementSyntaxError("3", "Too many data elements (more data elements than defined for the segment)")
+  val DataTooShort = ElementSyntaxError("4", "Data element too short")
+  val DataTooLong = ElementSyntaxError("5", "Data element too long")
+  val InvalidCharacter = ElementSyntaxError("6", "Invalid character in data element")
+  val InvalidCodeValue = ElementSyntaxError("7", "Invalid code value")
+  val InvalidDate = ElementSyntaxError("8", "Invalid Date")
+  val InvalidTime = ElementSyntaxError("9", "Invalid Time")
+  val ExclusionConditionViolated = ElementSyntaxError("10", "Exclusion Condition Violated")
+  val TooManyRepititions = ElementSyntaxError("11", "Too Many Repetitions (more repetitions than defined for the segment)")
+  val TooManyComponents = ElementSyntaxError("12", "Too Many Components (more components than defined for the element)")
   val ElementSyntaxErrors = instanceMap[String, ElementSyntaxError](MissingRequiredElement, MissingConditionalElement,
     TooManyElements, DataTooShort, DataTooLong, InvalidCharacter, InvalidCodeValue, InvalidDate, InvalidTime,
     ExclusionConditionViolated, TooManyRepititions, TooManyComponents)
@@ -335,20 +357,21 @@ object X12Acknowledgment {
     ElementComponent(elem329, None, "ST02", 2, MandatoryUsage, 1),
     ElementComponent(elem1705, None, "ST03", 3, OptionalUsage, 1)), Nil)
 
-  val groupAK3 = GroupComponent("AK3", OptionalUsage, -1, List[TransactionComponent](
+  val groupAK3 = GroupComponent("AK3", OptionalUsage, -1, List[StructureComponent](
     ReferenceComponent(segAK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
     ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99)), None, Nil)
-  val groupAK2_997 = GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](
+  val groupAK2_997 = GroupComponent("AK2", OptionalUsage, -1, List[StructureComponent](
     ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
     groupAK3,
     ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1)), None, Nil)
-  val trans997 = Transaction("997", "Functional Acknowledgment", Some("FA"), List[TransactionComponent](
+  val funcAckVersion = EdiSchemaVersion(EdiSchema.X12, "005010")
+  val trans997 = Structure("997", "Functional Acknowledgment", Some("FA"), List[StructureComponent](
     ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
     ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
     groupAK2_997,
     ReferenceComponent(segAK9, SegmentPosition(0, "0700"), MandatoryUsage, 1),
     ReferenceComponent(segSE, SegmentPosition(0, "0800"), MandatoryUsage, 1)),
-    List[TransactionComponent](), List[TransactionComponent]())
+    List[StructureComponent](), List[StructureComponent](), funcAckVersion)
 
   // 999 acknowledgment schema (generated code, eliminated duplicates from 997)
   val elem447 = Element("447", "Loop Identifier Code", ALPHANUMERIC, 1, 4)
@@ -390,24 +413,24 @@ object X12Acknowledgment {
     ElementComponent(elem618, None, "IK505", 5, OptionalUsage, 1),
     ElementComponent(elem618, None, "IK506", 6, OptionalUsage, 1)), Nil)
     
-  val groupIK4 = GroupComponent("IK4", OptionalUsage, -1, List[TransactionComponent](
+  val groupIK4 = GroupComponent("IK4", OptionalUsage, -1, List[StructureComponent](
     ReferenceComponent(segIK4, SegmentPosition(0, "0600"), OptionalUsage, 1),
     ReferenceComponent(segCTX, SegmentPosition(0, "0700"), OptionalUsage, 10)), None, Nil)
-  val groupIK3 = GroupComponent("IK3", OptionalUsage, -1, List[TransactionComponent](
+  val groupIK3 = GroupComponent("IK3", OptionalUsage, -1, List[StructureComponent](
     ReferenceComponent(segIK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
     ReferenceComponent(segCTX, SegmentPosition(0, "0500"), OptionalUsage, 10),
     groupIK4), None, Nil)
-  val groupAK2_999 = GroupComponent("AK2", OptionalUsage, -1, List[TransactionComponent](
+  val groupAK2_999 = GroupComponent("AK2", OptionalUsage, -1, List[StructureComponent](
     ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
     groupIK3,
     ReferenceComponent(segIK5, SegmentPosition(0, "0800"), MandatoryUsage, 1)), None, Nil)
-  val trans999 = Transaction("999", "Implementation Acknowledgment", Some("FA"), List[TransactionComponent](
+  val trans999 = Structure("999", "Implementation Acknowledgment", Some("FA"), List[StructureComponent](
     ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
     ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
     groupAK2_999,
     ReferenceComponent(segAK9, SegmentPosition(0, "0900"), MandatoryUsage, 1),
     ReferenceComponent(segSE, SegmentPosition(0, "1000"), MandatoryUsage, 1)),
-    List[TransactionComponent](), List[TransactionComponent]())
+    List[StructureComponent](), List[StructureComponent](), funcAckVersion)
 
   // random access arrays of keys
   val segAK9Comps = segAK9.components.toArray
