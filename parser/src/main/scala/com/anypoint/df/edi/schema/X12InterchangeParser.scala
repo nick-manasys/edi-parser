@@ -53,7 +53,8 @@ trait X12EnvelopeHandler {
 }
 
 /** Exception reporting problem in interchange. */
-case class X12InterchangeException(note: InterchangeNoteCode, text: String) extends RuntimeException(text)
+case class X12InterchangeException(note: InterchangeNoteCode, text: String, cause: Throwable = null) extends
+  RuntimeException(text, cause)
 
 class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12EnvelopeHandler) extends SchemaJavaDefs {
 
