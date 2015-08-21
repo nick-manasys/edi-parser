@@ -498,6 +498,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           ackroot put (structureHeading, ackhead)
           ackroot put (structureDetail, new ValueMapImpl)
           ackroot put (structureSummary, new ValueMapImpl)
+          ackroot put (structureSchema, if (config generate999) trans999 else trans997)
           val ak1data = new ValueMapImpl
           ackhead put (ackTransKeys(config generate999)(1), ak1data)
           ak1data put (segAK1Comps(0) key, group get (groupFunctionalIdentifierKey))
