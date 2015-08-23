@@ -411,6 +411,7 @@ object EdiSchema {
     case EdiFact.text => EdiFact
     case X12.text => X12
     case HL7.text => HL7
+    case _ => throw new IllegalArgumentException(s"Unknown EDI form $value")
   }
 }
 
