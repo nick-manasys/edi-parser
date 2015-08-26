@@ -14,8 +14,8 @@ import com.anypoint.df.edi.lexical.EdifactConstants._
 /** Configuration parameters for EDIFACT schema writer.
   */
 case class EdifactWriterConfig(val syntax: SyntaxIdentifier, val version: SyntaxVersion, val enforceChars: Boolean,
-  val subChar: Int, val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String,
-  val forceUNA: Boolean) {
+    val subChar: Int, val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String,
+    val forceUNA: Boolean) {
   if (delims != null && delims.size != 5) throw new IllegalArgumentException("delimiter string must be 5 characters")
 }
 
@@ -118,18 +118,22 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
     val interchanges = getRequiredValueMap(messagesMap, map).asScala.foldLeft(EmptySendMap) {
-      case (acc, (ident, list)) => {
-        val msgMaps = list.asInstanceOf[MapList].asScala
-        (0 until msgMaps.size) map { i =>
-          val msgMap = msgMaps(i)
-          msgMap put (msgIndexKey, Integer.valueOf(i))
-          if (msgMap.containsKey(structureId)) {
-            if (ident != msgMap.get(structureId)) {
-              logAndThrow(s"$ident at position $i has type ${msgMap.get(structureId)} (wrong message list)")
+      case (acc, (version, vmap)) => {
+        vmap.asInstanceOf[ValueMap].asScala.foldLeft(acc) {
+          case (acc, (ident, list)) => {
+            val msgMaps = list.asInstanceOf[MapList].asScala
+            (0 until msgMaps.size) map { i =>
+              val msgMap = msgMaps(i)
+              msgMap put (msgIndexKey, Integer.valueOf(i))
+              if (msgMap.containsKey(structureId)) {
+                if (ident != msgMap.get(structureId)) {
+                  logAndThrow(s"$ident at position $i has type ${msgMap.get(structureId)} (wrong message list)")
+                }
+              } else msgMap put (structureId, ident)
             }
-          } else msgMap put (structureId, ident)
+            groupSends(msgMaps, SchemaJavaValues.interchangeKey, acc)
+          }
         }
-        groupSends(msgMaps, SchemaJavaValues.interchangeKey, acc)
       }
     }
     if (interchanges.isEmpty) throw new WriteException("no messages to be sent")

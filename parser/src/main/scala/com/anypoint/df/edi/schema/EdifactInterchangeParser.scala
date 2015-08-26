@@ -4,10 +4,14 @@ import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.{ util => ju }
 import java.util.{ Calendar, GregorianCalendar }
+
 import scala.annotation.tailrec
+import scala.collection.JavaConverters._
 import scala.collection.mutable.Buffer
-import scala.util.Try
-import scala.util.Success
+import scala.util.{ Try, Success }
+
+import org.apache.log4j.Logger
+
 import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, EdifactLexer }
 import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
@@ -16,94 +20,51 @@ import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
 import com.anypoint.df.edi.lexical.EdifactConstants._
 import com.anypoint.df.edi.lexical.EdifactLexer._
 import EdiSchema._
-import SchemaJavaValues._
 import EdifactAcknowledgment._
+import EdifactSchemaDefs._
+import SchemaJavaValues._
 
-/** Interchange identity information used by EDIFACT. All values present are matched against received interchanges.
-  * @param identification required interchange identification
-  * @param codeQualifier identification code qualifier (<code>null</code> if not used)
-  * @param internalIdent internal identification (<code>null</code> if not used)
-  * @param internalSubIdent internal sub-identification (<code>null</code> if not used)
-  */
-case class EdifactIdentityInformation(identification: String, codeQualifier: String, internalIdent: String, internalSubIdent: String) {
-  if (identification == null) throw new IllegalArgumentException("identification value cannot be null")
-}
-
-/** Configuration parameters for EDIFACT schema parser. If either receiver or sender identity information is included it
-  * is verified in processed messages.
+/** Configuration parameters for EDIFACT schema parser.
   */
 case class EdifactParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
   val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
-  val enforceChars: Boolean, val substitutionChar: Int, val defaultDelims: String,
-  val receiverIds: Array[EdifactIdentityInformation], val senderIds: Array[EdifactIdentityInformation]) {
-  if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
-}
+  val enforceChars: Boolean, val substitutionChar: Int)
 
-/** Validator called by parser to check that received interchange/group/message identifiers are not duplicates. */
-trait EdifactNumberValidator {
+/** Application callback to determine handling of envelope structures.
+  */
+trait EdifactEnvelopeHandler {
 
-  /** Generate unique context identifier for interchange sender-receiver pair. The returned identifier is saved and
-    * passed to the other methods in order to identify the context of the interchange, so the form of the identifier is
-    * entirely up to the implementation.
-    * @param senderId interchange sender identification (required, non-<code>null</code>)
-    * @param senderCode interchange sender code qualifier (<code>null</code> if unused)
-    * @param senderInternal interchange sender internal identification or routing (<code>null</code> if unused)
-    * @param senderInternalSub interchange sender internal sub-identification (<code>null</code> if unused)
-    * @param receiverId interchange receiver identification (required, non-<code>null</code>)
-    * @param receiverCode interchange receiver code qualifier (<code>null</code> if unused)
-    * @param receiverInternal interchange receiver internal identification or routing (<code>null</code> if unused)
-    * @param receiverInternalSub interchange receiver internal sub-identification (<code>null</code> if unused)
+  /** Handle UNB segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
+    * interchange) or the parser configuration to be used for the interchange.
     */
-  def contextToken(senderId: String, senderCode: String, senderInternal: String, senderInternalSub: String,
-    receiverId: String, receiverCode: String, receiverInternal: String, receiverInternalSub: String): String
+  @throws(classOf[LexicalException])
+  def handleUnb(map: ju.Map[String, Object]): Object
 
-  /** Validate receive interchange identification.
-    * @param controlRef interchange control reference
-    * @param context interchange sender-receiver pair context token
+  /** Handle UNG segment data, returning either an SyntaxError (if there's a problem that prevents processing of the
+    * group) or null.
     */
-  def validateInterchange(controlRef: String, context: String): Boolean
+  @throws(classOf[LexicalException])
+  def handleUng(map: ju.Map[String, Object]): SyntaxError
 
-  /** Validate receive group identification. The combination of all values should always be unique within an
-    * interchange.
-    * @param groupRef group reference number
-    * @param senderId application sender identification (<code>null</code> if unused)
-    * @param senderCode application sender code qualifier (<code>null</code> if unused)
-    * @param receiverId application receiver identification (<code>null</code> if unused)
-    * @param receiverCode application receiver code qualifier (<code>null</code> if unused)
-    * @param context interchange sender-receiver pair context token
+  /** Handle UNH segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
+    * message) or the message schema definition for parsing and validating the message data.
     */
-  def validateGroup(groupRef: String, senderId: String, senderCode: String, receiverId: String, receiverCode: String,
-    context: String): Boolean
-
-  /** Validate received message identification.
-    * @param msgRef message reference number
-    * @param msgType message type (required, non-<code>null</code>)
-    * @param msgVersion message version number (required, non-<code>null</code>)
-    * @param msgRelease message release number (required, non-<code>null</code>)
-    * @param agencyCode controlling agency code (required, non-<code>null</code>)
-    * @param associationCode association assigned code (<code>null</code> if unused)
-    * @param directoryVersion code list directory version number (<code>null</code> if unused)
-    * @param subFunction message type sub-function identification (<code>null</code> if unused)
-    * @param context interchange sender-receiver pair context token
-    */
-  def validateMessage(msgRef: String, msgType: String, msgVersion: String, msgRelease: String, agencyCode: String,
-    associationCode: String, directoryVersion: String, subFunction: String, context: String): Boolean
+  def handleUnh(map: ju.Map[String, Object]): Object
 }
 
 /** Exception reporting problem in interchange. */
-case class EdifactInterchangeException(error: SyntaxError, text: String, cause: Throwable) extends RuntimeException(text, cause) {
+case class EdifactInterchangeException(error: SyntaxError, text: String, cause: Throwable = null)
+    extends RuntimeException(text, cause) {
   def this(err: SyntaxError, txt: String) = this(err, txt, null)
 }
 
-/** Parser for EDIFACT EDI documents. */
-case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: EdifactNumberValidator, config: EdifactParserConfig)
-  extends SchemaParser(new EdifactLexer(in, config.enforceChars, config.substitutionChar, config.defaultDelims))
-  with UtilityBase {
+case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, handler: EdifactEnvelopeHandler)
+    extends SchemaParser(new EdifactLexer(in, defaultDelims)) {
 
   import EdifactSchemaDefs._
 
-  /** First interchange read. All interchanges sent in a block must use same delimiters, control and syntax versions. */
-  var firstInterchange: ValueMap = null
+  /** Current configuration in use (default value used for UNB, real configuration set from handler call.) */
+  var config: EdifactParserConfig = null
 
   /** Syntax version in use. */
   var syntaxVersion: SyntaxVersion = null
@@ -283,7 +244,7 @@ case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: Edifa
       case _ =>
     }
   }
-  
+
   def handleSegmentErrors(segNum: Int) =
     if (segmentGeneralError != null || !segmentErrors.isEmpty) {
       val code = if (segmentGeneralError == null) null else segmentGeneralError.code
@@ -337,6 +298,9 @@ case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: Edifa
 
   /** Check if at interchange envelope segment. */
   def isInterchangeEnvelope = lexer.currentType == SEGMENT && (lexer.token == "UNB" || lexer.token == "UNZ")
+
+  /** Check if an envelope segment (handled directly, outside of structure). */
+  def isEnvelopeSegment(ident: String) = EdiFact.isEnvelopeSegment(ident)
 
   /** Check if at functional group envelope segment. */
   def isGroupEnvelope = checkSegment("UNG") || checkSegment("UNE")
@@ -473,8 +437,6 @@ case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: Edifa
       contrlGroup1s += sg1
     }
   }
-  /** Check if an envelope segment (handled directly, outside of structure). */
-  def isEnvelopeSegment(ident: String) = EdiFact.isEnvelopeSegment(ident)
 
   /** Convert section control segment to next section number. If not at a section control, this just returns None. */
   def convertSectionControl =
@@ -536,17 +498,6 @@ case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: Edifa
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {
 
-    def buildIdentity(values: Array[String]) = EdifactIdentityInformation(values(0), valueOrNull(1, values),
-      valueOrNull(2, values), valueOrNull(3, values))
-
-    def matchIdentity(identity: EdifactIdentityInformation, allowed: Array[EdifactIdentityInformation]) =
-      allowed.filter { info =>
-        identity.identification == info.identification &&
-          (info.codeQualifier == null || info.codeQualifier == identity.codeQualifier) &&
-          (info.internalIdent == null || info.internalIdent == identity.internalIdent) &&
-          (info.internalSubIdent == null || info.internalSubIdent == identity.internalSubIdent)
-      }
-
     def skipGroup(error: SyntaxError) = {
       //      groupErrors += error
       discardToGroupEnd
@@ -566,17 +517,8 @@ case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: Edifa
     val funcAckList = new MapListImpl
     map put (functionalAcksGenerated, funcAckList)
     val transLists = new ValueMapImpl().asInstanceOf[ju.Map[String, MapList]]
-    schema.structures.keys foreach { key => transLists put (key, new MapListImpl) }
     map put (messagesMap, transLists)
-
-    /** Parse messages in group. */
-    def parseGroup(group: ValueMap, groupCode: String, providerId: String, groupSender: String, groupReceiver: String) = {
-      val (setid, setprops) = openSet
-      schema.structures.get(setid) match {
-        case t: Structure => transLists.get(setid).add(parseStructure(t, false))
-        case _ => messageError(NoAgreementForValue)
-      }
-    }
+    val schemaVersionMessages = getOrSet(messagesMap, new ValueMapImpl, map)
 
     def buildFuncCONTRL(interchange: ValueMap) = {
       val ctrlmap = new ValueMapImpl
@@ -591,35 +533,30 @@ case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: Edifa
     }
 
     def openInterchange =
-      if (firstInterchange == null) {
-        try {
-          lexer.setHandler(null)
-          firstInterchange = new ValueMapImpl()
-          syntaxVersion = init(firstInterchange)
-          map put (delimiterCharacters, buildDelims)
-          segmentGeneralError = null
-          segmentErrors.clear
-          parseCompList(unbSegment(syntaxVersion).components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT,
-            firstInterchange)
-          firstInterchange
-        } catch {
-          case e: LexicalException => {
-            logger.error(s"Unable to process message due to error in interchange header: ${e.getMessage}")
-            if (segmentGeneralError != null) throw EdifactInterchangeException(segmentGeneralError, e.getMessage, e)
-            else if (segmentErrors.isEmpty) throw EdifactInterchangeException(UnspecifiedError, e.getMessage, e)
-            else throw EdifactInterchangeException(segmentErrors(0).error, e.getMessage, e)
-          }
+      try {
+        lexer.setHandler(null)
+        val inter = new ValueMapImpl()
+        syntaxVersion = init(inter)
+        map put (delimiterCharacters, buildDelims)
+        segmentGeneralError = null
+        segmentErrors.clear
+        parseCompList(unbSegment(syntaxVersion).components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT,
+          inter)
+        inter
+      } catch {
+        case e: LexicalException => {
+          logger.error(s"Unable to process message due to error in interchange header: ${e.getMessage}")
+          if (segmentGeneralError != null) throw EdifactInterchangeException(segmentGeneralError, e.getMessage, e)
+          else if (segmentErrors.isEmpty) throw EdifactInterchangeException(UnspecifiedError, e.getMessage, e)
+          else throw EdifactInterchangeException(segmentErrors(0).error, e.getMessage, e)
         }
-      } else parseSegment(unbSegment(syntaxVersion), None, outsidePosition)
+      }
 
     while (lexer.nextType != END) {
 
       // parse the interchange header segment(s)
+      lexer.asInstanceOf[EdifactLexer].configure(-1, true)
       val inter = openInterchange
-      if (getRequiredString(SYNTAX_IDENTIFIER, firstInterchange) != getRequiredString(SYNTAX_IDENTIFIER, inter) ||
-        getRequiredString(SYNTAX_VERSION_NUMBER, firstInterchange) != getRequiredString(SYNTAX_VERSION_NUMBER, inter)) {
-        throw new EdifactInterchangeException(UnspecifiedError, "Multiple interchanges sent in a single transfer unit must use the same syntax and version")
-      }
       interchangeSegmentNumber = lexer.getSegmentNumber
       interchangeGroupCount = 0
       interchangeMessageCount = 0
@@ -646,36 +583,28 @@ case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: Edifa
       ackhead put (contrl.heading(1).key, interack)
       try {
 
-        def parseMessage(context: String, group: Option[ValueMap]) = {
+        def parseMessage(group: Option[ValueMap]) = {
           interchangeMessageCount = interchangeMessageCount + 1
           val (setid, setprops) = openSet
           if (setid == "CONTRL") funcAckList remove ackroot
-          if (numval.validateMessage(getRequiredString(msgHeadReferenceKey, setprops),
-            getRequiredString(msgHeadMessageTypeKey, setprops),
-            getRequiredString(msgHeadMessageVersionKey, setprops),
-            getRequiredString(msgHeadMessageReleaseKey, setprops),
-            getRequiredString(msgHeadMessageAgencyKey, setprops),
-            getAsString(msgHeadMessageAssignedKey, setprops),
-            getAsString(msgHeadMessageDirectoryKey, setprops),
-            getAsString(msgHeadMessageSubfunctionKey, setprops), context)) {
-            val versionMatch = !setprops.containsKey(msgHeadMessageReleaseKey) ||
-              (getAsString(msgHeadMessageVersionKey, setprops) +
-                getAsString(msgHeadMessageReleaseKey, setprops)).toLowerCase() == schema.ediVersion.version
-            if (versionMatch) schema.structures(setid) match {
-              case t: Structure => {
-                val data = parseStructure(t, false)
-                if (isSetClose) {
-                  closeSet(setprops)
-                  group.foreach { gmap => data.put(groupKey, gmap) }
-                  data.put(interchangeKey, inter)
-                  data.put(messageHeaderKey, setprops)
-                  transLists.get(setid).add(data)
-                } else messageError(NotSupportedInPosition)
-              }
-              case _ => messageError(NoAgreementForValue)
+          handler.handleUnh(setprops) match {
+            case s: SyntaxError => messageError(s)
+            case struct: Structure => {
+              val data = parseStructure(struct, false)
+              if (isSetClose) {
+                closeSet(setprops)
+                group.foreach { gmap => data.put(groupKey, gmap) }
+                data put (interchangeKey, inter)
+                data put (messageHeaderKey, setprops)
+                data put (structureSchema, struct)
+                val version = getRequiredString(msgHeadMessageVersionKey, setprops) +
+                  getRequiredString(msgHeadMessageReleaseKey, setprops)
+                val msgLists = getOrSet(version, new ValueMapImpl, schemaVersionMessages)
+                val list = getOrSet(setid, new MapListImpl, msgLists)
+                list add (data)
+              } else messageError(NotSupportedInPosition)
             }
-            else messageError(NoAgreementForValue)
-          } else messageError(DuplicateDetected)
+          }
           if (!rejectMessage) interchangeGoodCount = interchangeGoodCount + 1
         }
 
@@ -686,47 +615,44 @@ case class EdifactSchemaParser(in: InputStream, schema: EdiSchema, numval: Edifa
           throw new EdifactInterchangeException(error, text)
         }
 
-        val sender = getStrings(unbSender.components, inter)
-        val recipient = getStrings(unbRecipient.components, inter)
-        val context = numval.contextToken(valueOrNull(0, sender), valueOrNull(1, sender), valueOrNull(2, sender),
-          valueOrNull(3, sender), valueOrNull(0, recipient), valueOrNull(1, recipient), valueOrNull(2, recipient),
-          valueOrNull(3, recipient))
-        if (numval.validateInterchange(interchangeReference, context)) {
-          val receivers = matchIdentity(buildIdentity(recipient), config.receiverIds)
-          if (receivers.length == 0 && config.receiverIds.length > 0)
-            interchangeError(UnknownInterchangeRecipient, "Interchange recipient information does not match configuration")
-          val senders = matchIdentity(buildIdentity(sender), config.senderIds)
-          if (senders.length == 0 && config.senderIds.length > 0)
-            interchangeError(UnknownInterchangeSender, "Interchange sender information does not match configuration")
-          var ackId = 1
-          lexer.setHandler(EdifactErrorHandler)
-          while (lexer.currentType != END && !isInterchangeEnvelope) {
-            if (isGroupEnvelope) {
-              val groupmap = openGroup
-              while (!isGroupClose) {
-                if (isSetOpen) parseMessage(context, Some(groupmap))
-                else groupError(InvalidOccurrence)
+        handler.handleUnb(inter) match {
+          case s: SyntaxError => interchangeError(s, s"Interchange $interchangeReference rejected at ${lexer.getSegmentNumber}");
+          case cfg: EdifactParserConfig => {
+            config = cfg
+            var ackId = 1
+            lexer.asInstanceOf[EdifactLexer].configure(cfg.substitutionChar, cfg.enforceChars)
+            lexer.setHandler(EdifactErrorHandler)
+            while (lexer.currentType != END && !isInterchangeEnvelope) {
+              if (isGroupEnvelope) {
+                val groupmap = openGroup
+                handler.handleUng(groupmap) match {
+                  case e: SyntaxError =>
+                  case null =>
+                    while (!isGroupClose) {
+                      if (isSetOpen) parseMessage(Some(groupmap))
+                      else groupError(InvalidOccurrence)
+                    }
+                }
+              } else if (isSetOpen) {
+                parseMessage(None)
+              } else {
+                val text = s"Unexpected segment ${lexer.token} at ${lexer.getSegmentNumber}"
+                interchangeError(InvalidOccurrence, text)
               }
-            } else if (isSetOpen) {
-              parseMessage(context, None)
-            } else {
-              val text = s"Unexpected segment ${lexer.token} at ${lexer.getSegmentNumber}"
-              interchangeError(InvalidOccurrence, text)
             }
+            val typ = lexer.currentType
+            if (lexer.currentType == END) {
+              interchangeError(InvalidOccurrence, s"end of file with missing $interchangeEndSegment")
+            } else if (lexer.token == interchangeEndSegment) {
+              val interend = parseSegment(segUNZ, None, outsidePosition)
+              if (getRequiredInt(interTrailCountKey, interend) != interchangeMessageCount) interchangeError(ControlCountMismatch, ControlCountMismatch.text)
+              if (getRequiredString(interTrailReferenceKey, interend) != interchangeReference) interchangeError(ControlReferenceMismatch, ControlReferenceMismatch.text)
+              interack put (segUCI.components(3).key, AcknowledgedLevel.code)
+            } else {
+              interchangeError(InvalidOccurrence, s"expected $interchangeEndSegment, found ${lexer.token}")
+            }
+
           }
-          val typ = lexer.currentType
-          if (lexer.currentType == END) {
-            interchangeError(InvalidOccurrence, s"end of file with missing $interchangeEndSegment")
-          } else if (lexer.token == interchangeEndSegment) {
-            val interend = parseSegment(segUNZ, None, outsidePosition)
-            if (getRequiredInt(interTrailCountKey, interend) != interchangeMessageCount) interchangeError(ControlCountMismatch, ControlCountMismatch.text)
-            if (getRequiredString(interTrailReferenceKey, interend) != interchangeReference) interchangeError(ControlReferenceMismatch, ControlReferenceMismatch.text)
-            interack put (segUCI.components(3).key, AcknowledgedLevel.code)
-          } else {
-            interchangeError(InvalidOccurrence, s"expected $interchangeEndSegment, found ${lexer.token}")
-          }
-        } else {
-          interchangeError(DuplicateDetected, s"Duplicate interchange control number $interchangeReference in UNB at ${lexer.getSegmentNumber}")
         }
         if (!contrlGroup1s.isEmpty) {
           val g1list = new MapListImpl

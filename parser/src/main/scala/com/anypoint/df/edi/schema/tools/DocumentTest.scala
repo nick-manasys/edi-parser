@@ -31,7 +31,8 @@ class DefaultX12NumberProvider extends X12NumberProvider {
   }
 }
 
-class DefaultX12EnvelopeHandler(config: X12ParserConfig, schema: EdiSchema) extends X12EnvelopeHandler with SchemaJavaDefs {
+class DefaultX12EnvelopeHandler(config: X12ParserConfig, schema: EdiSchema) extends X12EnvelopeHandler
+    with SchemaJavaDefs {
 
   import X12Acknowledgment._
   import X12SchemaDefs._
@@ -55,7 +56,7 @@ class DefaultX12EnvelopeHandler(config: X12ParserConfig, schema: EdiSchema) exte
     setNums = Set[String]()
     groupCode = getRequiredString(groupFunctionalIdentifierKey, map)
     val unique = groupNums.add(getRequiredInt(groupControlNumberHeaderKey, map))
-    if (!unique) GroupControlNumberNotUnique else null
+    if (unique) null else GroupControlNumberNotUnique
   }
 
   /** Handle ST segment data, returning either a StructureSyntaxError (if there's a problem that prevents processing of
@@ -99,22 +100,47 @@ class DefaultEdifactNumberProvider extends EdifactNumberProvider {
   }
 }
 
-class DefaultEdifactNumberValidator extends EdifactNumberValidator {
+class DefaultEdifactEnvelopeHandler(config: EdifactParserConfig, schema: EdiSchema) extends EdifactEnvelopeHandler
+    with SchemaJavaDefs {
+
+  import EdifactAcknowledgment._
+
   var groupRefs = Set[String]()
-  var setRefs = Set[String]()
-  def contextToken(senderId: String, senderCode: String, senderInternal: String, senderInternalSub: String,
-    receiverId: String, receiverCode: String, receiverInternal: String, receiverInternalSub: String) = ""
-  def validateInterchange(controlRef: String, context: String) = {
+  var msgRefs = Set[String]()
+
+  /** Handle UNB segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
+    * interchange) or the parser configuration to be used for the interchange.
+    */
+  def handleUnb(map: ju.Map[String, Object]) = {
     groupRefs = Set[String]()
-    true
+    config
   }
-  def validateGroup(groupRef: String, senderId: String, senderCode: String, receiverId: String, receiverCode: String,
-    context: String) = {
-    setRefs = Set[String]()
-    groupRefs.add(groupRef)
+
+  /** Handle UNG segment data, returning either an SyntaxError (if there's a problem that prevents processing of the
+    * group) or null.
+    */
+  def handleUng(map: ju.Map[String, Object]) = {
+    val groupRef = getRequiredString(groupHeadReferenceKey, map)
+    msgRefs = Set[String]()
+    if (groupRefs.add(groupRef)) null else DuplicateDetected
   }
-  def validateMessage(msgRef: String, msgType: String, msgVersion: String, msgRelease: String, agencyCode: String,
-    associationCode: String, directoryVersion: String, subFunction: String, context: String) = setRefs.add(msgRef)
+
+  /** Handle UNH segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
+    * message) or the message schema definition for parsing and validating the message data.
+    */
+  def handleUnh(map: ju.Map[String, Object]) = {
+    val msgRef = getRequiredString(msgHeadReferenceKey, map)
+    val unique = msgRefs.add(msgRef)
+    if (unique) {
+      val msgType = getAsString(msgHeadMessageTypeKey, map)
+      val structure = schema.structures.get(msgType) match {
+        case Some(structure) => structure
+        case None => if (msgType == "CONTRL") transCONTRLv4 else null
+      }
+      if (structure == null) NoAgreementForValue
+      else structure
+    } else DuplicateDetected
+  }
 }
 
 class DefaultHL7NumberProvider extends HL7NumberProvider {
@@ -134,7 +160,7 @@ class DefaultHL7NumberValidator extends HL7NumberValidator {
 
 sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs {
 
-  /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found. */
+  /** Parse input message, reporting if any errors are found. */
   def parse(is: InputStream): ValueMap
 
   /** Prepare input message for output, reversing the sender and receiver values. */
@@ -160,9 +186,9 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
 
   val transactionListKey = s"v${es.ediVersion.version}"
 
-  /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found. */
+  /** Parse input message, reporting if any errors are found. */
   def parse(is: InputStream): ValueMap = {
-    val parser = new X12InterchangeParser(is, ASCII_CHARSET, new DefaultX12EnvelopeHandler(config, schema))
+    val parser = new X12InterchangeParser(is, ASCII_CHARSET, new DefaultX12EnvelopeHandler(config, es))
     parser.parse match {
       case Success(x) => x
       case Failure(e) => throw e
@@ -221,15 +247,14 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
 
 case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es) {
 
-  def this(sch: EdiSchema) = this(sch, EdifactParserConfig(true, true, true, true, true, true, true, false, -1, null,
-    Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]()))
+  def this(sch: EdiSchema) = this(sch, EdifactParserConfig(true, true, true, true, true, true, true, false, -1))
 
   import com.anypoint.df.edi.schema.EdifactAcknowledgment._
   import com.anypoint.df.edi.schema.SchemaJavaValues._
 
   /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found. */
   override def parse(is: InputStream): ValueMap = {
-    val parser = EdifactSchemaParser(is, schema, new DefaultEdifactNumberValidator, config)
+    val parser = new EdifactInterchangeParser(is, null, new DefaultEdifactEnvelopeHandler(config, schema))
     parser.parse match {
       case Success(x) => x
       case Failure(e) => throw e

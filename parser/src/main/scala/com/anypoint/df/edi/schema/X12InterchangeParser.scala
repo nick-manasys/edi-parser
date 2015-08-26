@@ -24,14 +24,14 @@ import SchemaJavaValues._
 import X12Acknowledgment._
 import X12SchemaDefs._
 
-/** Configuration parameters for X12 schema parser. If either receiver or sender identity information is included it is
-  * verified in processed messages. If no version ids are specified, any X12 version that starts with the schema version
-  * is accepted.
+/** Configuration parameters for X12 schema parser.
   */
 case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
   val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
   val reportDataErrors: Boolean, val generate999: Boolean, val substitutionChar: Int, val strChar: CharacterRestriction)
 
+/** Application callback to determine handling of envelope structures.
+ */
 trait X12EnvelopeHandler {
 
   /** Handle ISA segment data, returning either an InterchangeNoteCode (if there's a problem that prevents processing of
@@ -63,7 +63,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
   val lexer = new X12Lexer(in, charSet)
 
   /** Parser for X12 EDI documents. A separate parser instance is created for each interchange. */
-  class X12SchemaParser(config: X12ParserConfig, inter: ValueMap, root: ValueMap) extends SchemaParser(lexer) {
+  private class X12SchemaParser(config: X12ParserConfig, inter: ValueMap, root: ValueMap) extends SchemaParser(lexer) {
 
     /** Structure code for generated acknowledgments. */
     val ackTransCode = if (config generate999) "999" else "997"
@@ -533,7 +533,6 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     }
 
     /** Parse all content of an interchange.
-      *
       */
     def parseInterchange = {
       interchangeStartSegment = lexer.getSegmentNumber - 1

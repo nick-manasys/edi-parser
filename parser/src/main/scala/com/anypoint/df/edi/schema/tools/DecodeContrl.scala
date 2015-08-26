@@ -1,16 +1,13 @@
 package com.anypoint.df.edi.schema.tools
 
+import java.io.ByteArrayInputStream
+
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdifactConstants._
-import com.anypoint.df.edi.schema.{ SchemaJavaDefs, EdiSchema, EdiSchemaVersion, EdifactSchemaDefs }
+import com.anypoint.df.edi.schema.{ SchemaJavaDefs, EdifactInterchangeParser, EdifactParserConfig, EdiSchema, EdiSchemaVersion, EdifactSchemaDefs }
 import com.anypoint.df.edi.schema.SchemaJavaValues._
 import com.anypoint.df.edi.schema.EdifactAcknowledgment._
-import com.anypoint.df.edi.schema.EdifactIdentityInformation
-import com.anypoint.df.edi.schema.EdifactSchemaParser
-import com.anypoint.df.edi.schema.EdifactParserConfig
-import scala.util.Failure
-import scala.util.Success
-import java.io.ByteArrayInputStream
+import scala.util.{ Failure, Success }
 
 /** EDIFACT CONTRL functional acknowledgment decoder. */
 object DecodeContrl extends SchemaJavaDefs {
@@ -144,13 +141,12 @@ UNT+6+50'
 UNZ+1+50'"""
 
   def main(args: Array[String]): Unit = {
-    val config = EdifactParserConfig(true, true, true, true, true, true, true, false, -1, null,
-      Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
+    val config = EdifactParserConfig(true, true, true, true, true, true, true, false, -1)
     val is = new ByteArrayInputStream(testMsg.getBytes)
     val schema = EdiSchema(EdiSchemaVersion(EdiSchema.EdiFact, "D01A"), Map[String, EdiSchema.Element](),
       Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](),
       Map[String, EdiSchema.Structure]()).merge(transCONTRLv4)
-    val parser = EdifactSchemaParser(is, schema, new DefaultEdifactNumberValidator, config)
+    val parser = new EdifactInterchangeParser(is, null, new DefaultEdifactEnvelopeHandler(config, schema))
     parser.parse match {
       case Success(root) => println(decode(getRequiredMapList("CONTRL", getRequiredValueMap(messagesMap, root)).get(0)))
       case Failure(e) => throw e

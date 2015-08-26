@@ -2,7 +2,6 @@ package com.anypoint.df.edi.lexical;
 
 import static com.anypoint.df.edi.lexical.EdiConstants.ASCII_CHARSET;
 import static com.anypoint.df.edi.lexical.EdifactConstants.*;
-import static com.anypoint.df.edi.lexical.EdifactConstants.UTF8;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,6 +13,7 @@ import java.util.Map;
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
 import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxIdentifier;
 import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
+import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 
 /**
  * Lexer variation for EDIFACT.
@@ -25,23 +25,19 @@ public class EdifactLexer extends LexerBase
         VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR
     }
     
-    private final boolean enforceCharacterSet;
-    
     private final String delimiterDefaults;
+    
+    private boolean enforceCharacterSet;
     
     /**
      * Constructor.
      *
      * @param is input
-     * @param enforce character set restrictions for syntax level UNOA and UNOB enforced flag
-     * @param subst substitution character for invalid character in string (-1 if unused)
      * @param delims default delimiter characters string (data sep, comp sep, rep sep, seg term, release),
      * <code>null</code> if using standard defaults)
      */
-    public EdifactLexer(InputStream is, boolean enforce, int subst, String delims) {
+    public EdifactLexer(InputStream is, String delims) {
         super(is);
-        substitutionChar = subst;
-        enforceCharacterSet = enforce;
         componentSeparator = ':';
         dataSeparator = '+';
         releaseIndicator = '?';
@@ -50,6 +46,18 @@ public class EdifactLexer extends LexerBase
         subCompSeparator = -1;
         delimiterDefaults = delims;
         altDecimalMark = ',';
+    }
+    
+    /**
+     * Configure character processing differences for partners. This is intended for use once the specifics of an
+     * interchange are known.
+     * 
+     * @param subst substitution character for invalid character in string (-1 if unused)
+     * @param enforce character set restrictions for syntax level UNOA and UNOB enforced flag
+     */
+    public void configure(int subst, boolean enforce) {
+        substitutionChar = subst;
+        enforceCharacterSet = enforce;
     }
     
     /**

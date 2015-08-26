@@ -18,7 +18,7 @@ import java.io.File
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdifactConstants._
-import com.anypoint.df.edi.schema.tools.{ DefaultEdifactNumberProvider, DefaultEdifactNumberValidator }
+import com.anypoint.df.edi.schema.tools.{ DefaultEdifactEnvelopeHandler, DefaultEdifactNumberProvider }
 import com.anypoint.df.edi.lexical.WriteException
 
 class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
@@ -40,8 +40,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   def buildUNZ(count: Int) = s"UNZ+$count+8'"
 
-  val parserConfig = EdifactParserConfig(true, true, true, true, true, true, true, false, -1, null,
-    Array[EdifactIdentityInformation](), Array[EdifactIdentityInformation]())
+  val parserConfig = EdifactParserConfig(true, true, true, true, true, true, true, false, -1)
 
   /** Reads a copy of the test document into memory, standardizing line endings. */
   val testDoc = {
@@ -59,7 +58,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   def parseDoc(doc: String) = {
     val ins = new ByteArrayInputStream(doc.getBytes(ASCII_CHARSET))
-    val parser = EdifactSchemaParser(ins, testSchema, new DefaultEdifactNumberValidator, parserConfig)
+    val parser = new EdifactInterchangeParser(ins, null, new DefaultEdifactEnvelopeHandler(parserConfig, testSchema))
     parser.parse.get
   }
 
@@ -67,8 +66,8 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   it should "parse the UNB segment start when initialized" in {
     val in = new ByteArrayInputStream(lead.getBytes())
-    val parser = EdifactSchemaParser(in, EdiSchema(EdiSchemaVersion(EdiFact, "1997a"), Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultEdifactNumberValidator, parserConfig)
+    val schema = EdiSchema(EdiSchemaVersion(EdiFact, "1997a"), Map.empty, Map.empty, Map.empty, Map.empty)
+    val parser = new EdifactInterchangeParser(in, null, new DefaultEdifactEnvelopeHandler(parserConfig, schema))
     val props = new ValueMapImpl
     parser.init(props) should be (SyntaxVersion.VERSION3)
     props.get(SYNTAX_IDENTIFIER) should be ("UNOA")
@@ -79,8 +78,8 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   it should "parse the envelope segments as requested" in {
     val in = new ByteArrayInputStream((lead + UNH + buildUNT(0) + buildUNZ(1)).getBytes())
-    val parser = EdifactSchemaParser(in, EdiSchema(EdiSchemaVersion(EdiFact, "01b"), Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultEdifactNumberValidator, parserConfig)
+    val schema = EdiSchema(EdiSchemaVersion(EdiFact, "01b"), Map.empty, Map.empty, Map.empty, Map.empty)
+    val parser = new EdifactInterchangeParser(in, null, new DefaultEdifactEnvelopeHandler(parserConfig, schema))
     val props = new ValueMapImpl
     parser.init(props) should be (SyntaxVersion.VERSION3)
     parser.parseCompList(segUNBv3.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, props)
@@ -103,8 +102,8 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   it should "throw an exception when positioned at wrong segment" in {
     val in = new ByteArrayInputStream((lead + UNH + buildUNT(0) + buildUNZ(1)).getBytes())
-    val parser = EdifactSchemaParser(in, EdiSchema(EdiSchemaVersion(EdiFact, "01b"), Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultEdifactNumberValidator, parserConfig)
+    val schema = EdiSchema(EdiSchemaVersion(EdiFact, "01b"), Map.empty, Map.empty, Map.empty, Map.empty)
+    val parser = new EdifactInterchangeParser(in, null, new DefaultEdifactEnvelopeHandler(parserConfig, schema))
     val props = new ValueMapImpl
     parser.init(props) should be (SyntaxVersion.VERSION3)
     parser.parseCompList(segUNBv3.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, props)
@@ -117,7 +116,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
     val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")
-    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, parserConfig)
+    val parser = new EdifactInterchangeParser(messageIn, null, new DefaultEdifactEnvelopeHandler(parserConfig, schema))
     val result = parser.parse
     result.isInstanceOf[Success[ValueMap]] should be (true)
     val map = result.get
@@ -153,7 +152,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/ORDERS.esl")
     val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
     val messageIn = getClass.getClassLoader.getResourceAsStream("edi/edifact-orders.edi")
-    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, parserConfig)
+    val parser = new EdifactInterchangeParser(messageIn, null, new DefaultEdifactEnvelopeHandler(parserConfig, schema))
     val map = parser.parse.get
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     acks.size should be (1)
@@ -162,7 +161,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   it should "not generate a CONTRL acknowledgment for a CONTRL message" in {
     val schema = new EdiSchema(EdiSchemaVersion(EdiFact, "96a")).merge(transCONTRLv3)
     val messageIn = new ByteArrayInputStream("UNB+UNOA:3+MODUS:ZZZ+MULESOFT:ZZZ+150608:2032+1++ORDERS'UNH+1+CONTRL:D:96A:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UNT+3+1'UNZ+1+1'".getBytes)
-    val parser = EdifactSchemaParser(messageIn, schema, new DefaultEdifactNumberValidator, parserConfig)
+    val parser = new EdifactInterchangeParser(messageIn, null, new DefaultEdifactEnvelopeHandler(parserConfig, schema))
     val map = parser.parse.get
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     acks.size should be (0)
@@ -248,13 +247,19 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val text = new String(out.toByteArray)
     text should be (modDoc)
   }
+  
+  def extractMessage(vkey: String, mtype: String, root: ValueMap) = {
+    val vmap = getRequiredValueMap(messagesMap, root)
+    val mmap = getRequiredValueMap(vkey, vmap)
+    getRequiredMapList(mtype, mmap).get(0)
+  }
 
   it should "use interchange data at message level to override root level" in {
     val input = parseDoc(testDoc)
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, false, -1, '.', ASCII_CHARSET, "+:*'?", "\n", false)
     val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val message = extractMessage("D96A", "ORDERS", input)
     val interMsg = getRequiredValueMap(interchangeKey, message)
     val interRoot = new ValueMapImpl(interMsg)
     swap(interHeadSenderQualKey, interHeadRecipientQualKey, interRoot)
@@ -269,9 +274,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
 
   it should "throw an exception when missing required interchange data" in {
     val input = parseDoc(testDoc)
-    getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).asScala.foreach {
-      map => map.remove(interchangeKey)
-    }
+    extractMessage("D96A", "ORDERS", input).remove(interchangeKey)
     input remove (interchangeKey)
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
@@ -279,40 +282,40 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   /** Data- and schema-dependent tests. */
   it should "throw an exception when missing required segment" in {
     val input = parseDoc(testDoc)
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val message = extractMessage("D96A", "ORDERS", input)
     getRequiredValueMap(structureHeading, message).remove("0020 BGM")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when missing required segment list" in {
     val input = parseDoc(testDoc)
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val message = extractMessage("D96A", "ORDERS", input)
     getRequiredValueMap(structureHeading, message).remove("0030 DTM")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when missing instance of required repeated segment" in {
     val input = parseDoc(testDoc)
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val message = extractMessage("D96A", "ORDERS", input)
     val list = getRequiredMapList("0030 DTM", getRequiredValueMap(structureHeading, message))
     list.clear
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when missing required component value" in {
     val input = parseDoc(testDoc)
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val message = extractMessage("D96A", "ORDERS", input)
     val segment = getRequiredMapList("0030 DTM", getRequiredValueMap(structureHeading, message)).get(0)
     segment remove ("DTM0101")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when a number value is given a string" in {
     val input = parseDoc(testDoc)
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val message = extractMessage("D96A", "ORDERS", input)
     val segment = getRequiredMapList("2110 CNT", getRequiredValueMap(structureSummary, message)).get(0)
     segment put ("CNT0102", "1")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when a string value is given a number" in {
     val input = parseDoc(testDoc)
-    val message = getRequiredMapList("ORDERS", getRequiredValueMap(messagesMap, input)).get(0)
+    val message = extractMessage("D96A", "ORDERS", input)
     val segment = getRequiredMapList("2110 CNT", getRequiredValueMap(structureSummary, message)).get(0)
     segment put ("CNT0101", Integer.valueOf(2))
     intercept[WriteException] { oneshotWriter.write(input).get }
