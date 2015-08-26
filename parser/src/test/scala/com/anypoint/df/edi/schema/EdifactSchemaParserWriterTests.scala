@@ -283,40 +283,40 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   it should "throw an exception when missing required segment" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    getRequiredValueMap(structureHeading, message).remove("0020 BGM")
+    getRequiredValueMap(structureHeading, message).remove("0020_BGM")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when missing required segment list" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    getRequiredValueMap(structureHeading, message).remove("0030 DTM")
+    getRequiredValueMap(structureHeading, message).remove("0030_DTM")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when missing instance of required repeated segment" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    val list = getRequiredMapList("0030 DTM", getRequiredValueMap(structureHeading, message))
+    val list = getRequiredMapList("0030_DTM", getRequiredValueMap(structureHeading, message))
     list.clear
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when missing required component value" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    val segment = getRequiredMapList("0030 DTM", getRequiredValueMap(structureHeading, message)).get(0)
+    val segment = getRequiredMapList("0030_DTM", getRequiredValueMap(structureHeading, message)).get(0)
     segment remove ("DTM0101")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when a number value is given a string" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    val segment = getRequiredMapList("2110 CNT", getRequiredValueMap(structureSummary, message)).get(0)
+    val segment = getRequiredMapList("2110_CNT", getRequiredValueMap(structureSummary, message)).get(0)
     segment put ("CNT0102", "1")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when a string value is given a number" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    val segment = getRequiredMapList("2110 CNT", getRequiredValueMap(structureSummary, message)).get(0)
+    val segment = getRequiredMapList("2110_CNT", getRequiredValueMap(structureSummary, message)).get(0)
     segment put ("CNT0101", Integer.valueOf(2))
     intercept[WriteException] { oneshotWriter.write(input).get }
   }

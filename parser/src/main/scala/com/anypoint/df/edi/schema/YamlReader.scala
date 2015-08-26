@@ -183,7 +183,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       }
       if (values.containsKey(itemsKey)) {
         val items = getRequiredMapList(itemsKey, values)
-        GroupComponent(getRequiredString(groupIdKey, values), use, count, parseComponent(items.asScala.toList, Nil), None, Nil)
+        val postext = getAsString(positionKey, values)
+        val position = if (postext == null) None else Some(SegmentPosition(table, postext))
+        GroupComponent(getRequiredString(groupIdKey, values), use, count, parseComponent(items.asScala.toList, Nil),
+          None, Nil, None, position)
       } else if (values.containsKey(wrapIdKey)) {
         val wrapid = getRequiredString(wrapIdKey, values)
         val list = getRequiredMapList(groupKey, values)

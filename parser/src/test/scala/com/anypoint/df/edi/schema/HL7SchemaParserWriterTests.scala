@@ -103,8 +103,8 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val data = map.get(dataKey).asInstanceOf[ValueMap]
     data.containsKey("ADT_A01") should be (true)
     val adt_ao1 = data.get("ADT_A01").asInstanceOf[ValueMap]
-    adt_ao1.containsKey("03 EVN") should be (true)
-    val evn = adt_ao1.get("03 EVN").asInstanceOf[ValueMap]
+    adt_ao1.containsKey("03_EVN") should be (true)
+    val evn = adt_ao1.get("03_EVN").asInstanceOf[ValueMap]
     evn.get("EVN-01") should be ("A08")
     evn.get("EVN-02-01") should be ("20140221003028")
     evn.get("EVN-03") should be (null)

@@ -210,7 +210,7 @@ object X12TablesConverter {
             } else {
               val comps = descend(loop)
               if (comps.isEmpty) buildr(tail, acc)
-              else buildr(tail, GroupComponent(segment ident, usage, repeat, comps, None, Nil) :: acc)
+              else buildr(tail, GroupComponent(segment.ident + "_Loop", usage, repeat, comps, None, Nil) :: acc)
             }
           case _ => acc
         }

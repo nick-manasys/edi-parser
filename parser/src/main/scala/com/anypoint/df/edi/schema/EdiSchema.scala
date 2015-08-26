@@ -215,7 +215,7 @@ object EdiSchema {
     })
 
   /** Key for a structure component. */
-  def componentKey(ident: String, pos: SegmentPosition) = pos.position + " " + ident
+  def componentKey(ident: String, pos: SegmentPosition) = pos.position + "_" + ident
 
   /** Segment reference.
     * @param segment
@@ -296,8 +296,9 @@ object EdiSchema {
     * @param ky explicit key value (ident used by default)
     */
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, itms: List[StructureComponent],
-    val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None, ch: Boolean = false)
-      extends GroupBase(ky.getOrElse(componentKey(ident, leadReference(ident, itms).position)),
+    val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None,
+    pos: Option[SegmentPosition] = None, ch: Boolean = false)
+      extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(leadReference(ident, itms).position))),
         leadReference(ident, itms).position, use, cnt, ch, itms) {
 
     /** Group head segment reference. */
