@@ -364,7 +364,7 @@ object EdifactTablesConverter {
 
     // boundary for separator lines (all blank to at least this point)
     val limit = tmpl(5)
-
+    
     /** Convert input to a component definition, checking and handling loops. This is called recursively to handle nested
       * loops.
       * @param table index
@@ -399,18 +399,19 @@ object EdifactTablesConverter {
             val fields = parseTemplate(tmpl, true, 3, lines)
             val usage = convertUsage(fields(4))
             val repeat = fields(5).filter { _.isDigit }.toInt
+            val position = SegmentPosition(table, fields(0))
             if (fields(2) == "") {
               // start of a new loop definition
               if (fields(3) == "") throw new IllegalArgumentException("Missing expected group name")
               val discard = fields(3).charAt(0)
               val name = fields(3).filter { _ != discard }.trim
               val comps = convert(table, depth + 1)
-              val group = GroupComponent(name, usage, repeat, comps, None, Nil)
+              val group = GroupComponent(name, usage, repeat, comps, None, Nil, None, Some(position))
               liner(group :: acc)
             } else segments.get(fields(2)) match {
               case Some(s) => {
                 if ("UNS" == fields(2) && (depth > 0 || !acc.isEmpty)) throw new IllegalArgumentException(s"UNS out of order in $ident")
-                val segref = ReferenceComponent(s, SegmentPosition(table, fields(0)), usage, repeat)
+                val segref = ReferenceComponent(s, position, usage, repeat)
                 liner(segref :: acc)
               }
               case _ =>
@@ -488,6 +489,8 @@ object EdifactTablesConverter {
       * @return components
       */
     def convert(table: Int, depth: Int): List[StructureComponent] = {
+    
+      def segmentPosition = SegmentPosition(table, position.toString.substring(1))
 
       /** Recursively convert input to a component definition, checking and handling loops. This needs to process all
         * input up to the end of the current loop (as indicated by a line which is blank, except for up to the depth
@@ -514,7 +517,7 @@ object EdifactTablesConverter {
           val repeat = fields(3).takeWhile { _.isDigit }.toInt
           val name = fields(1).filter { _ != 'Ä' }.trim
           val comps = convert(table, depth + 1)
-          val group = GroupComponent(name, usage, repeat, comps, None, Nil)
+          val group = GroupComponent(name, usage, repeat, comps, None, Nil, None, Some(segmentPosition))
           liner(group :: acc)
           //        } else if ((lines.peek.length > lastcol && lines.peek.substring(lastcol).length < depth) || lines.peek.length <= lastcol && depth > 0) {
           //          acc.reverse
@@ -531,7 +534,7 @@ object EdifactTablesConverter {
             segments.get(fields(2)) match {
               case Some(s) => {
                 if ("UNS" == fields(2) && (depth > 0 || !acc.isEmpty)) throw new IllegalArgumentException(s"UNS out of order in $ident")
-                val segref = ReferenceComponent(s, SegmentPosition(table, position.toString.substring(1)), usage, repeat)
+                val segref = ReferenceComponent(s, segmentPosition, usage, repeat)
                 liner(segref :: acc)
               }
               case _ =>

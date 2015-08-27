@@ -75,6 +75,10 @@ object YamlWriter extends WritesYaml with YamlDefs {
       writeIndented("- " + keyValueQuote(groupIdKey, group.ident), indent, writer)
       writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1, writer)
       if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1, writer)
+      val childPos = group.items.head.position
+      if (group.position != childPos) {
+        writeIndented(keyValueQuote(positionKey, group.position.position), indent + 1, writer)
+      }
       writeStructureComps(itemsKey, group.items, indent + 1)
     }
 
