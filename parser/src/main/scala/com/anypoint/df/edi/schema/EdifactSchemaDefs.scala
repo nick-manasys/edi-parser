@@ -9,7 +9,7 @@ object EdifactSchemaDefs {
   import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion
   
   /** Key for map of message type lists in root map of send or receive. */
-  val messagesMap = "Structures"
+  val messagesMap = "Messages"
   
   /** Key for message header information in message data map. */
   val messageHeaderKey = "MessageHeader"

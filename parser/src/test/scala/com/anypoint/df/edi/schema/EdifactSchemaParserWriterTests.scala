@@ -223,7 +223,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    text should be ("UNA:+.?*'" + testDoc)
+    text should be ("UNA:+.?*'\n" + testDoc)
   }
 
   it should "roundtrip a parsed document using syntax version 2" in {

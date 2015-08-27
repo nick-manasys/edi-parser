@@ -66,12 +66,12 @@ public abstract class WriterBase
     
     /** Character used for decimal mark. */
     protected final char decimalMark;
+    
+    /** Separator between segments (following segment terminator; <code>null</code> if none). */
+    protected final String segmentSeparator;
 
     /** Segment terminator. */
     private final char segmentTerminator;
-    
-    /** Separator between segments (following segment terminator; <code>null</code> if none). */
-    private final String segmentSeparator;
     
     /** Flag for positioned at segment start. */
     private boolean segmentStart;

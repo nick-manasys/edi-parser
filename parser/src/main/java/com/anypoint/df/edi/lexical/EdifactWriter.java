@@ -90,6 +90,9 @@ public class EdifactWriter extends WriterBase
             writer.write(overrideDelimiters.charAt(4));
             writer.write(overrideDelimiters.charAt(2));
             writer.write(overrideDelimiters.charAt(3));
+            if (segmentSeparator != null) {
+                writer.write(segmentSeparator);
+            }
         }
         groupCount = 0;
     }
