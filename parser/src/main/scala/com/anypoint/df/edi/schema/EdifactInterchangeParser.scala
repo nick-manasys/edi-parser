@@ -61,8 +61,6 @@ case class EdifactInterchangeException(error: SyntaxError, text: String, cause: 
 case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, handler: EdifactEnvelopeHandler)
     extends SchemaParser(new EdifactLexer(in, defaultDelims)) {
 
-  import EdifactSchemaDefs._
-
   /** Current configuration in use (default value used for UNB, real configuration set from handler call.) */
   var config: EdifactParserConfig = null
 
@@ -254,7 +252,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     }
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
-  def parseSegment(segment: Segment, group: Option[GroupComponent], position: SegmentPosition): ValueMap = {
+  def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
     val map = new ValueMapImpl
     segmentErrors.clear
@@ -275,7 +273,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   }
 
   /** Report segment error. */
-  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError, discard: Boolean) = {
+  def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState) = {
     def addError(fatal: Boolean, error: SyntaxError) = {
       logErrorInMessage(fatal, false, s"${error.text}: $ident")
       if (fatal) rejectMessage = true
@@ -290,7 +288,14 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       case ComponentErrors.OutOfOrderSegment => addError(config.orderFail, NotSupportedInPosition)
       case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, NotSupportedInPosition)
     }
-    if (discard) handleSegmentErrors(errorSegmentNumber)
+    state match {
+      case ErrorStates.ParseComplete =>
+        handleSegmentErrors(errorSegmentNumber)
+      case ErrorStates.WontParse =>
+        discardSegment
+        handleSegmentErrors(errorSegmentNumber)
+      case _ =>
+    }
   }
 
   /** Get the UNB segment definition for the syntax version. */
@@ -317,7 +322,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     if (checkSegment("UNG")) {
       groupStartSegment = lexer.getSegmentNumber
       groupMessageCount = 0
-      val map = parseSegment(ungSegment(syntaxVersion), None, outsidePosition)
+      val map = parseSegment(ungSegment(syntaxVersion), outsidePosition)
       inGroup = true
       map
     } else throw new IllegalStateException("not at UNG segment")
@@ -329,7 +334,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   def closeGroup(props: ValueMap) = {
     inGroup = false
     if (checkSegment(segUNE)) {
-      val endprops = parseSegment(segUNE, None, SegmentPosition(0, "9999"))
+      val endprops = parseSegment(segUNE, SegmentPosition(0, "9999"))
       if (props.get(groupHeadReferenceKey) != endprops.get(groupTrailReferenceKey)) groupError(ControlReferenceMismatch)
       if (endprops.get(groupTrailCountKey) != groupMessageCount) groupError(ControlCountMismatch)
       endprops.get(groupTrailCountKey).asInstanceOf[Integer]
@@ -359,7 +364,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       currentUCM = new ValueMapImpl
       messageStartSegment = lexer.getSegmentNumber
       val unhSeg = unhSegment(syntaxVersion)
-      val values = parseSegment(unhSeg, None, outsidePosition)
+      val values = parseSegment(unhSeg, outsidePosition)
       messageReference = getAsString(unhSeg.components(0).key, values)
       val ucmSeg = ucmSegment(syntaxVersion)
       currentUCM put (ucmSeg.components(0).key, messageReference)
@@ -381,7 +386,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     if (checkSegment(segUNT)) {
       if (rejectMessage) discardSegment
       else {
-        val endprops = parseSegment(segUNT, None, SegmentPosition(0, "9999"))
+        val endprops = parseSegment(segUNT, SegmentPosition(0, "9999"))
         if (props.get(msgHeadReferenceKey) != endprops.get(msgTrailReferenceKey)) closeError(ControlReferenceMismatch)
         val segcount = lexer.getSegmentNumber - messageStartSegment
         if (getRequiredInt(msgTrailCountKey, endprops) != segcount) closeError(ControlCountMismatch)
@@ -441,7 +446,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   /** Convert section control segment to next section number. If not at a section control, this just returns None. */
   def convertSectionControl =
     if (checkSegment(segUNS)) {
-      val values = parseSegment(segUNS, None, outsidePosition)
+      val values = parseSegment(segUNS, outsidePosition)
       getRequiredString(sectionControlIdent, values) match {
         case "D" => Some(1)
         case "S" => Some(2)
@@ -453,7 +458,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     } else None
 
   /** Convert loop start or end segment to identity form. If not at a loop segment, this just returns None. */
-  def convertLoop = if (Set("LS", "LE").contains(lexer.token)) Some(lexer.token + lexer.peek) else None
+  def convertLoop = None
 
   /** Discard input past end of current message. */
   def discardStructure = {
@@ -580,7 +585,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       copyComposite(unbSender, inter, segUCI.components(1).asInstanceOf[CompositeComponent].composite, interack)
       copyComposite(unbRecipient, inter, segUCI.components(2).asInstanceOf[CompositeComponent].composite, interack)
       val contrl = contrlMsg(syntaxVersion)
-      ackhead put (contrl.heading(1).key, interack)
+      ackhead put (contrl.heading.get.items(1).key, interack)
       try {
 
         def parseMessage(group: Option[ValueMap]) = {
@@ -644,7 +649,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
             if (lexer.currentType == END) {
               interchangeError(InvalidOccurrence, s"end of file with missing $interchangeEndSegment")
             } else if (lexer.token == interchangeEndSegment) {
-              val interend = parseSegment(segUNZ, None, outsidePosition)
+              val interend = parseSegment(segUNZ, outsidePosition)
               if (getRequiredInt(interTrailCountKey, interend) != interchangeMessageCount) interchangeError(ControlCountMismatch, ControlCountMismatch.text)
               if (getRequiredString(interTrailReferenceKey, interend) != interchangeReference) interchangeError(ControlReferenceMismatch, ControlReferenceMismatch.text)
               interack put (segUCI.components(3).key, AcknowledgedLevel.code)
@@ -657,12 +662,12 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
         if (!contrlGroup1s.isEmpty) {
           val g1list = new MapListImpl
           contrlGroup1s.foreach(map => g1list.add(map))
-          ackhead put (contrl.heading(2).key, g1list)
+          ackhead put (contrl.heading.get.items(2).key, g1list)
         }
         if (!contrlGroup3s.isEmpty) {
           val g3list = new MapListImpl
           contrlGroup3s.foreach(map => g3list.add(map))
-          ackhead put (contrl.heading(3).key, g3list)
+          ackhead put (contrl.heading.get.items(3).key, g3list)
         }
       } catch {
         case e: EdifactInterchangeException => {

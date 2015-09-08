@@ -40,7 +40,7 @@ case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7Num
   import SchemaJavaValues._
 
   /** Write top-level section of structure. */
-  def writeTopSection(index: Int, map: ValueMap, comps: List[StructureComponent]) = writeSection(map, comps)
+  def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence) = writeSection(map, seq.items)
 
   /** Output message header segment. */
   def init(props: ValueMap) = {
@@ -86,7 +86,7 @@ case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7Num
       case t: Structure => {
         mshmap put (mshStructureKey, msgType)
         init(mshmap)
-        writeTopSection(0, getRequiredValueMap(msgType, datamap), t.heading)
+        t.heading.foreach { seq => writeTopSection(0, getRequiredValueMap(msgType, datamap), seq) }
       }
       case _ => logAndThrow(s"Unknown message id $msgType")
     }

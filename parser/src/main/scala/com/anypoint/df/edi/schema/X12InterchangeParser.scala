@@ -27,11 +27,11 @@ import X12SchemaDefs._
 /** Configuration parameters for X12 schema parser.
   */
 case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
-  val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
-  val reportDataErrors: Boolean, val generate999: Boolean, val substitutionChar: Int, val strChar: CharacterRestriction)
+                           val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
+                           val reportDataErrors: Boolean, val generate999: Boolean, val substitutionChar: Int, val strChar: CharacterRestriction)
 
 /** Application callback to determine handling of envelope structures.
- */
+  */
 trait X12EnvelopeHandler {
 
   /** Handle ISA segment data, returning either an InterchangeNoteCode (if there's a problem that prevents processing of
@@ -53,8 +53,7 @@ trait X12EnvelopeHandler {
 }
 
 /** Exception reporting problem in interchange. */
-case class X12InterchangeException(note: InterchangeNoteCode, text: String, cause: Throwable = null) extends
-  RuntimeException(text, cause)
+case class X12InterchangeException(note: InterchangeNoteCode, text: String, cause: Throwable = null) extends RuntimeException(text, cause)
 
 class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12EnvelopeHandler) extends SchemaJavaDefs {
 
@@ -70,7 +69,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** Generated functional acknowledgments list. */
     val funcAckList = getRequiredMapList(functionalAcksGenerated, root)
-    
+
     /** Map of schema version maps for transaction set data. */
     val schemaVersionTransactions = getOrSet(transactionsMap, new ValueMapImpl, root)
 
@@ -135,12 +134,12 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     case object X12ErrorHandler extends ErrorHandler {
       def error(lexer: LexerBase, typ: DataType, error: ErrorCondition, explain: java.lang.String): Unit = {
         addElementError(error match {
-          case TOO_SHORT => DataTooShort
-          case TOO_LONG => DataTooLong
+          case TOO_SHORT         => DataTooShort
+          case TOO_LONG          => DataTooLong
           case INVALID_CHARACTER => InvalidCharacter
-          case INVALID_CODE => InvalidCodeValue
-          case INVALID_DATE => InvalidDate
-          case INVALID_TIME => InvalidTime
+          case INVALID_CODE      => InvalidCodeValue
+          case INVALID_DATE      => InvalidDate
+          case INVALID_TIME      => InvalidTime
         })
       }
     }
@@ -148,13 +147,13 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     /** Check if an element syntax error condition is fatal for the containing transaction. */
     def checkFatal(error: ElementSyntaxError) = error match {
       case MissingConditionalElement => config unusedFail
-      case TooManyElements => config countFail
-      case DataTooShort => config lengthFail
-      case DataTooLong => config lengthFail
-      case InvalidCharacter => config charFail
-      case TooManyRepititions => config countFail
-      case TooManyComponents => config countFail
-      case _ => true
+      case TooManyElements           => config countFail
+      case DataTooShort              => config lengthFail
+      case DataTooLong               => config lengthFail
+      case InvalidCharacter          => config charFail
+      case TooManyRepititions        => config countFail
+      case TooManyComponents         => config countFail
+      case _                         => true
     }
 
     def positionInStructure = s"segment ${lexer.getSegmentNumber - transactionStartSegment + 1} of transaction ${transactionNumber} in group $groupNumber of interchange $interchangeNumber"
@@ -196,14 +195,14 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           xk4 put (compC030Comps(0).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
           comp match {
             case ElementComponent(elem, _, _, _, _, _) => xk4 put (xk4Comps(1).key, Integer.valueOf(elem.ident))
-            case _: CompositeComponent => xk4 put (compC030Comps(1).key, Integer.valueOf(lexer.getComponentNumber))
+            case _: CompositeComponent                 => xk4 put (compC030Comps(1).key, Integer.valueOf(lexer.getComponentNumber))
           }
           if (comp.count != 1) xk4 put (compC030Comps(2).key, Integer.valueOf(lexer.getRepetitionNumber))
           xk4 put (xk4Comps(2).key, error.code toString)
           if (error != InvalidCharacter) xk4 put (xk4Comps(3).key, lexer.token)
           if (config generate999) {
             val ik4Group = new ValueMapImpl
-            ik4Group put (groupIK4.items.head.key, xk4)
+            ik4Group put (groupIK4.seq.items.head.key, xk4)
             dataErrors += ik4Group
           } else dataErrors += xk4
         }
@@ -235,7 +234,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     }
 
     /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
-    def parseSegment(segment: Segment, group: Option[GroupComponent], position: SegmentPosition): ValueMap = {
+    def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
       if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
       val map = new ValueMapImpl
       dataErrors.clear
@@ -256,7 +255,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         val xk3Comps = segXK3Comps(config generate999)
         xk3data put (xk3Comps(0) key, segment.ident)
         xk3data put (xk3Comps(1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
-        group.foreach(gcomp => xk3data put (xk3Comps(2) key, gcomp ident))
+        if (loopStack.nonEmpty) xk3data put (xk3Comps(2) key, loopStack.top.ident)
         xk3data put (xk3Comps(3) key, DataErrorsSegment.code.toString)
         val xk3Keys = groupXK3Keys(config generate999)
         xk3 put (xk3Keys(0), xk3data)
@@ -269,7 +268,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     }
 
     /** Report segment error. */
-    def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError, discard: Boolean) = {
+    def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState) = {
       def addError(fatal: Boolean, error: SegmentSyntaxError) = {
         oneOrMoreSegmentsInError = true
         if (config.reportDataErrors) {
@@ -280,7 +279,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           val xk3Comps = segXK3Comps(config generate999)
           xk3data put (xk3Comps(0) key, ident)
           xk3data put (xk3Comps(1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
-          group.foreach(ident => xk3data put (xk3Comps(2) key, ident))
+          if (loopStack.nonEmpty) xk3data put (xk3Comps(2) key, loopStack.top.ident)
           xk3data put (xk3Comps(3) key, error.code.toString)
           segmentErrors += xk3
         }
@@ -289,12 +288,17 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       }
 
       error match {
-        case ComponentErrors.TooManyLoops => addError(config.occursFail, TooManyLoops)
+        case ComponentErrors.TooManyLoops       => addError(config.occursFail, TooManyLoops)
         case ComponentErrors.TooManyRepetitions => addError(config.occursFail, TooManyOccurs)
-        case ComponentErrors.MissingRequired => addError(true, MissingMandatorySegment)
-        case ComponentErrors.UnknownSegment => addError(config.unknownFail, UnrecognizedSegment)
-        case ComponentErrors.OutOfOrderSegment => addError(config.orderFail, OutOfOrderSegment)
-        case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, UnexpectedSegment)
+        case ComponentErrors.MissingRequired    => addError(true, MissingMandatorySegment)
+        case ComponentErrors.UnknownSegment     => addError(config.unknownFail, UnrecognizedSegment)
+        case ComponentErrors.OutOfOrderSegment  => addError(config.orderFail, OutOfOrderSegment)
+        case ComponentErrors.UnusedSegment      => if (config.unusedFail) addError(true, UnexpectedSegment)
+      }
+      state match {
+        case ErrorStates.WontParse =>
+          discardSegment
+        case _ =>
       }
     }
 
@@ -323,7 +327,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         groupStartSegment = lexer.getSegmentNumber
         groupStructureCount = 0
         groupAcceptCount = 0
-        val map = parseSegment(GSSegment, None, outsidePosition)
+        val map = parseSegment(GSSegment, outsidePosition)
         inGroup = true
         map
       } else throw new IllegalStateException("missing required GS segment")
@@ -335,7 +339,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     def closeGroup(props: ValueMap) = {
       inGroup = false
       if (checkSegment(GESegment)) {
-        val endprops = parseSegment(GESegment, None, SegmentPosition(0, "9999"))
+        val endprops = parseSegment(GESegment, SegmentPosition(0, "9999"))
         if (props.get(groupControlNumberHeaderKey) != endprops.get(groupControlNumberTrailerKey)) groupError(GroupControlNumberMismatch)
         if (endprops.get(groupNumberSetsIncludedKey) != groupStructureCount) groupError(GroupTransactionCountError)
         endprops.get(groupNumberSetsIncludedKey).asInstanceOf[Integer]
@@ -360,7 +364,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         oneOrMoreSegmentsInError = false
         inStructure = true
         transactionStartSegment = lexer.getSegmentNumber
-        val values = parseSegment(STSegment, None, outsidePosition)
+        val values = parseSegment(STSegment, outsidePosition)
         groupStructureCount += 1
         (values.get(setIdentifierCodeKey).asInstanceOf[String], values)
       } else throw new IllegalStateException("not positioned at ST segment")
@@ -371,7 +375,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     /** Parse close of a transaction set. */
     def closeSet(props: ValueMap) = {
       if (checkSegment(SESegment)) {
-        val endprops = parseSegment(SESegment, None, SegmentPosition(0, "9999"))
+        val endprops = parseSegment(SESegment, SegmentPosition(0, "9999"))
         if (props.get(setControlNumberHeaderKey) != endprops.get(setControlNumberTrailerKey)) {
           transactionError(ControlNumberMismatch)
         }
@@ -385,7 +389,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     def convertSectionControl = None
 
     /** Convert loop start or end segment to identity form. If not at a loop segment, this just returns None. */
-    def convertLoop = if (Set("LS", "LE").contains(lexer.token)) Some(lexer.token + lexer.peek) else None
+    def convertLoop = if (lexer.token == "LS" || lexer.token == "LE") Some(lexer.token + lexer.peek) else None
 
     /** Discard input past end of current transaction. */
     def discardStructure = {
@@ -545,7 +549,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         val receiveTA1s =
           if (root.containsKey(interchangeAcksReceived)) getAs[MapList](interchangeAcksReceived, root)
           else new MapListImpl
-        while (lexer.token == "TA1") receiveTA1s add parseSegment(segTA1, None, SegmentPosition(0, ""))
+        while (lexer.token == "TA1") receiveTA1s add parseSegment(segTA1, SegmentPosition(0, ""))
         root put (interchangeAcksReceived, receiveTA1s)
       }
       if (isGroupOpen) {
@@ -645,7 +649,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           }
           case status => LexerStartStatusInterchangeNote get (status) match {
             case Some(code) => interchangeError(inter, code)
-            case None => throw new IllegalStateException(s"No handling defined for lexer start status $status")
+            case None       => throw new IllegalStateException(s"No handling defined for lexer start status $status")
           }
         }
       } catch {

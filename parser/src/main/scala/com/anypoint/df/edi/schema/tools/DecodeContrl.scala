@@ -62,16 +62,16 @@ object DecodeContrl extends SchemaJavaDefs {
 
   /** Build description of UCM/UCS+UCD group. */
   def buildMessageGroup(ucmgroup: GroupComponent, ucmcomps: List[SegmentComponent], grpmap: ValueMap) = {
-    val ucmmap = getRequiredValueMap(ucmgroup.items(0).key, grpmap)
+    val ucmmap = getRequiredValueMap(ucmgroup.seq.items(0).key, grpmap)
     val builder = new StringBuilder
     builder ++= s" Message #${getRequiredString(ucmcomps(0).key, ucmmap)} ${buildMessageIdentifier(ucmcomps(1), ucmmap)} "
     builder ++= AcknowledgmentActionCodes(getRequiredString(ucmcomps(2).key, ucmmap)).toString
     if (ucmmap.containsKey(ucmcomps(3).key)) builder ++= s": Syntax error '${SyntaxErrors(getRequiredString(ucmcomps(3).key, ucmmap)).text}'"
     builder ++= "\n"
-    if (grpmap.containsKey(ucmgroup.items(1).key)) {
-      val grpcomps = ucmgroup.items(1).asInstanceOf[GroupComponent].items
-      foreachMapInList(getRequiredMapList(ucmgroup.items(1).key, grpmap), segmap => {
-        val segcomps = ucmgroup.items(1).asInstanceOf[GroupComponent].items
+    if (grpmap.containsKey(ucmgroup.seq.items(1).key)) {
+      val grpcomps = ucmgroup.seq.items(1).asInstanceOf[GroupComponent].seq.items
+      foreachMapInList(getRequiredMapList(ucmgroup.seq.items(1).key, grpmap), segmap => {
+        val segcomps = ucmgroup.seq.items(1).asInstanceOf[GroupComponent].seq.items
         val ucsmap = getRequiredValueMap(segcomps(0).key, segmap)
         builder ++= s"  Segment #${getRequiredInt(segUCS.components(0).key, ucsmap)}"
         val code = getAsString(segUCS.components(1).key, ucsmap)
@@ -96,7 +96,7 @@ object DecodeContrl extends SchemaJavaDefs {
     if (getRequiredString(structureId, rootmap) != transCONTRL.ident) throw new IllegalArgumentException("Not a CONTRL message")
     val builder = new StringBuilder
     val headmap = getRequiredValueMap(structureHeading, rootmap)
-    val msgcomps = transCONTRL.heading.toArray
+    val msgcomps = transCONTRL.heading.get.items.toArray
 
     // interpret the required UCI segment
     val ucimap = getRequiredValueMap(msgcomps(1).key, headmap)

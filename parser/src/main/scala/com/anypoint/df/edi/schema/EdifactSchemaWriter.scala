@@ -42,7 +42,7 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
   var inGroup = false
 
   /** Write top-level section of structure. */
-  def writeTopSection(index: Int, map: ValueMap, comps: List[StructureComponent]) = comps match {
+  def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence) = seq.items match {
     case (ref: ReferenceComponent) :: tail if (ref.segment.ident == "UNS") => {
       writer.writeToken("UNS")
       writer.writeDataSeparator
@@ -50,7 +50,7 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
       writer.writeSegmentTerminator
       writeSection(map, tail)
     }
-    case _ => writeSection(map, comps)
+    case _ => writeSection(map, seq.items)
   }
 
   /** Output interchange header segment(s). */

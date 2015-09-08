@@ -139,12 +139,12 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
           else builder.append(text)
         }
         case group: GroupComponent => {
-          builder.breakAppend(s"""GroupComponent("${group.ident}", ${group.use}, ${group.count}, List[StructureComponent](""")
+          builder.breakAppend(s"""GroupComponent("${group.ident}", ${group.use}, ${group.count}, StructureSequence(true, List[StructureComponent](""")
           builder.indent
           builder.break
-          componentList(group.items)
+          componentList(group.seq.items)
           builder.break
-          builder.append("),")
+          builder.append(")),")
           builder.append(optionText(group.varkey))
           builder.append(", Nil")
           builder.append(")")
@@ -210,21 +210,26 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
   }
 
   def toCode(trans: Structure, composites: Map[String, Composite]): Unit = {
-    def referencedSegments(comps: List[StructureComponent]): Set[Segment] = {
+    def referencedSegments(optseq: Option[StructureSequence]): Set[Segment] = {
       def referencer(comps: List[StructureComponent], segments: Set[Segment]): Set[Segment] =
         comps.foldLeft(segments)((segs, comp) => comp match {
           case ref: ReferenceComponent => segs + ref.segment
-          case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.items, segs + wrap.open + wrap.close)
-          case group: GroupComponent => referencer(group.items, segs)
+          case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.seq.items, segs + wrap.open + wrap.close)
+          case group: GroupComponent => referencer(group.seq.items, segs)
         })
-      referencer(comps, Set[Segment]())
-    }
-    def dumpSection(comps: List[StructureComponent]) =
-      if (comps.nonEmpty) {
-        builder.break
-        componentList(comps)
-        builder.break
+      
+      optseq match {
+        case Some(seq) => referencer(seq.items, Set[Segment]())
+        case None => Set[Segment]()
       }
+    }
+    def dumpSection(optseq: Option[StructureSequence]) = optseq match {
+      case Some(seq) => 
+        builder.break
+        componentList(seq.items)
+        builder.break
+      case None =>
+    }
     val segments = referencedSegments(trans.heading) ++ referencedSegments(trans.detail) ++
       referencedSegments(trans.summary)
     toCode(segments.toList, composites)

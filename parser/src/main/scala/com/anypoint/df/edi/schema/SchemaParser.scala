@@ -1,19 +1,22 @@
 package com.anypoint.df.edi.schema
 
+import scala.annotation.tailrec
+import scala.collection.mutable.{ Buffer, Stack }
+import scala.util.Try
+
 import java.io.IOException
 import java.io.InputStream
+
 import org.apache.log4j.Logger
-import scala.annotation.tailrec
-import scala.util.Try
+
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.LexerBase
 import com.anypoint.df.edi.lexical.LexicalException
-import com.anypoint.df.edi.schema.EdiSchema._
 import com.anypoint.df.edi.lexical.ErrorHandler
 import com.anypoint.df.edi.lexical.ErrorHandler._
-import scala.collection.mutable.Buffer
+import com.anypoint.df.edi.schema.EdiSchema._
 
 /** Parse EDI document based on schema. */
 abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
@@ -23,6 +26,9 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
   val logger = Logger.getLogger(getClass.getName)
 
   val outsidePosition = SegmentPosition(0, "0000")
+
+  /** Stack of loop nestings currently active in parse. */
+  val loopStack = Stack[GroupComponent]()
 
   /** Discard current element. */
   def discardElement = {
@@ -83,7 +89,7 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap): Unit
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
-  def parseSegment(segment: Segment, group: Option[GroupComponent], position: SegmentPosition): ValueMap
+  def parseSegment(segment: Segment, position: SegmentPosition): ValueMap
 
   /** Check if at segment start. */
   def checkSegment(segment: Segment) = lexer.currentType == SEGMENT && lexer.token == segment.ident
@@ -100,35 +106,31 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
     case object OutOfOrderSegment extends ComponentError
     case object UnusedSegment extends ComponentError
   }
+  
+  object ErrorStates {
+    sealed trait ErrorState
+    case object BeforeParse extends ErrorState
+    case object ParseComplete extends ErrorState
+    case object WontParse extends ErrorState
+  }
 
   /** Report segment error.
     * @param ident segment ident
-    * @param group containing group
     * @param error
-    * @param flush report error immediately (segment already parsed or will not be parsed)
+    * @param state current state, used for handling (segment should be discarded if WontParse)
     */
-  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError, flush: Boolean): Unit
+  def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState): Unit
 
-  /** Containing scope within a parse. This gives a way of looking into scopes back up the tree of nested scopes for
-    * the current point in the parse, to 1) tell whether a segment that doesn't fit in the current scope is for some
-    * containing scope and 2) whether the segment should have preceded the current parse position (in which case it's
-    * considered out of order), is at the current parse position (for a loop, which terminates all nested scopes up to
-    * the one where it's defined), or follows the current parse position (which terminates to that level).
-    * @param comps id (or id+loop identifier code, in the case of an LS/LE segment) to component
-    * @param lead segment starting the scope (allowed to go backward in position, since it'll be starting another loop)
-    * @param current position string for current place at level
-    */
-  case class ContainingScope(comps: Map[String, StructureComponent], lead: Option[Segment], current: SegmentPosition)
-
-  /** Parse a complete structure body (not including any envelope segments). The returned map has a maximum of five
-    * values: the structure id and name, and separate child maps for each of the three sections of a structure
-    * (heading, detail, and summary). Each child map is keyed by segment name (with the ID suffixed in parenthesis) or
-    * group id. For a segment with no repeats allowed the associated value is the map of the values in the segment. For
-    * a segment with repeats allowed the value is a list of maps, one for each occurrence of the segment. For a group
-    * the value is also a list of maps, with each map of the same form as the child maps of the top-level result (so
-    * keys are segment or nested group names, values are maps or lists).
+  /** Parse a complete structure body (not including any envelope segments). The returned map has separate child maps
+    * for each of the three sections of a structure (heading, detail, and summary). Each child map uses the component
+    * position combined with the segment or group name as key. For a segment or group with no repeats allowed the
+    * value is the map of the values in the segment or components in the group. For a segment or group with repeats
+    * allowed the value is a list of maps, one for each occurrence..
     */
   def parseStructure(structure: Structure, onepart: Boolean) = {
+      
+    import ComponentErrors._
+    import ErrorStates._
 
     /** Get list of maps for key. If the list is not already set, this creates and returns a new one. */
     def getList(key: String, values: ValueMap) =
@@ -139,255 +141,184 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
         list
       }
 
-    /** Parse a (potentially) repeating segment into a list of maps. */
-    def parseRepeatingSegment(segment: Segment, limit: Int, group: Option[GroupComponent], position: SegmentPosition): MapList = {
-      val list: MapList = new MapListImpl
-      @tailrec
-      def parseRepeat: Unit =
-        if (checkSegment(segment)) {
-          if (limit > 0 && limit <= list.size) {
-            segmentError(segment.ident, group.map { _.ident }, ComponentErrors.TooManyRepetitions, false)
-          }
-          list add (parseSegment(segment, group, position))
-          parseRepeat
-        }
-      parseRepeat
-      list
-    }
-
     /** Parse a structure data table.
       * @param table index
-      * @param comps segment id to component map
+      * @param optseq table structure sequence option
+      * @param terms terminations from next table
       */
-    def parseTable(table: Int, comps: Map[String, StructureComponent]) = {
+    def parseTable(table: Int, optseq: Option[StructureSequence], terms: Terminations) = {
 
-      /** Parse a (potentially) repeating group, with variants treated separately. The repeating group is represented as a
-        * list of maps, one for each occurrence of the group not recognized as a variant. Variants which can occur
-        * multiple times are represented as separate lists of maps, those which can only occur once are represented as
-        * simple maps. Key values for variants are derived by concatenating the variant field value to the base group key
-        * separated by an underscore.
-        */
-      def parseRepeatingGroup(group: GroupComponent, values: ValueMap, scopes: List[ContainingScope]): Unit = {
-        def verifyRepeats(key: String, max: Int) =
-          if (max != 1) {
-            // make sure list is set in map
-            val list = getList(key, values)
-            if (max > 1 && list.size == max) {
-              segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops, true)
+      def parseStructureSequence(seq: StructureSequence, terms: List[Terminations], values: ValueMap): Unit = {
+
+        /** Parse subsequence components, matching input against included segments. Each segment is at a unique position
+          * in the subsequence, so it's easy to tell when segments are out of order by tracking the current position.
+          * Input segments not included in the subsequence are first checked against the terminations set for this
+          * subsequence, then against the termination sets for containing loops (at least up to the first required
+          * termination), and if found in either of these the subsequence is ended and this returns.
+          * @param subsq
+          * @returns true if exiting structure sequence, false if just moving to next subsequence
+          */
+        def parseSubsequence(subsq: StructureSubsequence): Boolean = {
+
+          def checkTerm(ident: String) = {
+            @tailrec
+            def checkr(rem: List[Terminations]): Boolean = rem match {
+              case h :: t =>
+                if (h.idents.contains(ident)) true
+                else if (h.required > 1) false
+                else checkr(t)
+              case _ => false
             }
+
+            checkr(terms)
           }
-        def addInstance(key: String, data: ValueMap) =
-          if (values.containsKey(key)) {
-            values get (key) match {
-              case list: MapList => list add (data)
-              case _ => segmentError(group.ident, Some(group.ident), ComponentErrors.TooManyLoops, true)
-            }
-          } else values put (key, data)
-        @tailrec
-        def parseRepeat: Unit = {
-          val leadref = group.leadSegmentRef
-          val leadseg = leadref.segment
-          if (logger.isTraceEnabled) logger.trace(s"checking for loop start segment '${leadseg.ident}'': ${checkSegment(leadseg)}")
-          if (checkSegment(leadseg)) {
-            if (group.usage == UnusedUsage) {
-              segmentError(leadseg.ident, Some(group.ident), ComponentErrors.UnusedSegment, false)
-            }
-            val parse = new ValueMapImpl
-            if (leadref.count == 1) {
-              val leadmap = parseSegment(leadseg, Some(group), leadref.position)
-              val varval = if (group.varkey.isDefined) getAsString(group.varkey.get, leadmap) else null
-              if (group.varbyval.contains(varval)) {
-                val variant = group.varbyval(varval)
-                verifyRepeats(variant.key, variant.count)
-                parse put (leadref.key, leadmap)
-                parseSection(variant.compsById, scopes, Some(group), parse)
-                if (group.usage != UnusedUsage) addInstance(variant.key, parse)
-              } else {
-                verifyRepeats(group.key, group.count)
-                parse put (leadref.key, leadmap)
-                parseSection(group.compsById, scopes, Some(group), parse)
-                if (group.usage != UnusedUsage) addInstance(group.key, parse)
-              }
-            } else {
-              verifyRepeats(group.key, group.count)
-              val leadlist = parseRepeatingSegment(leadref.segment, leadref.count, Some(group), leadref.position)
-              parse put (leadref.key, leadlist)
-              parseSection(group.compsById, scopes, Some(group), parse)
-              if (group.usage != UnusedUsage) addInstance(group.key, parse)
-            }
-            parseRepeat
-          }
-        }
 
-        parseRepeat
-      }
-
-      /** Check if current segment is known. */
-      def checkSegmentKnown: Unit = lexer.currentType match {
-        case SEGMENT =>
-          if (!structure.segmentIds.contains(lexer.token)) {
-            val ident = lexer.token
-            segmentError(ident, None, ComponentErrors.UnknownSegment, true)
-            while (ident == lexer.token) discardSegment
-          }
-        case END =>
-        case _ => throw new IllegalStateException("lexer in data when should be start of segment")
-      }
-
-      /** Parse a portion of structure data represented by a map of components (which may be segment references or
-        * loops) into a map.
-        * @param comps segment id to component map
-        * @param scopes containing scope information for checking segment ordering and section termination (non-empty)
-        * @param group containing group identifier
-        * @param values result data map
-        */
-      def parseSection(comps: Map[String, StructureComponent], scopes: List[ContainingScope],
-        group: Option[GroupComponent], values: ValueMap) = {
-        val startPos = scopes.head.current.position
-        val grpid = group.map { _.ident }
-        def checkTerminate(compid: String, ident: String, position: SegmentPosition): Boolean = {
-          def verifyPosition(maxpos: SegmentPosition): Boolean =
-            if (maxpos.isBefore(position)) {
-              segmentError(ident, grpid, ComponentErrors.OutOfOrderSegment, true)
-              discardSegment
-              false
-            } else true
           @tailrec
-          def checkr(remain: List[ContainingScope]): Boolean = remain match {
-            case h :: t => h.comps.get(compid) match {
-              case Some(ref: ReferenceComponent) if (h.lead.nonEmpty && h.lead.get == ref.segment) => true
-              case Some(comp) => verifyPosition(comp.position)
-              case None => checkr(t)
+          def parseComponent(position: String): Boolean = {
+
+            def parseLoop(loop: GroupComponent): Unit = {
+              loopStack.push(loop)
+              val ident = lexer.token
+              val data = new ValueMapImpl
+              // need to add handling of variant loops back in
+              parseStructureSequence(loop.seq, subsq.groupTerms(loop) :: terms, data)
+              if (loop.usage == UnusedUsage) segmentError(ident, UnusedSegment, ParseComplete)
+              else {
+                val count = loop.count
+                val key = loop.key
+                if (count == 1) {
+                  if (values.containsKey(key)) segmentError(ident, TooManyRepetitions, ParseComplete)
+                  else values put (key, data)
+                } else {
+                  val list = getList(key, values)
+                  if (count > 0 && count <= list.size) segmentError(ident, TooManyRepetitions, ParseComplete)
+                  list add data
+                }
+              }
+              loopStack.pop
             }
-            case _ => {
-              // segment not in any scope, report as out of order
-              val error =
-                if (structure.segmentIds.contains(compid)) ComponentErrors.OutOfOrderSegment
-                else ComponentErrors.UnknownSegment
-              segmentError(ident, None, error, true)
+
+            /** Parse a wrapped loop, handling wrap open and close segments directly.
+              * @param wrap
+              */
+            def parseWrappedLoop(wrap: LoopWrapperComponent): Unit = {
+              if (wrap.usage == UnusedUsage) segmentError(wrap.open.ident, UnusedSegment, ParseComplete)
               discardSegment
-              false
-            }
-          }
-          if (lexer.currentType == ItemType.END) true
-          else checkr(scopes)
-        }
-
-        /** Parse a wrapped loop, handling wrap open and close segments directly.
-          * @param wrap
-          */
-        def parseWrappedLoop(wrap: LoopWrapperComponent) = {
-          if (wrap.usage == UnusedUsage) {
-            segmentError(wrap.open.ident, Some(wrap.ident), ComponentErrors.UnusedSegment, true)
-          }
-          discardSegment
-          val group = wrap.loopGroup
-          parseRepeatingGroup(group, values,
-            ContainingScope(wrap.compsById, Some(group.leadSegmentRef.segment), wrap.position) :: scopes)
-          convertLoop.map { endid =>
-            wrap.compsById.get(endid) match {
-              case Some(ref: ReferenceComponent) => if (ref.segment == wrap.close) {
-                discardSegment
-                parseComponents(wrap.endPosition.position)
+              val group = wrap.loopGroup
+              parseLoop(group)
+              convertLoop.map { endid =>
+                wrap.compsById.get(endid) match {
+                  case Some(ref: ReferenceComponent) => if (ref.segment == wrap.close) discardSegment
+                  case _ =>
+                }
               }
-              case _ =>
             }
-          }
-        }
 
-        /** Parse section components, checking order by position and reporting errors but still handling all segments
-          * defined in the section. This needs to handle the case of a repeating loop as a special case, since the lead
-          * segment will repeat, potentially after other segments are seen (making it appear out-of-order), and when
-          * this happens the loop needs to be restarted.
-          * @param position
-          */
-        @tailrec
-        def parseComponents(position: String): Unit = {
-          val ident = lexer.token
-          if (logger.isTraceEnabled) logger.trace(s"parsing segment $ident: ${comps.contains(ident)}")
-          if (!isEnvelopeSegment(ident)) {
-            comps get (ident) match {
-              case Some(ref: ReferenceComponent) => {
-                // check for repeat of lead segment in loop
-                val segment = ref.segment
-                if (ref.position.position != startPos || !values.containsKey(ref.key)) {
-                  if (ref.usage == UnusedUsage) segmentError(ident, grpid, ComponentErrors.UnusedSegment, false)
-                  val nextpos =
-                    if (ref.position.position >= position) ref.position.position
-                    else {
-                      segmentError(ident, grpid, ComponentErrors.OutOfOrderSegment, false)
-                      position
+            val ident = lexer.token
+            if (!isEnvelopeSegment(ident)) {
+
+              def adjustPosition(nextpos: String) = {
+                if (nextpos >= position) nextpos
+                else {
+                  segmentError(ident, OutOfOrderSegment, BeforeParse)
+                  position
+                }
+              }
+
+              subsq.comps get (ident) match {
+                case Some(ref: ReferenceComponent) =>
+                  val segment = ref.segment
+                  val key = ref.key
+                  val nextpos = adjustPosition(ref.position.position)
+                  val data = parseSegment(segment, ref.position)
+                  if (ref.usage == UnusedUsage) segmentError(ident, UnusedSegment, ParseComplete)
+                  else {
+                    val count = ref.count
+                    if (count == 1) {
+                      if (values.containsKey(key)) segmentError(ident, TooManyRepetitions, ParseComplete)
+                      else values put (key, data)
+                    } else {
+                      val list = getList(key, values)
+                      if (count > 0 && count <= list.size) segmentError(segment.ident, TooManyRepetitions, ParseComplete)
+                      list add data
                     }
-                  val data =
-                    if (ref.count == 1) parseSegment(segment, group, ref.position)
-                    else parseRepeatingSegment(segment, ref.count, group, ref.position)
-                  if (ref.usage != UnusedUsage) {
-                    if (values.containsKey(ref.key)) segmentError(ident, grpid, ComponentErrors.TooManyRepetitions, true)
-                    else values put (ref.key, data)
                   }
-                  parseComponents(nextpos)
+                  if (subsq.terms.idents.contains(ident)) false
+                  else parseComponent(nextpos)
+                case Some(loop: GroupComponent) =>
+                  val nextpos = adjustPosition(loop.position.position)
+                  parseLoop(loop)
+                  if (subsq.terms.idents.contains(ident)) false
+                  else parseComponent(nextpos)
+                case None => convertLoop match {
+                  case Some(loopid) => subsq.comps.get(loopid) match {
+                    case Some(wrap: LoopWrapperComponent) =>
+                      val nextpos = adjustPosition(wrap.position.position)
+                      parseWrappedLoop(wrap)
+                      parseComponent(nextpos)
+                    case _ =>
+                      if (subsq.terms.idents.contains(ident)) false
+                      else if (checkTerm(loopid)) true
+                      else parseComponent(position)
+                  }
+                  case None =>
+                    if (subsq.terms.idents.contains(ident)) false
+                    else if (checkTerm(ident)) true
+                    else {
+                      if (structure.segmentIds.contains(ident)) segmentError(ident, OutOfOrderSegment, WontParse)
+                      else segmentError(ident, UnknownSegment, WontParse)
+                      parseComponent(position)
+                    }
                 }
+                case _ => throw new IllegalStateException("Illegal structure for group $group")
               }
-              case Some(grp: GroupComponent) => {
-                if (grp.endPosition.position < position) {
-                  segmentError(ident, grpid, ComponentErrors.OutOfOrderSegment, true)
-                } else if (grp.position.position >= position) {
-                  parseRepeatingGroup(grp, values,
-                    ContainingScope(comps, group.map { _.leadSegmentRef.segment }, grp.position) :: scopes)
-                  parseComponents(grp.endPosition.position)
-                }
-              }
-              case None => convertLoop match {
-                case Some(loopid) => comps get (loopid) match {
-                  case Some(wrap: LoopWrapperComponent) => parseWrappedLoop(wrap)
-                  case _ => if (!checkTerminate(loopid, ident, SegmentPosition(table, position))) parseComponents(position)
-                }
-                case None =>
-                  if (!checkTerminate(ident, ident, SegmentPosition(table, position))) parseComponents(position)
-              }
-              case _ => throw new IllegalStateException("Illegal structure for group $group")
-            }
+            } else true
           }
+
+          parseComponent(subsq.startPos)
         }
 
-        parseComponents(startPos)
-        comps.values.foreach { comp =>
-          if (comp.usage == MandatoryUsage && !values.containsKey(comp.key))
+        @tailrec
+        def parser(rem: List[StructureSubsequence]): Unit = rem match {
+          case h :: t => if (!parseSubsequence(h)) parser(t)
+          case _ =>
+        }
+
+        parser(seq.subSequences)
+        seq.requiredComps.foreach { comp =>
+          if (!values.containsKey(comp.key)) {
             comp match {
-              case ref: ReferenceComponent =>
-                if (!isEnvelopeSegment(ref.segment.ident)) {
-                  segmentError(ref.segment.ident, grpid, ComponentErrors.MissingRequired, true)
-                }
-              case loop: LoopWrapperComponent =>
-                segmentError(loop.ident, grpid, ComponentErrors.MissingRequired, true)
-              case grp: GroupComponent => segmentError(grp.ident, grpid, ComponentErrors.MissingRequired, true)
+              case ref: ReferenceComponent => if (!isEnvelopeSegment(ref.segment.ident))
+                segmentError(ref.segment.ident, MissingRequired, ParseComplete)
+              case loop: LoopWrapperComponent => segmentError(loop.ident, MissingRequired, ParseComplete)
+              case grp: GroupComponent => segmentError(grp.ident, MissingRequired, ParseComplete)
             }
+          }
         }
       }
 
-      val context = List(ContainingScope(structure.compsById, None, SegmentPosition(table, "0000")))
-      val parse = new ValueMapImpl
-      parseSection(comps, context, None, parse)
-      parse
+      val map = new ValueMapImpl
+      optseq.foreach { seq => parseStructureSequence(seq, List(terms), map) }
+      map
     }
 
-    if (onepart) parseTable(0, structure.headingById)
+    if (onepart) parseTable(0, structure.heading, EdiSchema.emptyTerminations)
     else {
       val topMap: ValueMap = new ValueMapImpl
       topMap put (structureId, structure.ident)
       topMap put (structureName, structure.name)
-      topMap put (structureHeading, parseTable(0, structure.headingById))
+      topMap put (structureHeading, parseTable(0, structure.heading, structure.detailTerms))
       convertSectionControl match {
         case Some(1) | None => {
-          topMap put (structureDetail, parseTable(1, structure.detailById))
+          topMap put (structureDetail, parseTable(1, structure.detail, structure.summaryTerms))
         }
         case _ =>
       }
       convertSectionControl match {
-        case Some(1) => segmentError(lexer.token, None, ComponentErrors.OutOfOrderSegment, true)
+        case Some(1) => segmentError(lexer.token, OutOfOrderSegment, ParseComplete)
         case _ =>
       }
-      topMap put (structureSummary, parseTable(2, structure.summaryById))
+      topMap put (structureSummary, parseTable(2, structure.summary, EdiSchema.emptyTerminations))
       topMap
     }
   }

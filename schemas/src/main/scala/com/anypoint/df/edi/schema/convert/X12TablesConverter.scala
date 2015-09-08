@@ -210,11 +210,19 @@ object X12TablesConverter {
             } else {
               val comps = descend(loop)
               if (comps.isEmpty) buildr(tail, acc)
-              else buildr(tail, GroupComponent(segment.ident + "_Loop", usage, repeat, comps, None, Nil) :: acc)
+              else {
+                val seq = StructureSequence(true, comps)
+                buildr(tail, GroupComponent(segment.ident + "_Loop", usage, repeat, seq, None, Nil) :: acc)
+              }
             }
           case _ => acc
         }
       buildr(infos, Nil)
+    }
+    
+    def optSeq(optlist: Option[List[StructureComponent]]) = optlist match {
+      case Some(list) => if (list.isEmpty) None else Some(StructureSequence(false, list))
+      case None => None
     }
 
     groups.foldLeft(Map.empty[String, Structure]) {
@@ -226,7 +234,7 @@ object X12TablesConverter {
           }
         }
         val (name, group) = transHeads(key)
-        Structure(key, name, Some(group), tables.getOrElse(1, Nil), tables.getOrElse(2, Nil), tables.getOrElse(3, Nil), version)
+        Structure(key, name, Some(group), optSeq(tables.get(1)), optSeq(tables.get(2)), optSeq(tables.get(3)), version)
       })
     }
   }
@@ -270,6 +278,7 @@ object X12TablesConverter {
     */
   def main(args: Array[String]): Unit = {
     val x12dir = new File(args(0))
+    println(x12dir.getAbsolutePath)
     val yamldir = new File(args(1))
     if (yamldir.exists) yamldir.listFiles.foreach { version =>
       if (version.exists && version.isDirectory) {

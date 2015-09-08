@@ -325,58 +325,58 @@ object EdifactSchemaDefs {
     ElementComponent(Element("0074", "Number of segments in a message", INTEGER, 0, 6), Some("NUMBER OF SEGMENTS IN A MESSAGE"), "UNT01", 10, MandatoryUsage, 1),
     ElementComponent(elem0062, Some("MESSAGE REFERENCE NUMBER"), "UNT02", 20, MandatoryUsage, 1)), Nil)
     
-  val CONTRLsg5 = GroupComponent("Segment group 5", ConditionalUsage, 999, List[StructureComponent](
-    ReferenceComponent(segUCS, SegmentPosition(0, "0130"), MandatoryUsage, 1), ReferenceComponent(segUCD, SegmentPosition(0, "0140"), ConditionalUsage, 99)), None, Nil)
-  val contrlSg4Comps = CONTRLsg5.items.toArray
-  val CONTRLsg4v3 = GroupComponent("Segment group 4", ConditionalUsage, 999999, List[StructureComponent](
+  val CONTRLsg5 = GroupComponent("Segment group 5", ConditionalUsage, 999, StructureSequence(true, List[StructureComponent](
+    ReferenceComponent(segUCS, SegmentPosition(0, "0130"), MandatoryUsage, 1), ReferenceComponent(segUCD, SegmentPosition(0, "0140"), ConditionalUsage, 99))), None, Nil)
+  val contrlSg4Comps = CONTRLsg5.seq.items.toArray
+  val CONTRLsg4v3 = GroupComponent("Segment group 4", ConditionalUsage, 999999, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segUCMv3, SegmentPosition(0, "0110"), MandatoryUsage, 1),
-    CONTRLsg5), None, Nil)
-  val contrlSg4Compsv3 = CONTRLsg4v3.items.toArray
-  val CONTRLsg3v3 = GroupComponent("Segment group 3", ConditionalUsage, 999999, List[StructureComponent](
+    CONTRLsg5)), None, Nil)
+  val contrlSg4Compsv3 = CONTRLsg4v3.seq.items.toArray
+  val CONTRLsg3v3 = GroupComponent("Segment group 3", ConditionalUsage, 999999, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segUCFv3, SegmentPosition(0, "0090"), MandatoryUsage, 1),
-    CONTRLsg4v3), None, Nil)
-  val contrlSg3Compsv3 = CONTRLsg3v3.items.toArray
-  val CONTRLsg2 = GroupComponent("Segment group 2", ConditionalUsage, 999, List[StructureComponent](
-    ReferenceComponent(segUCS, SegmentPosition(0, "0060"), MandatoryUsage, 1), ReferenceComponent(segUCD, SegmentPosition(0, "0070"), ConditionalUsage, 99)), None, Nil)
-  val contrlSg2Comps = CONTRLsg2.items.toArray
-  val CONTRLsg1v3 = GroupComponent("Segment group 1", ConditionalUsage, 999999, List[StructureComponent](
+    CONTRLsg4v3)), None, Nil)
+  val contrlSg3Compsv3 = CONTRLsg3v3.seq.items.toArray
+  val CONTRLsg2 = GroupComponent("Segment group 2", ConditionalUsage, 999, StructureSequence(true, List[StructureComponent](
+    ReferenceComponent(segUCS, SegmentPosition(0, "0060"), MandatoryUsage, 1), ReferenceComponent(segUCD, SegmentPosition(0, "0070"), ConditionalUsage, 99))), None, Nil)
+  val contrlSg2Comps = CONTRLsg2.seq.items.toArray
+  val CONTRLsg1v3 = GroupComponent("Segment group 1", ConditionalUsage, 999999, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segUCMv3, SegmentPosition(0, "0040"), MandatoryUsage, 1),
-    CONTRLsg2), None, Nil)
-  val contrlSg1Compsv3 = CONTRLsg1v3.items.toArray
+    CONTRLsg2)), None, Nil)
+  val contrlSg1Compsv3 = CONTRLsg1v3.seq.items.toArray
 
   val contrlVersion = EdiSchemaVersion(EdiSchema.EdiFact, null)
   val transCONTRLv3 = Structure("CONTRL", "Application error and acknowledgement message", None,
-    List[StructureComponent](
+    Some(StructureSequence(false, List[StructureComponent](
       ReferenceComponent(segUNHv3, SegmentPosition(0, "0010"), MandatoryUsage, 1),
       ReferenceComponent(segUCIv3, SegmentPosition(0, "0020"), MandatoryUsage, 1),
       CONTRLsg1v3,
       CONTRLsg3v3,
-      ReferenceComponent(segUNT, SegmentPosition(0, "0150"), MandatoryUsage, 1)),
-    List[StructureComponent](), List[StructureComponent](), contrlVersion)
-  val contrlCompsv3 = transCONTRLv3.heading.toArray
+      ReferenceComponent(segUNT, SegmentPosition(0, "0150"), MandatoryUsage, 1)))),
+    None, None, contrlVersion)
+  val contrlCompsv3 = transCONTRLv3.heading.get.items.toArray
 
-  val CONTRLsg4v4 = GroupComponent("Segment group 4", ConditionalUsage, 999999, List[StructureComponent](
+  val CONTRLsg4v4 = GroupComponent("Segment group 4", ConditionalUsage, 999999, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segUCMv4, SegmentPosition(0, "0110"), MandatoryUsage, 1),
-    CONTRLsg5), None, Nil)
-  val contrlSg4Compsv4 = CONTRLsg4v4.items.toArray
-  val CONTRLsg3v4 = GroupComponent("Segment group 3", ConditionalUsage, 999999, List[StructureComponent](
+    CONTRLsg5)), None, Nil)
+  val contrlSg4Compsv4 = CONTRLsg4v4.seq.items.toArray
+  val CONTRLsg3v4 = GroupComponent("Segment group 3", ConditionalUsage, 999999, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segUCFv4, SegmentPosition(0, "0090"), MandatoryUsage, 1),
-    CONTRLsg4v4), None, Nil)
-  val contrlSg3Compsv4 = CONTRLsg3v4.items.toArray
-  val CONTRLsg1v4 = GroupComponent("Segment group 1", ConditionalUsage, 999999, List[StructureComponent](
+    CONTRLsg4v4)), None, Nil)
+  val contrlSg3Compsv4 = CONTRLsg3v4.seq.items.toArray
+  val CONTRLsg1v4 = GroupComponent("Segment group 1", ConditionalUsage, 999999, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segUCMv4, SegmentPosition(0, "0040"), MandatoryUsage, 1),
-    CONTRLsg2), None, Nil)
-  val contrlSg1Compsv4 = CONTRLsg1v4.items.toArray
+    CONTRLsg2)), None, Nil)
+  val contrlSg1Compsv4 = CONTRLsg1v4.seq.items.toArray
 
   val transCONTRLv4 = Structure("CONTRL", "Application error and acknowledgement message", None,
-    List[StructureComponent](
+    Some(StructureSequence(false, List[StructureComponent](
       ReferenceComponent(segUNHv4, SegmentPosition(0, "0010"), MandatoryUsage, 1),
       ReferenceComponent(segUCIv4, SegmentPosition(0, "0020"), MandatoryUsage, 1),
       CONTRLsg1v4,
       CONTRLsg3v4,
-      ReferenceComponent(segUNT, SegmentPosition(0, "0150"), MandatoryUsage, 1)),
-    List[StructureComponent](), List[StructureComponent](), contrlVersion)
-  val contrlCompsv4 = transCONTRLv4.heading.toArray
+      ReferenceComponent(segUNT, SegmentPosition(0, "0150"), MandatoryUsage, 1)))),
+    None, None, contrlVersion)
+  val contrlCompsv4 = transCONTRLv4.heading.get.items.toArray
 
   // defined values (note differences between UNB v3 and v4 only effect UNB4 composite)
   val unbSyntax = segUNBv3.components(0).asInstanceOf[CompositeComponent].composite

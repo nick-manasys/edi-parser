@@ -75,11 +75,11 @@ object YamlWriter extends WritesYaml with YamlDefs {
       writeIndented("- " + keyValueQuote(groupIdKey, group.ident), indent, writer)
       writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1, writer)
       if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1, writer)
-      val childPos = group.items.head.position
+      val childPos = group.seq.items.head.position
       if (group.position != childPos) {
         writeIndented(keyValueQuote(positionKey, group.position.position), indent + 1, writer)
       }
-      writeStructureComps(itemsKey, group.items, indent + 1)
+      writeStructureComps(itemsKey, group.seq.items, indent + 1)
     }
 
     def writeStructureComps(label: String, segments: List[StructureComponent], indent: Int): Unit = {
@@ -140,9 +140,9 @@ object YamlWriter extends WritesYaml with YamlDefs {
           case Some(g) => writeIndented(keyValuePair(classKey, g), 1, writer)
           case None =>
         }
-        if (transact.heading.size > 0) writeStructureComps(headingKey, transact.heading, 1)
-        if (transact.detail.size > 0) writeStructureComps(detailKey, transact.detail, 1)
-        if (transact.summary.size > 0) writeStructureComps(summaryKey, transact.summary, 1)
+        transact.heading.foreach { seq => writeStructureComps(headingKey, seq.items, 1) }
+        transact.detail.foreach { seq => writeStructureComps(detailKey, seq.items, 1) }
+        transact.summary.foreach { seq => writeStructureComps(summaryKey, seq.items, 1) }
       })
     }
     if (!schema.segments.isEmpty) {

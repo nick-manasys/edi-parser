@@ -405,8 +405,8 @@ object EdifactTablesConverter {
               if (fields(3) == "") throw new IllegalArgumentException("Missing expected group name")
               val discard = fields(3).charAt(0)
               val name = fields(3).filter { _ != discard }.trim
-              val comps = convert(table, depth + 1)
-              val group = GroupComponent(name, usage, repeat, comps, None, Nil, None, Some(position))
+              val seq = StructureSequence(true, convert(table, depth + 1))
+              val group = GroupComponent(name, usage, repeat, seq, None, Nil, None, Some(position))
               liner(group :: acc)
             } else segments.get(fields(2)) match {
               case Some(s) => {
@@ -423,6 +423,8 @@ object EdifactTablesConverter {
       }
       liner(Nil)
     }
+    
+    def optSeq(items: List[StructureComponent]) = if (items.isEmpty) None else Some(StructureSequence(false, items))
 
     lines.skipIfBlank
     lines.skipPastBlankLine
@@ -438,11 +440,11 @@ object EdifactTablesConverter {
       } else Nil
       val summary = if (atSection && lines.trimmed.startsWith("SUMMARY")) convert(0, 0) else Nil
       if (lines.hasNext && !atAnnex) throw new IllegalStateException("Not at end of description")
-      Structure(ident, name, None, header, detail, summary, version)
+      Structure(ident, name, None, optSeq(header), optSeq(detail), optSeq(summary), version)
     } else {
       val comps = convert(0, 0)
       if (lines.hasNext && !atAnnex) throw new IllegalStateException("Not at end of description")
-      Structure(ident, name, None, comps, Nil, Nil, version)
+      Structure(ident, name, None, optSeq(comps), None, None, version)
     }
   }
 
@@ -516,8 +518,8 @@ object EdifactTablesConverter {
           val usage = convertUsage(fields(2))
           val repeat = fields(3).takeWhile { _.isDigit }.toInt
           val name = fields(1).filter { _ != 'Ä' }.trim
-          val comps = convert(table, depth + 1)
-          val group = GroupComponent(name, usage, repeat, comps, None, Nil, None, Some(segmentPosition))
+          val seq = StructureSequence(true, convert(table, depth + 1))
+          val group = GroupComponent(name, usage, repeat, seq, None, Nil, None, Some(segmentPosition))
           liner(group :: acc)
           //        } else if ((lines.peek.length > lastcol && lines.peek.substring(lastcol).length < depth) || lines.peek.length <= lastcol && depth > 0) {
           //          acc.reverse
@@ -553,6 +555,8 @@ object EdifactTablesConverter {
       lines.skipPastBlankLine
       convert(0, 0)
     }
+    
+    def optSeq(items: List[StructureComponent]) = if (items.isEmpty) None else Some(StructureSequence(false, items))
 
     lines.skipIfBlank
     lines.next
@@ -572,11 +576,11 @@ object EdifactTablesConverter {
       if (lines.hasNext && !atEnd) {
         throw new IllegalStateException("Not at end of description")
         }
-      Structure(ident, name, None, header, detail, summary, version)
+      Structure(ident, name, None, optSeq(header), optSeq(detail), optSeq(summary), version)
     } else {
       val comps = convertSection
       if (lines.hasNext && !atEnd) throw new IllegalStateException("Not at end of description")
-      Structure(ident, name, None, comps, Nil, Nil, version)
+      Structure(ident, name, None, optSeq(comps), None, None, version)
     }
   }
 

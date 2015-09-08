@@ -357,21 +357,21 @@ object X12Acknowledgment {
     ElementComponent(elem329, None, "ST02", 2, MandatoryUsage, 1),
     ElementComponent(elem1705, None, "ST03", 3, OptionalUsage, 1)), Nil)
 
-  val groupAK3 = GroupComponent("AK3", OptionalUsage, -1, List[StructureComponent](
+  val groupAK3 = GroupComponent("AK3", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segAK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
-    ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99)), None, Nil)
-  val groupAK2_997 = GroupComponent("AK2", OptionalUsage, -1, List[StructureComponent](
+    ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99))), None, Nil)
+  val groupAK2_997 = GroupComponent("AK2", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
     groupAK3,
-    ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1)), None, Nil)
+    ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1))), None, Nil)
   val funcAckVersion = EdiSchemaVersion(EdiSchema.X12, "005010")
-  val trans997 = Structure("997", "Functional Acknowledgment", Some("FA"), List[StructureComponent](
+  val trans997 = Structure("997", "Functional Acknowledgment", Some("FA"), Some(StructureSequence(false, List[StructureComponent](
     ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
     ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
     groupAK2_997,
     ReferenceComponent(segAK9, SegmentPosition(0, "0700"), MandatoryUsage, 1),
-    ReferenceComponent(segSE, SegmentPosition(0, "0800"), MandatoryUsage, 1)),
-    List[StructureComponent](), List[StructureComponent](), funcAckVersion)
+    ReferenceComponent(segSE, SegmentPosition(0, "0800"), MandatoryUsage, 1)))),
+    None, None, funcAckVersion)
 
   // 999 acknowledgment schema (generated code, eliminated duplicates from 997)
   val elem447 = Element("447", "Loop Identifier Code", ALPHANUMERIC, 1, 4)
@@ -413,24 +413,24 @@ object X12Acknowledgment {
     ElementComponent(elem618, None, "IK505", 5, OptionalUsage, 1),
     ElementComponent(elem618, None, "IK506", 6, OptionalUsage, 1)), Nil)
     
-  val groupIK4 = GroupComponent("IK4", OptionalUsage, -1, List[StructureComponent](
+  val groupIK4 = GroupComponent("IK4", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segIK4, SegmentPosition(0, "0600"), OptionalUsage, 1),
-    ReferenceComponent(segCTX, SegmentPosition(0, "0700"), OptionalUsage, 10)), None, Nil)
-  val groupIK3 = GroupComponent("IK3", OptionalUsage, -1, List[StructureComponent](
+    ReferenceComponent(segCTX, SegmentPosition(0, "0700"), OptionalUsage, 10))), None, Nil)
+  val groupIK3 = GroupComponent("IK3", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segIK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
     ReferenceComponent(segCTX, SegmentPosition(0, "0500"), OptionalUsage, 10),
-    groupIK4), None, Nil)
-  val groupAK2_999 = GroupComponent("AK2", OptionalUsage, -1, List[StructureComponent](
+    groupIK4)), None, Nil)
+  val groupAK2_999 = GroupComponent("AK2", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
     ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
     groupIK3,
-    ReferenceComponent(segIK5, SegmentPosition(0, "0800"), MandatoryUsage, 1)), None, Nil)
-  val trans999 = Structure("999", "Implementation Acknowledgment", Some("FA"), List[StructureComponent](
+    ReferenceComponent(segIK5, SegmentPosition(0, "0800"), MandatoryUsage, 1))), None, Nil)
+  val trans999 = Structure("999", "Implementation Acknowledgment", Some("FA"), Some(StructureSequence(false, List[StructureComponent](
     ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
     ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
     groupAK2_999,
     ReferenceComponent(segAK9, SegmentPosition(0, "0900"), MandatoryUsage, 1),
-    ReferenceComponent(segSE, SegmentPosition(0, "1000"), MandatoryUsage, 1)),
-    List[StructureComponent](), List[StructureComponent](), funcAckVersion)
+    ReferenceComponent(segSE, SegmentPosition(0, "1000"), MandatoryUsage, 1)))),
+    None, None, funcAckVersion)
 
   // random access arrays of keys
   val segAK9Comps = segAK9.components.toArray
@@ -443,13 +443,13 @@ object X12Acknowledgment {
   val segAK2Comps = segAK2.components.toArray
   val segAK1Comps = segAK1.components.toArray
   val segCTXComps = segCTX.components.toArray
-  val groupIK4Keys = groupIK4.items map { comp => comp.key } toArray
-  val groupIK3Keys = groupIK3.items map { comp => comp.key } toArray
-  val groupAK3Keys = groupAK3.items map { comp => comp.key } toArray
-  val groupAK2_997Keys = groupAK2_997.items map { comp => comp.key } toArray
-  val groupAK2_999Keys = groupAK2_999.items map { comp => comp.key } toArray
-  val trans997Keys = trans997.heading map { comp => comp.key } toArray
-  val trans999Keys = trans999.heading map { comp => comp.key } toArray
+  val groupIK4Keys = groupIK4.seq.items map { comp => comp.key } toArray
+  val groupIK3Keys = groupIK3.seq.items map { comp => comp.key } toArray
+  val groupAK3Keys = groupAK3.seq.items map { comp => comp.key } toArray
+  val groupAK2_997Keys = groupAK2_997.seq.items map { comp => comp.key } toArray
+  val groupAK2_999Keys = groupAK2_999.seq.items map { comp => comp.key } toArray
+  val trans997Keys = trans997.heading.get.items map { comp => comp.key } toArray
+  val trans999Keys = trans999.heading.get.items map { comp => comp.key } toArray
   
   // access methods to select appropriate model
   def groupXK2Keys(generate999: Boolean) = if (generate999) groupAK2_999Keys else groupAK2_997Keys

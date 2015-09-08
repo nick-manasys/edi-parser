@@ -213,6 +213,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
+    println(text)
     text should be (testDoc)
   }
 

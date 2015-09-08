@@ -83,7 +83,7 @@ case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config
   }
 
   /** Write top-level section of transaction. */
-  def writeTopSection(index: Int, map: ValueMap, comps: List[StructureComponent]) = writeSection(map, comps)
+  def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence) = writeSection(map, seq.items)
 
   /** Check if an envelope segment (handled directly, outside of transaction). */
   def isEnvelopeSegment(segment: Segment) = segment.ident == "ST" || segment.ident == "SE"

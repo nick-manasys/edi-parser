@@ -137,7 +137,7 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
   }
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
-  def parseSegment(segment: Segment, group: Option[GroupComponent], position: SegmentPosition): ValueMap = {
+  def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
     val map = new ValueMapImpl
     currentSegment = segment
@@ -156,7 +156,7 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
   }
 
   /** Report segment error. */
-  def segmentError(ident: String, group: Option[String], error: ComponentErrors.ComponentError, discard: Boolean) = {
+  def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState) = {
     def addError(fatal: Boolean, error: ErrorCode, text: String) = {
       logErrorInMessage(fatal, false, s"$text: $ident")
       if (fatal) acknowledgmentCode = AcknowledgedApplicationReject
@@ -172,7 +172,7 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
       case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, ErrorSegmentSequence, "unused segment present")
       case _ =>
     }
-    // TODO: if (discard) handleSegmentErrors(errorSegmentNumber)
+    // TODO: segment handling based on error state?
   }
 
   /** Report message error. */

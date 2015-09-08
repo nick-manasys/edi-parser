@@ -194,7 +194,7 @@ object HL7TablesConverter {
     def buildGroup(lines: LineFields, close: String) = {
       val (remain, nested) = buildr(lines, Nil)
       remain match {
-        case close :: t => (t, nested)
+        case close :: t => (t, StructureSequence(true, nested))
         case _ => throw new IllegalArgumentException(s"Missing expected segment group close '$close'")
       }
     }
@@ -243,7 +243,7 @@ object HL7TablesConverter {
 
     grouped.foldLeft(List[Structure]()){
       case (list, (ident, lines)) => {
-        Structure(ident, ident, None, buildr(lines, Nil)._2, Nil, Nil, version)
+        Structure(ident, ident, None, Some(StructureSequence(false, buildr(lines, Nil)._2)), None, None, version)
       } :: list
     }
   }

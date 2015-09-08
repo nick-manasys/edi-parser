@@ -187,7 +187,7 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
 
     /** Write a (potentially) repeating group from a list of maps. */
     def writeRepeatingGroup(list: MapList, group: GroupBase): Unit =
-      list.asScala.foreach { map => writeSection(map, group.items) }
+      list.asScala.foreach { map => writeSection(map, group.seq.items) }
 
     def checkMissing = comp.usage match {
       case MandatoryUsage => {
@@ -196,7 +196,7 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
       case _ =>
     }
     def writeGroup(key: String, group: GroupBase) =
-      if (group.count == 1) writeSection(getRequiredValueMap(key, map), group.items)
+      if (group.count == 1) writeSection(getRequiredValueMap(key, map), group.seq.items)
       else writeRepeatingGroup(getRequiredMapList(key, map), group)
 
     val key = comp.key
@@ -238,7 +238,7 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
   })
 
   /** Write top-level section of structure. */
-  def writeTopSection(index: Int, map: ValueMap, comps: List[StructureComponent]): Unit
+  def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence): Unit
 
   /** Write a complete structure. The supplied map has a maximum of five values: the structure id and name, and
     * separate child maps for each of the three sections of a structure (heading, detail, and summary). Each child map
@@ -249,9 +249,9 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
     * maps or lists).
     */
   def writeStructure(map: ValueMap, structure: Structure) {
-    if (!structure.heading.isEmpty) writeTopSection(0, getRequiredValueMap(structureHeading, map), structure.heading)
-    if (!structure.detail.isEmpty) writeTopSection(1, getRequiredValueMap(structureDetail, map), structure.detail)
-    if (!structure.summary.isEmpty) writeTopSection(2, getRequiredValueMap(structureSummary, map), structure.summary)
+    structure.heading.foreach { seq => writeTopSection(0, getRequiredValueMap(structureHeading, map), seq) }
+    structure.detail.foreach { seq => writeTopSection(0, getRequiredValueMap(structureDetail, map), seq) }
+    structure.summary.foreach { seq => writeTopSection(0, getRequiredValueMap(structureSummary, map), seq) }
   }
 
   /** Check if an envelope segment (handled directly, outside of structure). */

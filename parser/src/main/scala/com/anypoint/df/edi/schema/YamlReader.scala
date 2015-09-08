@@ -185,8 +185,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val items = getRequiredMapList(itemsKey, values)
         val postext = getAsString(positionKey, values)
         val position = if (postext == null) None else Some(SegmentPosition(table, postext))
-        GroupComponent(getRequiredString(groupIdKey, values), use, count, parseComponent(items.asScala.toList, Nil),
-          None, Nil, None, position)
+        val seq = StructureSequence(true, parseComponent(items.asScala.toList, Nil))
+        GroupComponent(getRequiredString(groupIdKey, values), use, count, seq, None, Nil, None, position)
       } else if (values.containsKey(wrapIdKey)) {
         val wrapid = getRequiredString(wrapIdKey, values)
         val list = getRequiredMapList(groupKey, values)
@@ -276,10 +276,11 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
                   }
                   val use = getUsageOverride(values, group.usage)
                   val count = getCountOverride(values, group.count)
-                  val items =
-                    if (values.containsKey(itemsKey)) overLevel(getRequiredMapList(itemsKey, values), group.items)
-                    else group.items
-                  overr(t, GroupComponent(group.ident, use, count, items, group.varkey, group.variants) :: prior, bt)
+                  val seq =
+                    if (values.containsKey(itemsKey)) {
+                      StructureSequence(true, overLevel(getRequiredMapList(itemsKey, values), group.seq.items))
+                    } else group.seq
+                  overr(t, GroupComponent(group.ident, use, count, seq, group.varkey, group.variants) :: prior, bt)
                 }
               }
               else overr(remain, bh :: prior, bt)
@@ -391,15 +392,20 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
 
   /** Convert structure definitions. */
   private def convertStructures(input: ValueMap, version: EdiSchemaVersion, segments: Map[String, Segment],
-    basedefs: EdiSchema.StructureMap) =
+    basedefs: EdiSchema.StructureMap) = {
+    def optSeq(items: List[StructureComponent]) = if (items.isEmpty) None else Some(StructureSequence(false, items))
+    def sectionItems(optseq: Option[StructureSequence]): List[StructureComponent] = optseq match {
+      case Some(seq) => seq.items
+      case None => Nil
+    }
     getRequiredMapList(structuresKey, input).asScala.toList.
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
         val name = getRequiredString(nameKey, transmap)
         val group = if (transmap.containsKey(classKey)) Some(transmap.get(classKey).asInstanceOf[String]) else None
-        val heading = parseStructurePart(headingKey, transmap, version.ediForm, 0, segments)
-        val detail = parseStructurePart(detailKey, transmap, version.ediForm, 1, segments)
-        val summary = parseStructurePart(summaryKey, transmap, version.ediForm, 2, segments)
+        val heading = optSeq(parseStructurePart(headingKey, transmap, version.ediForm, 0, segments))
+        val detail = optSeq(parseStructurePart(detailKey, transmap, version.ediForm, 1, segments))
+        val summary = optSeq(parseStructurePart(summaryKey, transmap, version.ediForm, 2, segments))
         map + (ident -> Structure(ident, name, group, heading, detail, summary, version))
       } else if (transmap.containsKey(idRefKey)) {
         val idref = getRequiredString(idRefKey, transmap)
@@ -407,11 +413,12 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val basedef = basedefs(idref)
         val name = getAs(nameKey, basedef.name, transmap)
         val group = getAs(classKey, basedef.group, transmap)
-        val heading = parseStructureOverlayPart(headingKey, transmap, basedef.heading, segments)
-        val detail = parseStructureOverlayPart(detailKey, transmap, basedef.detail, segments)
-        val summary = parseStructureOverlayPart(summaryKey, transmap, basedef.summary, segments)
+        val heading = optSeq(parseStructureOverlayPart(headingKey, transmap, sectionItems(basedef.heading), segments))
+        val detail = optSeq(parseStructureOverlayPart(detailKey, transmap, sectionItems(basedef.detail), segments))
+        val summary = optSeq(parseStructureOverlayPart(summaryKey, transmap, sectionItems(basedef.summary), segments))
         map + (idref -> Structure(idref, name, group, heading, detail, summary, version))
       } else throw new IllegalStateException(s"structure definition needs either $idKey or $idRefKey value"))
+    }
 
   /** Find schema and return input stream. This first looks at using the file system, trying each base string as a
     * prefix to the supplied path. If none of the bases work, it tries loading off the classpath.
@@ -487,7 +494,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
 
     val loaded = loadFully(reader)
     EdiSchema(loaded.ediVersion, loaded.elements, loaded.composites, loaded.segments,
-      loaded.structures.map{
+      loaded.structures.map {
         case (k, Structure(ident, name, group, heading, detail, summary, loaded.ediVersion)) => (k,
           Structure(ident, name, group, heading, detail, summary, loaded.ediVersion))
       })

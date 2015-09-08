@@ -1,6 +1,7 @@
 package com.anypoint.df.edi.schema
 
 import scala.annotation.tailrec
+import collection.{ mutable => sm }
 
 import java.{ util => ju }
 
@@ -85,7 +86,7 @@ object EdiSchema {
     * @param cnt maximum repetition count
     */
   case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage,
-      cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
+    cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
     val itemType = if (composite.isSimple) ItemType.DATA_ELEMENT else ItemType.SUB_COMPONENT
   }
 
@@ -156,7 +157,7 @@ object EdiSchema {
     * @param maxLength maximum length for entire value (0 if no limit)
     */
   case class Composite(id: String, nm: String, val components: List[SegmentComponent], val rules: List[OccurrenceRule],
-      val maxLength: Int) extends ComponentBase(id, nm) {
+    val maxLength: Int) extends ComponentBase(id, nm) {
     def this(id: String, nm: String, comps: List[SegmentComponent], rules: List[OccurrenceRule]) =
       this(id, nm, comps, rules, 0)
     def rewrite(prefix: String, form: EdiForm): Composite =
@@ -203,16 +204,175 @@ object EdiSchema {
   sealed abstract class StructureComponent(val key: String, val position: SegmentPosition, val usage: Usage,
     val count: Int)
 
-  /** Build map from segment id to structure component at level.
-    * @param comps
+  private def ident(comp: StructureComponent) = comp match {
+    case r: ReferenceComponent => r.segment.ident
+    case g: GroupBase => g.leadSegmentRef.segment.ident
+    case w: LoopWrapperComponent => w.open.ident
+  }
+
+  /** Subsequence of structure components with no segments reused. The segments are mapped so they can be processed in
+    * any order.
     */
-  def componentsById(comps: List[StructureComponent]) =
-    comps.foldLeft(Map[String, StructureComponent]())((acc, comp) => comp match {
-      case ref: ReferenceComponent => acc + (ref.segment.ident -> ref)
-      case wrap: LoopWrapperComponent => acc + (wrap.open.ident + wrap.ident -> wrap)
-      case grp: GroupComponent => acc + (grp.leadSegmentRef.segment.ident -> grp)
-      case _ => acc
-    })
+  case class StructureSubsequence(val startPos: String, val comps: Map[String, StructureComponent],
+    val terms: Terminations, val groupTerms: Map[GroupComponent, Terminations]) {
+//    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
+  }
+
+  /** Termination segment identifiers for group.
+    * @param required number of required segments
+    * @param idents segment identifiers for terminating level
+    */
+  case class Terminations(val required: Int, val idents: Set[String])
+    
+  val emptyTerminations = Terminations(0, Set())
+
+  /** Sequence of structure components (segments and groups). This supports both loops and structure sections, adding
+    * supporting information to the basic sequence for use in parsing and writing.
+    * @param loop forces a separate subsequence for the first segment in a loop
+    * @param items structure components
+    */
+  case class StructureSequence(private val loop: Boolean, val items: List[StructureComponent]) {
+
+    /** Start position. */
+    val startPos =  items.head.position
+
+    /** All required components in sequence. */
+    val requiredComps = items.filter { _.usage == MandatoryUsage }
+
+    /** Idents of all segments used at this level, and of all segments reused at level. */
+    val (allAtLevel, reusedSegments) =
+      items.filterNot { comp => comp.isInstanceOf[WildcardComponent] || comp.isInstanceOf[LoopWrapperComponent] }.map { ident(_) }.
+      foldLeft((Set[String](), Set[String]())) {
+        case ((segs, reps), ident) =>
+          if (segs.contains(ident)) (segs, reps + ident) else (segs + ident, reps)
+      }
+
+    //
+    // Splitting sequences into subsequences:
+    //
+    // First split subsequences based on wildcard segments. Each wildcard segment is its own separate
+    // StructureSubsequence, with everything in the termination set (so that after processing the wildcard the
+    // subsequence will be done). A required segment preceding a wildcard segment is also its own separate
+    // StructureSubsequence and has that segment as its termination set, so when the segment is seen the next segment
+    // will be interpreted as the wildcard (the required segment preceding a wildcard appears to always be a singleton,
+    // which makes sense to prevent ambiguity).
+    //
+    // The other issue is segments reused at a level. These need to be separated by a required segment, so make the
+    // required segment preceding a reuse also a separate StructureSubsequence. Unlike the ones for required segments
+    // preceding a wildcard, these may be repeated so the segment itself cannot be included in the termination set, but
+    // all segments in the following subsequence can be used in the termination set.
+    //
+
+    private type CompList = List[StructureComponent]
+
+    private def buildSubSequences = {
+      val seqs = sm.Buffer[StructureSubsequence]()
+
+      def addNormal(incl: CompList, terms: Terminations) = {
+        val comps = incl.map { c => (ident(c), c) }.toMap
+        // build terminations for all groups included in subsequence
+        val (_, _, grps) = incl.reverse.foldLeft((terms.required, terms.idents, Map[GroupComponent, Terminations]())) {
+          case ((cnt, ids, acc), comp) =>
+            val ncnt = if (comp.usage == MandatoryUsage) cnt + 1 else cnt
+            val nids = ids + ident(comp)
+            comp match {
+              case g: GroupComponent => (ncnt, nids, acc + (g -> Terminations(cnt, ids + ident(g.leadSegmentRef))))
+              case _ => (ncnt, nids, acc)
+            }
+        }
+        seqs += StructureSubsequence(incl.head.position.position, comps, terms, grps)
+      }
+      def addWild(wild: WildcardComponent) = {
+        val comps = wild.possibles.map { s => (s.ident, ReferenceComponent(s, wild.position, OptionalUsage, 1)) }.toMap
+        seqs += StructureSubsequence(wild.position.position, comps, Terminations(1, comps.keySet), Map())
+      }
+      def addRequired(req: StructureComponent) = {
+        val id = ident(req)
+        seqs += StructureSubsequence(req.position.position, Map(id -> req), Terminations(1, Set(id)), Map())
+      }
+
+      def reqCount(comps: CompList) = comps.foldLeft(0)((acc, c) => if (c.usage == MandatoryUsage) acc + 1 else acc)
+
+      /** Recursively split sequence into subsequences based on reused segments. This is only called after wildcards are
+        * removed from the components list, so there's no need to handle those.
+        */
+      def splitReuses(comps: CompList, terms: Terminations): Unit = {
+        @tailrec
+        def findreq(rem: CompList, acc: CompList): (CompList, CompList) = rem match {
+          case h :: t => if (h.usage == MandatoryUsage) (acc reverse, rem) else findreq(t, h :: acc)
+          case _ => (acc reverse, Nil)
+        }
+        @tailrec
+        def splitr(rem: CompList, acc: CompList): Unit = rem match {
+          case h :: t =>
+            val id = ident(h)
+            if ((reusedSegments.contains(id) && t.exists { ident(_) == id })) {
+              val (seq, rest) = findreq(t, h :: acc)
+              // TODO: for empty case, should still split off head as separate subsequence
+              if (rest.isEmpty) splitr(t, h :: acc)
+              else {
+                if (acc.nonEmpty) {
+                  val termIds = rest.map { ident(_) }.toSet
+                  val inclIds = acc.map { ident(_) }.toSet
+                  addNormal(acc.reverse, Terminations(reqCount(rest), termIds -- inclIds))
+                }
+                splitr(rest, Nil)
+              }
+            } else splitr(t, h :: acc)
+          case _ => if (!acc.isEmpty) addNormal(acc.reverse, terms)
+        }
+
+        comps match {
+          case h :: t =>
+            // force singleton subsequence for first component if loop (to allow for repeated loops)
+            if (loop && comps.head == h) {
+              val restIds = t.map { ident(_) }.toSet
+              val termIds = if (h.count == 1) restIds + ident(h) else restIds
+              addNormal(List(h), Terminations(reqCount(t), termIds))
+              splitr(t, Nil)
+            } else splitr(comps, Nil)
+          case _ =>
+        }
+      }
+
+      /** Recursively split sequence into subsequences based on wild card segment references. Subsequences with no wild
+        * cards are further split to handle reused segments.
+        */
+      @tailrec
+      def splitWilds(rem: CompList): Unit =
+        rem span (!_.isInstanceOf[WildcardComponent]) match {
+          case (lead, wild :: rest) =>
+            lead match {
+              case split :+ last =>
+                if (!last.isInstanceOf[ReferenceComponent] || last.usage != MandatoryUsage || last.count != 1) throw new IllegalStateException("Structure uses wildcard segment without preceding required singleton segment reference")
+                splitReuses(split, Terminations(1, Set(ident(last))))
+                addRequired(last)
+              case _ =>
+            }
+            addWild(wild.asInstanceOf[WildcardComponent])
+            splitWilds(rest)
+          case (lead, _) => splitReuses(lead, Terminations(0, Set()))
+        }
+
+      splitWilds(items)
+      val count = seqs.foldLeft(0)((sum, subsq) => sum + subsq.comps.size)
+      if (count != items.size) {
+        println(s"count $count != ${items.size}")
+      }
+      seqs.toList
+    }
+
+    /** Ordered list of subsequences in sequence. */
+    val subSequences = buildSubSequences
+
+    /** End position. */
+    val endPosition: SegmentPosition = items.last match {
+      case ref: ReferenceComponent => ref.position
+      case wrap: LoopWrapperComponent => wrap.endPosition
+      case grp: GroupComponent => grp.seq.endPosition
+      case _ => throw new IllegalStateException(s"last item in sequence is not a segment reference or group")
+    }
+  }
 
   /** Key for a structure component. */
   def componentKey(ident: String, pos: SegmentPosition) = pos.position + "_" + ident.replace(' ', '_')
@@ -231,9 +391,10 @@ object EdiSchema {
     * @param position
     * @param use
     * @param cnt
+    * @param possibles segments usable with wildcard
     */
-  case class WildcardComponent(val ident: String, pos: SegmentPosition, use: Usage, cnt: Int)
-    extends StructureComponent(componentKey(ident, pos), pos, use, cnt)
+  case class WildcardComponent(val ident: String, pos: SegmentPosition, use: Usage, cnt: Int,
+    val possibles: List[Segment]) extends StructureComponent(componentKey(ident, pos), pos, use, cnt)
 
   /** Loop wrapper component.
     * @param open
@@ -246,8 +407,8 @@ object EdiSchema {
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
     val endPosition: SegmentPosition, use: Usage, val ident: String, grp: GroupComponent)
-      extends StructureComponent(componentKey(open.ident, start), start, use, 1) {
-    val loopGroup = GroupComponent(grp.ident, grp.usage, grp.count, grp.items, grp.varkey, grp.variants, Some(key))
+    extends StructureComponent(componentKey(open.ident, start), start, use, 1) {
+    val loopGroup = GroupComponent(grp.ident, grp.usage, grp.count, grp.seq, grp.varkey, grp.variants, Some(key))
     val compsById = Map((open.ident + ident) -> ReferenceComponent(open, start, MandatoryUsage, 1),
       (close.ident + ident) -> ReferenceComponent(close, endPosition, MandatoryUsage, 1))
   }
@@ -259,10 +420,12 @@ object EdiSchema {
     * @param items
     */
   sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int, val choice: Boolean,
-      val items: List[StructureComponent]) extends StructureComponent(ky, pos, use, cnt) {
-
-    /** Components in group by segment identifier. */
-    val compsById = componentsById(items)
+    val seq: StructureSequence) extends StructureComponent(ky, pos, use, cnt) {
+    val leadSegmentRef: ReferenceComponent = seq.items match {
+      case (r: ReferenceComponent) :: t => r
+      case (g: GroupBase) :: t => g.leadSegmentRef
+      case _ => throw new IllegalStateException(s"first item in sequence is not a segment reference")
+    }
   }
 
   /** Variant of a group component. The items in a variant must be a subset of the items in the group.
@@ -272,19 +435,8 @@ object EdiSchema {
     * @param itms
     */
   case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
-    itms: List[StructureComponent])
-      extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, itms)
-
-  /** Get lead reference from list of structure components. If the first component is not a reference this recursively
-    * descends until a first component reference is found.
-    * @param ident
-    * @param comps
-    */
-  def leadReference(ident: String, comps: List[StructureComponent]): ReferenceComponent = comps match {
-    case (ref: ReferenceComponent) :: t => ref
-    case (grp: GroupBase) :: t => leadReference(ident, grp.items)
-    case _ => throw new IllegalStateException(s"first item in group $ident is not a segment reference")
-  }
+    ssq: StructureSequence)
+    extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, ssq)
 
   /** Group component consisting of one or more nested components.
     * @param ident group identifier
@@ -295,22 +447,11 @@ object EdiSchema {
     * @param variants group variant forms
     * @param ky explicit key value (ident used by default)
     */
-  case class GroupComponent(val ident: String, use: Usage, cnt: Int, itms: List[StructureComponent],
-    val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None,
+  case class GroupComponent(val ident: String, use: Usage, cnt: Int, ssq: StructureSequence, val varkey: Option[String],
+    val variants: List[VariantGroup], ky: Option[String] = None,
     pos: Option[SegmentPosition] = None, ch: Boolean = false)
-      extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(leadReference(ident, itms).position))),
-        pos.getOrElse(leadReference(ident, itms).position), use, cnt, ch, itms) {
-
-    /** Group head segment reference. */
-    val leadSegmentRef = leadReference(ident, items)
-
-    /** End position. */
-    val endPosition: SegmentPosition = itms.last match {
-      case ref: ReferenceComponent => ref.position
-      case wrap: LoopWrapperComponent => wrap.endPosition
-      case grp: GroupComponent => grp.endPosition
-      case _ => throw new IllegalStateException(s"last item in group $ident is not a segment reference or group")
-    }
+    extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(ssq.startPos))),
+      pos.getOrElse(ssq.startPos), use, cnt, ch, ssq) {
 
     /** Group variants by key value. */
     val varbyval = Map(variants map { v => (v.elemval, v) }: _*)
@@ -325,19 +466,24 @@ object EdiSchema {
     * @param summary
     * @param version
     */
-  case class Structure(val ident: String, val name: String, val group: Option[String],
-      val heading: List[StructureComponent], val detail: List[StructureComponent],
-      val summary: List[StructureComponent], val version: EdiSchemaVersion) {
+  case class Structure(val ident: String, val name: String, val group: Option[String], val heading: Option[StructureSequence],
+    val detail: Option[StructureSequence], val summary: Option[StructureSequence], val version: EdiSchemaVersion) {
 
     /** Segments used in structure. */
     val segmentsUsed = {
-      def referencer(comps: List[StructureComponent], segments: Set[Segment]): Set[Segment] =
-        comps.foldLeft(segments)((acc, comp) => comp match {
+      def referencer(seq: StructureSequence, segments: Set[Segment]): Set[Segment] =
+        seq.items.foldLeft(segments)((acc, comp) => comp match {
           case ref: ReferenceComponent => acc + ref.segment
-          case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.items, acc) + wrap.open + wrap.close
-          case group: GroupComponent => referencer(group.items, acc)
+          case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.seq, acc + wrap.open + wrap.close)
+          case group: GroupComponent => referencer(group.seq, acc)
+          case _ => acc
         })
-      referencer(summary, referencer(detail, referencer(heading, Set[Segment]())))
+      def tableRefs(seqopt: Option[StructureSequence], segments: Set[Segment]): Set[Segment] = seqopt match {
+        case Some(seq) => referencer(seq, segments)
+        case None => segments
+      }
+
+      tableRefs(summary, tableRefs(detail, tableRefs(heading, Set[Segment]())))
     }
 
     /** Composites used in structure. */
@@ -362,18 +508,23 @@ object EdiSchema {
 
     /** Ids of all segments used in structure at any level. */
     val segmentIds = segmentsUsed.map(segment => segment.ident)
-
-    /** Top-level components in heading by segment id. */
-    val headingById = componentsById(heading)
-
-    /** Top-level components in detail by segment id. */
-    val detailById = componentsById(detail)
-
-    /** Top-level components in summary by segment id. */
-    val summaryById = componentsById(summary)
-
-    /** All top-level components in structure. */
-    val compsById = headingById ++ detailById ++ summaryById
+    
+    private def terms(section: Option[StructureSequence]): Set[String] = section match {
+      case Some(seq) => {
+        @tailrec
+        def termr(rem: List[StructureComponent], acc: Set[String]): Set[String] = rem match {
+          case h :: t =>
+            val nacc = acc + EdiSchema.ident(h)
+            if (h.usage == MandatoryUsage) nacc else termr(t, nacc)
+          case _ => acc
+        }
+        termr(seq.items, Set())
+      }
+      case None => Set()
+    }
+    
+    val detailTerms = Terminations(0, terms(detail))
+    val summaryTerms = Terminations(0, terms(summary))
   }
 
   type StructureMap = Map[String, Structure]
@@ -387,7 +538,8 @@ object EdiSchema {
     def keyName(parentId: String, position: Int): String
   }
   case object EdiFact extends EdiForm("EDIFACT") {
-    def isEnvelopeSegment(ident: String) = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS") contains ident
+    val envelopeSegs = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS")
+    def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "UGH"
     val loopWrapperEnd = "UGT"
     def keyName(parentId: String, position: Int) = {
@@ -397,7 +549,8 @@ object EdiSchema {
     }
   }
   case object X12 extends EdiForm("X12") {
-    def isEnvelopeSegment(ident: String) = Set("ISA", "IEA", "GS", "GE", "ST", "SE") contains ident
+    val envelopeSegs = Set("ISA", "IEA", "GS", "GE", "ST", "SE")
+    def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "LS"
     val loopWrapperEnd = "LE"
     def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
@@ -419,8 +572,8 @@ object EdiSchema {
 case class EdiSchemaVersion(val ediForm: EdiSchema.EdiForm, val version: String)
 
 case class EdiSchema(val ediVersion: EdiSchemaVersion, val elements: Map[String, EdiSchema.Element],
-    val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
-    val structures: EdiSchema.StructureMap) {
+  val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
+  val structures: EdiSchema.StructureMap) {
   def this(ver: EdiSchemaVersion) = this(ver, Map[String, EdiSchema.Element](),
     Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Structure]())
   def merge(other: EdiSchema) = EdiSchema(ediVersion, elements ++ other.elements, composites ++ other.composites,

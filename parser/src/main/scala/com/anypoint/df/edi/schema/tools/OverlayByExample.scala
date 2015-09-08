@@ -153,7 +153,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       segments.foldLeft(List[StructureModification]())((acc, comp) => comp match {
         case group: GroupComponent =>
           if (data.containsKey(comp.key)) {
-            val nested = structureMods(group.items, getRequiredValueMap(comp.key, data))
+            val nested = structureMods(group.seq.items, getRequiredValueMap(comp.key, data))
             if (nested.isEmpty) acc
             else ModifyLoop(group.ident, group.position.position, nested) :: acc
           } else DropSegment(group.ident, group.position.position) :: acc
@@ -174,7 +174,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       def collectr(segments: List[StructureComponent], data: ValueMap, segmaps: SegmentKeys): SegmentKeys =
         segments.foldLeft(segmaps)((acc, comp) => comp match {
           case group: GroupComponent =>
-            if (data.containsKey(comp.key)) collectr(group.items, getRequiredValueMap(comp.key, data), acc)
+            if (data.containsKey(comp.key)) collectr(group.seq.items, getRequiredValueMap(comp.key, data), acc)
             else acc
           case wrap: LoopWrapperComponent =>
             if (data.containsKey(comp.key)) collectr(wrap.loopGroup :: Nil, getRequiredValueMap(comp.key, data), acc)
@@ -214,6 +214,11 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
           }
         }
       }.reverse
+      
+    def sectionItems(optseq: Option[StructureSequence]): List[StructureComponent] = optseq match {
+      case Some(seq) => seq.items
+      case None => Nil
+    }
 
     // merge structure data from all documents into a single map structure (excluding 997s, since those are fixed)
     val merged = new ValueMapImpl
@@ -243,13 +248,16 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
         val transact = schema.structures(key)
         println(map)
         val headmap = map.get(structureHeading).asInstanceOf[ValueMap]
-        val headmods = structureMods(transact.heading, headmap)
+        val headmods = structureMods(sectionItems(transact.heading), headmap)
         val detailmap = map.get(structureDetail).asInstanceOf[ValueMap]
-        val detailmods = structureMods(transact.detail, detailmap)
+        val detailmods = structureMods(sectionItems(transact.detail), detailmap)
         val summarymap = map.get(structureSummary).asInstanceOf[ValueMap]
-        val summarymods = structureMods(transact.summary, summarymap)
-        if (headmods.nonEmpty || detailmods.nonEmpty || summarymods.nonEmpty) buffer += StructureChanges(transact.ident, headmods, detailmods, summarymods)
-        collectSegments(transact.summary, summarymap, collectSegments(transact.detail, detailmap, collectSegments(transact.heading, headmap, acc)))
+        val summarymods = structureMods(sectionItems(transact.summary), summarymap)
+        if (headmods.nonEmpty || detailmods.nonEmpty || summarymods.nonEmpty)
+          buffer += StructureChanges(transact.ident, headmods, detailmods, summarymods)
+        collectSegments(sectionItems(transact.summary), summarymap,
+            collectSegments(sectionItems(transact.detail), detailmap,
+            collectSegments(sectionItems(transact.heading), headmap, acc)))
       }
     }
     segmaps.foreach{ case (segment, idset) => println(s"segment ${segment.ident} => " + idset) }
