@@ -60,7 +60,7 @@ object Decode999 extends SchemaJavaDefs {
                 val ik3data = getRequiredValueMap(groupIK3Keys(0), map)
                 builder ++= s"  Segment ${getRequiredString(segIK3Comps(0) key, ik3data)} at position ${getRequiredInt(segIK3.components(1) key, ik3data)}"
                 applyIfPresent[String](segIK3Comps(2) key, ik3data, value => builder ++= s" (loop $value)")
-                applyIfPresent[String](segIK3Comps(3) key, ik3data, value => builder ++= s" has syntax error ${SegmentSyntaxErrors(value)}")
+                applyIfPresent[String](segIK3Comps(3) key, ik3data, value => builder ++= s" has syntax error ${SegmentSyntaxErrors(value).text}")
                 builder ++= "\n"
                 applyIfPresent[MapList](groupIK3Keys(1), map, list =>
                   foreachMapInList(list, { ik4data =>
@@ -68,7 +68,7 @@ object Decode999 extends SchemaJavaDefs {
                       builder ++= "  "
                       decodeC030(segIK4Comps(0), ik4data)
                       applyIfPresent[Integer](segIK4Comps(1) key, ik4data, value => builder ++= s" (reference $value)")
-                      builder ++= s" error  ${ElementSyntaxErrors(getRequiredString(segIK4Comps(2) key, ik4data))}"
+                      builder ++= s" error  ${ElementSyntaxErrors(getRequiredString(segIK4Comps(2) key, ik4data)).text}"
                       applyIfPresent[Integer](segIK4Comps(3) key, ik4data, value => builder ++= s" (data '$value'')")
                       builder ++= "\n"
                     }
@@ -76,21 +76,21 @@ object Decode999 extends SchemaJavaDefs {
               }
             }))
           val ik5data = getRequiredValueMap(groupAK2_999Keys(2), map)
-          builder ++= s" Structure ${TransactionAcknowledgmentCodes(getRequiredString(segIK5Comps(0) key, ik5data))}\n"
+          builder ++= s" Structure ${TransactionAcknowledgmentCodes(getRequiredString(segIK5Comps(0) key, ik5data)).text}\n"
           applyIfPresent[String](segIK5Comps(1) key, ik5data, value => {
             builder ++= " Error codes: "
             (1 to 5) foreach (i => applyIfPresent[String](segIK5Comps(i).key, ik5data,
-              value => builder ++= s" ${TransactionSyntaxErrors(value)}"))
+              value => builder ++= s" ${TransactionSyntaxErrors(value).text}"))
             builder ++= "\n"
           })
         }
       }))
     val ak9data = getRequiredValueMap(trans999Keys(3), ackhead)
-    builder ++= s"Group result: ${GroupAcknowledgmentCodes(getRequiredString(segAK9Comps(0) key, ak9data))}, contained ${getRequiredInt(segAK9.components(1) key, ak9data)} structure set(s) with ${getRequiredInt(segAK9.components(2) key, ak9data)} received and ${getRequiredInt(segAK9.components(3) key, ak9data)} accepted\n"
+    builder ++= s"Group result: ${GroupAcknowledgmentCodes(getRequiredString(segAK9Comps(0) key, ak9data)).text}, contained ${getRequiredInt(segAK9.components(1) key, ak9data)} structure set(s) with ${getRequiredInt(segAK9.components(2) key, ak9data)} received and ${getRequiredInt(segAK9.components(3) key, ak9data)} accepted\n"
     applyIfPresent[String](segAK9Comps(4) key, ak9data, value => {
       builder ++= " Error codes: "
       (4 to 8) foreach (i => applyIfPresent[String](segAK9Comps(i).key, ak9data,
-        value => builder ++= s" ${GroupSyntaxErrors(value)}"))
+        value => builder ++= s" ${GroupSyntaxErrors(value).text}"))
       builder ++= "\n"
     })
     builder toString

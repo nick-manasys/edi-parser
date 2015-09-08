@@ -228,7 +228,8 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
       val parser = new X12InterchangeParser(is, ASCII_CHARSET, new DefaultX12EnvelopeHandler(config, schema))
       parser.parse match {
         case Success(x) => {
-          val transacts = x.get(transactionsMap).asInstanceOf[ValueMap]
+          val vermap = x.get(transactionsMap).asInstanceOf[ValueMap]
+          val transacts = vermap.get(schema.ediVersion.versionKey).asInstanceOf[ValueMap]
           transacts.remove("997")
           stripMeta(transacts)
           println(transacts)

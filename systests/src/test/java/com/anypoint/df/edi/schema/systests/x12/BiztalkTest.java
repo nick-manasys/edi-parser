@@ -35,13 +35,15 @@ public class BiztalkTest extends X12TestBase {
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
         Map<String, Object> transmap = (Map<String, Object>)result.get(X12SchemaDefs.transactionsMap());
         assertNotNull(transmap);
-        List<Map<String, Object>> translist = (List<Map<String, Object>>)transmap.get("850");
+        Map<String, Object> versionmap = (Map<String, Object>)transmap.get("v005010");
+        assertNotNull(versionmap);
+        List<Map<String, Object>> translist = (List<Map<String, Object>>)versionmap.get("850");
         assertNotNull(translist);
         assertEquals(1, translist.size());
         Map<String, Object> transset = translist.get(0);
         Map<String, Object> heading = (Map<String, Object>)transset.get(SchemaJavaValues.structureHeading());
         assertNotNull(heading);
-        Map<String, Object> begseg = (Map<String, Object>)heading.get("0200 BEG");
+        Map<String, Object> begseg = (Map<String, Object>)heading.get("0200_BEG");
         assertNotNull(begseg);
         Calendar calendar = (Calendar)begseg.get("BEG05");
         assertNotNull(calendar);
@@ -56,7 +58,9 @@ public class BiztalkTest extends X12TestBase {
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
         Map<String, Object> transmap = (Map<String, Object>)result.get(X12SchemaDefs.transactionsMap());
         assertNotNull(transmap);
-        List<Map<String, Object>> translist = (List<Map<String, Object>>)transmap.get("850");
+        Map<String, Object> versionmap = (Map<String, Object>)transmap.get("v005010");
+        assertNotNull(versionmap);
+        List<Map<String, Object>> translist = (List<Map<String, Object>>)versionmap.get("850");
         assertNotNull(translist);
         assertEquals(1, translist.size());
         Map<String, Object> transset = translist.get(0);

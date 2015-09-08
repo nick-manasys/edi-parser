@@ -104,7 +104,7 @@ object X12SchemaDefs {
   val interUsageIndicatorKey = ISASegment.components(14).key
   val interCompSepKey = ISASegment.components(15).key
 
-  // value keys for GS segment
+  // value keys for IEA segment
   val interNumberGroupsIncludedKey = IEASegment.components(0).key
   val interControlNumberTrailerKey = IEASegment.components(1).key
 

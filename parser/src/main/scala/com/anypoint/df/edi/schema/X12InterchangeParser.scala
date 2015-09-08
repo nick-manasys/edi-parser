@@ -76,7 +76,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     /** Flag for currently in a transaction. */
     var inStructure = false
 
-    /** Flag for transaction to be rejected because of errors. */
+    /** Flag for group or transaction to be rejected because of errors. */
     var rejectStructure = false
 
     /** Current segment reference, used in error reporting. */
@@ -111,12 +111,6 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** One or more segments of transaction in error flag. */
     var oneOrMoreSegmentsInError = false
-
-    /** Interchange note code. */
-    var interchangeNote: InterchangeNoteCode = null
-
-    /** Interchange acknowledgment code. */
-    var interchangeAck: InterchangeAcknowledgmentCode = null
 
     /** Accumulated data errors (as AK4/Group IK4 maps) from segment. */
     val dataErrors = Buffer[ValueMap]()
@@ -183,8 +177,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** Accumulate element error, failing transaction if severe. */
     def addElementError(error: ElementSyntaxError) = {
-      val fatal = checkFatal(error)
       if (inStructure) {
+        val fatal = checkFatal(error)
         logErrorInStructure(fatal, true, error.text)
         if (fatal) rejectStructure = true
         val comp = currentSegment.components(lexer.getElementNumber)
@@ -206,8 +200,11 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
             dataErrors += ik4Group
           } else dataErrors += xk4
         }
-      } else if (inGroup) logStructureEnvelopeError(true, true, error.text)
-      else logGroupEnvelopeError(false, true, error.text)
+      } else {
+        if (error == MissingRequiredElement) rejectStructure = true
+        if (inGroup) logStructureEnvelopeError(true, true, error.text)
+        else logGroupEnvelopeError(false, true, error.text)
+      }
     }
 
     /** Report a repetition error on a composite component. */
@@ -486,11 +483,12 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     def parseInterchangeGroups = {
       lexer.setHandler(X12ErrorHandler)
-      var errored = false
+      rejectStructure = false
       while (isGroupOpen) {
         val group = openGroup
-        val groupErr = handler.handleGs(group)
-        if (groupErr == null) {
+        if (rejectStructure) throw new X12InterchangeException(InterchangeInvalidContent, "invalid GH segment")
+        else {
+          val groupErr = handler.handleGs(group)
           groupStartSegment = lexer.getSegmentNumber - 2
           groupNumber = getRequiredInt(groupControlNumberHeaderKey, group)
           val version = getRequiredString(groupVersionReleaseIndustryKey, group)
@@ -508,9 +506,16 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           ackhead put (ackTransKeys(config generate999)(1), ak1data)
           ak1data put (segAK1Comps(0) key, group get (groupFunctionalIdentifierKey))
           ak1data put (segAK1Comps(1) key, group get (groupControlNumberHeaderKey))
-          if (version.startsWith("005010")) ak1data put (segAK1Comps(2) key, version)
-          parseGroup(group, version, ackhead)
-          val countPresent = closeGroup(group)
+          if (version.startsWith("005")) ak1data put (segAK1Comps(2) key, version)
+          var countPresent = 0
+          if (groupErr == null) {
+            parseGroup(group, version, ackhead)
+            countPresent = closeGroup(group)
+          } else {
+            groupError(groupErr)
+            discardToGroupEnd
+            discardSegment
+          }
           val ak9data = new ValueMapImpl
           val error = ackhead.containsKey(segAK2 ident)
           ackhead put (ackTransKeys(config generate999)(3), ak9data)
@@ -526,14 +531,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           val limit = math.min(segAK9.components.length - 5, groupErrors.length)
           (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
           if (getRequiredString(groupFunctionalIdentifierKey, group) != "FA") funcAckList add (ackroot)
-        } else {
-          groupError(groupErr)
-          errored = true
-          discardToGroupEnd
-          discardSegment
         }
       }
-      if (errored) throw X12InterchangeException(InterchangeInvalidContent, "One or more groups missing identification")
     }
 
     /** Parse all content of an interchange.
@@ -551,14 +550,6 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           else new MapListImpl
         while (lexer.token == "TA1") receiveTA1s add parseSegment(segTA1, SegmentPosition(0, ""))
         root put (interchangeAcksReceived, receiveTA1s)
-      }
-      if (isGroupOpen) {
-        interchangeAck = AcknowledgedWithErrors
-        parseInterchangeGroups
-      }
-      if (lexer.currentType == END) {
-        logger.error("end of file with missing IEA")
-        throw X12InterchangeException(InterchangeEndOfFile, "end of file with missing IEA")
       }
     }
   }
@@ -635,6 +626,12 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
               map put (delimiterCharacters, buildDelims)
               val parser = new X12SchemaParser(config, inter, map)
               parser.parseInterchange
+              interchangeAck = AcknowledgedWithErrors
+              if (parser.isGroupOpen) parser.parseInterchangeGroups
+              if (lexer.currentType == END) {
+                logger.error("end of file with missing IEA")
+                throw X12InterchangeException(InterchangeEndOfFile, "end of file with missing IEA")
+              }
               if (checkSegment("IEA")) {
                 LexerEndStatusInterchangeNote get term(inter) match {
                   case Some(code) => {

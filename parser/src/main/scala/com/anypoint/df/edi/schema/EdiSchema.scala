@@ -536,6 +536,9 @@ object EdiSchema {
 
     /** Construct data value key name from parent identifier and position value. */
     def keyName(parentId: String, position: Int): String
+    
+    /** Create key for version in data maps. */
+    def versionKey(version: String): String
   }
   case object EdiFact extends EdiForm("EDIFACT") {
     val envelopeSegs = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS")
@@ -547,6 +550,7 @@ object EdiSchema {
       if (position < 100) parentId + "0" + scaled.toString
       else parentId + scaled.toString
     }
+    def versionKey(version: String) = version.toUpperCase
   }
   case object X12 extends EdiForm("X12") {
     val envelopeSegs = Set("ISA", "IEA", "GS", "GE", "ST", "SE")
@@ -554,12 +558,14 @@ object EdiSchema {
     val loopWrapperStart = "LS"
     val loopWrapperEnd = "LE"
     def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def versionKey(version: String) = "v" + version
   }
   case object HL7 extends EdiForm("HL7") {
     def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, position: Int) = parentId + "-" + (if (position < 10) "0" + position else position)
+    def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
   }
   def convertEdiForm(value: String) = value match {
     case EdiFact.text => EdiFact
@@ -569,7 +575,9 @@ object EdiSchema {
   }
 }
 
-case class EdiSchemaVersion(val ediForm: EdiSchema.EdiForm, val version: String)
+case class EdiSchemaVersion(val ediForm: EdiSchema.EdiForm, val version: String) {
+  def versionKey = ediForm.versionKey(version)
+}
 
 case class EdiSchema(val ediVersion: EdiSchemaVersion, val elements: Map[String, EdiSchema.Element],
   val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],

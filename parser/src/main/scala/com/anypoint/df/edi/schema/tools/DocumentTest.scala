@@ -7,10 +7,7 @@ import scala.collection.mutable.Set
 import scala.util.{ Failure, Success }
 
 import com.anypoint.df.edi.lexical.EdiConstants._
-import com.anypoint.df.edi.lexical.X12Constants._
-import com.anypoint.df.edi.lexical.EdifactConstants._
 import com.anypoint.df.edi.schema._
-import com.anypoint.df.edi.schema.EdifactSchemaDefs._
 
 class DefaultX12NumberProvider extends X12NumberProvider {
   var interNum = 0
@@ -104,6 +101,7 @@ class DefaultEdifactEnvelopeHandler(config: EdifactParserConfig, schema: EdiSche
     with SchemaJavaDefs {
 
   import EdifactAcknowledgment._
+  import EdifactSchemaDefs._
 
   var groupRefs = Set[String]()
   var msgRefs = Set[String]()
@@ -176,15 +174,15 @@ sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs
 }
 
 case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends DocumentTest(es) {
+  
+  import com.anypoint.df.edi.lexical.X12Constants._
 
   def this(sch: EdiSchema, ack999: Boolean) = this(sch, X12ParserConfig(true, true, true, true, true, true, true, true,
-    ack999, -1, CharacterRestriction.EXTENDED))
+    ack999, -1, com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction.EXTENDED))
 
   import com.anypoint.df.edi.schema.SchemaJavaValues._
   import com.anypoint.df.edi.schema.X12Acknowledgment._
   import com.anypoint.df.edi.schema.X12SchemaDefs._
-
-  val transactionListKey = s"v${es.ediVersion.version}"
 
   /** Parse input message, reporting if any errors are found. */
   def parse(is: InputStream): ValueMap = {
@@ -197,11 +195,13 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
 
   /** Prepare input message for output, reversing the sender and receiver values. */
   def prepareOutput(map: ValueMap) = {
-    val group = getRequiredValueMap(groupKey, map)
-    val inter = getRequiredValueMap(interchangeKey, map)
-    swap(SENDER_ID_QUALIFIER, RECEIVER_ID_QUALIFIER, inter)
-    swap(SENDER_ID, RECEIVER_ID, inter)
-    swap(groupApplicationSenderKey, groupApplicationReceiverKey, group)
+    val inter = getAsMap(interchangeKey, map)
+    if (inter != null) {
+        swap(SENDER_ID_QUALIFIER, RECEIVER_ID_QUALIFIER, inter)
+        swap(SENDER_ID, RECEIVER_ID, inter)
+    }
+    val group = getAsMap(groupKey, map)
+    if (group != null) swap(groupApplicationSenderKey, groupApplicationReceiverKey, group)
   }
 
   /** Regenerate parsed document by writing map to output. This should give a document identical to the input, except
@@ -212,7 +212,6 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     if (!map.containsKey(interchangeKey)) map put (interchangeKey, new ValueMapImpl)
     val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
     val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, config)
-    val transacts = getRequiredValueMap(transactionListKey, map)
     writer.write(map).get
     os.toString
   }
@@ -220,16 +219,23 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
   /** Write 997/999 acknowledgement information from parse as output document. */
   def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val wconfig = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
-    val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, wconfig)
-    val outmap = new ValueMapImpl(map)
-    val structures = new ValueMapImpl
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
-    val ackcode = if (config generate999) "999" else "997"
-    structures put (ackcode, acks)
-    outmap put (transactionListKey, structures)
-    if (!outmap.containsKey(interchangeKey)) outmap put (interchangeKey, new ValueMapImpl)
-    writer.write(outmap).get
+    if (acks.size > 0) {
+      val wconfig = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET,
+        getRequiredString(delimiterCharacters, map), null)
+      val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, wconfig)
+      val outmap = new ValueMapImpl(map)
+      val versions = new ValueMapImpl
+      val ackcode = if (config generate999) "999" else "997"
+      val structures = new ValueMapImpl
+      val group = getAs(groupKey, getRequiredValueMap(groupKey, acks.get(0)), map)
+      val verkey = schema.ediVersion.ediForm.versionKey(getRequiredString(groupVersionReleaseIndustryKey, group).take(6))
+      versions put (verkey, structures)
+      structures put (ackcode, acks)
+      outmap put (transactionsMap, versions)
+      if (!outmap.containsKey(interchangeKey)) outmap put (interchangeKey, new ValueMapImpl)
+      writer.write(outmap).get
+    }
     os.toString
   }
 
@@ -246,6 +252,9 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
 }
 
 case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) extends DocumentTest(es) {
+  
+  import com.anypoint.df.edi.lexical.EdifactConstants._
+  import com.anypoint.df.edi.schema.EdifactSchemaDefs._
 
   def this(sch: EdiSchema) = this(sch, EdifactParserConfig(true, true, true, true, true, true, true, false, -1))
 

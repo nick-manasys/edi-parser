@@ -32,7 +32,7 @@ public class TA1Test extends X12TestBase
             parseAndReturnInterchangeAcks("/x12/005010/ta1-tests/850-interchange-count-error.edi"));
         assertEquals("TA1*123456789*150106*1201*E*001~TA1*223456790*150106*1201*A*000~",
             parseAndReturnInterchangeAcks("/x12/005010/ta1-tests/850-interchange-number-mismatch.edi"));
-        assertEquals("TA1*123456789*150106*1201*R*022~TA1*223456790*150106*1201*A*000~",
+        assertEquals("TA1*123456789*150106*1201*E*022~TA1*223456790*150106*1201*A*000~",
             parseAndReturnInterchangeAcks("/x12/005010/ta1-tests/850-missing-group-header.edi"));
         assertEquals("TA1*123456789*150106*1201*A*000~TA1*223456790*150106*1201*A*000~",
             parseAndReturnInterchangeAcks("/x12/005010/ta1-tests/850-missing-group-trailer.edi"));

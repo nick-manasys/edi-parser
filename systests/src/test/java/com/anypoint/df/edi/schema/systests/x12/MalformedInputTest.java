@@ -52,6 +52,8 @@ public class MalformedInputTest extends X12TestBase {
         assertNotNull(acks);
         assertTrue(acks.size() > 0);
         String text = Decode997.decode(acks.get(0));
+        System.out.println(text);
+        System.out.println("matching '" + expected997 + "'");
         assertTrue(text.contains(expected997));
 	}
 

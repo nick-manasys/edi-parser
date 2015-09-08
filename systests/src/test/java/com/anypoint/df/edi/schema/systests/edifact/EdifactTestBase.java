@@ -6,7 +6,6 @@ import static org.junit.Assert.assertFalse;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -14,12 +13,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.anypoint.df.edi.schema.SchemaJavaValues;
-import com.anypoint.df.edi.schema.EdifactIdentityInformation;
 import com.anypoint.df.edi.schema.EdifactParserConfig;
 import com.anypoint.df.edi.schema.EdifactSchemaDefs;
 import com.anypoint.df.edi.schema.EdiSchema.*;
 import com.anypoint.df.edi.schema.systests.TestBase;
-import com.anypoint.df.edi.schema.systests.YamlSupport;
 import com.anypoint.df.edi.schema.tools.DecodeContrl;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestEdifact;
@@ -241,29 +238,6 @@ public abstract class EdifactTestBase extends TestBase {
         DocumentTest test = new DocumentTestEdifact(schema);
         return parseAndReturnAck(test, is);
     }
-
-    /**
-     * Parse a document with sender identity information specified.
-     * 
-     * @param inputFilePath
-     * @param interchangeId
-     * @param interchangeQualifier
-     * @return acknowledgment
-     */
-    protected String parseWithSenderIdentityInformation(String inputFilePath, String interchangeId,
-        String interchangeQualifier) {
-        EdifactIdentityInformation identity =
-            new EdifactIdentityInformation(interchangeId, interchangeQualifier, null, null);
-        EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, false, -1, null,
-            new EdifactIdentityInformation[0], new EdifactIdentityInformation[] { identity });
-
-        DocumentTest test = new DocumentTestEdifact(schema, config);
-        InputStream is = EdifactTestBase.class.getResourceAsStream(inputFilePath);
-        Map<String, Object> result = test.parse(is);
-        test.prepareOutput(result);
-        printAcknowledgments(result);
-        return test.printAck(result);
-    }
     
     /**
      * Write document as string.
@@ -272,8 +246,7 @@ public abstract class EdifactTestBase extends TestBase {
      * @return text
      */
     public String testWrite(Map<String, Object> map) {
-        EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, false, -1, null,
-            new EdifactIdentityInformation[0], new EdifactIdentityInformation[0]);
+        EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, false, -1);
         DocumentTest test = new DocumentTestEdifact(schema, config);
         return test.printDoc(map);
     }
