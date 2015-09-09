@@ -215,7 +215,7 @@ object EdiSchema {
     */
   case class StructureSubsequence(val startPos: String, val comps: Map[String, StructureComponent],
     val terms: Terminations, val groupTerms: Map[GroupComponent, Terminations]) {
-//    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
+    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms [${terms.required} required]: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
   }
 
   /** Termination segment identifiers for group.
@@ -275,11 +275,15 @@ object EdiSchema {
           case ((cnt, ids, acc), comp) =>
             val ncnt = if (comp.usage == MandatoryUsage) cnt + 1 else cnt
             val nids = ids + ident(comp)
+//            if (comp.key == "3050_PKG_Loop") {
+//              println
+//            }
             comp match {
               case g: GroupComponent => (ncnt, nids, acc + (g -> Terminations(cnt, ids + ident(g.leadSegmentRef))))
               case _ => (ncnt, nids, acc)
             }
         }
+        grps.foreach { case (grp, terms) => println(s"group ${grp.ident} has terms (${terms.required} required): ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})") }
         seqs += StructureSubsequence(incl.head.position.position, comps, terms, grps)
       }
       def addWild(wild: WildcardComponent) = {
@@ -308,8 +312,7 @@ object EdiSchema {
             val id = ident(h)
             if ((reusedSegments.contains(id) && t.exists { ident(_) == id })) {
               val (seq, rest) = findreq(t, h :: acc)
-              // TODO: for empty case, should still split off head as separate subsequence
-              if (rest.isEmpty) splitr(t, h :: acc)
+              if (rest.isEmpty) splitHead(h, t)
               else {
                 if (acc.nonEmpty) {
                   val termIds = rest.map { ident(_) }.toSet
@@ -321,16 +324,18 @@ object EdiSchema {
             } else splitr(t, h :: acc)
           case _ => if (!acc.isEmpty) addNormal(acc.reverse, terms)
         }
+        def splitHead(head: StructureComponent, rest: CompList) = {
+          val restIds = rest.map { ident(_) }.toSet
+          val termIds = if (head.count == 1) restIds + ident(head) else restIds
+          addNormal(List(head), Terminations(reqCount(rest), termIds))
+          splitr(rest, Nil)
+        }
 
         comps match {
           case h :: t =>
-            // force singleton subsequence for first component if loop (to allow for repeated loops)
-            if (loop && comps.head == h) {
-              val restIds = t.map { ident(_) }.toSet
-              val termIds = if (h.count == 1) restIds + ident(h) else restIds
-              addNormal(List(h), Terminations(reqCount(t), termIds))
-              splitr(t, Nil)
-            } else splitr(comps, Nil)
+            // force singleton subsequence for first component in loop (to allow for repeated loops)
+            if (loop && comps.head == h) splitHead(h, t)
+            else splitr(comps, Nil)
           case _ =>
         }
       }
@@ -355,10 +360,11 @@ object EdiSchema {
         }
 
       splitWilds(items)
-      val count = seqs.foldLeft(0)((sum, subsq) => sum + subsq.comps.size)
-      if (count != items.size) {
-        println(s"count $count != ${items.size}")
-      }
+      // TODO: check if any problems here
+//      val count = seqs.foldLeft(0)((sum, subsq) => sum + subsq.comps.size)
+//      if (count != items.size) {
+//        println(s"count $count != ${items.size}")
+//      }
       seqs.toList
     }
 

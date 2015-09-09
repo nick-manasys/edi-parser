@@ -271,9 +271,11 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.token}'")
     map
   }
+  
+  def segmentNumber = errorSegmentNumber
 
   /** Report segment error. */
-  def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState) = {
+  def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState, num: Int) = {
     def addError(fatal: Boolean, error: SyntaxError) = {
       logErrorInMessage(fatal, false, s"${error.text}: $ident")
       if (fatal) rejectMessage = true
@@ -289,11 +291,10 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, NotSupportedInPosition)
     }
     state match {
-      case ErrorStates.ParseComplete =>
-        handleSegmentErrors(errorSegmentNumber)
+      case ErrorStates.ParseComplete => handleSegmentErrors(num)
       case ErrorStates.WontParse =>
         discardSegment
-        handleSegmentErrors(errorSegmentNumber)
+        handleSegmentErrors(num)
       case _ =>
     }
   }

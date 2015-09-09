@@ -307,10 +307,13 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val outmap = new ValueMapImpl
     outmap put (interchangeKey, map.get(interchangeKey))
-    val structures = new ValueMapImpl
+    val versions = getOrSet(messagesMap, new ValueMapImpl, outmap)
+    val header = getRequiredValueMap(messageHeaderKey, map)
+    val verkey = getRequiredString(msgHeadMessageVersionKey, header) +
+      getRequiredString(msgHeadMessageReleaseKey, header)
+    val structures = getOrSet(verkey, new ValueMapImpl, versions)
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     structures put ("CONTRL", acks)
-    outmap put (messagesMap, structures)
     writer.write(outmap).get
     os.toString
   }

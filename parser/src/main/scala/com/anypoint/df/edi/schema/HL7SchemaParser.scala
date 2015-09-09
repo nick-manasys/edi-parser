@@ -154,9 +154,11 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
     if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.token}'")
     map
   }
+  
+  def segmentNumber = lexer.getSegmentNumber + 1
 
   /** Report segment error. */
-  def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState) = {
+  def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState, num: Int) = {
     def addError(fatal: Boolean, error: ErrorCode, text: String) = {
       logErrorInMessage(fatal, false, s"$text: $ident")
       if (fatal) acknowledgmentCode = AcknowledgedApplicationReject

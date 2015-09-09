@@ -263,9 +263,11 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.token}'")
       map
     }
+    
+    def segmentNumber = lexer.getSegmentNumber - transactionStartSegment + 1
 
     /** Report segment error. */
-    def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState) = {
+    def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState, num: Int) = {
       def addError(fatal: Boolean, error: SegmentSyntaxError) = {
         oneOrMoreSegmentsInError = true
         if (config.reportDataErrors) {
@@ -275,7 +277,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           xk3 put (xk3Keys(0), xk3data)
           val xk3Comps = segXK3Comps(config generate999)
           xk3data put (xk3Comps(0) key, ident)
-          xk3data put (xk3Comps(1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
+          xk3data put (xk3Comps(1) key, Integer.valueOf(num))
           if (loopStack.nonEmpty) xk3data put (xk3Comps(2) key, loopStack.top.ident)
           xk3data put (xk3Comps(3) key, error.code.toString)
           segmentErrors += xk3
