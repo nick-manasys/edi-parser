@@ -207,7 +207,7 @@ object EdiSchema {
   private def ident(comp: StructureComponent) = comp match {
     case r: ReferenceComponent => r.segment.ident
     case g: GroupBase => g.leadSegmentRef.segment.ident
-    case w: LoopWrapperComponent => w.open.ident
+    case w: LoopWrapperComponent => w.startCode
   }
 
   /** Subsequence of structure components with no segments reused. The segments are mapped so they can be processed in
@@ -215,7 +215,7 @@ object EdiSchema {
     */
   case class StructureSubsequence(val startPos: String, val comps: Map[String, StructureComponent],
     val terms: Terminations, val groupTerms: Map[GroupComponent, Terminations]) {
-    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms [${terms.required} required]: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
+//    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms [${terms.required} required]: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
   }
 
   /** Termination segment identifiers for group.
@@ -275,15 +275,12 @@ object EdiSchema {
           case ((cnt, ids, acc), comp) =>
             val ncnt = if (comp.usage == MandatoryUsage) cnt + 1 else cnt
             val nids = ids + ident(comp)
-//            if (comp.key == "3050_PKG_Loop") {
-//              println
-//            }
             comp match {
               case g: GroupComponent => (ncnt, nids, acc + (g -> Terminations(cnt, ids + ident(g.leadSegmentRef))))
               case _ => (ncnt, nids, acc)
             }
         }
-        grps.foreach { case (grp, terms) => println(s"group ${grp.ident} has terms (${terms.required} required): ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})") }
+//        grps.foreach { case (grp, terms) => println(s"group ${grp.ident} has terms (${terms.required} required): ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})") }
         seqs += StructureSubsequence(incl.head.position.position, comps, terms, grps)
       }
       def addWild(wild: WildcardComponent) = {
@@ -412,11 +409,11 @@ object EdiSchema {
     * @param grp
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
-    val endPosition: SegmentPosition, use: Usage, val ident: String, grp: GroupComponent)
-    extends StructureComponent(componentKey(open.ident, start), start, use, 1) {
-    val loopGroup = GroupComponent(grp.ident, grp.usage, grp.count, grp.seq, grp.varkey, grp.variants, Some(key))
-    val compsById = Map((open.ident + ident) -> ReferenceComponent(open, start, MandatoryUsage, 1),
-      (close.ident + ident) -> ReferenceComponent(close, endPosition, MandatoryUsage, 1))
+    val endPosition: SegmentPosition, use: Usage, val groupId: String, val wrapped: GroupComponent)
+    extends StructureComponent(wrapped.key, start, use, 1) {
+    val startCode = open.ident + groupId
+    val endCode = close.ident + groupId
+    val groupTerms = Terminations(1, Set(endCode))
   }
 
   /** Base for group components.
@@ -480,7 +477,7 @@ object EdiSchema {
       def referencer(seq: StructureSequence, segments: Set[Segment]): Set[Segment] =
         seq.items.foldLeft(segments)((acc, comp) => comp match {
           case ref: ReferenceComponent => acc + ref.segment
-          case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.seq, acc + wrap.open + wrap.close)
+          case wrap: LoopWrapperComponent => referencer(wrap.wrapped.seq, acc + wrap.open + wrap.close)
           case group: GroupComponent => referencer(group.seq, acc)
           case _ => acc
         })

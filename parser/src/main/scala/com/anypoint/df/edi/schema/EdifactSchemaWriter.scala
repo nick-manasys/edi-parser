@@ -64,7 +64,10 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
   }
 
   /** Output interchange trailer segment(s). */
-  def term(props: ValueMap) = {
+  def term(interref: String) = {
+    val props = new ValueMapImpl
+    props put (interTrailReferenceKey, interref)
+    props put (interTrailCountKey, Integer.valueOf(setCount))
     writeSegment(props, segUNZ)
     writer.term(props)
   }
@@ -117,6 +120,69 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
 
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
+    
+    def openInterchange(optmap: Option[ValueMap], interRoot: ValueMap) = {
+      val interProps = new ValueMapImpl(interRoot)
+      optmap.foreach(interProps.putAll(_))
+      val selfId = getRequiredString(interHeadSenderIdentKey, interProps)
+      val selfQual = getAsString(interHeadSenderQualKey, interProps)
+      val partnerId = getRequiredString(interHeadRecipientIdentKey, interProps)
+      val partnerQual = getAsString(interHeadRecipientQualKey, interProps)
+      val context = numprov contextToken (selfId, selfQual, partnerId, partnerQual)
+      val interref = numprov nextInterchange (context)
+      interProps put (interHeadReferenceKey, interref)
+      setStrings(List(config.syntax.code, config.version.code), unbSyntax.components, interProps)
+      setStrings(List(selfId, selfQual), unbSender.components, interProps)
+      setStrings(List(partnerId, partnerQual), unbRecipient.components, interProps)
+      if (!interProps.containsKey(interHeadDateKey)) {
+        val calendar = new GregorianCalendar
+        val yearnum = calendar.get(Calendar.YEAR)
+        val basedate = calendar.get(Calendar.DAY_OF_MONTH) * 100 + calendar.get(Calendar.MONTH) + 1
+        val datetime = unbSegment(config.version).components(3).asInstanceOf[CompositeComponent]
+        val dateelem = datetime.composite.components(0).asInstanceOf[ElementComponent].element
+        val date = if (dateelem.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
+        interProps put (interHeadDateKey, Integer.valueOf(date))
+      }
+      if (!interProps.containsKey(interHeadTimeKey)) {
+        val calendar = new GregorianCalendar
+        val time = Integer.valueOf(calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE))
+        interProps put (interHeadTimeKey, time)
+      }
+      init(interProps)
+      setCount = 0
+      (context, interref)
+    }
+    
+    def sendList(msgs: List[ValueMap], context: String) = {
+      msgs foreach (msgData => try {
+        val setProps =
+          if (msgData.containsKey(messageHeaderKey)) new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
+          else new ValueMapImpl
+        val msgType = getRequiredString(structureId, msgData)
+        schema.structures(msgType) match {
+          case t: Structure => {
+            setProps put (msgHeadMessageTypeKey, msgType)
+            if (!setProps.containsKey(msgHeadMessageAgencyKey)) setProps put (msgHeadMessageAgencyKey, "UN")
+            val msgAgency = getAsString(msgHeadMessageAgencyKey, setProps)
+            val fullVersion = schema.ediVersion.version.toUpperCase
+            val msgVersion = fullVersion.substring(0, 1)
+            val msgRelease = fullVersion.substring(1)
+            setProps put (msgHeadMessageVersionKey, msgVersion)
+            setProps put (msgHeadMessageReleaseKey, msgRelease)
+            openSet(numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency), setProps)
+            writeStructure(msgData, t)
+            closeSet(setProps)
+            setCount += 1
+          }
+          case _ => logAndThrow(s"Unknown message id $msgType")
+        }
+      } catch {
+        case e: Throwable => {
+          logAndThrow(s"${e.getMessage} in ${msgData.get(structureId)} at index ${msgData.get(msgIndexKey)}", e)
+        }
+      })
+    }
+    
     val interchanges = getRequiredValueMap(messagesMap, map).asScala.foldLeft(EmptySendMap) {
       case (acc, (version, vmap)) => {
         vmap.asInstanceOf[ValueMap].asScala.foldLeft(acc) {
@@ -136,73 +202,33 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
         }
       }
     }
-    if (interchanges.isEmpty) throw new WriteException("no messages to be sent")
+    val sendAcks = getAs(functionalAcksToSend, new MapListImpl, map)
+    if (interchanges.isEmpty && sendAcks.isEmpty) throw new WriteException("no messages to be sent")
     val interRoot = if (map.containsKey(interchangeKey)) getRequiredValueMap(interchangeKey, map) else new ValueMapImpl
+    val ackInterchanges = sendAcks.asScala.foldLeft(Map[Option[ValueMap], List[ValueMap]]()) { (acc, map) =>
+      val key = Some(getRequiredValueMap(interchangeKey, map))
+      acc.get(key) match {
+        case Some(list) => acc + (key -> (map :: list))
+        case None => acc + (key -> List(map))
+      }
+    }
+    
+    // send interchanges containing only acks
+    ackInterchanges.keys.filter { !interchanges.contains(_) }.foreach { key =>
+      val (context, interref) = openInterchange(key, interRoot)
+      sendList(ackInterchanges(key), context)
+      term(interref)
+    }
+    
+    // send interchanges containing application messages and potentially also acks
     interchanges foreach {
       case (key, msgs) => {
-        val interProps = new ValueMapImpl(interRoot)
-        key.foreach(interProps.putAll(_))
-        val selfId = getRequiredString(interHeadSenderIdentKey, interProps)
-        val selfQual = getAsString(interHeadSenderQualKey, interProps)
-        val partnerId = getRequiredString(interHeadRecipientIdentKey, interProps)
-        val partnerQual = getAsString(interHeadRecipientQualKey, interProps)
-        val context = numprov contextToken (selfId, selfQual, partnerId, partnerQual)
-        val interref = numprov nextInterchange (context)
-        interProps put (interHeadReferenceKey, interref)
-        setStrings(List(config.syntax.code, config.version.code), unbSyntax.components, interProps)
-        setStrings(List(selfId, selfQual), unbSender.components, interProps)
-        setStrings(List(partnerId, partnerQual), unbRecipient.components, interProps)
-        if (!interProps.containsKey(interHeadDateKey)) {
-          val calendar = new GregorianCalendar
-          val yearnum = calendar.get(Calendar.YEAR)
-          val basedate = calendar.get(Calendar.DAY_OF_MONTH) * 100 + calendar.get(Calendar.MONTH) + 1
-          val datetime = unbSegment(config.version).components(3).asInstanceOf[CompositeComponent]
-          val dateelem = datetime.composite.components(0).asInstanceOf[ElementComponent].element
-          val date = if (dateelem.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
-          interProps put (interHeadDateKey, Integer.valueOf(date))
-        }
-        if (!interProps.containsKey(interHeadTimeKey)) {
-          val calendar = new GregorianCalendar
-          val time = Integer.valueOf(calendar.get(Calendar.HOUR_OF_DAY) * 60 + calendar.get(Calendar.MINUTE))
-          interProps put (interHeadTimeKey, time)
-        }
-        init(interProps)
-        setCount = 0
+        val (context, interref) = openInterchange(key, interRoot)
+        ackInterchanges.get(key).foreach { sendList(_, context) }
         groupSends(msgs, SchemaJavaValues.groupKey, EmptySendMap) foreach {
-          case (key, msgs) => {
-            msgs foreach (msgData => try {
-              val setProps =
-                if (msgData.containsKey(messageHeaderKey)) new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
-                else new ValueMapImpl
-              val msgType = getRequiredString(structureId, msgData)
-              schema.structures(msgType) match {
-                case t: Structure => {
-                  setProps put (msgHeadMessageTypeKey, msgType)
-                  if (!setProps.containsKey(msgHeadMessageAgencyKey)) setProps put (msgHeadMessageAgencyKey, "UN")
-                  val msgAgency = getAsString(msgHeadMessageVersionKey, setProps)
-                  val fullVersion = schema.ediVersion.version.toUpperCase
-                  val msgVersion = fullVersion.substring(0, 1)
-                  val msgRelease = fullVersion.substring(1)
-                  setProps put (msgHeadMessageVersionKey, msgVersion)
-                  setProps put (msgHeadMessageReleaseKey, msgRelease)
-                  openSet(numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency), setProps)
-                  writeStructure(msgData, t)
-                  closeSet(setProps)
-                  setCount += 1
-                }
-                case _ => logAndThrow(s"Unknown message id $msgType")
-              }
-            } catch {
-              case e: Throwable => {
-                logAndThrow(s"${e.getMessage} in ${msgData.get(structureId)} at index ${msgData.get(msgIndexKey)}", e)
-              }
-            })
-          }
+          case (key, msgs) => sendList(msgs, context)
         }
-        val termprops = new ValueMapImpl
-        termprops put (interTrailReferenceKey, interref)
-        termprops put (interTrailCountKey, Integer.valueOf(setCount))
-        term(termprops)
+        term(interref)
       }
     }
   } catch {

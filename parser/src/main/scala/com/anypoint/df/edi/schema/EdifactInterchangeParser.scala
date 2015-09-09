@@ -214,7 +214,8 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     val elnum = lexer.getElementNumber + 1
     val compnum = if (lexer.getComponentNumber > 0 || lexer.nextType == COMPONENT) lexer.getComponentNumber + 1 else -1
     val repnum = if (lexer.getRepetitionNumber > 0) lexer.getRepetitionNumber + 1 else -1
-    segmentErrors += DataError(error, elnum, compnum, repnum)
+    val item = DataError(error, elnum, compnum, repnum)
+    if (segmentErrors.isEmpty || segmentErrors.last != item) segmentErrors += item
   }
 
   /** Report a repetition error on a composite component. */
@@ -546,8 +547,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
         map put (delimiterCharacters, buildDelims)
         segmentGeneralError = null
         segmentErrors.clear
-        parseCompList(unbSegment(syntaxVersion).components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT,
-          inter)
+        parseCompList(unbSegment(syntaxVersion).components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, inter)
         inter
       } catch {
         case e: LexicalException => {

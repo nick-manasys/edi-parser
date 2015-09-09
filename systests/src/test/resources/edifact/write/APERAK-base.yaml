@@ -1,35 +1,36 @@
 Interchange: &id001 {UNB0102: '2', UNB0201: PATRICK, UNB0202: ZZ, UNB0301: 1STOP,
   UNB0401: 150317, UNB0402: 856, UNB05: '000', UNB0101: UNOA}
-Transactions:
-  APERAK:
-  - Interchange: *id001
-    Heading:
-      0030 DTM:
-      - {DTM0102: '20150317085657', DTM0103: '204', DTM0101: '137'}
-      0130 Segment group 3:
-      - 0130 NAD: {NAD0201: ASLPB, NAD01: MS}
-      0070 Segment group 1:
-      - 0070 DOC: {DOC0201: '173377621', DOC0101: ERA}
-        0080 DTM:
-        - {DTM0102: '20150317084913', DTM0103: '204', DTM0101: '137'}
-      0020 BGM: {BGM03: '9', BGM0101: '7', BGM0201: '7030225', BGM04: AP}
-      0170 Segment group 4:
-      - 0200 Segment group 5:
-        - 0200 RFF: {RFF0102: CARU3661620, RFF0101: EQD}
-        0170 ERC: {ERC0101: ERA0100}
-        0180 FTX: {FTX0401: Message received without error, FTX01: AAO}
-    Summary: {}
-    Id: APERAK
-    MessageHeader: {UNH01: '0', UNH0201: APERAK, UNH0202: D, UNH0203: 00A, UNH0204: UN,
-      UNH0205: ANZ23}
-    Detail: {}
-    Name: Application error and acknowledgement message
+Messages:
+  D00A:
+    APERAK:
+    - Interchange: *id001
+      Heading:
+        0030_DTM:
+        - {DTM0102: '20150317085657', DTM0103: '204', DTM0101: '137'}
+        0130_Segment_group_3:
+        - 0130 NAD: {NAD0201: ASLPB, NAD01: MS}
+        0070_Segment_group_1:
+        - 0070_DOC: {DOC0201: '173377621', DOC0101: ERA}
+          0080_DTM:
+          - {DTM0102: '20150317084913', DTM0103: '204', DTM0101: '137'}
+        0020_BGM: {BGM03: '9', BGM0101: '7', BGM0201: '7030225', BGM04: AP}
+        0170_Segment_group_4:
+        - 0200_Segment_group_5:
+          - 0200_RFF: {RFF0102: CARU3661620, RFF0101: EQD}
+          0170_ERC: {ERC0101: ERA0100}
+          0180_FTX: {FTX0401: Message received without error, FTX01: AAO}
+      Summary: {}
+      Id: APERAK
+      MessageHeader: {UNH01: '0', UNH0201: APERAK, UNH0202: D, UNH0203: 00A, UNH0204: UN,
+        UNH0205: ANZ23}
+      Detail: {}
+      Name: Application error and acknowledgement message
 Delimiters: '+: ''?'
 FunctionalAcksGenerated:
 - Interchange: {UNB0102: '2', UNB0201: 1STOP, UNB0202: ZZ, UNB0301: PATRICK, UNB0401: 150317,
     UNB0302: ZZ, UNB0402: 856, UNB05: '000', UNB0101: UNOA}
   Heading:
-    0020 UCI: {UCI01: '000', UCI04: '7', UCI0202: ZZ, UCI0301: 1STOP, UCI0201: PATRICK}
+    0020_UCI: {UCI01: '000', UCI04: '7', UCI0202: ZZ, UCI0301: 1STOP, UCI0201: PATRICK}
   Summary: {}
   Id: CONTRL
   Detail: {}

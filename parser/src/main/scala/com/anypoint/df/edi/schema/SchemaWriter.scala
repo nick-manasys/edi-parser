@@ -218,10 +218,10 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
       case wrap: LoopWrapperComponent =>
         if (map.containsKey(key)) {
           val idmap = new ValueMapImpl
-          idmap put (wrap.open.components.head.key, wrap.ident)
-          idmap put (wrap.close.components.head.key, wrap.ident)
+          idmap put (wrap.open.components(0).key, wrap.groupId)
+          idmap put (wrap.close.components(0).key, wrap.groupId)
           writeSegment(idmap, wrap.open)
-          writeGroup(key, wrap.loopGroup)
+          writeGroup(key, wrap.wrapped)
           writeSegment(idmap, wrap.close)
         }
       case group: GroupComponent =>

@@ -260,14 +260,14 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
                 case (wrap: LoopWrapperComponent) => {
                   if (values.containsKey(wrapIdRefKey)) {
                     val compare = getRequiredString(wrapIdRefKey, values)
-                    if (compare != wrap.ident) throw new IllegalStateException(s"wrapper at position $position is not $compare")
+                    if (compare != wrap.groupId) throw new IllegalStateException(s"wrapper at position $position is not $compare")
                   }
                   val use = getUsageOverride(values, wrap.usage)
                   val count = getCountOverride(values, wrap.count)
                   val group =
-                    if (values.containsKey(groupKey)) overGroup(getRequiredValueMap(groupKey, values), wrap.loopGroup)
-                    else wrap.loopGroup
-                  overr(t, LoopWrapperComponent(wrap.open, wrap.close, wrap.position, wrap.endPosition, use, wrap.ident, group) :: prior, bt)
+                    if (values.containsKey(groupKey)) overGroup(getRequiredValueMap(groupKey, values), wrap.wrapped)
+                    else wrap.wrapped
+                  overr(t, LoopWrapperComponent(wrap.open, wrap.close, wrap.position, wrap.endPosition, use, wrap.groupId, group) :: prior, bt)
                 }
                 case (group: GroupComponent) => {
                   if (values.containsKey(groupIdRefKey)) {

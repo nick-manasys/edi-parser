@@ -103,7 +103,7 @@ class JsonReader extends Maps {
       val map = new ValueMapImpl
       wrapped.skipWhite
       while (wrapped.peek != '}') {
-        val key = wrapped.token.replace('_', ' ')
+        val key = wrapped.token
         if (key.isEmpty) wrapped.error("missing expected key")
         wrapped.skipWhite
         if (wrapped.next != ':') wrapped.error("missing expected colon after key")

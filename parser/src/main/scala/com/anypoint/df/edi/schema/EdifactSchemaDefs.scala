@@ -11,6 +11,9 @@ object EdifactSchemaDefs {
   /** Key for map of message type lists in root map of send or receive. */
   val messagesMap = "Messages"
   
+  /** Key for list of CONTRL messages to be sent. */
+  val functionalAcksToSend = "FunctionalAcksToSend"
+  
   /** Key for message header information in message data map. */
   val messageHeaderKey = "MessageHeader"
   

@@ -63,12 +63,12 @@ object YamlWriter extends WritesYaml with YamlDefs {
     }
 
     def writeWrapperComponent(wrap: LoopWrapperComponent, indent: Int): Unit = {
-      writeIndented("- " + keyValueQuote(wrapIdKey, wrap.ident), indent, writer)
+      writeIndented("- " + keyValueQuote(wrapIdKey, wrap.groupId), indent, writer)
       writeIndented(keyValueQuote(positionKey, wrap.position.position), indent + 1, writer)
       writeIndented(keyValueQuote(endPositionKey, wrap.endPosition.position), indent + 1, writer)
       writeIndented(keyValuePair(usageKey, wrap.usage.code toString), indent + 1, writer)
       writeIndented(s"$groupKey:", indent + 1, writer)
-      writeGroupComponent(wrap.loopGroup, indent + 1)
+      writeGroupComponent(wrap.wrapped, indent + 1)
     }
 
     def writeGroupComponent(group: GroupComponent, indent: Int): Unit = {

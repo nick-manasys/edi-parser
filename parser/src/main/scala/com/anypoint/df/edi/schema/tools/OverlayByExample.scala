@@ -159,10 +159,10 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
           } else DropSegment(group.ident, group.position.position) :: acc
         case wrap: LoopWrapperComponent =>
           if (data.containsKey(comp.key)) {
-            val nested = structureMods(wrap.loopGroup :: Nil, getRequiredValueMap(comp.key, data))
+            val nested = structureMods(wrap.wrapped :: Nil, getRequiredValueMap(comp.key, data))
             if (nested.isEmpty) acc
-            else ModifyWrapper(wrap.ident, wrap.position.position, nested) :: acc
-          } else ModifyWrapper(wrap.ident, wrap.position.position, Nil) :: acc
+            else ModifyWrapper(wrap.groupId, wrap.position.position, nested) :: acc
+          } else ModifyWrapper(wrap.groupId, wrap.position.position, Nil) :: acc
         case ref: ReferenceComponent =>
           if (data.containsKey(comp.key) || schema.ediVersion.ediForm.isEnvelopeSegment(ref.segment.ident)) acc
           else DropSegment(ref.segment.ident, ref.position.position) :: acc
@@ -177,7 +177,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
             if (data.containsKey(comp.key)) collectr(group.seq.items, getRequiredValueMap(comp.key, data), acc)
             else acc
           case wrap: LoopWrapperComponent =>
-            if (data.containsKey(comp.key)) collectr(wrap.loopGroup :: Nil, getRequiredValueMap(comp.key, data), acc)
+            if (data.containsKey(comp.key)) collectr(wrap.wrapped :: Nil, getRequiredValueMap(comp.key, data), acc)
             else acc
           case ref: ReferenceComponent =>
             if (data.containsKey(comp.key)) acc + (ref.segment ->

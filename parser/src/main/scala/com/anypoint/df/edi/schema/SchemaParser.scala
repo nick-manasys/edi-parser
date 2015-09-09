@@ -181,13 +181,13 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
           @tailrec
           def parseComponent(position: String): Boolean = {
 
-            def parseLoop(loop: GroupComponent): Unit = {
+            def parseLoop(loop: GroupComponent, groupTerm: Terminations): Unit = {
               loopStack.push(loop)
               val ident = lexer.token
               val data = new ValueMapImpl
               val number = segmentNumber
               // need to add handling of variant loops back in
-              parseStructureSequence(loop.seq, subsq.groupTerms(loop) :: terms, data)
+              parseStructureSequence(loop.seq, groupTerm :: terms, data)
               if (loop.usage == UnusedUsage) segmentError(ident, UnusedSegment, ParseComplete, number)
               else {
                 val count = loop.count
@@ -211,17 +211,14 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
               if (wrap.usage == UnusedUsage)
                 segmentError(wrap.open.ident, UnusedSegment, ParseComplete, segmentNumber)
               discardSegment
-              val group = wrap.loopGroup
-              parseLoop(group)
-              convertLoop.map { endid =>
-                wrap.compsById.get(endid) match {
-                  case Some(ref: ReferenceComponent) => if (ref.segment == wrap.close) discardSegment
-                  case _ =>
-                }
+              parseLoop(wrap.wrapped, wrap.groupTerms)
+              convertLoop match {
+                case Some(wrap.endCode) => discardSegment
+                case _ => segmentError(wrap.close.ident, MissingRequired, ParseComplete, segmentNumber)
               }
             }
 
-            val ident = lexer.token
+            val ident = convertLoop.getOrElse(lexer.token)
             if (!isEnvelopeSegment(ident)) {
 
               def adjustPosition(nextpos: String) = {
@@ -256,40 +253,20 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
                   else parseComponent(nextpos)
                 case Some(loop: GroupComponent) =>
                   val nextpos = adjustPosition(loop.position.position)
-                  parseLoop(loop)
+                  parseLoop(loop, subsq.groupTerms(loop))
                   if (subsq.terms.idents.contains(ident)) false
                   else parseComponent(nextpos)
-                case Some(ref: LoopWrapperComponent) => convertLoop match {
-                  case Some(loopid) => subsq.comps.get(loopid) match {
-                    case Some(wrap: LoopWrapperComponent) =>
-                      val nextpos = adjustPosition(wrap.position.position)
-                      parseWrappedLoop(wrap)
-                      parseComponent(nextpos)
-                    case _ =>
-                      if (subsq.terms.idents.contains(ident)) false
-                      else if (checkTerm(ident)) true
-                      else {
-                        segmentError(ident, UnknownSegment, WontParse, segmentNumber)
-                        parseComponent(position)
-                      }
-                  }
-                  case None =>
-                    if (subsq.terms.idents.contains(ident)) false
-                    else if (checkTerm(ident)) true
-                    else {
-                      if (structure.segmentIds.contains(ident)) segmentError(ident, OutOfOrderSegment,
-                        WontParse, segmentNumber)
-                      else segmentError(ident, UnknownSegment, WontParse, segmentNumber)
-                      parseComponent(position)
-                    }
-                }
+                case Some(wrap: LoopWrapperComponent) =>
+                  val nextpos = adjustPosition(wrap.wrapped.position.position)
+                  parseWrappedLoop(wrap)
+                  parseComponent(nextpos)
                 case None =>
                   if (subsq.terms.idents.contains(ident)) false
                   else if (checkTerm(ident)) true
                   else {
-                    if (structure.segmentIds.contains(ident)) segmentError(ident, OutOfOrderSegment,
+                    if (structure.segmentIds.contains(lexer.token)) segmentError(lexer.token, OutOfOrderSegment,
                       WontParse, segmentNumber)
-                    else segmentError(ident, UnknownSegment, WontParse, segmentNumber)
+                    else segmentError(lexer.token, UnknownSegment, WontParse, segmentNumber)
                     parseComponent(position)
                   }
                 case _ => throw new IllegalStateException(s"Illegal structure at position $position")
@@ -312,8 +289,10 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
             comp match {
               case ref: ReferenceComponent => if (!isEnvelopeSegment(ref.segment.ident))
                 segmentError(ref.segment.ident, MissingRequired, ParseComplete, segmentNumber)
-              case loop: LoopWrapperComponent => segmentError(loop.ident, MissingRequired, ParseComplete, segmentNumber)
-              case grp: GroupComponent => segmentError(grp.ident, MissingRequired, ParseComplete, segmentNumber)
+              case wrap: LoopWrapperComponent =>
+                segmentError(wrap.open.ident, MissingRequired, ParseComplete, segmentNumber)
+              case grp: GroupComponent =>
+                segmentError(grp.leadSegmentRef.segment.ident, MissingRequired, ParseComplete, segmentNumber)
             }
           }
         }

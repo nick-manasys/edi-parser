@@ -193,10 +193,8 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     initprops.put(interHeadTimeKey, Integer.valueOf(1205))
     initprops.put(interHeadReferenceKey, "8")
     writer.init(initprops)
-    val termprops = new ValueMapImpl
-    termprops.put(interTrailCountKey, Integer.valueOf(1))
-    termprops.put(interTrailReferenceKey, "8")
-    writer.term(termprops)
+    writer.setCount += 1
+    writer.term("8")
     writer.writer.close
     val text = new String(out.toByteArray)
     val start = UNB indexOf (DATETIME)

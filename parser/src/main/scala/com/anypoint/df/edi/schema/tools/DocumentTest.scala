@@ -135,7 +135,8 @@ class DefaultEdifactEnvelopeHandler(config: EdifactParserConfig, schema: EdiSche
         case Some(structure) => structure
         case None => if (msgType == "CONTRL") transCONTRLv4 else null
       }
-      if (structure == null) NoAgreementForValue
+      if (structure == null || (getAsString(msgHeadMessageVersionKey, map) +
+        getAsString(msgHeadMessageReleaseKey, map)).toLowerCase() != schema.ediVersion.version) NoAgreementForValue
       else structure
     } else DuplicateDetected
   }
@@ -307,13 +308,8 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val writer = EdifactSchemaWriter(os, schema.merge(contrlMsg(version)), new DefaultEdifactNumberProvider, config)
     val outmap = new ValueMapImpl
     outmap put (interchangeKey, map.get(interchangeKey))
-    val versions = getOrSet(messagesMap, new ValueMapImpl, outmap)
-    val header = getRequiredValueMap(messageHeaderKey, map)
-    val verkey = getRequiredString(msgHeadMessageVersionKey, header) +
-      getRequiredString(msgHeadMessageReleaseKey, header)
-    val structures = getOrSet(verkey, new ValueMapImpl, versions)
-    val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
-    structures put ("CONTRL", acks)
+    outmap put (functionalAcksToSend, map.get(functionalAcksGenerated))
+    outmap put (messagesMap, new ValueMapImpl)
     writer.write(outmap).get
     os.toString
   }

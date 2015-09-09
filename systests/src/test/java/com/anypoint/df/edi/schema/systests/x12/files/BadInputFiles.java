@@ -20,7 +20,7 @@ public final class BadInputFiles {
 	
 	/** Missing PO1 Segment**/
 	public static final String MISSING_PO1= "/x12/005010/bad-input/850-missing-po1.edi"; 
-	public static final String MISSING_PO1_EX = "Segment PO1_Loop at position 19 has syntax error Mandatory segment missing";
+	public static final String MISSING_PO1_EX = "Segment PO1 at position 21 has syntax error Mandatory segment missing";
 	
 	/** Missing SE Segment**/
 	public static final String MISSING_SE= "/x12/005010/bad-input/850-missing-se.edi"; 

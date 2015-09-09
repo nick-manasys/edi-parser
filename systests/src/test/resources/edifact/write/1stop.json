@@ -1,5 +1,5 @@
-{Transactions:
-{CONTRL:
+{Messages:{}
+FunctionalAcksToSend:
 [{Name:"Application error and acknowledgement message",
 Detail:{},
 Heading:{0020_UCI:{UCI05:"43",
@@ -19,6 +19,6 @@ UNB0301:"1STOP",
 UNB0302:ZZ,
 UNB0202:ZZ,
 UNB0201:HPAPB},
-Summary:{}}]}
+Summary:{}}]
 Interchange:{}}
 

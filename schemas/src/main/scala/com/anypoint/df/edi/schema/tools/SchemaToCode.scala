@@ -214,7 +214,7 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
       def referencer(comps: List[StructureComponent], segments: Set[Segment]): Set[Segment] =
         comps.foldLeft(segments)((segs, comp) => comp match {
           case ref: ReferenceComponent => segs + ref.segment
-          case wrap: LoopWrapperComponent => referencer(wrap.loopGroup.seq.items, segs + wrap.open + wrap.close)
+          case wrap: LoopWrapperComponent => referencer(wrap.wrapped.seq.items, segs + wrap.open + wrap.close)
           case group: GroupComponent => referencer(group.seq.items, segs)
         })
       

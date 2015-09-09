@@ -61,6 +61,203 @@ public class EdifactLexer extends LexerBase
     }
     
     /**
+     * First time interchange header read. This determines the character encoding used for all subsequent interchanges.
+     * 
+     * @param props
+     * @return
+     * @throws IOException
+     */
+    private SyntaxVersion firstTimeInit(Map<String,Object> props) throws IOException {
+        
+        // check the segment tag for optional UNA
+        byte[] byts = readBytes(3);
+        String tag = new String(byts, ASCII_CHARSET);
+        boolean unaseen = false;
+        if ("UNA".equals(tag)) {
+            
+            // get delimiter and other characters directly from segment
+            byts = readBytes(6);
+            componentSeparator = (char)byts[0];
+            dataSeparator = (char)byts[1];
+            releaseIndicator = (char)byts[3];
+            repetitionSeparator = charNonBlank((char)byts[4]);
+            segmentTerminator = (char)byts[5];
+            unaseen = true;
+            
+            // skip any whitespace following segment
+            char chr;
+            while ((chr = (char)stream.read()) == '\n' || chr == '\r' || chr == ' ');
+            
+            // get the next segment tag
+            byts = new byte[3];
+            byts[0] = (byte)chr;
+            readArray(byts, 1);
+            tag = new String(byts, ASCII_CHARSET);
+        }
+        
+        // must be at a UNB Interchange Header
+        if (!"UNB".equals(tag)) {
+            throw new LexicalException("Message is missing UNB segment (starts with " + tag + ")");
+        }
+        
+        // process first part of syntax identifier (required identifier and version number)
+        int ds = stream.read();
+        String synid = new String(readBytes(4), ASCII_CHARSET);
+        props.put(SYNTAX_IDENTIFIER, synid);
+        SyntaxIdentifier syntax = EDIFACT_CHARSETS.get(synid);
+        int cs = stream.read();
+        SyntaxVersion version;
+        int verch = stream.read();
+        switch (verch) {
+            case '1':
+            case '2':
+                version = SyntaxVersion.VERSION2;
+                break;
+            case '3':
+                version = SyntaxVersion.VERSION3;
+                break;
+            case '4':
+                version = SyntaxVersion.VERSION4;
+                break;
+            default:
+                throw new LexicalException("Unsupported syntax version '" + verch + '\'');
+        }
+        props.put(SYNTAX_VERSION_NUMBER, Character.toString((char)verch));
+        
+        // make sure delimiter characters are set
+        if (!unaseen) {
+            String delims = delimiterDefaults == null ? version.defaultDelimiters(syntax) : delimiterDefaults;
+            dataSeparator = delims.charAt(0);
+            componentSeparator = delims.charAt(1);
+            repetitionSeparator = charNonBlank(delims.charAt(2));
+            segmentTerminator = delims.charAt(3);
+            releaseIndicator = charNonBlank(delims.charAt(4));
+        }
+        
+        // verify delimiter character used so far
+        if (ds != dataSeparator) {
+            throw new LexicalException("Wrong delimiter for syntax version (expected '" + dataSeparator + "', found '" + ds + '\'');
+        } else if (cs != componentSeparator) {
+            throw new LexicalException("Wrong delimiter for syntax version (expected '" + componentSeparator + "', found '" + cs + '\'');
+        }
+        
+        // check for character encoding specified
+        int chr = stream.read();
+        String codelist = null;
+        String charenc = null;
+        Charset charset = syntax.defaultCharSet();
+        if (version == SyntaxVersion.VERSION4 && chr == componentSeparator) {
+            
+            // ignore service code list directory version number
+            StringBuilder builder = new StringBuilder();
+            while ((chr = stream.read()) >= 0 && chr != componentSeparator && chr != dataSeparator
+                && chr != segmentTerminator) {
+                builder.append(chr);
+            }
+            codelist = builder.toString();
+            props.put(SERVICE_CODE_LIST, codelist);
+            if (chr == componentSeparator) {
+                builder.setLength(0);
+                while ((chr = stream.read()) >= 0 && chr != componentSeparator && chr != dataSeparator
+                    && chr != segmentTerminator) {
+                    builder.append(chr);
+                }
+                charenc = builder.toString();
+                props.put(CHARACTER_ENCODING, charenc);
+                if (charenc.length() == 1) {
+                    char code = charenc.charAt(0);
+                    try {
+                        switch (code) {
+                            case '1':
+                            case '2':
+                                charset = ASCII_CHARSET;
+                                break;
+                            case '3':
+                                charset = Charset.forName("Cp1148");
+                                break;
+                            case '4':
+                                charset = Charset.forName("Cp858");
+                                break;
+                            case '7':
+                                charset = UTF8;
+                                break;
+                            case '8':
+                                charset = Charset.forName("UTF-16");
+                                break;
+                            default:
+                                throw new RuntimeException();
+                        }
+                    } catch (Exception e) {
+                        throw new LexicalException("Unsupported character encoding '" + code + '\'', e);
+                    }
+                } else if (!"ZZZ".equals(charenc)) {
+                    throw new LexicalException("Unknown character encoding code '" + charenc + '\'');
+                }
+            }
+        }
+        if (charset == null) {
+            throw new LexicalException("Unsupported syntax identifier '" + synid + "' (character encoding not supported)");
+        }
+        
+        // turn stream into reader with appropriate character set
+        allowedChars = enforceCharacterSet ? syntax.flags() : null;
+        reader = new BufferedReader(new InputStreamReader(stream, charset));
+        advance(ItemType.DATA_ELEMENT);
+        return version;
+    }
+    
+    /**
+     * Interchange header read after the first time.
+     * 
+     * @param props
+     * @return
+     * @throws IOException
+     */
+    private SyntaxVersion subsequentInit(Map<String,Object> props) throws IOException {
+        
+        // check the segment tag for optional UNA
+        if ("UNA".equals(token())) {
+            throw new LexicalException("UNA is only allowed for first interchange");
+        }
+        
+        // must be at a UNB Interchange Header
+        if (!"UNB".equals(token())) {
+            throw new LexicalException("Message is missing UNB segment (starts with " + token() + ")");
+        }
+        
+        // process first part of syntax identifier (required identifier and version number)
+        String synid = advance();
+        props.put(SYNTAX_IDENTIFIER, synid);
+        SyntaxIdentifier syntax = EDIFACT_CHARSETS.get(synid);
+        SyntaxVersion version;
+        int verch = advance().charAt(0);
+        switch (verch) {
+            case '1':
+            case '2':
+                version = SyntaxVersion.VERSION2;
+                break;
+            case '3':
+                version = SyntaxVersion.VERSION3;
+                break;
+            case '4':
+                version = SyntaxVersion.VERSION4;
+                break;
+            default:
+                throw new LexicalException("Unsupported syntax version '" + verch + '\'');
+        }
+        props.put(SYNTAX_VERSION_NUMBER, Character.toString((char)verch));
+        
+        // skip to identification information
+        while (currentType() != ItemType.DATA_ELEMENT) {
+            advance();
+        }
+        
+        // turn stream into reader with appropriate character set
+        allowedChars = enforceCharacterSet ? syntax.flags() : null;
+        return version;
+    }
+    
+    /**
      * Initialize document parse. This checks the start of the document to find the separator characters used in
      * parsing, along with the character encoding. Returns with the parser positioned past the first component of the
      * UNB Interchange Header segment.
@@ -71,143 +268,11 @@ public class EdifactLexer extends LexerBase
      */
     public SyntaxVersion init(Map<String,Object> props) throws LexicalException {
         try {
-            
-            // check the segment tag for optional UNA
-            byte[] byts = readBytes(3);
-            String tag = new String(byts, ASCII_CHARSET);
-            boolean unaseen = false;
-            if ("UNA".equals(tag)) {
-                
-                // get delimiter and other characters directly from segment
-                byts = readBytes(6);
-                componentSeparator = (char)byts[0];
-                dataSeparator = (char)byts[1];
-                releaseIndicator = (char)byts[3];
-                repetitionSeparator = charNonBlank((char)byts[4]);
-                segmentTerminator = (char)byts[5];
-                unaseen = true;
-                
-                // skip any whitespace following segment
-                char chr;
-                while ((chr = (char)stream.read()) == '\n' || chr == '\r' || chr == ' ');
-                
-                // get the next segment tag
-                byts = new byte[3];
-                byts[0] = (byte)chr;
-                readArray(byts, 1);
-                tag = new String(byts, ASCII_CHARSET);
+            if (reader == null) {
+                return firstTimeInit(props);
+            } else {
+                return subsequentInit(props);
             }
-            
-            // must be at a UNB Interchange Header
-            if (!"UNB".equals(tag)) {
-                throw new LexicalException("Message is missing UNB segment (starts with " + tag + ")");
-            }
-            
-            // process first part of syntax identifier (required identifier and version number)
-            int ds = stream.read();
-            String synid = new String(readBytes(4), ASCII_CHARSET);
-            props.put(SYNTAX_IDENTIFIER, synid);
-            SyntaxIdentifier syntax = EDIFACT_CHARSETS.get(synid);
-            int cs = stream.read();
-            SyntaxVersion version;
-            int verch = stream.read();
-            switch (verch) {
-                case '1':
-                case '2':
-                    version = SyntaxVersion.VERSION2;
-                    break;
-                case '3':
-                    version = SyntaxVersion.VERSION3;
-                    break;
-                case '4':
-                    version = SyntaxVersion.VERSION4;
-                    break;
-                default:
-                    throw new LexicalException("Unsupported syntax version '" + verch + '\'');
-            }
-            props.put(SYNTAX_VERSION_NUMBER, Character.toString((char)verch));
-            
-            // make sure delimiter characters are set
-            if (!unaseen) {
-                String delims = delimiterDefaults == null ? version.defaultDelimiters(syntax) : delimiterDefaults;
-                dataSeparator = delims.charAt(0);
-                componentSeparator = delims.charAt(1);
-                repetitionSeparator = charNonBlank(delims.charAt(2));
-                segmentTerminator = delims.charAt(3);
-                releaseIndicator = charNonBlank(delims.charAt(4));
-            }
-            
-            // verify delimiter character used so far
-            if (ds != dataSeparator) {
-                throw new LexicalException("Wrong delimiter for syntax version (expected '" + dataSeparator + "', found '" + ds + '\'');
-            } else if (cs != componentSeparator) {
-                throw new LexicalException("Wrong delimiter for syntax version (expected '" + componentSeparator + "', found '" + cs + '\'');
-            }
-            
-            // check for character encoding specified
-            int chr = stream.read();
-            String codelist = null;
-            String charenc = null;
-            Charset charset = syntax.defaultCharSet();
-            if (version == SyntaxVersion.VERSION4 && chr == componentSeparator) {
-                
-                // ignore service code list directory version number
-                StringBuilder builder = new StringBuilder();
-                while ((chr = stream.read()) >= 0 && chr != componentSeparator && chr != dataSeparator
-                    && chr != segmentTerminator) {
-                    builder.append(chr);
-                }
-                codelist = builder.toString();
-                props.put(SERVICE_CODE_LIST, codelist);
-                if (chr == componentSeparator) {
-                    builder.setLength(0);
-                    while ((chr = stream.read()) >= 0 && chr != componentSeparator && chr != dataSeparator
-                        && chr != segmentTerminator) {
-                        builder.append(chr);
-                    }
-                    charenc = builder.toString();
-                    props.put(CHARACTER_ENCODING, charenc);
-                    if (charenc.length() == 1) {
-                        char code = charenc.charAt(0);
-                        try {
-                            switch (code) {
-                                case '1':
-                                case '2':
-                                    charset = ASCII_CHARSET;
-                                    break;
-                                case '3':
-                                    charset = Charset.forName("Cp1148");
-                                    break;
-                                case '4':
-                                    charset = Charset.forName("Cp858");
-                                    break;
-                                case '7':
-                                    charset = UTF8;
-                                    break;
-                                case '8':
-                                    charset = Charset.forName("UTF-16");
-                                    break;
-                                default:
-                                    throw new RuntimeException();
-                            }
-                        } catch (Exception e) {
-                            throw new LexicalException("Unsupported character encoding '" + code + '\'', e);
-                        }
-                    } else if (!"ZZZ".equals(charenc)) {
-                        throw new LexicalException("Unknown character encoding code '" + charenc + '\'');
-                    }
-                }
-            }
-            if (charset == null) {
-                throw new LexicalException("Unsupported syntax identifier '" + synid + "' (character encoding not supported)");
-            }
-            
-            // turn stream into reader with appropriate character set
-            allowedChars = enforceCharacterSet ? syntax.flags() : null;
-            reader = new BufferedReader(new InputStreamReader(stream, charset));
-            advance(ItemType.DATA_ELEMENT);
-            return version;
-            
         } catch (IOException e) {
             throw new LexicalException("Interchange aborted due to error reading header", e);
         }
