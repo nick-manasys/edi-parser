@@ -2,18 +2,15 @@ package com.anypoint.df.edi.schema.systests.edifact;
 
 import static org.junit.Assert.assertEquals;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class StandardD95bTest extends EdifactTestBase {
     
     @Test
-    @Ignore
     public void verifyBAPLIE() throws Exception {
-        // TODO: this causes problems with segments reused within a loop
         loadSchema("/edifact/d95b/BAPLIE.esl");
         parseAndCheckWrite("/edifact/d95b/HPA-BAYPLAN.edi");
-        assertEquals("UNB+UNOA:3+1STOP+FACTT+XXXXXXXXXXX+++COARRI'UNH++CONTRL:3:1:UN'UCI+15731968+FACTT+1STOP+7'UNT+3+1'UNZ+1+1'",
+        assertEquals("UNB+UNOA:3+1STOP+HPAFI+XXXXXXXXXXX+'UNH++CONTRL:3:1:UN'UCI+99+HPAFI+1STOP+7'UCM+99+BAPLIE:D:95B:UN:SMDG20+4'UCS+1842'UCD+39+3:1'UCS+2144'UCD+39+3:1'UCS+2736'UCD+39+3:1'UCS+2746'UCD+39+3:1'UCS+3044'UCD+39+3:1'UCS+3644'UCD+21+5'UCS+3990'UCD+39+3:1'UNT+18+1'UNZ+1+1'",
             stripAckDates(parseAndReturnAck("/edifact/d95b/HPA-BAYPLAN.edi")));
     }
     

@@ -238,6 +238,8 @@ object EdiSchema {
 
     /** All required components in sequence. */
     val requiredComps = items.filter { _.usage == MandatoryUsage }
+    
+    private val lastRequired = if (requiredComps.nonEmpty) requiredComps.last else null
 
     /** Idents of all segments used at this level, and of all segments reused at level. */
     val (allAtLevel, reusedSegments) =
@@ -246,6 +248,9 @@ object EdiSchema {
         case ((segs, reps), ident) =>
           if (segs.contains(ident)) (segs, reps + ident) else (segs + ident, reps)
       }
+    
+//    println(s"handling structure from $startPos: ${items.foldLeft("")((txt, comp) => txt + " " + comp.key)})")
+//    println(s"found ${reusedSegments.size} reused segments: ${reusedSegments.foldLeft("")((txt, seg) => txt + " " + seg)})")
 
     //
     // Splitting sequences into subsequences:
@@ -257,10 +262,18 @@ object EdiSchema {
     // will be interpreted as the wildcard (the required segment preceding a wildcard appears to always be a singleton,
     // which makes sense to prevent ambiguity).
     //
-    // The other issue is segments reused at a level. These need to be separated by a required segment, so make the
+    // The other issue is segments reuse. Reused segments need to be separated by a required segment, so make the
     // required segment preceding a reuse also a separate StructureSubsequence. Unlike the ones for required segments
     // preceding a wildcard, these may be repeated so the segment itself cannot be included in the termination set, but
     // all segments in the following subsequence can be used in the termination set.
+    //
+    // But since the schema is constructed bottom-up, there's no way to know if a segment is going to be part of the
+    // termination set for the sequence (as it would be if it's reused at the containing level - the EDIFACT BAPLIE
+    // structure is a good example of this, with LOC used in three places, included as the trigger segment for a group
+    // following the group with its first use). So as a special case, when there are optional segments at the end of
+    // a sequence split the sequence with the last required segment. That way out-of-order optional segments can be
+    // processed, but if there's a reused segment from earlier in the sequence included in the termination set it'll be
+    // handled as a termination.
     //
 
     private type CompList = List[StructureComponent]
@@ -303,6 +316,14 @@ object EdiSchema {
           case h :: t => if (h.usage == MandatoryUsage) (acc reverse, rem) else findreq(t, h :: acc)
           case _ => (acc reverse, Nil)
         }
+        def addNonEmpty(acc: CompList, rest: CompList) = {
+          if (acc.nonEmpty) {
+            val termIds = rest.map { ident(_) }.toSet
+            val inclIds = acc.map { ident(_) }.toSet
+            addNormal(acc.reverse, Terminations(reqCount(rest), termIds -- inclIds))
+          }
+          splitr(rest, Nil)
+        }
         @tailrec
         def splitr(rem: CompList, acc: CompList): Unit = rem match {
           case h :: t =>
@@ -310,19 +331,13 @@ object EdiSchema {
             if ((reusedSegments.contains(id) && t.exists { ident(_) == id })) {
               val (seq, rest) = findreq(t, h :: acc)
               if (rest.isEmpty) splitHead(h, t)
-              else {
-                if (acc.nonEmpty) {
-                  val termIds = rest.map { ident(_) }.toSet
-                  val inclIds = acc.map { ident(_) }.toSet
-                  addNormal(acc.reverse, Terminations(reqCount(rest), termIds -- inclIds))
-                }
-                splitr(rest, Nil)
-              }
-            } else splitr(t, h :: acc)
+              else addNonEmpty(acc, rest)
+            } else if (h == lastRequired && acc.nonEmpty) addNonEmpty(acc, rem)
+            else splitr(t, h :: acc)
           case _ => if (!acc.isEmpty) addNormal(acc.reverse, terms)
         }
         def splitHead(head: StructureComponent, rest: CompList) = {
-          val restIds = rest.map { ident(_) }.toSet
+          val restIds = rest.map { ident(_) }.toSet - ident(head)
           val termIds = if (head.count == 1) restIds + ident(head) else restIds
           addNormal(List(head), Terminations(reqCount(rest), termIds))
           splitr(rest, Nil)
