@@ -39,21 +39,23 @@ class DefaultX12EnvelopeHandler(config: X12ParserConfig, schema: EdiSchema) exte
   var groupCode = ""
 
   /** Handle ISA segment data, returning either an InterchangeNoteCode (if there's a problem that prevents processing of
-    * the interchange) or the parser configuration to be used for reading the interchange.
+    * the interchange) or the parser configuration to be used for reading the interchange (or <code>null</code> if
+    * default parser configuration to be used).
     */
   def handleIsa(map: ju.Map[String, Object]) = {
     groupNums = Set[Int]()
-    config
+    null
   }
 
   /** Handle GS segment data, returning either an GroupSyntaxError (if there's a problem that prevents processing of
-    * the group) or null.
+    * the group) or the parser configuration to be used for reading the interchange (or <code>null</code> if to use the
+    * parser configuration previously set).
     */
   def handleGs(map: ju.Map[String, Object]) = {
     setNums = Set[String]()
     groupCode = getRequiredString(groupFunctionalIdentifierKey, map)
     val unique = groupNums.add(getRequiredInt(groupControlNumberHeaderKey, map))
-    if (unique) null else GroupControlNumberNotUnique
+    if (unique) config else GroupControlNumberNotUnique
   }
 
   /** Handle ST segment data, returning either a StructureSyntaxError (if there's a problem that prevents processing of
@@ -107,11 +109,12 @@ class DefaultEdifactEnvelopeHandler(config: EdifactParserConfig, schema: EdiSche
   var msgRefs = Set[String]()
 
   /** Handle UNB segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
-    * interchange) or the parser configuration to be used for the interchange.
+    * interchange) or the parser configuration to be used for the interchange (or <code>null</code> if default parser
+    * configuration to be used).
     */
   def handleUnb(map: ju.Map[String, Object]) = {
     groupRefs = Set[String]()
-    config
+    null
   }
 
   /** Handle UNG segment data, returning either an SyntaxError (if there's a problem that prevents processing of the
@@ -124,7 +127,8 @@ class DefaultEdifactEnvelopeHandler(config: EdifactParserConfig, schema: EdiSche
   }
 
   /** Handle UNH segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
-    * message) or the message schema definition for parsing and validating the message data.
+    * message) or the structure configuration with message schema definition for parsing and validating the message
+    * data and optional parser configuration.
     */
   def handleUnh(map: ju.Map[String, Object]) = {
     val msgRef = getRequiredString(msgHeadReferenceKey, map)
@@ -137,7 +141,7 @@ class DefaultEdifactEnvelopeHandler(config: EdifactParserConfig, schema: EdiSche
       }
       if (structure == null || (getAsString(msgHeadMessageVersionKey, map) +
         getAsString(msgHeadMessageReleaseKey, map)).toLowerCase() != schema.ediVersion.version) NoAgreementForValue
-      else structure
+      else EdifactStructureConfig(structure, config)
     } else DuplicateDetected
   }
 }

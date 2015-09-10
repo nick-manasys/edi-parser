@@ -30,12 +30,15 @@ case class EdifactParserConfig(val lengthFail: Boolean, val charFail: Boolean, v
   val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
   val enforceChars: Boolean, val substitutionChar: Int)
 
+case class EdifactStructureConfig(structure: Structure, config: EdifactParserConfig)
+
 /** Application callback to determine handling of envelope structures.
   */
 trait EdifactEnvelopeHandler {
 
   /** Handle UNB segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
-    * interchange) or the parser configuration to be used for the interchange.
+    * interchange) or the parser configuration to be used for the interchange (or <code>null</code> if default parser
+    * configuration to be used).
     */
   @throws(classOf[LexicalException])
   def handleUnb(map: ju.Map[String, Object]): Object
@@ -47,7 +50,8 @@ trait EdifactEnvelopeHandler {
   def handleUng(map: ju.Map[String, Object]): SyntaxError
 
   /** Handle UNH segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
-    * message) or the message schema definition for parsing and validating the message data.
+    * message) or the structure configuration with message schema definition for parsing and validating the message
+    * data and optional parser configuration.
     */
   def handleUnh(map: ju.Map[String, Object]): Object
 }
@@ -598,7 +602,11 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
           if (setid == "CONTRL") ackGeneratedList remove ackroot
           handler.handleUnh(setprops) match {
             case s: SyntaxError => messageError(s)
-            case struct: Structure => {
+            case EdifactStructureConfig(struct, cfg) => {
+              if (cfg != null) {
+                config = cfg
+                lexer.asInstanceOf[EdifactLexer].configure(config.substitutionChar, config.enforceChars)
+              }
               val data = parseStructure(struct, false)
               if (isSetClose) {
                 closeSet(setprops)
@@ -630,10 +638,11 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
         handler.handleUnb(inter) match {
           case s: SyntaxError => interchangeError(s, s"Interchange $interchangeReference rejected at ${lexer.getSegmentNumber}");
-          case cfg: EdifactParserConfig => {
-            config = cfg
+          case x => {
+            config = if (x.isInstanceOf[EdifactParserConfig]) x.asInstanceOf[EdifactParserConfig]
+              else EdifactParserConfig(true, true, true, true, true, true, true, true, -1)
+            lexer.asInstanceOf[EdifactLexer].configure(config.substitutionChar, config.enforceChars)
             var ackId = 1
-            lexer.asInstanceOf[EdifactLexer].configure(cfg.substitutionChar, cfg.enforceChars)
             lexer.setHandler(EdifactErrorHandler)
             while (lexer.currentType != END && !isInterchangeEnvelope) {
               if (isGroupEnvelope) {
