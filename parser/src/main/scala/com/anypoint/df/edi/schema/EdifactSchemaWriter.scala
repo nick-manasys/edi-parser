@@ -29,7 +29,7 @@ trait EdifactNumberProvider {
 
 /** Writer for EDIFACT EDI documents.
   */
-case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
+case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
     extends SchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax, config.enforceChars,
       config.delims, config.suffix, config.subChar, config.decimalMark)) {
 
@@ -101,7 +101,7 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
   }
 
   /** Check if an envelope segment (handled directly, outside of structure). */
-  def isEnvelopeSegment(segment: Segment) = schema.ediVersion.ediForm.isEnvelopeSegment(segment.ident)
+  def isEnvelopeSegment(segment: Segment) = segment.ident == "UNH" || segment.ident == "UNT"
 
   /** Stores list of string values matching the simple value components. */
   def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
@@ -150,32 +150,32 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
       }
       init(interProps)
       setCount = 0
-      (context, interref)
+      (context, interref, interProps)
     }
     
-    def sendList(msgs: List[ValueMap], context: String) = {
+    def sendList(msgs: List[ValueMap], context: String, inter: ValueMap) = {
       msgs foreach (msgData => try {
         val setProps =
           if (msgData.containsKey(messageHeaderKey)) new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
           else new ValueMapImpl
+        val struct = getAsRequired[Structure](structureSchema, msgData)
         val msgType = getRequiredString(structureId, msgData)
-        schema.structures(msgType) match {
-          case t: Structure => {
-            setProps put (msgHeadMessageTypeKey, msgType)
-            if (!setProps.containsKey(msgHeadMessageAgencyKey)) setProps put (msgHeadMessageAgencyKey, "UN")
-            val msgAgency = getAsString(msgHeadMessageAgencyKey, setProps)
-            val fullVersion = schema.ediVersion.version.toUpperCase
-            val msgVersion = fullVersion.substring(0, 1)
-            val msgRelease = fullVersion.substring(1)
-            setProps put (msgHeadMessageVersionKey, msgVersion)
-            setProps put (msgHeadMessageReleaseKey, msgRelease)
-            openSet(numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency), setProps)
-            writeStructure(msgData, t)
-            closeSet(setProps)
-            setCount += 1
-          }
-          case _ => logAndThrow(s"Unknown message id $msgType")
+        setProps put (msgHeadMessageTypeKey, msgType)
+        if (!setProps.containsKey(msgHeadMessageAgencyKey)) setProps put (msgHeadMessageAgencyKey, "UN")
+        val msgAgency = getAsString(msgHeadMessageAgencyKey, setProps)
+        val (msgVersion, msgRelease) = if (msgType == "CONTRL") {
+          val version = config.version.code
+          (version, "1")
+        } else {
+          val fullVersion = struct.version.version.toUpperCase
+          (fullVersion.substring(0, 1), fullVersion.substring(1))
         }
+        setProps put (msgHeadMessageVersionKey, msgVersion)
+        setProps put (msgHeadMessageReleaseKey, msgRelease)
+        openSet(numprov.nextMessage(context, msgType, msgVersion, msgRelease, msgAgency), setProps)
+        writeStructure(msgData, struct)
+        closeSet(setProps)
+        setCount += 1
       } catch {
         case e: Throwable => {
           logAndThrow(s"${e.getMessage} in ${msgData.get(structureId)} at index ${msgData.get(msgIndexKey)}", e)
@@ -215,18 +215,18 @@ case class EdifactSchemaWriter(out: OutputStream, schema: EdiSchema, numprov: Ed
     
     // send interchanges containing only acks
     ackInterchanges.keys.filter { !interchanges.contains(_) }.foreach { key =>
-      val (context, interref) = openInterchange(key, interRoot)
-      sendList(ackInterchanges(key), context)
+      val (context, interref, interprops) = openInterchange(key, interRoot)
+      sendList(ackInterchanges(key), context, interprops)
       term(interref)
     }
     
     // send interchanges containing application messages and potentially also acks
     interchanges foreach {
       case (key, msgs) => {
-        val (context, interref) = openInterchange(key, interRoot)
-        ackInterchanges.get(key).foreach { sendList(_, context) }
+        val (context, interref, interprops) = openInterchange(key, interRoot)
+        ackInterchanges.get(key).foreach { sendList(_, context, interprops) }
         groupSends(msgs, SchemaJavaValues.groupKey, EmptySendMap) foreach {
-          case (key, msgs) => sendList(msgs, context)
+          case (key, msgs) => sendList(msgs, context, interprops)
         }
         term(interref)
       }

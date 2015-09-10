@@ -521,8 +521,10 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     }
 
     val map = new ValueMapImpl
-    val funcAckList = new MapListImpl
-    map put (functionalAcksGenerated, funcAckList)
+    val ackGeneratedList = new MapListImpl
+    map put (functionalAcksGenerated, ackGeneratedList)
+    val ackReceivedList = new MapListImpl
+    map put (functionalAcksReceived, ackReceivedList)
     val transLists = new ValueMapImpl().asInstanceOf[ju.Map[String, MapList]]
     map put (messagesMap, transLists)
     val schemaVersionMessages = getOrSet(messagesMap, new ValueMapImpl, map)
@@ -532,6 +534,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       val msg = contrlMsg(syntaxVersion)
       ctrlmap put (structureId, msg.ident)
       ctrlmap put (structureName, msg.name)
+      ctrlmap put (structureSchema, msg)
       val intercopy = new ValueMapImpl(interchange)
       swap(interHeadSenderQualKey, interHeadRecipientQualKey, intercopy)
       swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, intercopy)
@@ -579,7 +582,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       ackroot put (structureHeading, ackhead)
       ackroot put (structureDetail, new ValueMapImpl)
       ackroot put (structureSummary, new ValueMapImpl)
-      funcAckList add ackroot
+      ackGeneratedList add ackroot
       val interack = new ValueMapImpl
       val segUCI = uciSegment(syntaxVersion)
       interack put (segUCI.components(0).key, interchangeReference)
@@ -592,7 +595,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
         def parseMessage(group: Option[ValueMap]) = {
           interchangeMessageCount = interchangeMessageCount + 1
           val (setid, setprops) = openSet
-          if (setid == "CONTRL") funcAckList remove ackroot
+          if (setid == "CONTRL") ackGeneratedList remove ackroot
           handler.handleUnh(setprops) match {
             case s: SyntaxError => messageError(s)
             case struct: Structure => {
@@ -603,10 +606,14 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
                 data put (interchangeKey, inter)
                 data put (messageHeaderKey, setprops)
                 data put (structureSchema, struct)
-                val version = getRequiredString(msgHeadMessageVersionKey, setprops) +
-                  getRequiredString(msgHeadMessageReleaseKey, setprops)
-                val msgLists = getOrSet(version, new ValueMapImpl, schemaVersionMessages)
-                val list = getOrSet(setid, new MapListImpl, msgLists)
+                val list =
+                  if (setid == "CONTRL") ackReceivedList
+                  else {
+                    val version = getRequiredString(msgHeadMessageVersionKey, setprops) +
+                      getRequiredString(msgHeadMessageReleaseKey, setprops)
+                    val msgLists = getOrSet(version, new ValueMapImpl, schemaVersionMessages)
+                    getOrSet(setid, new MapListImpl, msgLists)
+                  }
                 list add (data)
               } else messageError(NotSupportedInPosition)
             }

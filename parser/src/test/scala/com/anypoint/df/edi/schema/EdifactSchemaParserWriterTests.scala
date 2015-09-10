@@ -182,8 +182,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   it should "write the UNB/UNZ envelope when initialized and then terminated" in {
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION3, false, -1, '.', ASCII_CHARSET, "+: '?", "", false)
-    val writer = EdifactSchemaWriter(out, EdiSchema(EdiSchemaVersion(EdiFact, "ORDERS"), Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultEdifactNumberProvider, config)
+    val writer = EdifactSchemaWriter(out, new DefaultEdifactNumberProvider, config)
     val initprops = new ValueMapImpl
     initprops.put(interHeadSenderIdentKey, "5790001086626")
     initprops.put(interHeadSenderQualKey, "14")
@@ -208,7 +207,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val input = parseDoc(testDoc)
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, false, -1, '.', ASCII_CHARSET, "+:*'?", "\n", false)
-    val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
+    val writer = EdifactSchemaWriter(out, docProvider, config)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     println(text)
@@ -219,7 +218,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val input = parseDoc(testDoc)
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, false, -1, '.', ASCII_CHARSET, "+:*'?", "\n", true)
-    val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
+    val writer = EdifactSchemaWriter(out, docProvider, config)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     text should be ("UNA:+.?*'\n" + testDoc)
@@ -230,7 +229,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val input = parseDoc(modDoc)
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION2, false, -1, '.', ASCII_CHARSET, "+: '?", "\n", false)
-    val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
+    val writer = EdifactSchemaWriter(out, docProvider, config)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     text should be (modDoc)
@@ -241,7 +240,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val input = parseDoc(modDoc)
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION3, false, -1, '.', ASCII_CHARSET, "+: '?", "\n", false)
-    val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
+    val writer = EdifactSchemaWriter(out, docProvider, config)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     text should be (modDoc)
@@ -257,7 +256,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val input = parseDoc(testDoc)
     val out = new ByteArrayOutputStream
     val config = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, false, -1, '.', ASCII_CHARSET, "+:*'?", "\n", false)
-    val writer = EdifactSchemaWriter(out, testSchema, docProvider, config)
+    val writer = EdifactSchemaWriter(out, docProvider, config)
     val message = extractMessage("D96A", "ORDERS", input)
     val interMsg = getRequiredValueMap(interchangeKey, message)
     val interRoot = new ValueMapImpl(interMsg)
@@ -269,7 +268,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     text should be (testDoc)
   }
 
-  def oneshotWriter = EdifactSchemaWriter(new ByteArrayOutputStream, testSchema, new DefaultEdifactNumberProvider, writerConfig)
+  def oneshotWriter = EdifactSchemaWriter(new ByteArrayOutputStream, new DefaultEdifactNumberProvider, writerConfig)
 
   it should "throw an exception when missing required interchange data" in {
     val input = parseDoc(testDoc)
