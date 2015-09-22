@@ -7,6 +7,7 @@ import java.util.{ Calendar, GregorianCalendar }
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.Buffer
+import scala.beans.BeanProperty
 import scala.util.{ Try, Success }
 
 import org.apache.log4j.Logger
@@ -55,10 +56,11 @@ trait X12EnvelopeHandler {
 }
 
 /** Error information. */
-case class X12Error(segment: Int, fatal: Boolean, errorType: ErrorType, errorCode: String, errorText: String)
+case class X12Error(@BeanProperty val segment: Int, @BeanProperty val fatal: Boolean,
+  @BeanProperty val errorType: ErrorType, @BeanProperty val errorCode: String, @BeanProperty val errorText: String)
 
 /** Exception reporting problem in interchange. */
-case class X12InterchangeException(note: InterchangeNoteCode, text: String, cause: Throwable = null)
+case class X12InterchangeException(val note: InterchangeNoteCode, val text: String, val cause: Throwable = null)
 extends RuntimeException(text, cause)
 
 class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12EnvelopeHandler) extends SchemaJavaDefs {
