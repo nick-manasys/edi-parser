@@ -67,42 +67,6 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     props.get(TEST_INDICATOR) should be("P")
   }
 
-/*  it should "parse the envelope segments as requested" in {
-    val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-    val parser = new X12InterchangeParser(in, ASCII_CHARSET,
-      new DefaultX12EnvelopeHandler(parserConfig, new EdiSchema(EdiSchemaVersion(X12, "05010"))))
-    val props = new ValueMapImpl
-    parser.init(props) should be (VALID)
-    val gprops = parser.openGroup
-    gprops.get(groupFunctionalIdentifierKey) should be("PO")
-    gprops.get(groupApplicationSenderKey) should be("006927180")
-    gprops.get(groupApplicationReceiverKey) should be("IAIYUCAFOO")
-    gprops.get(groupDateKey) should be(new GregorianCalendar(2008, 5, 4))
-    gprops.get(groupTimeKey) should be((12 * 60 + 5) * 60000)
-    gprops.get(groupControlNumberHeaderKey) should be(Integer.valueOf(168))
-    gprops.get(groupResponsibleAgencyKey) should be("X")
-    gprops.get(groupVersionReleaseIndustryKey) should be("004010")
-    val (transid, sprops) = parser.openSet
-    transid should be("850")
-    sprops.get(setIdentifierCodeKey) should be("850")
-    sprops.get(setControlNumberHeaderKey) should be("000000176")
-    sprops.containsKey(setImplementationConventionKey) should be(false)
-    parser.closeSet(sprops)
-    parser.isGroupClose should be(true)
-    parser.closeGroup(gprops)
-  }
-*/
-/*  it should "throw an exception when positioned at wrong segment" in {
-    val in = new ByteArrayInputStream((ISA + GS + ST + buildSE(0) + buildGE(0) + IEA).getBytes())
-    val parser = new X12InterchangeParser(in, ASCII_CHARSET,
-      new DefaultX12EnvelopeHandler(parserConfig, new EdiSchema(EdiSchemaVersion(X12, "05010"))))
-    val props = new ValueMapImpl
-    parser.init(props) should be (VALID)
-    intercept[IllegalStateException] { parser.openSet }
-    val gprops = parser.openGroup
-    intercept[IllegalStateException] { parser.openGroup }
-  }
-*/
   it should "parse a complete interchange message" in {
     val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
     val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
