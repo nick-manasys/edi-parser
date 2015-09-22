@@ -2,8 +2,10 @@ package com.anypoint.df.edi.schema.systests.x12;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +13,9 @@ import java.util.Map;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.anypoint.df.edi.lexical.X12Constants.ErrorType;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
+import com.anypoint.df.edi.schema.X12Error;
 import com.anypoint.df.edi.schema.X12SchemaDefs;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestX12;
@@ -67,6 +71,30 @@ public class BiztalkTest extends X12TestBase {
         assertEquals("850", transset.get(SchemaJavaValues.structureId()));
         transset.remove(SchemaJavaValues.structureId());
         checkWrite(test, text, result);
+    }
+    
+    @Test
+    public void verifyErrors() {
+        DocumentTest test = new DocumentTestX12(schema, false);
+        String path = "/x12/005010/biztalk-interop/850x2.edi";
+        InputStream is = X12TestBase.class.getResourceAsStream(path);
+        if (is == null) {
+            throw new IllegalArgumentException("File " + path + " not found");
+        }
+        Map<String, Object> result = test.parse(is);
+        printAcknowledgments(result, false);
+        List<X12Error> errors = (List<X12Error>)result.get(SchemaJavaValues.errorListKey());
+        assertEquals(2, errors.size());
+        X12Error error = errors.get(0);
+        assertEquals(6, error.segment());
+        assertTrue(error.fatal());
+        assertEquals(ErrorType.SEGMENT_SYNTAX, error.errorType());
+        assertEquals("2", error.errorCode());
+        error = errors.get(1);
+        assertEquals(7, error.segment());
+        assertTrue(error.fatal());
+        assertEquals(ErrorType.SEGMENT_SYNTAX, error.errorType());
+        assertEquals("2", error.errorCode());
     }
 
     @Test

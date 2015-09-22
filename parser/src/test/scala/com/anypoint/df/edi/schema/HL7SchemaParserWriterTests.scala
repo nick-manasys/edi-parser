@@ -139,7 +139,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   behavior of "HL7SchemaWriter"
 
-  it should "roundtrip a parsed document" in {
+  it should "roundtrip a simplified document" in {
     val msg = MSH + EVN + PID
     val in = new ByteArrayInputStream(msg.getBytes())
     val parser = HL7SchemaParser(in, testSchema, new DefaultHL7NumberValidator, parserConfig)
@@ -153,4 +153,32 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     println("returned text:\n" + text + "\n")
     text should be (msg)
   }
+
+  /** Reads a copy of a test document into memory, standardizing line endings. */
+  def readDoc(path: String) = {
+    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(path)).getLines
+    val builder = new StringBuilder
+    lines.foreach(line => {
+      if (!builder.isEmpty) builder.append('\n')
+      builder.append(line)
+    })
+    builder.toString
+  }
+
+//  it should "roundtrip a complete document" in {
+//    new YamlReader().loadYaml(new InputStreamReader(getClass.
+//      getClassLoader.getResourceAsStream("esl/ADT_A01.esl"), "UTF-8"), Array())
+//    val msg = readDoc("edi/ADT_A01.hl7")
+//    val in = new ByteArrayInputStream(msg.getBytes())
+//    val parser = HL7SchemaParser(in, testSchema, new DefaultHL7NumberValidator, parserConfig)
+//    val result = parser.parse
+//    val input = result.get
+//    val out = new ByteArrayOutputStream
+//    val writer = HL7SchemaWriter(out, testSchema, docProvider, writerConfig)
+//    writer.write(input).get //isSuccess should be (true)
+//    val text = new String(out.toByteArray)
+//    println("original text:\n" + msg + "\n")
+//    println("returned text:\n" + text + "\n")
+//    text should be (msg)
+//  }
 }

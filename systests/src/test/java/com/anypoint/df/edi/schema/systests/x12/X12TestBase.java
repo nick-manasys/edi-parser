@@ -11,10 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.anypoint.df.edi.lexical.EdiConstants;
-import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 import com.anypoint.df.edi.schema.SchemaJavaValues;
-import com.anypoint.df.edi.schema.X12ParserConfig;
 import com.anypoint.df.edi.schema.systests.TestBase;
 import com.anypoint.df.edi.schema.tools.Decode997;
 import com.anypoint.df.edi.schema.tools.Decode999;

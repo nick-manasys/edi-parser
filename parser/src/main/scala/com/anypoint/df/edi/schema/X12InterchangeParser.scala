@@ -17,6 +17,7 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
 import com.anypoint.df.edi.lexical.X12Constants._
+import com.anypoint.df.edi.lexical.X12Constants.ErrorType
 import com.anypoint.df.edi.lexical.X12Lexer._
 
 import EdiSchema._
@@ -30,8 +31,7 @@ case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val c
   val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
   val reportDataErrors: Boolean, val generate999: Boolean, val substitutionChar: Int, val strChar: CharacterRestriction)
 
-/** Application callback to determine handling of envelope structures.
-  */
+/** Application callback to determine handling of envelope structures. */
 trait X12EnvelopeHandler {
 
   /** Handle ISA segment data, returning either an InterchangeNoteCode (if there's a problem that prevents processing of
@@ -54,8 +54,12 @@ trait X12EnvelopeHandler {
   def handleSt(map: ju.Map[String, Object]): Object
 }
 
+/** Error information. */
+case class X12Error(segment: Int, fatal: Boolean, errorType: ErrorType, errorCode: String, errorText: String)
+
 /** Exception reporting problem in interchange. */
-case class X12InterchangeException(note: InterchangeNoteCode, text: String, cause: Throwable = null) extends RuntimeException(text, cause)
+case class X12InterchangeException(note: InterchangeNoteCode, text: String, cause: Throwable = null)
+extends RuntimeException(text, cause)
 
 class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12EnvelopeHandler) extends SchemaJavaDefs {
 
@@ -93,6 +97,9 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     /** Segment number for interchange start. */
     var interchangeStartSegment = 0
 
+    /** Number of groups accepted in current interchange. */
+    var interchangeAcceptCount = 0
+
     /** Flag for currently in a group. */
     var inGroup = false
 
@@ -116,6 +123,12 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** One or more segments of transaction in error flag. */
     var oneOrMoreSegmentsInError = false
+    
+    /** Current transaction set data map. */
+    var transactionMap: ValueMap = null
+    
+    /** Current group data map. */
+    var groupMap: ValueMap = null
 
     /** Accumulated data errors (as AK4/Group IK4 maps) from segment. */
     val dataErrors = Buffer[ValueMap]()
@@ -125,7 +138,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** Accumulated transaction errors. */
     val transactionErrors = Buffer[TransactionSyntaxError]()
-
+    
     /** Accumulated group errors. */
     val groupErrors = Buffer[GroupSyntaxError]()
     
@@ -211,6 +224,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
             ik4Group put (groupIK4.seq.items.head.key, xk4)
             dataErrors += ik4Group
           } else dataErrors += xk4
+          addToList(errorListKey,
+            X12Error(lexer.getSegmentNumber, fatal, ErrorType.ELEMENT_SYNTAX, error.code, error.text), transactionMap)
         }
       } else {
         if (error == MissingRequiredElement) rejectStructure = true
@@ -293,6 +308,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           if (loopStack.nonEmpty) xk3data put (xk3Comps(2) key, loopStack.top.ident)
           xk3data put (xk3Comps(3) key, error.code.toString)
           segmentErrors += xk3
+          addToList(errorListKey,
+            X12Error(lexer.getSegmentNumber, fatal, ErrorType.SEGMENT_SYNTAX, error.code, error.text), transactionMap)
         }
         logErrorInStructure(fatal, false, s"${error.text}: $ident")
         if (fatal) rejectStructure = true
@@ -328,6 +345,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     def groupError(error: GroupSyntaxError) = {
       groupErrors += error
+      addToList(errorListKey,
+        X12Error(lexer.getSegmentNumber, true, ErrorType.GROUP_SYNTAX, error.code, error.text), groupMap)
       logGroupEnvelopeError(true, false, error.text)
     }
 
@@ -362,6 +381,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     def transactionError(error: TransactionSyntaxError) = {
       transactionErrors += error
+      addToList(errorListKey,
+        X12Error(lexer.getSegmentNumber, true, ErrorType.TRANSACTION_SYNTAX, error.code, error.text), transactionMap)
       logErrorInStructure(true, false, error.text)
     }
 
@@ -417,12 +438,15 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         } else discardSegment
 
     /** Parse transactions in group. */
-    def parseGroup(group: ValueMap, version: String, ackhead: ValueMap) = {
+    def parseGroup(version: String, ackhead: ValueMap) = {
 
       def handleStructure(t: Structure, setprops: ValueMap, setack: ValueMap): ValueMap = {
-        val data = parseStructure(t, false)
+        val data = new ValueMapImpl
+        transactionMap = data
+        parseStructure(t, false, data)
+        transactionMap = null
         data put (interchangeKey, inter)
-        data put (groupKey, group)
+        data put (groupKey, groupMap)
         data put (setKey, setprops)
         val key = if (config generate999) groupIK3.key else groupAK3.key
         if (segmentErrors.nonEmpty) setack put (key, segmentErrors.asJava)
@@ -469,6 +493,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
             xk5data put (xk5Comps(0) key, RejectedTransaction code)
             val limit = math.min(xk5Comps.length - 2, transactionErrors.length)
             (0 until limit) foreach (i => xk5data put (xk5Comps(i + 1) key, transactionErrors(i).code.toString))
+            if (data != null) mergeToList(errorListKey, data, groupMap)
           } else {
             val list = getOrSet(setid, new MapListImpl, transLists)
             list add (data)
@@ -499,21 +524,21 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       lexer.setHandler(X12ErrorHandler)
       rejectStructure = false
       while (isGroupOpen) {
-        val group = openGroup
+        groupMap = openGroup
         if (rejectStructure) throw new X12InterchangeException(InterchangeInvalidContent, "invalid GH segment")
         else {
-          val groupErr = handler.handleGs(group) match {
+          val groupErr = handler.handleGs(groupMap) match {
             case e: GroupSyntaxError => e
             case x =>
               if (x.isInstanceOf[X12ParserConfig]) setConfig(x.asInstanceOf[X12ParserConfig])
               null
           }
           groupStartSegment = lexer.getSegmentNumber - 2
-          groupNumber = getRequiredInt(groupControlNumberHeaderKey, group)
-          val version = getRequiredString(groupVersionReleaseIndustryKey, group)
+          groupNumber = getRequiredInt(groupControlNumberHeaderKey, groupMap)
+          val version = getRequiredString(groupVersionReleaseIndustryKey, groupMap)
           lexer.countGroup
           val ackroot = buildAckRoot(inter)
-          val groupcopy = new ValueMapImpl(group)
+          val groupcopy = new ValueMapImpl(groupMap)
           swap(groupApplicationSenderKey, groupApplicationReceiverKey, groupcopy)
           ackroot put (groupKey, groupcopy)
           val ackhead = new ValueMapImpl
@@ -523,13 +548,13 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           ackroot put (structureSchema, if (config generate999) trans999 else trans997)
           val ak1data = new ValueMapImpl
           ackhead put (ackTransKeys(config generate999)(1), ak1data)
-          ak1data put (segAK1Comps(0) key, group get (groupFunctionalIdentifierKey))
-          ak1data put (segAK1Comps(1) key, group get (groupControlNumberHeaderKey))
+          ak1data put (segAK1Comps(0) key, groupMap get (groupFunctionalIdentifierKey))
+          ak1data put (segAK1Comps(1) key, groupMap get (groupControlNumberHeaderKey))
           if (version.startsWith("005")) ak1data put (segAK1Comps(2) key, version)
           var countPresent = 0
           if (groupErr == null) {
-            parseGroup(group, version, ackhead)
-            countPresent = closeGroup(group)
+            parseGroup(version, ackhead)
+            countPresent = closeGroup(groupMap)
           } else {
             groupError(groupErr)
             discardToGroupEnd
@@ -549,7 +574,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           ak9data put (segAK9.components(3) key, Integer valueOf (groupAcceptCount))
           val limit = math.min(segAK9.components.length - 5, groupErrors.length)
           (0 until limit) foreach (i => ak9data put (segAK9.components(i + 4) key, groupErrors(i).code.toString))
-          if (getRequiredString(groupFunctionalIdentifierKey, group) != "FA") funcAckList add (ackroot)
+          if (getRequiredString(groupFunctionalIdentifierKey, groupMap) != "FA") funcAckList add (ackroot)
+          if (groupAcceptCount == 0) mergeToList(errorListKey, groupMap, inter) else interchangeAcceptCount += 1
         }
       }
     }
@@ -559,7 +585,6 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     def parseInterchange = {
       interchangeStartSegment = lexer.getSegmentNumber - 1
       interchangeNumber = getRequiredInt(INTER_CONTROL, inter)
-      root put (interchangeKey, inter)
       if (checkSegment("ISB")) discardSegment
       if (checkSegment("ISE")) discardSegment
       if (checkSegment("TA3")) discardSegment
@@ -621,7 +646,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       throw X12InterchangeException(code, text)
     }
 
-    def buildTA1(ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode, inter: ValueMap) = {
+    def buildTA1(segment: Int, ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode, groups: Int,
+      inter: ValueMap) = {
       val ta1map = new ValueMapImpl
       ta1map put (segTA1.components(0) key, inter get (INTER_CONTROL))
       ta1map put (segTA1.components(1) key, inter get (INTERCHANGE_DATE))
@@ -629,6 +655,9 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       ta1map put (segTA1.components(3) key, ack code)
       ta1map put (segTA1.components(4) key, note code)
       interAckList add ta1map
+      if (note != InterchangeNoError) addToList(errorListKey,
+        X12Error(segment, true, ErrorType.INTERCHANGE_NOTE, note.code, note.text), map)
+      if (groups == 0) mergeToList(errorListKey, inter, map)
     }
 
     var done = false
@@ -637,6 +666,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       var interchangeAck: InterchangeAcknowledgmentCode = AcknowledgedRejected
       try {
         lexer.setHandler(null)
+        val startSeg = lexer.getSegmentNumber
         init(inter) match {
           case InterchangeStartStatus.NO_DATA => done = true
           case InterchangeStartStatus.VALID => handler.handleIsa(inter) match {
@@ -644,8 +674,9 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
             case x => {
               map put (delimiterCharacters, buildDelims)
               val parser = new X12SchemaParser(inter, map)
-              val config = if (x.isInstanceOf[X12ParserConfig]) x.asInstanceOf[X12ParserConfig]
-                  else X12ParserConfig(true, true, true, true, true, true, true, true, false, -1, CharacterRestriction.BASIC)
+              val config =
+                if (x.isInstanceOf[X12ParserConfig]) x.asInstanceOf[X12ParserConfig]
+                else X12ParserConfig(true, true, true, true, true, true, true, true, false, -1, CharacterRestriction.BASIC)
               parser.setConfig(config)
               parser.parseInterchange
               interchangeAck = AcknowledgedWithErrors
@@ -659,9 +690,10 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
                   case Some(code) => {
                     val text = s"Irrecoverable error in IEA at ${lexer.getSegmentNumber} with control number ${inter.get(INTER_CONTROL)}: ${code.text}"
                     logger error text
-                    buildTA1(interchangeAck, code, inter)
+                    buildTA1(lexer.getSegmentNumber, interchangeAck, code, parser.interchangeAcceptCount, inter)
                   }
-                  case None => buildTA1(AcknowledgedNoErrors, InterchangeNoError, inter)
+                  case None =>
+                    buildTA1(startSeg, AcknowledgedNoErrors, InterchangeNoError, parser.interchangeAcceptCount, inter)
                 }
               } else throw X12InterchangeException(InterchangeInvalidControlStructure, s"Unknown or unexpected control segment ${lexer.token}")
             }
@@ -673,11 +705,11 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         }
       } catch {
         case e: X12InterchangeException => {
-          buildTA1(interchangeAck, e.note, inter)
+          buildTA1(lexer.getSegmentNumber, interchangeAck, e.note, 0, inter)
           discardInterchange
         }
         case e: IOException => {
-          buildTA1(AcknowledgedRejected, InterchangeEndOfFile, inter)
+          buildTA1(lexer.getSegmentNumber, AcknowledgedRejected, InterchangeEndOfFile, 0, inter)
           throw e
         }
       }

@@ -81,6 +81,9 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
   def describeComponent(incomp: Boolean) =
     if (incomp) {
       val index = 0 max (lexer.getElementNumber - 1)
+      if (currentSegment == null) {
+        println
+      }
       if (index < currentSegment.components.size) {
         val comp = currentSegment.components(index)
         s" for component ${comp.key}: '${comp.name}'"
@@ -194,6 +197,7 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
 
   def init(data: ValueMap) = {
     val delims = lexer.asInstanceOf[HL7Lexer].init(data)
+    currentSegment = segMSH
     parseCompList(segMSH.components.drop(1), ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, data)
     delims
   }
@@ -217,7 +221,7 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
             map put (structureName, t.name)
             val dataMap = new ValueMapImpl
             map put (dataKey, dataMap)
-            dataMap put (t.ident, parseStructure(t, true))
+            dataMap put (t.ident, parseStructure(t, true, new ValueMapImpl))
           }
           case _ => messageError(ErrorMessageType)
         })

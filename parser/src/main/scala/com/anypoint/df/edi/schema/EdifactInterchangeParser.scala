@@ -607,7 +607,8 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
                 config = cfg
                 lexer.asInstanceOf[EdifactLexer].configure(config.substitutionChar, config.enforceChars)
               }
-              val data = parseStructure(struct, false)
+              val data = new ValueMapImpl
+              parseStructure(struct, false, data)
               if (isSetClose) {
                 closeSet(setprops)
                 group.foreach { gmap => data.put(groupKey, gmap) }

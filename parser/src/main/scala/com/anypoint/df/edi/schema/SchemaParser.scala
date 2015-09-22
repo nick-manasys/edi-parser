@@ -132,7 +132,7 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
     * value is the map of the values in the segment or components in the group. For a segment or group with repeats
     * allowed the value is a list of maps, one for each occurrence..
     */
-  def parseStructure(structure: Structure, onepart: Boolean) = {
+  def parseStructure(structure: Structure, onepart: Boolean, topMap: ValueMap) = {
 
     import ComponentErrors._
     import ErrorStates._
@@ -150,8 +150,9 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
       * @param table index
       * @param optseq table structure sequence option
       * @param terms terminations from next table
+      * @param map table data map
       */
-    def parseTable(table: Int, optseq: Option[StructureSequence], terms: Terminations) = {
+    def parseTable(table: Int, optseq: Option[StructureSequence], terms: Terminations, map: ValueMap) = {
 
       def parseStructureSequence(seq: StructureSequence, terms: List[Terminations], values: ValueMap): Unit = {
 
@@ -298,20 +299,18 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
         }
       }
 
-      val map = new ValueMapImpl
       optseq.foreach { seq => parseStructureSequence(seq, List(terms), map) }
       map
     }
 
-    if (onepart) parseTable(0, structure.heading, EdiSchema.emptyTerminations)
+    if (onepart) parseTable(0, structure.heading, EdiSchema.emptyTerminations, topMap)
     else {
-      val topMap: ValueMap = new ValueMapImpl
       topMap put (structureId, structure.ident)
       topMap put (structureName, structure.name)
-      topMap put (structureHeading, parseTable(0, structure.heading, structure.detailTerms))
+      topMap put (structureHeading, parseTable(0, structure.heading, structure.detailTerms, new ValueMapImpl))
       convertSectionControl match {
         case Some(1) | None => {
-          topMap put (structureDetail, parseTable(1, structure.detail, structure.summaryTerms))
+          topMap put (structureDetail, parseTable(1, structure.detail, structure.summaryTerms, new ValueMapImpl))
         }
         case _ =>
       }
@@ -319,8 +318,7 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
         case Some(1) => segmentError(lexer.token, OutOfOrderSegment, ParseComplete, segmentNumber - 1)
         case _ =>
       }
-      topMap put (structureSummary, parseTable(2, structure.summary, EdiSchema.emptyTerminations))
-      topMap
+      topMap put (structureSummary, parseTable(2, structure.summary, EdiSchema.emptyTerminations, new ValueMapImpl))
     }
   }
 
