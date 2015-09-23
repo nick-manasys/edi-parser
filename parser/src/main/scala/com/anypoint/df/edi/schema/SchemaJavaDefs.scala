@@ -70,7 +70,10 @@ trait SchemaJavaDefs {
     }
 
   def addToList[T](key: String, item: T, map: ValueMap) =
-    if (map != null) getOrSet(key, new ju.ArrayList[T](), map).add(item)
+    if (map != null) {
+      val list = getOrSet(key, new ju.ArrayList[T](), map)
+      if (list.isEmpty || list.get(list.size - 1) != item) list.add(item)
+    }
 
   def mergeToList[T](key: String, from: ValueMap, to: ValueMap) =
     if (from.containsKey(key)) {

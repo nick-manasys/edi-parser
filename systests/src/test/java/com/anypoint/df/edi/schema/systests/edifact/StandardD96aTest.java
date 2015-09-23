@@ -23,12 +23,12 @@ public class StandardD96aTest extends EdifactTestBase {
     public void verifyInvalidCharacterHandling() throws Exception {
         loadSchema("/edifact/d96a/DESADV.esl");
         parseAndCheckWrite("/edifact/d96a/DESADV-invalid-characters.edi");
-        EdifactParserConfig pconfig = new EdifactParserConfig(true, true, true, true, true, true, true, true, -1);
+        EdifactParserConfig pconfig = new EdifactParserConfig(true, false, true, true, true, true, true, true, -1);
         DocumentTest test = new DocumentTestEdifact(schema, pconfig);
         String text = readAsString("/edifact/d96a/DESADV-invalid-characters.edi");
-        assertEquals("UNB+UNOA:3+MODUS:ZZZ+MULESOFT:ZZZ+XXXXXXXXXXX+++DESADV'UNH++CONTRL:3:1:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UCM+00001+DESADV:D:96A:UN:A01051+4'UCS+10'UCD+21+3:1'UNT+6+1'UNZ+1+1'",
+        assertEquals("UNB+UNOA:3+MODUS:ZZZ+MULESOFT:ZZZ+XXXXXXXXXXX+++DESADV'UNH++CONTRL:3:1:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UCM+00001+DESADV:D:96A:UN:A01051+7'UCS+10'UCD+21+3:1'UNT+6+1'UNZ+1+1'",
             stripAckDates(parseAndReturnAck(test, new ByteArrayInputStream(text.getBytes("ASCII")))));
-        pconfig = new EdifactParserConfig(true, true, true, true, true, true, true, true, '_');
+        pconfig = new EdifactParserConfig(true, false, true, true, true, true, true, true, '_');
         test = new DocumentTestEdifact(schema, pconfig);
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
         checkWrite(test, text.replace((char)0x0E, '_'), result);

@@ -171,7 +171,7 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
       writeCompList(map, DATA_ELEMENT, false, segment.components)
     } catch {
       case e: Exception =>
-        throw new WriteException(s"${e.getMessage} of segment ${segment.ident} at position ${writer.getSegmentCount}")
+        throw new WriteException(s"${e.getMessage} of segment ${segment.ident} at position ${writer.getSegmentCount}", e)
     }
     writer.writeSegmentTerminator
   }
