@@ -57,7 +57,9 @@ trait X12EnvelopeHandler {
 
 /** Error information. */
 case class X12Error(@BeanProperty val segment: Int, @BeanProperty val fatal: Boolean,
-  @BeanProperty val errorType: ErrorType, @BeanProperty val errorCode: String, @BeanProperty val errorText: String)
+  @BeanProperty val errorType: ErrorType, @BeanProperty val errorCode: String, @BeanProperty val errorText: String) {
+  def this() = this(0, false, ErrorType.INTERCHANGE_NOTE, "", "")
+}
 
 /** Exception reporting problem in interchange. */
 case class X12InterchangeException(val note: InterchangeNoteCode, val text: String, val cause: Throwable = null)

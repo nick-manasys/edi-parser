@@ -59,7 +59,9 @@ trait EdifactEnvelopeHandler {
 
 /** Error information. */
 case class EdifactError(@BeanProperty val segment: Int, @BeanProperty val fatal: Boolean,
-  @BeanProperty val errorCode: String, @BeanProperty val errorText: String)
+  @BeanProperty val errorCode: String, @BeanProperty val errorText: String) {
+  def this() = this(0, false, "", "")
+}
 
 /** Exception reporting problem in interchange. */
 case class EdifactInterchangeException(error: SyntaxError, text: String, cause: Throwable = null)
