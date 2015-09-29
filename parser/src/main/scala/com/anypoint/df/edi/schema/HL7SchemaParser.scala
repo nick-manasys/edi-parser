@@ -81,9 +81,6 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
   def describeComponent(incomp: Boolean) =
     if (incomp) {
       val index = 0 max (lexer.getElementNumber - 1)
-      if (currentSegment == null) {
-        println
-      }
       if (index < currentSegment.components.size) {
         val comp = currentSegment.components(index)
         s" for component ${comp.key}: '${comp.name}'"
@@ -177,7 +174,10 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
       case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, ErrorSegmentSequence, "unused segment present")
       case _ =>
     }
-    // TODO: segment handling based on error state?
+    state match {
+      case ErrorStates.WontParse => discardSegment
+      case _ =>
+    }
   }
 
   /** Report message error. */
@@ -228,6 +228,9 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
       else messageError(ErrorVersionId)
     } else messageError(ErrorDuplicateKey)
     map
+  } catch {
+    case t: Throwable => t.printStackTrace
+    new ValueMapImpl
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
