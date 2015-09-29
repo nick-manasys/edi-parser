@@ -14,8 +14,8 @@ import com.anypoint.df.edi.lexical.X12Writer
 
 /** Configuration parameters for X12 schema writer.
   */
-case class X12WriterConfig(val stringChars: CharacterRestriction, val subChar: Int, val charSet: Charset,
-    val delims: String, val suffix: String) {
+case class X12WriterConfig(val enforceRequires: Boolean, val stringChars: CharacterRestriction, val subChar: Int,
+  val charSet: Charset, val delims: String, val suffix: String) {
   if (delims.size < 4 || delims.size > 5) throw new IllegalArgumentException("delimiter string must be 4 or 5 characters")
   val repsep = if (delims(2) == 'U') -1 else delims(2)
 }
@@ -32,7 +32,7 @@ trait X12NumberProvider {
   */
 case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config: X12WriterConfig)
     extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
-      config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars)) {
+      config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars), config.enforceRequires) {
 
   import EdiSchema._
   import SchemaJavaValues._

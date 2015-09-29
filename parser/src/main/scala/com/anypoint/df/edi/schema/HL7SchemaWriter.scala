@@ -15,13 +15,13 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 
 /** Configuration parameters for HL7 schema writer.
   */
-case class HL7WriterConfig(val subChar: Int, val charSet: Charset, val delims: String) {
+case class HL7WriterConfig(val enforceRequires: Boolean, val subChar: Int, val charSet: Charset, val delims: String) {
   if (delims.size != 5) throw new IllegalArgumentException("delimiter string must be 5 characters")
 }
 
 /** Provider interface for control numbers. */
 trait HL7NumberProvider {
-  
+
   /** Get next send message control identifier.
     * @param sender
     * @param receiver
@@ -32,7 +32,8 @@ trait HL7NumberProvider {
 /** Writer for HL7 EDI documents.
   */
 case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7NumberProvider, config: HL7WriterConfig)
-  extends SchemaWriter(new HL7Writer(out, config.charSet, config.delims, config.subChar)) with UtilityBase {
+  extends SchemaWriter(new HL7Writer(out, config.charSet, config.delims, config.subChar), config.enforceRequires)
+  with UtilityBase {
 
   import EdiSchema._
   import HL7Identity._
