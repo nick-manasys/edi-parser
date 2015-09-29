@@ -92,6 +92,9 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   /** Current segment reference, used in error reporting. */
   var currentSegment: Segment = null
+  
+  /** Index within input of segment currently being parsed. This only updates when we start parsing the next segment. */
+  var segmentIndex = 0
 
   /** Error code for current segment (not data error). */
   var segmentGeneralError: SyntaxError = null
@@ -203,8 +206,8 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       if (index < currentSegment.components.size) s" for component '${currentSegment.components(index).name}'" else ""
     } else ""
 
-  def logErrorInMessage(fatal: Boolean, incomp: Boolean, text: String) =
-    logger.error(s"${describeError(fatal)} message error '$text'${describeComponent(incomp)} at $positionInMessage")
+  def logErrorInMessage(fatal: Boolean, incomp: Boolean, segNum: Int, text: String) =
+    logger.error(s"${describeError(fatal)} message error '$text'${describeComponent(incomp)} at $segNum")
 
   def logMessageEnvelopeError(fatal: Boolean, incomp: Boolean, text: String) =
     logger.error(s"${describeError(fatal)} message envelope error '$text'${describeComponent(incomp)} at $positionInGroup")
@@ -225,17 +228,20 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   /** Accumulate element error, failing message if severe. */
   def addElementError(error: SyntaxError) = {
     val fatal = checkFatal(error)
+    val report = EdifactError(segmentIndex, fatal, error.code, error.text)
     if (inMessage) {
-      logErrorInMessage(fatal, true, error.text)
-      addToList(errorListKey, EdifactError(lexer.getSegmentNumber, fatal, error.code, error.text), messageMap)
+      logErrorInMessage(fatal, true, errorSegmentNumber, error.text)
+      addToList(errorListKey, report, messageMap)
       if (fatal) rejectMessage = true
-    } else if (inGroup) logMessageEnvelopeError(fatal, true, error.text)
-    else if (inInterchange) {
+    } else if (inGroup) {
+      logMessageEnvelopeError(fatal, true, error.text)
+//      addToList(errorListKey, report, groupMap)
+    } else if (inInterchange) {
       logGroupEnvelopeError(fatal, true, error.text)
-      addToList(errorListKey, EdifactError(lexer.getSegmentNumber, fatal, error.code, error.text), interchangeMap)
+      addToList(errorListKey, report, interchangeMap)
     } else {
       logInterchangeEnvelopeError(fatal, error.text)
-      addToList(errorListKey, EdifactError(lexer.getSegmentNumber, fatal, error.code, error.text), rootMap)
+      addToList(errorListKey, report, rootMap)
     }
     val elnum = lexer.getElementNumber + 1
     val compnum = if (lexer.getComponentNumber > 0 || lexer.nextType == COMPONENT) lexer.getComponentNumber + 1 else -1
@@ -281,6 +287,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
+    segmentIndex = lexer.getSegmentNumber
     val map = new ValueMapImpl
     segmentErrors.clear
     currentSegment = segment
@@ -295,7 +302,6 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       }
     }
     handleSegmentErrors(segNum)
-    if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.token}'")
     map
   }
 
@@ -304,8 +310,8 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   /** Report segment error. */
   def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState, num: Int) = {
     def addError(fatal: Boolean, error: SyntaxError) = {
-      logErrorInMessage(fatal, false, s"${error.text}: $ident")
-      addToList(errorListKey, EdifactError(lexer.getSegmentNumber, fatal, error.code, error.text), messageMap)
+      logErrorInMessage(fatal, false, num, s"${error.text}: $ident")
+      addToList(errorListKey, EdifactError(segmentIndex, fatal, error.code, error.text), messageMap)
       if (fatal) rejectMessage = true
       if (segmentGeneralError == null) segmentGeneralError = error
     }
@@ -374,8 +380,8 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   }
 
   def messageError(error: SyntaxError) = {
-    logErrorInMessage(true, false, error.text)
-    addToList(errorListKey, EdifactError(lexer.getSegmentNumber, true, error.code, error.text), messageMap)
+    logErrorInMessage(true, false, errorSegmentNumber, error.text)
+    addToList(errorListKey, EdifactError(segmentIndex, true, error.code, error.text), messageMap)
     if (messageErrorCode == null) messageErrorCode = error
     rejectMessage = true
     discardStructure
@@ -409,7 +415,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   /** Parse close of a message set. */
   def closeSet(props: ValueMap) = {
     def closeError(error: SyntaxError) = {
-      logErrorInMessage(true, false, error.text)
+      logErrorInMessage(true, false, errorSegmentNumber, error.text)
       if (messageErrorCode == null) messageErrorCode = error
       rejectMessage = true
     }

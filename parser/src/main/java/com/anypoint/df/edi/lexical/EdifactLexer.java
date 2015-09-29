@@ -13,7 +13,6 @@ import java.util.Map;
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
 import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxIdentifier;
 import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
-import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 
 /**
  * Lexer variation for EDIFACT.
@@ -87,13 +86,14 @@ public class EdifactLexer extends LexerBase
             // skip any whitespace following segment
             char chr;
             while ((chr = (char)stream.read()) == '\n' || chr == '\r' || chr == ' ');
+            segmentNumber++;
             
             // get the next segment tag
             byts = new byte[3];
             byts[0] = (byte)chr;
             readArray(byts, 1);
             tag = new String(byts, ASCII_CHARSET);
-        }
+       }
         
         // must be at a UNB Interchange Header
         if (!"UNB".equals(tag)) {
