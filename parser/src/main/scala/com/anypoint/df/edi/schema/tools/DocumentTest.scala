@@ -215,7 +215,8 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
   def printDoc(map: ValueMap) = {
     val os = new ByteArrayOutputStream
     if (!map.containsKey(interchangeKey)) map put (interchangeKey, new ValueMapImpl)
-    val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, getRequiredString(delimiterCharacters, map), null)
+    val config = X12WriterConfig(true, CharacterRestriction.EXTENDED, -1, ASCII_CHARSET,
+      getRequiredString(delimiterCharacters, map), null)
     val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, config)
     writer.write(map).get
     os.toString
@@ -226,7 +227,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
     val os = new ByteArrayOutputStream
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     if (acks.size > 0) {
-      val wconfig = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET,
+      val wconfig = X12WriterConfig(true, CharacterRestriction.EXTENDED, -1, ASCII_CHARSET,
         getRequiredString(delimiterCharacters, map), null)
       val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, wconfig)
       val outmap = new ValueMapImpl(map)
@@ -247,7 +248,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
   /** Write interchange acknowledgement information from parse as output. */
   def printInterchangeAcks(delims: String, list: MapList) = {
     val os = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, delims, null)
+    val config = X12WriterConfig(true, CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, delims, null)
     val writer = X12SchemaWriter(os, new DefaultX12NumberProvider, config)
     foreachMapInList(list, map => writer.writeSegment(map, segTA1))
     writer.close
@@ -313,7 +314,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val inter = getRequiredValueMap(interchangeKey, getMessage(map))
     val syntax = EDIFACT_CHARSETS.get(getAs(unbSyntax.components(0).key, "UNOA", inter))
     val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", inter))
-    val config = EdifactWriterConfig(syntax, version, false, -1, '.', ASCII_CHARSET,
+    val config = EdifactWriterConfig(syntax, version, false, true, -1, '.', ASCII_CHARSET,
       getAs(delimiterCharacters, null, map), "", false)
     val writer = EdifactSchemaWriter(os, new DefaultEdifactNumberProvider, config)
     val transacts = getRequiredValueMap(messagesMap, map)
@@ -326,7 +327,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     val os = new ByteArrayOutputStream
     val inter = getRequiredValueMap(interchangeKey, getRequiredMapList(functionalAcksGenerated, map).get(0))
     val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", inter))
-    val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION3, false, -1, '.', ASCII_CHARSET,
+    val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION3, false, true, -1, '.', ASCII_CHARSET,
       getAs(delimiterCharacters, "", map), "", false)
     val writer = EdifactSchemaWriter(os, new DefaultEdifactNumberProvider, config)
     val outmap = new ValueMapImpl

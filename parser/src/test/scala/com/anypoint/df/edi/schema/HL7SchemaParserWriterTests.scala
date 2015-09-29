@@ -115,7 +115,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     evn.get("EVN-05-09-01") should be ("UCSF")
   }
 
-  val writerConfig = HL7WriterConfig(-1, ASCII_CHARSET, "|^~\\&")
+  val writerConfig = HL7WriterConfig(true, -1, ASCII_CHARSET, "|^~\\&")
 
   /** Get provider configured for the sample document. */
   def docProvider = {
@@ -159,26 +159,28 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(path)).getLines
     val builder = new StringBuilder
     lines.foreach(line => {
-      if (!builder.isEmpty) builder.append('\n')
+      if (!builder.isEmpty) builder.append('\r')
       builder.append(line)
     })
     builder.toString
   }
 
-//  it should "roundtrip a complete document" in {
-//    new YamlReader().loadYaml(new InputStreamReader(getClass.
-//      getClassLoader.getResourceAsStream("esl/ADT_A01.esl"), "UTF-8"), Array())
-//    val msg = readDoc("edi/ADT_A01.hl7")
-//    val in = new ByteArrayInputStream(msg.getBytes())
-//    val parser = HL7SchemaParser(in, testSchema, new DefaultHL7NumberValidator, parserConfig)
-//    val result = parser.parse
-//    val input = result.get
-//    val out = new ByteArrayOutputStream
-//    val writer = HL7SchemaWriter(out, testSchema, docProvider, writerConfig)
-//    writer.write(input).get //isSuccess should be (true)
-//    val text = new String(out.toByteArray)
+  it should "roundtrip a complete document" in {
+    val fullSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
+      getClassLoader.getResourceAsStream("esl/ADT_A01.esl"), "UTF-8"), Array())
+    val msg = readDoc("edi/ADT_A01.hl7")
+    val in = new ByteArrayInputStream(msg.getBytes())
+    val parser = HL7SchemaParser(in, fullSchema, new DefaultHL7NumberValidator, parserConfig)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+    val out = new ByteArrayOutputStream
+    val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray)
+    // raw text won't match, because of extra delimitors and more on original message
 //    println("original text:\n" + msg + "\n")
 //    println("returned text:\n" + text + "\n")
 //    text should be (msg)
-//  }
+  }
 }

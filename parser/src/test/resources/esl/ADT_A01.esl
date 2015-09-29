@@ -1,5 +1,5 @@
 form: HL7
-version: 'v2_5_1'
+version: '2.5.1'
 structures:
 - id: 'ADT_A01'
   name: ADT_A01

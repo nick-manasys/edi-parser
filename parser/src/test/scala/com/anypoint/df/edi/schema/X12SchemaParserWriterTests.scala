@@ -109,7 +109,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "write the ISA envelope when initialized and then terminated" in {
     val out = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterRestriction.BASIC, -1, ASCII_CHARSET, "*>U~", null)
+    val config = X12WriterConfig(true, CharacterRestriction.BASIC, -1, ASCII_CHARSET, "*>U~", null)
     val writer = X12SchemaWriter(out, new DefaultX12NumberProvider, config)
     val props = new ValueMapImpl
     props.put(AUTHORIZATION_QUALIFIER, "00")
@@ -145,7 +145,7 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val parseResult = parser.parse
     parseResult.isInstanceOf[Success[ValueMap]] should be (true)
     val out = new ByteArrayOutputStream
-    val config = X12WriterConfig(CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, "*>U~", null)
+    val config = X12WriterConfig(true, CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, "*>U~", null)
     val provider = new DefaultX12NumberProvider
     val writer = X12SchemaWriter(out, provider, config)
     val props = parseResult.get
