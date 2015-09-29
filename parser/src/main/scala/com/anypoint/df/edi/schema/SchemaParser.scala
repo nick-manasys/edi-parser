@@ -36,27 +36,34 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
     while (lexer.currentType == COMPONENT || lexer.currentType == REPETITION) lexer.advance
   }
 
+  /** Parse a simple element value. */
+  def parseElement(elem: Element): Object =
+    elem.dataType match {
+      case ALPHA => lexer.parseAlpha(elem.minLength, elem.maxLength)
+      case ALPHANUMERIC | DATETIME | STRINGDATA | VARIES => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
+      case BINARY => throw new IOException("Handling not implemented for binary values")
+      case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
+      case ID => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
+      case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
+      case NUMBER | REAL => lexer.parseNumber(elem.minLength, elem.maxLength)
+      case NUMERIC => lexer.parseNumeric(elem.minLength, elem.maxLength)
+      case SEQID => lexer.parseSeqId
+      case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
+      case typ: DataType if (typ.isDecimal) =>
+        lexer.parseImpliedDecimalNumber(typ.decimalPlaces, elem.minLength, elem.maxLength)
+    }
+
   /** Parse a segment component, which is either an element or a composite. */
   def parseComponent(comp: SegmentComponent, first: ItemType, rest: ItemType, map: ValueMap): Unit = {
     comp match {
-      case elemComp: ElementComponent => {
+      case elemComp: ElementComponent =>
         val elem = elemComp.element
-        val value = elem.dataType match {
-          case ALPHA => lexer.parseAlpha(elem.minLength, elem.maxLength)
-          case ALPHANUMERIC | DATETIME | STRINGDATA | VARIES => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
-          case BINARY => throw new IOException("Handling not implemented for binary values")
-          case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
-          case ID => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
-          case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
-          case NUMBER | REAL => lexer.parseNumber(elem.minLength, elem.maxLength)
-          case NUMERIC => lexer.parseNumeric(elem.minLength, elem.maxLength)
-          case SEQID => lexer.parseSeqId
-          case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
-          case typ: DataType if (typ.isDecimal) =>
-            lexer.parseImpliedDecimalNumber(typ.decimalPlaces, elem.minLength, elem.maxLength)
-        }
-        map put (comp.key, value)
-      }
+        if (comp.count > 1) {
+          val complist = new SimpleListImpl
+          map put (comp.key, complist)
+          complist add parseElement(elem)
+          while (lexer.currentType == REPETITION) complist add parseElement(elem)
+        } else map put (comp.key, parseElement(elem))
       case compComp: CompositeComponent => {
         val composite = compComp.composite
         if (comp.count > 1) {
@@ -114,8 +121,7 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
     case object WontParse extends ErrorState
   }
 
-  /** Get current segment number for error reporting.
-    */
+  /** Get current segment number for error reporting. */
   def segmentNumber: Int
 
   /** Report segment error.
@@ -187,10 +193,10 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
               val ident = lexer.token
               val data = new ValueMapImpl
               val number = segmentNumber
+              if (loop.usage == UnusedUsage) segmentError(ident, UnusedSegment, ParseComplete, number)
               // need to add handling of variant loops back in
               parseStructureSequence(loop.seq, groupTerm :: terms, data)
-              if (loop.usage == UnusedUsage) segmentError(ident, UnusedSegment, ParseComplete, number)
-              else {
+              if (loop.usage != UnusedUsage) {
                 val count = loop.count
                 val key = loop.key
                 if (count == 1) {
@@ -236,9 +242,9 @@ abstract class SchemaParser(val lexer: LexerBase) extends SchemaJavaDefs {
                   val key = ref.key
                   val nextpos = adjustPosition(ref.position.position)
                   val number = segmentNumber
-                  val data = parseSegment(segment, ref.position)
                   if (ref.usage == UnusedUsage) segmentError(ident, UnusedSegment, ParseComplete, number)
-                  else {
+                  val data = parseSegment(segment, ref.position)
+                  if (ref.usage != UnusedUsage) {
                     val count = ref.count
                     if (count == 1) {
                       if (values.containsKey(key)) segmentError(ident, TooManyRepetitions, ParseComplete, number)
