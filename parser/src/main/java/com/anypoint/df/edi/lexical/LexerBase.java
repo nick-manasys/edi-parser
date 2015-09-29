@@ -401,9 +401,6 @@ public abstract class LexerBase
                     builder.append(chr);
                 }
                 value = reader.read();
-                if (value < 0) {
-                    throw new IOException("Unexpected end of file in data");
-                }
                 chr = (char)value;
             }
             peekToken = builder.length() > 0 ? builder.toString() : "";
