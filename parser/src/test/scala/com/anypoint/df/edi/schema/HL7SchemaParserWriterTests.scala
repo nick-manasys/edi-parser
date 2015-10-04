@@ -19,6 +19,7 @@ import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.schema.tools.{ DefaultHL7NumberProvider, DefaultHL7NumberValidator }
 import com.anypoint.df.edi.lexical.WriteException
+import com.anypoint.df.edi.schema.systests.YamlSupport
 
 class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
@@ -178,6 +179,9 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+//    println(swriter.toString())
     // raw text won't match, because of extra delimitors and more on original message
 //    println("original text:\n" + msg + "\n")
 //    println("returned text:\n" + text + "\n")
