@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.schema.systests;
+package com.anypoint.df.edi.schema.tools;
 
 import java.io.StringReader;
 import java.io.Writer;

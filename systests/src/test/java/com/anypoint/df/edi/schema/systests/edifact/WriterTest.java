@@ -11,13 +11,12 @@ import java.util.Map;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.anypoint.df.edi.lexical.WriteException;
 import com.anypoint.df.edi.schema.EdiSchema;
 import com.anypoint.df.edi.schema.EdiSchemaVersion;
 import com.anypoint.df.edi.schema.EdiSchema.EdiForm;
 import com.anypoint.df.edi.schema.systests.TestBase;
-import com.anypoint.df.edi.schema.systests.YamlSupport;
 import com.anypoint.df.edi.schema.tools.JsonReader;
+import com.anypoint.df.edi.schema.tools.YamlSupport;
 
 public class WriterTest extends EdifactTestBase {
     @Test

@@ -19,7 +19,7 @@ import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.schema.tools.{ DefaultHL7NumberProvider, DefaultHL7NumberValidator }
 import com.anypoint.df.edi.lexical.WriteException
-import com.anypoint.df.edi.schema.systests.YamlSupport
+import com.anypoint.df.edi.schema.tools.YamlSupport
 
 class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
