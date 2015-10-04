@@ -585,10 +585,18 @@ object EdiSchema {
     def keyName(parentId: String, position: Int) = parentId + "-" + (if (position < 10) "0" + position else position)
     def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
   }
+  case object FlatFile extends EdiForm("FLAT") {
+    def isEnvelopeSegment(ident: String) = false
+    val loopWrapperStart = ""
+    val loopWrapperEnd = ""
+    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def versionKey(version: String) = version
+  }
   def convertEdiForm(value: String) = value match {
     case EdiFact.text => EdiFact
     case X12.text => X12
     case HL7.text => HL7
+    case FlatFile.text => FlatFile
     case _ => throw new IllegalArgumentException(s"Unknown EDI form $value")
   }
 }

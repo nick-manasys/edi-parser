@@ -13,7 +13,7 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
  * Parser for use in tests. This doesn't do any handling of envelope segments, but allows data segments to be parsed and
  * used directly.
  */
-public class TestLexer extends LexerBase
+public class TestLexer extends DelimiterLexer
 {
     /**
      * Constructor.

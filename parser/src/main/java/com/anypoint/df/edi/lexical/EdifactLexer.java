@@ -18,7 +18,7 @@ import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 /**
  * Lexer variation for EDIFACT.
  */
-public class EdifactLexer extends LexerBase
+public class EdifactLexer extends DelimiterLexer
 {
     /** Status returned by {@link EDIFACT#term(Map)} method. */
     public enum InterchangeEndStatus {
@@ -216,21 +216,23 @@ public class EdifactLexer extends LexerBase
     private SyntaxVersion subsequentInit(Map<String,Object> props) throws IOException {
         
         // check the segment tag for optional UNA
-        if ("UNA".equals(token())) {
+        if ("UNA".equals(segmentTag())) {
             throw new LexicalException("UNA is only allowed for first interchange");
         }
         
         // must be at a UNB Interchange Header
-        if (!"UNB".equals(token())) {
-            throw new LexicalException("Message is missing UNB segment (starts with " + token() + ")");
+        if (!"UNB".equals(segmentTag())) {
+            throw new LexicalException("Message is missing UNB segment (starts with " + segmentTag() + ")");
         }
         
         // process first part of syntax identifier (required identifier and version number)
-        String synid = advance();
+        advance();
+        String synid = tokenBuilder.toString();
         props.put(SYNTAX_IDENTIFIER, synid);
         SyntaxIdentifier syntax = EDIFACT_CHARSETS.get(synid);
         SyntaxVersion version;
-        int verch = advance().charAt(0);
+        advance();
+        int verch = tokenBuilder.charAt(0);
         switch (verch) {
             case '1':
             case '2':
@@ -286,7 +288,7 @@ public class EdifactLexer extends LexerBase
      * @throws IOException
      */
     public void term(Map<String, Object> props) throws IOException {
-        if (!"UNZ".equals(token())) {
+        if (!"UNZ".equals(segmentTag())) {
             throw new IllegalStateException("not at trailer");
         }
         if (nextType() == ItemType.DATA_ELEMENT) {

@@ -52,17 +52,11 @@ public abstract class EdiConstants
     /** Data types. */
     public enum DataType
     {
-        REAL("R", X12_FLAG),
-        ID("ID", X12_FLAG | EDIFACT_FLAG),
-        ALPHANUMERIC("AN", X12_FLAG | EDIFACT_FLAG),
         ALPHA("A", X12_FLAG | EDIFACT_FLAG),
+        ALPHANUMERIC("AN", X12_FLAG | EDIFACT_FLAG),
         DATE("DT", X12_FLAG | EDIFACT_FLAG | HL7_FLAG),
-        TIME("TM", X12_FLAG | HL7_FLAG),
         BINARY("B", X12_FLAG),
         DATETIME("DTM", HL7_FLAG),
-        NUMBER("N", X12_FLAG | EDIFACT_FLAG),
-        NUMERIC("NM", HL7_FLAG),
-        INTEGER("N0", X12_FLAG),
         DECIMAL1("N1", X12_FLAG, 1),
         DECIMAL2("N2", X12_FLAG, 2),
         DECIMAL3("N3", X12_FLAG, 3),
@@ -72,8 +66,16 @@ public abstract class EdiConstants
         DECIMAL7("N7", X12_FLAG, 7),
         DECIMAL8("N8", X12_FLAG, 8),
         DECIMAL9("N9", X12_FLAG, 9),
+        ID("ID", X12_FLAG | EDIFACT_FLAG),
+        INTEGER("N0", X12_FLAG),
+        // TODO: the N type as used by X12 (basically an integer) is not compatible with that used by EDIFACT (general
+        //  numeric value), so either the EDIFACT one should be changed to R or X12 should always use N0
+        NUMBER("N", X12_FLAG | EDIFACT_FLAG),
+        NUMERIC("NM", HL7_FLAG),
+        REAL("R", X12_FLAG),
         SEQID("SI", HL7_FLAG),
         STRINGDATA("ST", HL7_FLAG),
+        TIME("TM", X12_FLAG | HL7_FLAG),
         VARIES("varies", HL7_FLAG);
         
         private final String typeCode;

@@ -14,6 +14,7 @@ import org.apache.log4j.Logger
 
 import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, EdifactLexer }
 import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
+import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
@@ -58,12 +59,15 @@ trait EdifactEnvelopeHandler {
 
 /** Exception reporting problem in interchange. */
 case class EdifactInterchangeException(error: SyntaxError, text: String, cause: Throwable = null)
-    extends RuntimeException(text, cause) {
+  extends RuntimeException(text, cause) {
   def this(err: SyntaxError, txt: String) = this(err, txt, null)
 }
 
 case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, handler: EdifactEnvelopeHandler)
-    extends SchemaParser(new EdifactLexer(in, defaultDelims)) {
+  extends SchemaParser(new EdifactLexer(in, defaultDelims)) {
+
+  /** Typed lexer, for access to format-specific conversions and support. */
+  val lexer = baseLexer.asInstanceOf[EdifactLexer]
 
   /** Current configuration in use (default value used for UNB, real configuration set from handler call.) */
   var config: EdifactParserConfig = null
@@ -225,10 +229,26 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   /** Report a repetition error on a composite component. */
   def repetitionError(comp: CompositeComponent) = addElementError(TooManyConstituents)
 
+  /** Parse data element value. */
+  def parseElement(elem: Element) = {
+    val result = elem.dataType match {
+      case ALPHA => lexer.parseAlpha(elem.minLength, elem.maxLength)
+      case ALPHANUMERIC => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
+      case BINARY => throw new IOException("Handling not implemented for binary values")
+      case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
+      case ID => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
+      case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
+      case NUMBER => lexer.parseBigDecimal(elem.minLength, elem.maxLength)
+      case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in EDIFACT")
+    }
+    lexer.advance
+    result
+  }
+
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
     def isPresent(comp: SegmentComponent) = {
-      lexer.token.length > 0 || (comp.isInstanceOf[CompositeComponent] && lexer.nextType == COMPONENT)
+      lexer.hasData || (comp.isInstanceOf[CompositeComponent] && lexer.nextType == COMPONENT)
     }
     def checkParse(comp: SegmentComponent, of: ItemType) =
       if (of == lexer.currentType) {
@@ -269,14 +289,14 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       case SEGMENT | END =>
       case _ => {
         addElementError(TooManyConstituents)
-        discardSegment
+        lexer.discardSegment
       }
     }
     handleSegmentErrors(segNum)
-    if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.token}'")
+    if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.segmentTag}'")
     map
   }
-  
+
   def segmentNumber = errorSegmentNumber
 
   /** Report segment error. */
@@ -298,7 +318,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     state match {
       case ErrorStates.ParseComplete => handleSegmentErrors(num)
       case ErrorStates.WontParse =>
-        discardSegment
+        lexer.discardSegment
         handleSegmentErrors(num)
       case _ =>
     }
@@ -308,7 +328,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   def unbSegment(version: SyntaxVersion) = if (syntaxVersion == SyntaxVersion.VERSION4) segUNBv4 else segUNBv3
 
   /** Check if at interchange envelope segment. */
-  def isInterchangeEnvelope = lexer.currentType == SEGMENT && (lexer.token == "UNB" || lexer.token == "UNZ")
+  def isInterchangeEnvelope = lexer.currentType == SEGMENT && (lexer.segmentTag == "UNB" || lexer.segmentTag == "UNZ")
 
   /** Check if an envelope segment (handled directly, outside of structure). */
   def isEnvelopeSegment(ident: String) = EdiFact.isEnvelopeSegment(ident)
@@ -390,7 +410,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       rejectMessage = true
     }
     if (checkSegment(segUNT)) {
-      if (rejectMessage) discardSegment
+      if (rejectMessage) lexer.discardSegment
       else {
         val endprops = parseSegment(segUNT, SegmentPosition(0, "9999"))
         if (props.get(msgHeadReferenceKey) != endprops.get(msgTrailReferenceKey)) closeError(ControlReferenceMismatch)
@@ -417,7 +437,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
         // create segment group 2 instance for each segment with error(s)
         val sg2list = new MapListImpl
         sg1 put (group1Comps(1).key, sg2list)
-        messageErrors.foreach (segerr => {
+        messageErrors.foreach(segerr => {
           val sg2 = new ValueMapImpl
           sg2list add sg2
           val ucs = new ValueMapImpl
@@ -429,7 +449,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
             // add UCD for each data error in segment
             val ucdlist = new MapListImpl
             sg2 put (contrlSg2Comps(1).key, ucdlist)
-            segerr.dataErrors.foreach (dataerr => {
+            segerr.dataErrors.foreach(dataerr => {
               val ucd = new ValueMapImpl
               ucd put (segUCD.components(0).key, dataerr.error.code)
               def elems = segUCD.components(1).asInstanceOf[CompositeComponent].composite.components
@@ -468,7 +488,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   /** Discard input past end of current message. */
   def discardStructure = {
-    while (lexer.currentType != SEGMENT || lexer.token != segUNT.ident) discardSegment
+    while (lexer.currentType != SEGMENT || lexer.segmentTag != segUNT.ident) lexer.discardSegment
     if (lexer.currentType == SEGMENT) closeSet(new ValueMapImpl)
   }
 
@@ -478,12 +498,12 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       if (isSetOpen) {
         groupMessageCount += 1
         discardStructure
-      } else discardSegment
+      } else lexer.discardSegment
 
   /** Discard input past end of current interchange. */
   def discardInterchange = {
-    while (lexer.currentType != END && (lexer.currentType != SEGMENT || lexer.token != "UNZ")) discardSegment
-    discardSegment
+    while (lexer.currentType != END && (lexer.currentType != SEGMENT || lexer.segmentTag != "UNZ")) lexer.discardSegment
+    lexer.discardSegment
   }
 
   /** Copy all values for a composite in one map to a composite in another map. */
@@ -504,7 +524,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     copyComposite(fromcomp.asInstanceOf[CompositeComponent].composite, frommap,
       tocomp.asInstanceOf[CompositeComponent].composite, tomap)
 
-  def init(data: ValueMap) = lexer.asInstanceOf[EdifactLexer].init(data)
+  def init(data: ValueMap) = lexer.init(data)
 
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {
@@ -640,7 +660,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
           case s: SyntaxError => interchangeError(s, s"Interchange $interchangeReference rejected at ${lexer.getSegmentNumber}");
           case x => {
             config = if (x.isInstanceOf[EdifactParserConfig]) x.asInstanceOf[EdifactParserConfig]
-              else EdifactParserConfig(true, true, true, true, true, true, true, true, -1)
+            else EdifactParserConfig(true, true, true, true, true, true, true, true, -1)
             lexer.asInstanceOf[EdifactLexer].configure(config.substitutionChar, config.enforceChars)
             var ackId = 1
             lexer.setHandler(EdifactErrorHandler)
@@ -658,20 +678,20 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
               } else if (isSetOpen) {
                 parseMessage(None)
               } else {
-                val text = s"Unexpected segment ${lexer.token} at ${lexer.getSegmentNumber}"
+                val text = s"Unexpected segment ${lexer.segmentTag} at ${lexer.getSegmentNumber}"
                 interchangeError(InvalidOccurrence, text)
               }
             }
             val typ = lexer.currentType
             if (lexer.currentType == END) {
               interchangeError(InvalidOccurrence, s"end of file with missing $interchangeEndSegment")
-            } else if (lexer.token == interchangeEndSegment) {
+            } else if (lexer.segmentTag == interchangeEndSegment) {
               val interend = parseSegment(segUNZ, outsidePosition)
               if (getRequiredInt(interTrailCountKey, interend) != interchangeMessageCount) interchangeError(ControlCountMismatch, ControlCountMismatch.text)
               if (getRequiredString(interTrailReferenceKey, interend) != interchangeReference) interchangeError(ControlReferenceMismatch, ControlReferenceMismatch.text)
               interack put (segUCI.components(3).key, AcknowledgedLevel.code)
             } else {
-              interchangeError(InvalidOccurrence, s"expected $interchangeEndSegment, found ${lexer.token}")
+              interchangeError(InvalidOccurrence, s"expected $interchangeEndSegment, found ${lexer.segmentTag}")
             }
 
           }

@@ -44,13 +44,21 @@ public class WriterBaseTest
         InputStream is = new ByteArrayInputStream(text.getBytes(EdiConstants.ASCII_CHARSET));
         TestLexer lexer = new TestLexer(is);
         lexer.init(null);
-        assertEquals(new BigDecimal("12.345"), lexer.parseNumber(5, 5));
-        assertEquals(new BigDecimal("12.345").movePointLeft(5), lexer.parseNumber(6, 6));
-        assertEquals(new BigDecimal(new BigInteger("12345"), 5), lexer.parseNumber(6, 6));
-        assertEquals(new BigDecimal(new BigInteger("12345"), 9), lexer.parseNumber(6, 6));
-        assertEquals(new BigDecimal(new BigInteger("12345"), -9), lexer.parseNumber(6, 6));
-        assertEquals(new BigDecimal("12.345"), lexer.parseNumber(8, 8));
-        assertEquals(new BigDecimal("12.345").movePointLeft(5), lexer.parseNumber(7, 7));
-        assertEquals(new BigDecimal(new BigInteger("12345"), 5), lexer.parseNumber(8, 8));
+        assertEquals(new BigDecimal("12.345"), lexer.parseBigDecimal(5, 5));
+        lexer.advance();
+        assertEquals(new BigDecimal("12.345").movePointLeft(5), lexer.parseBigDecimal(6, 6));
+        lexer.advance();
+        assertEquals(new BigDecimal(new BigInteger("12345"), 5), lexer.parseBigDecimal(6, 6));
+        lexer.advance();
+        assertEquals(new BigDecimal(new BigInteger("12345"), 9), lexer.parseBigDecimal(6, 6));
+        lexer.advance();
+        assertEquals(new BigDecimal(new BigInteger("12345"), -9), lexer.parseBigDecimal(6, 6));
+        lexer.advance();
+        assertEquals(new BigDecimal("12.345"), lexer.parseBigDecimal(8, 8));
+        lexer.advance();
+        assertEquals(new BigDecimal("12.345").movePointLeft(5), lexer.parseBigDecimal(7, 7));
+        lexer.advance();
+        assertEquals(new BigDecimal(new BigInteger("12345"), 5), lexer.parseBigDecimal(8, 8));
+        lexer.advance();
     }
 }

@@ -10,6 +10,7 @@ import java.util.{ Calendar, GregorianCalendar }
 
 import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, HL7Lexer }
 import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
+import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
@@ -22,9 +23,9 @@ import SchemaJavaValues._
   * is verified in processed messages.
   */
 case class HL7ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
-    val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
-    val substitutionChar: Int, val receiverIds: Array[HL7IdentityInformation],
-    val senderIds: Array[HL7IdentityInformation]) {
+  val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
+  val substitutionChar: Int, val receiverIds: Array[HL7IdentityInformation],
+  val senderIds: Array[HL7IdentityInformation]) {
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
 
@@ -41,10 +42,13 @@ trait HL7NumberValidator {
 
 /** Parser for HL7 EDI documents. */
 case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7NumberValidator, config: HL7ParserConfig)
-    extends SchemaParser(new HL7Lexer(in, config.substitutionChar)) {
+  extends SchemaParser(new HL7Lexer(in, config.substitutionChar)) {
 
   import HL7SchemaDefs._
   import HL7Acknowledgment._
+
+  /** Typed lexer, for access to format-specific conversions and support. */
+  val lexer = baseLexer.asInstanceOf[HL7Lexer]
 
   /** Current segment reference, used in error reporting. */
   var currentSegment: Segment = null
@@ -106,10 +110,25 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
   /** Report a repetition error on a composite component. */
   def repetitionError(comp: CompositeComponent) = addElementError(ErrorDataType, false, "too many repetitions")
 
+  /** Parse data element value. */
+  def parseElement(elem: Element) = {
+    val result = elem.dataType match {
+      case DATETIME | STRINGDATA | VARIES => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
+      case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
+      case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
+      case NUMERIC => lexer.parseUnscaledNumber(elem.minLength, elem.maxLength)
+      case SEQID => lexer.parseSeqId
+      case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
+      case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in EDIFACT")
+    }
+    lexer.advance
+    result
+  }
+
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
     def isPresent(comp: SegmentComponent) = {
-      lexer.token.length > 0 || (comp.isInstanceOf[CompositeComponent] && lexer.nextType == rest.nextLevel)
+      lexer.hasData || (comp.isInstanceOf[CompositeComponent] && lexer.nextType == rest.nextLevel)
     }
     def checkParse(comp: SegmentComponent, of: ItemType) = {
       if (isPresent(comp)) parseComponent(comp, of, rest.nextLevel, map)
@@ -147,14 +166,14 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
       case SEGMENT | END =>
       case _ => {
         addElementError(ErrorDataType, false, "too many values present")
-        discardSegment
+        lexer.discardSegment
       }
     }
     // TODO: handleSegmentErrors
-    if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.token}'")
+    if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.segmentTag}'")
     map
   }
-  
+
   def segmentNumber = lexer.getSegmentNumber + 1
 
   /** Report segment error. */
@@ -190,10 +209,10 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
   def convertLoop = None
 
   /** Discard input past end of current message. */
-  def discardStructure = while (lexer.currentType != END) discardSegment
+  def discardStructure = while (lexer.currentType != END) lexer.discardSegment
 
   def init(data: ValueMap) = {
-    val delims = lexer.asInstanceOf[HL7Lexer].init(data)
+    val delims = lexer.init(data)
     parseCompList(segMSH.components.drop(1), ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, data)
     delims
   }

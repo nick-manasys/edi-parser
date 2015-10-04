@@ -5,14 +5,18 @@ import static com.anypoint.df.edi.lexical.EdiConstants.ASCII_CHARSET;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Map;
 
+import com.anypoint.df.edi.lexical.EdiConstants.DataType;
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 
 /**
  * Lexer variation for HL7.
  */
-public class HL7Lexer extends LexerBase
+public class HL7Lexer extends DelimiterLexer
 {
     /** Status returned by {@link EDIFACT#term(Map)} method. */
     public enum InterchangeEndStatus {
@@ -29,6 +33,23 @@ public class HL7Lexer extends LexerBase
         super(is);
         substitutionChar = subst;
         segmentTerminator = (char)0x0D;
+    }
+    
+    /**
+     * Get current token as an HL7 sequence ID value and advance to next token.
+     *
+     * @return
+     * @throws IOException
+     */
+    public Integer parseSeqId() throws IOException {
+        for (int i = 0; i < tokenBuilder.length(); i++) {
+            char chr = tokenBuilder.charAt(i);
+            if (chr < '0' || chr > '9') {
+                handleError(DataType.INTEGER, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
+            }
+        }
+        checkLength(DataType.INTEGER, 1, 4);
+        return Integer.valueOf(tokenBuilder.toString());
     }
     
     /**

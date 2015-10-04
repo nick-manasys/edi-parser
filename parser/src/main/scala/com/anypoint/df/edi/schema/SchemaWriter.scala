@@ -80,13 +80,13 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
         case _ => throw new WriteException(s"Date value must be Date or Calendar instance, not ${value.getClass.getName}")
       }
       case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue, min, max)
-      case NUMBER | REAL => value match {
+      case NUMBER | REAL | NUMERIC => value match {
         case bigdec: BigDecimal => writer.writeDecimal(bigdec, min, max)
         case integer: Integer => writer.writeInt(integer, min, max)
+        case long: Long => writer.writeLong(long, min, max)
         case bigint: BigInteger => writer.writeBigInteger(bigint, min, max)
         case _ => throw new WriteException(s"Value type ${value.getClass.getName} is not compatible with expected type BigDecimal")
       }
-      case NUMERIC => writer.writeNumeric(value.asInstanceOf[Number], min, max)
       case SEQID => writer.writeSeqId(value.asInstanceOf[Integer].intValue)
       case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)
       case BINARY => throw new WriteException("Handling not implemented for binary values")

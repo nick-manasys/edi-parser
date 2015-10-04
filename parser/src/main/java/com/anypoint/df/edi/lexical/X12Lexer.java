@@ -5,8 +5,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Map;
+
+import com.anypoint.df.edi.lexical.EdiConstants.DataType;
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 
 import static com.anypoint.df.edi.lexical.EdiConstants.*;
 import static com.anypoint.df.edi.lexical.X12Constants.*;
@@ -14,7 +21,7 @@ import static com.anypoint.df.edi.lexical.X12Constants.*;
 /**
  * Lexer variation for X12.
  */
-public class X12Lexer extends LexerBase
+public class X12Lexer extends DelimiterLexer
 {
     /** Status returned by {@link X12Lexer#init(Map)} method. */
     public enum InterchangeStartStatus { VALID, AUTHORIZATION_QUALIFIER_ERROR, AUTHORIZATION_INFO_ERROR,
@@ -48,6 +55,25 @@ public class X12Lexer extends LexerBase
     public void configure(int subst, CharacterRestriction chset) {
         substitutionChar = subst;
         allowedChars = chset.flags();
+    }
+    
+    /**
+     * Get current token as an X12 number value.
+     *
+     * @param scale inverse power of ten multiplier
+     * @param minl minimum length (excluding sign and/or decimal)
+     * @param maxl maximum length (excluding sign and/or decimal)
+     * @return
+     * @throws IOException
+     */
+    public BigDecimal parseImpliedDecimalNumber(int scale, int minl, int maxl) throws IOException {
+        checkInteger();
+        int length = tokenBuilder.length();
+        if (length > 0 && tokenBuilder.charAt(0) == '-') {
+            length--;
+        }
+        checkLength(DataType.INTEGER, length, minl, maxl);
+        return new BigDecimal(new BigInteger(tokenBuilder.toString()), scale);
     }
     
     /**
@@ -105,83 +131,84 @@ public class X12Lexer extends LexerBase
                 props.put(AUTHORIZATION_QUALIFIER, parseId(2, 2));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.AUTHORIZATION_QUALIFIER_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(AUTHORIZATION_INFO, parseAlphaNumeric(10, 10));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.AUTHORIZATION_INFO_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(SECURITY_QUALIFIER, parseId(2, 2));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.SECURITY_QUALIFIER_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(SECURITY_INFO, parseAlphaNumeric(10, 10));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.SECURITY_INFO_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(SENDER_ID_QUALIFIER, parseId(2, 2));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.SENDER_ID_QUALIFIER_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(SENDER_ID, parseAlphaNumeric(15, 15));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.SENDER_ID_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(RECEIVER_ID_QUALIFIER, parseId(2, 2));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.RECEIVER_ID_QUALIFIER_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(RECEIVER_ID, parseAlphaNumeric(15, 15));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.RECEIVER_ID_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(INTERCHANGE_DATE, parseDate(6, 6));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.INTERCHANGE_DATE_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(INTERCHANGE_TIME, Integer.valueOf(parseTime(4, 4)));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.INTERCHANGE_TIME_ERROR);
-                advance();
             }
-            String sep = token();
+            advance();
+            String sep = parseAny(1, 1);
             repetitionSeparator = "U".equals(sep) ? -1 : sep.charAt(0);
             advance();
             try {
                 props.put(VERSION_ID, parseId(5, 5));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.VERSION_ID_ERROR);
-                advance();
             }
+            advance();
             try {
                 props.put(INTER_CONTROL, parseInteger(9, 9));
             } catch (LexicalException e) {
                 throw new LexicalException("Interchange aborted due to Interchange Control Number error", e);
             }
+            advance();
             try {
                 props.put(ACK_REQUESTED, parseId(1, 1));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.ACK_REQUESTED_ERROR);
-                advance();
             }
-            String indicator = token();
+            advance();
+            String indicator = parseAlpha(1, 1);
             if (indicator.length() != 1 || !("I".equals(indicator) || "P".equals(indicator) || "T".equals(indicator))) {
                 result = replaceValidStatus(result, InterchangeStartStatus.TEST_INDICATOR_ERROR);
             }
@@ -206,7 +233,7 @@ public class X12Lexer extends LexerBase
      * @see com.anypoint.df.edi.lexical.LexerBase#term(java.util.Map)
      */
     public InterchangeEndStatus term(Map<String, Object> props) throws IOException {
-        if (!"IEA".equals(token())) {
+        if (!"IEA".equals(segmentTag())) {
             throw new IllegalStateException("not at trailer");
         }
         advance();
@@ -214,11 +241,8 @@ public class X12Lexer extends LexerBase
         if (count != groupCount) {
             return InterchangeEndStatus.GROUP_COUNT_ERROR;
         }
-        
-        // this may be followed by another ISA segment, so don't advance beyond the segment terminator
-        checkInteger(9, 9);
-        String text = token();
-        int number = Integer.valueOf(text);
+        advance();
+        int number = parseInteger(9, 9).intValue();
         Object expected = props.get(INTER_CONTROL);
         if (!(expected instanceof Integer)) {
             throw new IllegalStateException(INTER_CONTROL + " value must be an Integer");

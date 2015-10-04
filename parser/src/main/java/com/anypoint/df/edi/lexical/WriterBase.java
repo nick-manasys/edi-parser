@@ -494,6 +494,24 @@ public abstract class WriterBase
     }
     
     /**
+     * Write long value.
+     *
+     * @param value
+     * @param minl
+     * @param maxl
+     * @throws IOException
+     */
+    public void writeLong(long value, int minl, int maxl) throws IOException {
+        String text = padZeroes(Long.toString(value), minl);
+        if (text.length() > maxl) {
+            if (!text.startsWith("-") || (text.length() - 1 > maxl)) {
+                throw new WriteException("value too long");
+            }
+        }
+        writeToken(text);
+    }
+    
+    /**
      * Write HL7 sequence ID value.
      *
      * @param value
