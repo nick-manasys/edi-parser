@@ -266,7 +266,8 @@ object HL7TablesConverter {
     val yamlrdr = new YamlReader()
     hl7dir.listFiles.foreach (version => {
       println(s"Processing ${version.getName}")
-      val schemaVersion = EdiSchemaVersion(HL7, version.getName)
+      val vernum = version.getName.drop(1).replace('_', '.')
+      val schemaVersion = EdiSchemaVersion(HL7, vernum)
 
       // comp_no, description, table_id, data_type_code, data_structure
       val compDetails = nameMap(fileInput(version, componentDetails))
@@ -323,7 +324,6 @@ object HL7TablesConverter {
       val groupedMsgStructs = lineList(fileInput(version, messageStructures)).reverse.groupBy { _(0) }
       val structures = buildStructures(groupedMsgStructs, segments, schemaVersion).sortBy { _.ident }
 
-      val vernum = version.getName.drop(1).replace('_', '.')
       val baseSchema = EdiSchema(schemaVersion, elemDefs, compDefs, segments, Map[String, Structure]())
       val outdir = new File(yamldir, version.getName)
       outdir.mkdirs
