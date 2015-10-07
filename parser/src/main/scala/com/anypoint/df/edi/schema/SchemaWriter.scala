@@ -15,26 +15,27 @@ import scala.annotation.tailrec
 
 /** Write EDI document based on schema. */
 
-abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
+abstract class SchemaWriter(val writer: WriterBase, val enforceRequireds: Boolean) extends SchemaJavaDefs {
 
   import SchemaJavaValues._
 
   val logger = Logger.getLogger(getClass.getName)
 
-  /** Log error and throw as WriteException.
+  /** Log error and throw as WriteException if enforcing restrictions.
     */
-  def logAndThrow(text: String) = {
+  def logAndThrow(text: String) = 
+  if (enforceRequireds) {
     val e = new WriteException(text)
     logger error e
     throw e
-  }
+  } else logger error text
 
-  /** Log error and throw as WriteException. If the cause is already a WriteException this appends the text to the
-    * existing exception text and throws a new WriteException.
+  /** Log error and throw as WriteException if enforcing restrictions. If the cause is already a WriteException this
+   *  appends the text to the existing exception text and throws a new WriteException.
     */
   def logAndThrow(text: String, cause: Throwable) = {
     logger error (text, cause)
-    cause match {
+    if (enforceRequireds) cause match {
       case e: WriteException => throw new WriteException(e.getMessage + ' ' + text)
       case e: Throwable => throw new WriteException(text, e)
     }
@@ -117,14 +118,14 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
       case SUB_COMPONENT => writer.skipSubcomponent
       case REPETITION =>
     }
-
+    
     comp match {
       case cc: CompositeComponent if (cc.count == 1) =>
         if (cc.composite.components.exists { ccc => map containsKey ccc.key }) {
           writeComponent(map, false)
-        } else cc.usage match {
-          case MandatoryUsage => throw new WriteException(s"missing required value '${cc.name}'")
-          case _ => skipAtLevel
+        } else {
+          if (cc.usage == MandatoryUsage) logAndThrow(s"missing required value '${cc.name}'")
+          skipAtLevel
         }
       case _ =>
         if (map.containsKey(comp.key)) {
@@ -134,8 +135,7 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
             value match {
               case list: SimpleList =>
                 if (list.isEmpty()) comp.usage match {
-                  case MandatoryUsage => throw new WriteException(s"no values present for property ${comp.name}")
-                  case _ =>
+                  case MandatoryUsage => logAndThrow(s"no values present for property ${comp.name}")
                 } else {
                   writeComponent(list.get(0), false)
                   list.asScala.drop(1).foreach { map => writeComponent(map, true) }
@@ -143,9 +143,9 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
               case _ => throw new WriteException(s"expected list of values for property ${comp.name}")
             }
           } else writeComponent(value, false)
-        } else comp.usage match {
-          case MandatoryUsage => throw new WriteException(s"missing required value '${comp.name}'")
-          case _ => if (!skip) skipAtLevel
+        } else {
+          if (comp.usage == MandatoryUsage) logAndThrow(s"missing required value '${comp.name}'")
+          if (!skip) skipAtLevel
         }
     }
   }
@@ -171,7 +171,7 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
       writeCompList(map, DATA_ELEMENT, false, segment.components)
     } catch {
       case e: Exception =>
-        throw new WriteException(s"${e.getMessage} of segment ${segment.ident} at position ${writer.getSegmentCount}")
+        throw new WriteException(s"${e.getMessage} of segment ${segment.ident} at position ${writer.getSegmentCount}", e)
     }
     writer.writeSegmentTerminator
   }
@@ -190,9 +190,7 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
       list.asScala.foreach { map => writeSection(map, group.seq.items) }
 
     def checkMissing = comp.usage match {
-      case MandatoryUsage => {
-        throw new WriteException(s"missing required value '${comp.key}'")
-      }
+      case MandatoryUsage => logAndThrow(s"missing required value '${comp.key}'")
       case _ =>
     }
     def writeGroup(key: String, group: GroupBase) =
@@ -208,10 +206,12 @@ abstract class SchemaWriter(val writer: WriterBase) extends SchemaJavaDefs {
             if (ref.count != 1) {
               val list = getRequiredMapList(key, map)
               if (list.isEmpty) ref.usage match {
-                case MandatoryUsage => throw new WriteException(s"no values present for segment ${ref.key}")
+                case MandatoryUsage => logAndThrow(s"no values present for segment ${ref.key}")
                 case _ =>
-              } else if (ref.count <= 0 || list.size <= ref.count) writeRepeatingSegment(list, ref.segment)
-              else throw new WriteException(s"too many values present for segment ${ref.key} (maximum ${ref.count})")
+              } else {
+                if (ref.count >0 && list.size > ref.count) logAndThrow(s"too many values present for segment ${ref.key} (maximum ${ref.count})")
+                writeRepeatingSegment(list, ref.segment)
+              }
             } else writeSegment(getRequiredValueMap(key, map), ref.segment)
           } else checkMissing
         }

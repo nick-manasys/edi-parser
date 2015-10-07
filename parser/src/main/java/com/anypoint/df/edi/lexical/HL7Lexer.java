@@ -78,7 +78,7 @@ public class HL7Lexer extends DelimiterLexer
             releaseIndicator = (char)byts[3];
             subCompSeparator = (char)byts[4];
             if (stream.read() != dataSeparator) {
-                throw new RuntimeException("Field separator not present following MSH-2");
+                throw new RuntimeException("Field separator not present following MSH-01");
             }
             
             // initialize reader and set lexer to MSH-3 field

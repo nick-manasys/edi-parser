@@ -192,10 +192,9 @@ public abstract class EdifactTestBase extends TestBase {
         List<Map<String, Object>> acks = (List<Map<String, Object>>)
             result.get(SchemaJavaValues.functionalAcksGenerated());
         if (acks != null) {
-            Map<String, Object> inter = new HashMap<>();
-            inter.put(((CompositeComponent)EdifactSchemaDefs.segUNBv4().components().head()).composite().components().apply(1).key(), "4");
+            String key = ((CompositeComponent)EdifactSchemaDefs.segUNBv4().components().head()).composite().components().apply(1).key();
             for (Map<String, Object> ack : acks) {
-                ack.put(SchemaJavaValues.interchangeKey(), inter);
+                ((Map<String, Object>)ack.get(SchemaJavaValues.interchangeKey())).put(key, "4");
                 System.out.println(DecodeContrl.decode(ack));
             }
         }

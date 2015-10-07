@@ -217,7 +217,6 @@ public class X12Lexer extends DelimiterLexer
             segmentTerminator = (char)reader.read();
             
             // advance to start of next segment
-            segmentNumber++;
             groupCount = 0;
             advance(ItemType.SEGMENT);
             return result;

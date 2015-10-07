@@ -17,7 +17,7 @@ trait SchemaJavaDefs {
   def getRequiredValue(key: String, map: ValueMap) =
     if (map containsKey (key)) map.get(key)
     else throw new IllegalArgumentException(s"missing required value '$key'")
-  
+
   def getRequiredString(key: String, map: ValueMap): String = {
     def value = getRequiredValue(key, map)
     if (value.isInstanceOf[String]) value.asInstanceOf[String]
@@ -30,37 +30,37 @@ trait SchemaJavaDefs {
     case null => throw new IllegalArgumentException("Missing required integer value '" + key + '\'')
     case _ => throw new IllegalArgumentException("Value '" + key + "' is not an integer")
   }
-  
+
   def getRequiredValueMap(key: String, map: ValueMap): ValueMap = {
     def value = getRequiredValue(key, map)
     if (value.isInstanceOf[ValueMap]) value.asInstanceOf[ValueMap]
     else throw new IllegalArgumentException(s"not a value map '$key'")
   }
-  
+
   def getRequiredMapList(key: String, map: ValueMap): MapList = {
     def value = getRequiredValue(key, map)
     if (value.isInstanceOf[MapList]) value.asInstanceOf[MapList]
     else throw new IllegalArgumentException(s"not a map list '$key'")
   }
-  
+
   def getAs[T <: Object](key: String, map: ValueMap): T = map.get(key).asInstanceOf[T]
-  
+
   def getAsRequired[T <: Object](key: String, map: ValueMap): T = {
     val result = map.get(key).asInstanceOf[T]
     if (result eq null) throw new IllegalArgumentException(s"value $key not present in map")
     result
   }
-  
+
   def getAsString(key: String, map: ValueMap) = getAs[String](key, map)
-  
+
   def getAsInt(key: String, map: ValueMap) = getAs[Integer](key, map).intValue()
-  
+
   def getAsMap(key: String, map: ValueMap) = getAs[ValueMap](key, map)
-  
+
   def getAs[T <: Object](key: String, dflt: => T, map: ValueMap): T =
     if (map.containsKey(key)) map.get(key).asInstanceOf[T]
     else dflt
-  
+
   def getOrSet[T <: Object](key: String, dflt: => T, map: ValueMap): T =
     if (map.containsKey(key)) map.get(key).asInstanceOf[T]
     else {
@@ -68,43 +68,53 @@ trait SchemaJavaDefs {
       map.put(key, inst)
       inst
     }
-  
+
+  def addToList[T](key: String, item: T, map: ValueMap) =
+    if (map != null) {
+      val list = getOrSet(key, new ju.ArrayList[T](), map)
+      if (list.isEmpty || list.get(list.size - 1) != item) list.add(item)
+    }
+
+  def mergeToList[T](key: String, from: ValueMap, to: ValueMap) =
+    if (from.containsKey(key)) {
+      val iter = getAs[ju.List[T]](key, from).iterator
+      while (iter.hasNext) addToList(key, iter.next, to)
+    }
+
   def swap(key1: String, key2: String, map: ValueMap) =
     if (map.containsKey(key1)) {
-      val temp = map get(key1)
-      if (map.containsKey(key2)) map put(key1, map get(key2))
-      map put(key2, temp)
+      val temp = map get (key1)
+      if (map.containsKey(key2)) map put (key1, map get (key2))
+      map put (key2, temp)
     } else if (map.containsKey(key2)) {
-      map put(key1, map get(key2))
-      map remove(key2)
+      map put (key1, map get (key2))
+      map remove (key2)
     }
-  
+
   def move(key: String, map1: ValueMap, map2: ValueMap) =
     if (map1.containsKey(key)) {
-      map2 put(key, map1.get(key))
-      map1 remove(key)
+      map2 put (key, map1.get(key))
+      map1 remove (key)
     }
-    
+
   def applyIfPresent[T](key: String, map: ValueMap, f: T => Unit) =
     if (map.containsKey(key)) f(map.get(key).asInstanceOf[T])
-  
+
   def foreachMapInMap(map: ValueMap, f: ValueMap => Unit) = {
     val iter = map.values.iterator
-    while (iter.hasNext) {
-      f(iter.next.asInstanceOf[ValueMap])
-    }
+    while (iter.hasNext) f(iter.next.asInstanceOf[ValueMap])
   }
-  
+
   def copyIfPresent(key1: String, map1: ValueMap, key2: String, map2: ValueMap) =
     if (map1.containsKey(key1)) map2 put (key2, map1.get(key1))
-  
+
   def foreachListInMap(map: ValueMap, f: MapList => Unit) = {
     val iter = map.values.iterator
     while (iter.hasNext) {
       f(iter.next.asInstanceOf[MapList])
     }
   }
-  
+
   def foreachMapInList(list: MapList, f: ValueMap => Unit) = {
     val iter = list.iterator
     while (iter.hasNext) {
@@ -123,7 +133,7 @@ object SchemaJavaValues {
   val interchangeAcksGenerated = "InterchangeAcksGenerated"
   val interchangeAcksReceived = "InterchangeAcksReceived"
   val interchangeAcksToSend = "InterchangeAcksToSend"
-  
+
   // value keys for envelope data maps in root and structure set maps
   val interchangeKey = "Interchange"
   val groupKey = "Group"
@@ -135,4 +145,7 @@ object SchemaJavaValues {
   val structureDetail = "Detail"
   val structureSummary = "Summary"
   val structureSchema = "Structure"
+
+  // value key used in multiple maps
+  val errorListKey = "Errors"
 }

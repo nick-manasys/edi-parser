@@ -14,8 +14,8 @@ import com.anypoint.df.edi.lexical.EdifactConstants._
 /** Configuration parameters for EDIFACT schema writer.
   */
 case class EdifactWriterConfig(val syntax: SyntaxIdentifier, val version: SyntaxVersion, val enforceChars: Boolean,
-    val subChar: Int, val decimalMark: Char, val charSet: Charset, val delims: String, val suffix: String,
-    val forceUNA: Boolean) {
+    val enforceRequires: Boolean, val subChar: Int, val decimalMark: Char, val charSet: Charset, val delims: String,
+    val suffix: String, val forceUNA: Boolean) {
   if (delims != null && delims.size != 5) throw new IllegalArgumentException("delimiter string must be 5 characters")
 }
 
@@ -31,7 +31,7 @@ trait EdifactNumberProvider {
   */
 case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
     extends SchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax, config.enforceChars,
-      config.delims, config.suffix, config.subChar, config.decimalMark)) {
+      config.delims, config.suffix, config.subChar, config.decimalMark), config.enforceRequires) {
 
   import EdiSchema._
   import SchemaJavaValues._

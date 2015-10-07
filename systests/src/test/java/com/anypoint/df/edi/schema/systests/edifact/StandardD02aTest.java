@@ -36,7 +36,7 @@ public class StandardD02aTest extends EdifactTestBase {
     public void verifyIFTMCS() throws Exception {
         loadSchema("/edifact/d02a/IFTMCS.esl");
         parseAndCheckWrite("/edifact/d02a/BOOKING-IFTMCS.edi");
-        assertEquals("UNB+UNOA:3+1STOP+APL+XXXXXXXXXXX+'UNH++CONTRL:3:1:UN'UCI+160315143316+APL+1STOP+7'UCM+71337256+IFTMCS:D:02A:UN+4'UCS+3'UCD+21+2:1'UNT+6+1'UNZ+1+1'",
+        assertEquals("UNB+UNOA:3+1STOP+APL+XXXXXXXXXXX+'UNH++CONTRL:3:1:UN'UCI+160315143316+APL+1STOP+7'UCM+71337256+IFTMCS:D:02A:UN+7'UCS+3'UCD+21+2:1'UNT+6+1'UNZ+1+1'",
             stripAckDates(parseAndReturnAck("/edifact/d02a/BOOKING-IFTMCS.edi")));
     }
 }

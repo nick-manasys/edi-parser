@@ -320,7 +320,7 @@ object EdiSchema {
           if (acc.nonEmpty) {
             val termIds = rest.map { ident(_) }.toSet
             val inclIds = acc.map { ident(_) }.toSet
-            addNormal(acc.reverse, Terminations(reqCount(rest), termIds -- inclIds))
+            addNormal(acc, Terminations(reqCount(rest), termIds -- inclIds))
           }
           splitr(rest, Nil)
         }
@@ -331,8 +331,8 @@ object EdiSchema {
             if ((reusedSegments.contains(id) && t.exists { ident(_) == id })) {
               val (seq, rest) = findreq(t, h :: acc)
               if (rest.isEmpty) splitHead(h, t)
-              else addNonEmpty(acc, rest)
-            } else if (h == lastRequired && acc.nonEmpty) addNonEmpty(acc, rem)
+              else addNonEmpty(seq, rest)
+            } else if (h == lastRequired && acc.nonEmpty) addNonEmpty(acc.reverse, rem)
             else splitr(t, h :: acc)
           case _ => if (!acc.isEmpty) addNormal(acc.reverse, terms)
         }

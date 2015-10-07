@@ -67,4 +67,12 @@ public final class X12Constants extends EdiConstants
             return characterFlags;
         }
     }
+    
+    /**
+     * Types of errors reported to user.
+     */
+    public enum ErrorType
+    {
+        INTERCHANGE_NOTE, GROUP_SYNTAX, TRANSACTION_SYNTAX, SEGMENT_SYNTAX, ELEMENT_SYNTAX
+    }
 }

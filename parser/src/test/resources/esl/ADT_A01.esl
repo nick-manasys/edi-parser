@@ -1,10 +1,2207 @@
 form: HL7
-version: 'v251'
-imports: [ '/hl7/v251/basedefs.esl' ]
+version: '2.5.1'
 structures:
 - id: 'ADT_A01'
   name: ADT_A01
   heading:
   - { idRef: 'MSH', position: '01', usage: M }
+  - { idRef: 'SFT', position: '02', usage: O, count: '>1' }
   - { idRef: 'EVN', position: '03', usage: M }
   - { idRef: 'PID', position: '04', usage: M }
+  - { idRef: 'PD1', position: '05', usage: O }
+  - { idRef: 'ROL', position: '06', usage: O, count: '>1' }
+  - { idRef: 'NK1', position: '07', usage: O, count: '>1' }
+  - { idRef: 'PV1', position: '08', usage: M }
+  - { idRef: 'PV2', position: '09', usage: O }
+  - { idRef: 'ROL', position: '10', usage: O, count: '>1' }
+  - { idRef: 'DB1', position: '11', usage: O, count: '>1' }
+  - { idRef: 'OBX', position: '12', usage: O, count: '>1' }
+  - { idRef: 'AL1', position: '13', usage: O, count: '>1' }
+  - { idRef: 'DG1', position: '14', usage: O, count: '>1' }
+  - { idRef: 'DRG', position: '15', usage: O }
+  - groupId: 'PROCEDURE'
+    usage: O
+    count: '>1'
+    items:
+    - { idRef: 'PR1', position: '17', usage: M }
+    - { idRef: 'ROL', position: '18', usage: O, count: '>1' }
+  - { idRef: 'GT1', position: '20', usage: O, count: '>1' }
+  - groupId: 'INSURANCE'
+    usage: O
+    count: '>1'
+    items:
+    - { idRef: 'IN1', position: '22', usage: M }
+    - { idRef: 'IN2', position: '23', usage: O }
+    - { idRef: 'IN3', position: '24', usage: O, count: '>1' }
+    - { idRef: 'ROL', position: '25', usage: O, count: '>1' }
+  - { idRef: 'ACC', position: '27', usage: O }
+  - { idRef: 'UB1', position: '28', usage: O }
+  - { idRef: 'UB2', position: '29', usage: O }
+  - { idRef: 'PDA', position: '30', usage: O }
+segments:
+- id: 'ACC'
+  name: Accident
+  values:
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'XCN', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'XAD', usage: O }
+- id: 'AL1'
+  name: Patient Allergy Information
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O }
+- id: 'DB1'
+  name: Disability
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+- id: 'DG1'
+  name: Diagnosis
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CP', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'ID', usage: C }
+- id: 'DRG'
+  name: Diagnosis Related Group
+  values:
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CP', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CP', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'IS', usage: O }
+- id: 'EVN'
+  name: Event Type
+  values:
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'HD', usage: O }
+- id: 'GT1'
+  name: Guarantor
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'XPN', usage: M, count: '>1' }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CP', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'JCC', usage: O }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'FC', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+- id: 'IN1'
+  name: Insurance
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CX', usage: M, count: '>1' }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'AUI', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CP', usage: O }
+  - { idRef: 'CP', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CP', usage: O }
+  - { idRef: 'CP', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+- id: 'IN2'
+  name: Insurance Additional Information
+  values:
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'RMC', usage: O, count: '>1' }
+  - { idRef: 'PTA', usage: O, count: '>1' }
+  - { idRef: 'DDI', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'JCC', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XTN', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CX', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+- id: 'IN3'
+  name: Insurance Additional Information, Certification
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'CX', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'MOP', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DTN', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'ICD', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+- id: 'MSH'
+  name: Message Header
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'MSG', usage: M }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'PT', usage: M }
+  - { idRef: 'VID', usage: M }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'EI', usage: O, count: '>1' }
+- id: 'NK1'
+  name: Next of Kin / Associated Parties
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'JCC', usage: O }
+  - { idRef: 'CX', usage: O }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+- id: 'OBX'
+  name: Observation/Result
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'varies', usage: C, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'EI', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'varies', usage: M }
+  - { idRef: 'varies', usage: M }
+  - { idRef: 'varies', usage: M }
+  - { idRef: 'XON', usage: O }
+  - { idRef: 'XAD', usage: O }
+  - { idRef: 'XCN', usage: O }
+- id: 'PD1'
+  name: Patient Additional Demographic
+  values:
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+- id: 'PDA'
+  name: Patient Death and Autopsy
+  values:
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'XCN', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DR', usage: O }
+  - { idRef: 'XCN', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'PDC'
+  name: Product Detail Country
+  values:
+  - { idRef: 'XON', usage: M, count: '>1' }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+- id: 'PEO'
+  name: Product Experience Observation
+  values:
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'FT', usage: O, count: '>1' }
+  - { idRef: 'FT', usage: O, count: '>1' }
+  - { idRef: 'FT', usage: O, count: '>1' }
+  - { idRef: 'FT', usage: O, count: '>1' }
+  - { idRef: 'FT', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'PES'
+  name: Product Experience Sender
+  values:
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'FT', usage: O, count: '>1' }
+  - { idRef: 'FT', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'ID', usage: O, count: 2 }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O, count: '>1' }
+- id: 'PID'
+  name: Patient Identification
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'CX', usage: O }
+  - { idRef: 'CX', usage: M, count: '>1' }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'XPN', usage: M, count: '>1' }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CX', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'DLN', usage: O }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+- id: 'PR1'
+  name: Procedures
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'ID', usage: C }
+- id: 'PRA'
+  name: Practitioner Detail
+  values:
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'SPD', usage: O, count: '>1' }
+  - { idRef: 'PLN', usage: O, count: '>1' }
+  - { idRef: 'PIP', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'SI', usage: C }
+- id: 'PRB'
+  name: Problem Details
+  values:
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'EI', usage: M }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+- id: 'PRC'
+  name: Pricing
+  values:
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'CP', usage: C, count: '>1' }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'MO', usage: O }
+  - { idRef: 'MO', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'MO', usage: O }
+  - { idRef: 'IS', usage: O }
+- id: 'PRD'
+  name: Provider Data
+  values:
+  - { idRef: 'CE', usage: M, count: '>1' }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'PLN', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+- id: 'PSH'
+  name: Product Summary Header
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'FT', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'FT', usage: O }
+  - { idRef: 'NM', usage: O, count: 8 }
+  - { idRef: 'NM', usage: O, count: 8 }
+- id: 'PTH'
+  name: Pathway
+  values:
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'EI', usage: M }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: C }
+- id: 'PV1'
+  name: Patient Visit
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CX', usage: O }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CX', usage: O }
+  - { idRef: 'FC', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DLD', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CX', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+- id: 'PV2'
+  name: Patient Visit - Additional Information
+  values:
+  - { idRef: 'PL', usage: C }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'XON', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'TS', usage: C }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+- id: 'QAK'
+  name: Query Acknowledgment
+  values:
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'QID'
+  name: Query Identification
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'CE', usage: M }
+- id: 'QPD'
+  name: Query Parameter Definition
+  values:
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'varies', usage: M }
+- id: 'QRD'
+  name: Original-Style Query Definition
+  values:
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CQ', usage: M }
+  - { idRef: 'XCN', usage: M, count: '>1' }
+  - { idRef: 'CE', usage: M, count: '>1' }
+  - { idRef: 'CE', usage: M, count: '>1' }
+  - { idRef: 'VR', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+- id: 'QRF'
+  name: Original style query filter
+  values:
+  - { idRef: 'ST', usage: M, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'TQ', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'QRI'
+  name: Query Response Instance
+  values:
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+- id: 'RCP'
+  name: Response Control Parameter
+  values:
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: C }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'SRT', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: M, count: '>1' }
+- id: 'RDF'
+  name: Table Row Definition
+  values:
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'RCD', usage: M, count: '>1' }
+- id: 'RDT'
+  name: Table Row Data
+  values:
+  - { idRef: 'varies', usage: M }
+- id: 'RF1'
+  name: Referral Information
+  values:
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'EI', usage: M }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'EI', usage: O, count: '>1' }
+- id: 'RGS'
+  name: Resource Group
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'CE', usage: O }
+- id: 'RMI'
+  name: Risk Management Incident
+  values:
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CE', usage: O }
+- id: 'ROL'
+  name: Role
+  values:
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'XCN', usage: M, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+- id: 'RQ1'
+  name: Requisition Detail-1
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'RQD'
+  name: Requisition Detail
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DT', usage: O }
+- id: 'RXA'
+  name: Pharmacy/Treatment Administration
+  values:
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'LA2', usage: C }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'RXC'
+  name: Pharmacy/Treatment Component Order
+  values:
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'RXD'
+  name: Pharmacy/Treatment Dispense
+  values:
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'NM', usage: C }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'LA2', usage: C }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'XAD', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'RXE'
+  name: Pharmacy/Treatment Encoded Order
+  values:
+  - { idRef: 'TQ', usage: O }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'LA1', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: C }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'XCN', usage: C, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'NM', usage: C }
+  - { idRef: 'NM', usage: C }
+  - { idRef: 'TS', usage: C }
+  - { idRef: 'CQ', usage: C }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'XAD', usage: O }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'XAD', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'RXG'
+  name: Pharmacy/Treatment Give
+  values:
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'TQ', usage: O }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'LA2', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'RXO'
+  name: Pharmacy/Treatment Order
+  values:
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'NM', usage: C }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'LA1', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'XCN', usage: C, count: '>1' }
+  - { idRef: 'XCN', usage: C, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'RXR'
+  name: Pharmacy/Treatment Route
+  values:
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'SAC'
+  name: Specimen Container detail
+  values:
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'SPS', usage: C }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'NA', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'NA', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+- id: 'SCH'
+  name: Scheduling Activity Information
+  values:
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'NM', usage: C }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'TQ', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'XCN', usage: M, count: '>1' }
+  - { idRef: 'XTN', usage: O }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'XCN', usage: M, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'PL', usage: O }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'EI', usage: C, count: '>1' }
+  - { idRef: 'EI', usage: C, count: '>1' }
+- id: 'SFT'
+  name: Software Segment
+  values:
+  - { idRef: 'XON', usage: M }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'TX', usage: O }
+  - { idRef: 'TS', usage: O }
+- id: 'SID'
+  name: Substance Identifier
+  values:
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'CE', usage: C }
+- id: 'SPM'
+  name: Specimen
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'EIP', usage: O }
+  - { idRef: 'EIP', usage: O, count: '>1' }
+  - { idRef: 'CWE', usage: M }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'NM', usage: C }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'DR', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'SPR'
+  name: Stored Procedure Request Definition
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'QIP', usage: O, count: '>1' }
+- id: 'STF'
+  name: Staff Identification
+  values:
+  - { idRef: 'CE', usage: C }
+  - { idRef: 'CX', usage: O, count: '>1' }
+  - { idRef: 'XPN', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O, count: '>1' }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'XTN', usage: O, count: '>1' }
+  - { idRef: 'XAD', usage: O, count: '>1' }
+  - { idRef: 'DIN', usage: O, count: '>1' }
+  - { idRef: 'DIN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'JCC', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DLN', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'DR', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'TCC'
+  name: Test Code Configuration
+  values:
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'EI', usage: M }
+  - { idRef: 'SPS', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+- id: 'TCD'
+  name: Test Code Detail
+  values:
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'SN', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+- id: 'TQ1'
+  name: Timing/Quantity
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'RPT', usage: O, count: '>1' }
+  - { idRef: 'TM', usage: O, count: '>1' }
+  - { idRef: 'CQ', usage: O, count: '>1' }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'CWE', usage: O, count: '>1' }
+  - { idRef: 'TX', usage: O }
+  - { idRef: 'TX', usage: O }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'TQ2'
+  name: Timing/Quantity Relationship
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'EI', usage: C, count: '>1' }
+  - { idRef: 'EI', usage: C, count: '>1' }
+  - { idRef: 'EI', usage: C, count: '>1' }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ID', usage: C }
+- id: 'TXA'
+  name: Transcription Document Header
+  values:
+  - { idRef: 'SI', usage: M }
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'XCN', usage: C, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: C }
+  - { idRef: 'TS', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'XCN', usage: C, count: '>1' }
+  - { idRef: 'EI', usage: M }
+  - { idRef: 'EI', usage: C }
+  - { idRef: 'EI', usage: O, count: '>1' }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'PPN', usage: C, count: '>1' }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+- id: 'UB1'
+  name: UB82
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'IS', usage: O, count: 5 }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'UVC', usage: O, count: 8 }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'OCD', usage: O, count: 5 }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'UB2'
+  name: UB92 Data
+  values:
+  - { idRef: 'SI', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O, count: 7 }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'UVC', usage: O, count: 12 }
+  - { idRef: 'OCD', usage: O, count: 8 }
+  - { idRef: 'OSP', usage: O, count: 2 }
+  - { idRef: 'ST', usage: O, count: 2 }
+  - { idRef: 'ST', usage: O, count: 2 }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O, count: 3 }
+  - { idRef: 'ST', usage: O, count: 23 }
+  - { idRef: 'ST', usage: O, count: 5 }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O, count: 2 }
+  - { idRef: 'NM', usage: O }
+- id: 'URD'
+  name: Results/update Definition
+  values:
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'XCN', usage: M, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O }
+- id: 'URS'
+  name: Unsolicited Selection
+  values:
+  - { idRef: 'ST', usage: M, count: '>1' }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'ST', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'ID', usage: O, count: '>1' }
+  - { idRef: 'TQ', usage: O }
+- id: 'VAR'
+  name: Variance
+  values:
+  - { idRef: 'EI', usage: M }
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'XCN', usage: O, count: '>1' }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ST', usage: O, count: '>1' }
+- id: 'VTQ'
+  name: Virtual Table Query Request
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'QSC', usage: O, count: '>1' }
+composites:
+- id: 'AD'
+  name: 'Address'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'AUI'
+  name: 'Authorization Information'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'CCD'
+  name: 'Charge Code and Date'
+  values:
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'TS', usage: O }
+- id: 'CCP'
+  name: 'Channel Calibration Parameters'
+  values:
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'CD'
+  name: 'Channel Definition'
+  values:
+  - { idRef: 'WVI', usage: O }
+  - { idRef: 'WVS', usage: O }
+  - { idRef: 'CSU', usage: O }
+  - { idRef: 'CCP', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NR', usage: O }
+- id: 'CE'
+  name: 'Coded Element'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'CF'
+  name: 'Coded Element with Formatted Values'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'FT', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'FT', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'CNE'
+  name: 'Coded with No Exceptions'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'CNN'
+  name: 'Composite ID Number and Name Simplified'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: C }
+  - { idRef: 'IS', usage: C }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ID', usage: C }
+- id: 'CP'
+  name: 'Composite Price'
+  values:
+  - { idRef: 'MO', usage: M }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'CQ'
+  name: 'Composite Quantity with Units'
+  values:
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+- id: 'CSU'
+  name: 'Channel Sensitivity'
+  values:
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'CWE'
+  name: 'Coded with Exceptions'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'CX'
+  name: 'Extended Composite ID with Check Digit'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'DDI'
+  name: 'Daily Deductible Information'
+  values:
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'MO', usage: M }
+  - { idRef: 'NM', usage: O }
+- id: 'DIN'
+  name: 'Date and Institution Name'
+  values:
+  - { idRef: 'TS', usage: M }
+  - { idRef: 'CE', usage: M }
+- id: 'DLD'
+  name: 'Discharge Location and Date'
+  values:
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'TS', usage: O }
+- id: 'DLN'
+  name: 'Driver''s License Number'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'DT', usage: O }
+- id: 'DLT'
+  name: 'Delta'
+  values:
+  - { idRef: 'NR', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'DR'
+  name: 'Date/Time Range'
+  values:
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+- id: 'DT'
+  name: 'Date'
+  values:
+  - { idRef: 'DT', usage: M }
+- id: 'DTM'
+  name: 'Date/Time'
+  values:
+  - { idRef: 'DTM', usage: M }
+- id: 'DTN'
+  name: 'Day Type and Number'
+  values:
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'NM', usage: M }
+- id: 'ED'
+  name: 'Encapsulated Data'
+  values:
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'TX', usage: M }
+- id: 'EI'
+  name: 'Entity Identifier'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ID', usage: C }
+- id: 'EIP'
+  name: 'Entity Identifier Pair'
+  values:
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'EI', usage: O }
+- id: 'ELD'
+  name: 'Error Location and Description'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'CE', usage: O }
+- id: 'ERL'
+  name: 'Error Location'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'FC'
+  name: 'Financial Class'
+  values:
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'TS', usage: O }
+- id: 'FN'
+  name: 'Family Name'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'FT'
+  name: 'Formatted Text Data'
+  values:
+  - { idRef: 'FT', usage: M }
+- id: 'GTS'
+  name: 'General Timing Specification'
+  values:
+  - { idRef: 'GTS', usage: M }
+- id: 'HD'
+  name: 'Hierarchic Designator'
+  values:
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: C }
+  - { idRef: 'ID', usage: C }
+- id: 'ICD'
+  name: 'Insurance Certification Definition'
+  values:
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'TS', usage: O }
+- id: 'ID'
+  name: 'Coded Value for HL7 Defined Tables'
+  values:
+  - { idRef: 'ID', usage: M }
+- id: 'IS'
+  name: 'Coded Value for User-Defined Tables'
+  values:
+  - { idRef: 'IS', usage: M }
+- id: 'JCC'
+  name: 'Job Code/Class'
+  values:
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'TX', usage: O }
+- id: 'LA1'
+  name: 'Location with Address Variation 1'
+  values:
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'AD', usage: O }
+- id: 'LA2'
+  name: 'Location with Address Variation 2'
+  values:
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'MA'
+  name: 'Multiplexed Array'
+  values:
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'MO'
+  name: 'Money'
+  values:
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'MOC'
+  name: 'Money and Code'
+  values:
+  - { idRef: 'MO', usage: O }
+  - { idRef: 'CE', usage: O }
+- id: 'MOP'
+  name: 'Money or Percentage'
+  values:
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'ID', usage: O }
+- id: 'MSG'
+  name: 'Message Type'
+  values:
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'ID', usage: M }
+- id: 'NA'
+  name: 'Numeric Array'
+  values:
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'NDL'
+  name: 'Name with Date and Location'
+  values:
+  - { idRef: 'CNN', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+- id: 'NM'
+  name: 'Numeric'
+  values:
+  - { idRef: 'NM', usage: M }
+- id: 'NR'
+  name: 'Numeric Range'
+  values:
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'OCD'
+  name: 'Occurrence Code and Date'
+  values:
+  - { idRef: 'CNE', usage: M }
+  - { idRef: 'DT', usage: M }
+- id: 'OSD'
+  name: 'Order Sequence Definition'
+  values:
+  - { idRef: 'ID', usage: M }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ID', usage: O }
+- id: 'OSP'
+  name: 'Occurrence Span Code and Date'
+  values:
+  - { idRef: 'CNE', usage: M }
+  - { idRef: 'DT', usage: C }
+  - { idRef: 'DT', usage: C }
+- id: 'PIP'
+  name: 'Practitioner Institutional Privileges'
+  values:
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'DT', usage: O }
+  - { idRef: 'EI', usage: O }
+- id: 'PL'
+  name: 'Person Location'
+  values:
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: C }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'EI', usage: O }
+  - { idRef: 'HD', usage: O }
+- id: 'PLN'
+  name: 'Practitioner License or Other ID Number'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'DT', usage: O }
+- id: 'PPN'
+  name: 'Performing Person Time Stamp'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'FN', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: C }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DR', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'PRL'
+  name: 'Parent Result Link'
+  values:
+  - { idRef: 'CE', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TX', usage: O }
+- id: 'PT'
+  name: 'Processing Type'
+  values:
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'PTA'
+  name: 'Policy Type and Amount'
+  values:
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'MOP', usage: M }
+- id: 'QIP'
+  name: 'Query Input Parameter List'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: M }
+- id: 'QSC'
+  name: 'Query Selection Criteria'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'RCD'
+  name: 'Row Column Definition'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'RFR'
+  name: 'Reference Range'
+  values:
+  - { idRef: 'NR', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'NR', usage: O }
+  - { idRef: 'NR', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TX', usage: O }
+- id: 'RI'
+  name: 'Repeat Interval'
+  values:
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'RMC'
+  name: 'Room Coverage'
+  values:
+  - { idRef: 'IS', usage: M }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'MOP', usage: M }
+- id: 'RP'
+  name: 'Reference Pointer'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+- id: 'RPT'
+  name: 'Repeat Pattern'
+  values:
+  - { idRef: 'CWE', usage: M }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'IS', usage: C }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'IS', usage: C }
+  - { idRef: 'GTS', usage: O }
+- id: 'SAD'
+  name: 'Street Address'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'SCV'
+  name: 'Scheduling Class Value Pair'
+  values:
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'SI'
+  name: 'Sequence ID'
+  values:
+  - { idRef: 'SI', usage: M }
+- id: 'SN'
+  name: 'Structured Numeric'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'SPD'
+  name: 'Specialty Description'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DT', usage: O }
+- id: 'SPS'
+  name: 'Specimen Source'
+  values:
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'TX', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'SRT'
+  name: 'Sort Order'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ID', usage: O }
+- id: 'ST'
+  name: 'String Data'
+  values:
+  - { idRef: 'ST', usage: M }
+- id: 'TM'
+  name: 'Time'
+  values:
+  - { idRef: 'TM', usage: M }
+- id: 'TQ'
+  name: 'Timing Quantity'
+  values:
+  - { idRef: 'CQ', usage: O }
+  - { idRef: 'RI', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'TX', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'OSD', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'NM', usage: O }
+- id: 'TS'
+  name: 'Time Stamp'
+  values:
+  - { idRef: 'DTM', usage: M }
+  - { idRef: 'ID', usage: O }
+- id: 'TX'
+  name: 'Text Data'
+  values:
+  - { idRef: 'TX', usage: M }
+- id: 'UVC'
+  name: 'UB Value Code and Amount'
+  values:
+  - { idRef: 'CNE', usage: M }
+  - { idRef: 'MO', usage: O }
+- id: 'VH'
+  name: 'Visiting Hours'
+  values:
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TM', usage: O }
+  - { idRef: 'TM', usage: O }
+- id: 'VID'
+  name: 'Version Identifier'
+  values:
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'CE', usage: O }
+- id: 'VR'
+  name: 'Value Range'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'WVI'
+  name: 'Channel Identifier'
+  values:
+  - { idRef: 'NM', usage: M }
+  - { idRef: 'ST', usage: O }
+- id: 'WVS'
+  name: 'Waveform Source'
+  values:
+  - { idRef: 'ST', usage: M }
+  - { idRef: 'ST', usage: O }
+- id: 'XAD'
+  name: 'Extended Address'
+  values:
+  - { idRef: 'SAD', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'DR', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+- id: 'XCN'
+  name: 'Extended Composite ID Number and Name for Persons'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'FN', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'IS', usage: C }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: C }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DR', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'CWE', usage: O }
+  - { idRef: 'CWE', usage: O }
+- id: 'XON'
+  name: 'Extended Composite Name and Identification Number for Organizations'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'HD', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'XPN'
+  name: 'Extended Person Name'
+  values:
+  - { idRef: 'FN', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'IS', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'CE', usage: O }
+  - { idRef: 'DR', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'TS', usage: O }
+  - { idRef: 'ST', usage: O }
+- id: 'XTN'
+  name: 'Extended Telecommunication Number'
+  values:
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ID', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'NM', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: O }
+  - { idRef: 'ST', usage: C }
+- id: 'varies'
+  name: 'varies'
+  values:
+  - { idRef: 'ST', usage: O }
+elements:
+  - { id: 'DT', name: 'Date', type: DT, minLength: 1, maxLength: 8 }
+  - { id: 'DTM', name: 'Date/Time', type: ST, minLength: 1, maxLength: 24 }
+  - { id: 'FT', name: 'Formatted Text Data', type: ST, minLength: 1, maxLength: 65536 }
+  - { id: 'GTS', name: 'General Timing Specification', type: AN, minLength: 1, maxLength: 199 }
+  - { id: 'ID', name: 'Coded Value for HL7 Defined Tables', type: ST, minLength: 1, maxLength: 9999 }
+  - { id: 'IS', name: 'Coded Value for User-Defined Tables', type: ST, minLength: 1, maxLength: 20 }
+  - { id: 'NM', name: 'Numeric', type: NM, minLength: 1, maxLength: 16 }
+  - { id: 'SI', name: 'Sequence ID', type: SI, minLength: 1, maxLength: 4 }
+  - { id: 'ST', name: 'String Data', type: ST, minLength: 1, maxLength: 199 }
+  - { id: 'TM', name: 'Time', type: TM, minLength: 1, maxLength: 16 }
+  - { id: 'TX', name: 'Text Data', type: ST, minLength: 1, maxLength: 9999 }
+  - { id: 'varies', name: 'varies', type: varies, minLength: 1, maxLength: 9999 }

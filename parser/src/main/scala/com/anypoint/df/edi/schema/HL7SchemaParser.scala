@@ -193,7 +193,10 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
       case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, ErrorSegmentSequence, "unused segment present")
       case _ =>
     }
-    // TODO: segment handling based on error state?
+    state match {
+      case ErrorStates.WontParse => lexer.discardSegment
+      case _ =>
+    }
   }
 
   /** Report message error. */
@@ -213,6 +216,7 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
 
   def init(data: ValueMap) = {
     val delims = lexer.init(data)
+    currentSegment = segMSH
     parseCompList(segMSH.components.drop(1), ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, data)
     delims
   }
@@ -236,13 +240,16 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
             map put (structureName, t.name)
             val dataMap = new ValueMapImpl
             map put (dataKey, dataMap)
-            dataMap put (t.ident, parseStructure(t, true))
+            dataMap put (t.ident, parseStructure(t, true, new ValueMapImpl))
           }
           case _ => messageError(ErrorMessageType)
         })
       else messageError(ErrorVersionId)
     } else messageError(ErrorDuplicateKey)
     map
+  } catch {
+    case t: Throwable => t.printStackTrace
+    new ValueMapImpl
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
