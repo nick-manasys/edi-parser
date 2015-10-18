@@ -611,7 +611,6 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     def parseInterchange = {
       interchangeStartSegment = lexer.getSegmentNumber - 1
       interchangeNumber = getRequiredInt(INTER_CONTROL, inter)
-      root put (interchangeKey, inter)
       if (checkSegment("ISB")) lexer.discardSegment
       if (checkSegment("ISE")) lexer.discardSegment
       if (checkSegment("TA3")) lexer.discardSegment
