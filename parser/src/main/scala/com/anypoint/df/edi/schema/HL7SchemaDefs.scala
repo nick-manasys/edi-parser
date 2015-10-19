@@ -10,7 +10,6 @@ object HL7SchemaDefs {
 
   val mshKey = "MSH"
   val dataKey = "Data"
-  val msaKey = "MSA"
   val errsKey = "ERR"
 
   val elemDTM = Element("DTM", "Date/Time", DATETIME, 4, 64)

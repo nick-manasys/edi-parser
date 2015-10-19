@@ -87,7 +87,7 @@ case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7Num
       case t: Structure => {
         mshmap put (mshStructureKey, msgType)
         init(mshmap)
-        t.heading.foreach { seq => writeTopSection(0, getRequiredValueMap(msgType, datamap), seq) }
+        t.heading.foreach { seq => writeTopSection(0, datamap, seq) }
       }
       case _ => logAndThrow(s"Unknown message id $msgType")
     }

@@ -239,9 +239,7 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
           case t: Structure => {
             map put (structureId, t.ident)
             map put (structureName, t.name)
-            val dataMap = new ValueMapImpl
-            map put (dataKey, dataMap)
-            dataMap put (t.ident, parseStructure(t, true, new ValueMapImpl))
+            map put (dataKey, parseStructure(t, true, new ValueMapImpl))
           }
           case _ => messageError(ErrorMessageType)
         })

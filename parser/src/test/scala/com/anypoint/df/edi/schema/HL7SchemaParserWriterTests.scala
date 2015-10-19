@@ -117,10 +117,8 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     map.get(structureId) should be ("ADT_A01")
     map.containsKey(dataKey) should be (true)
     val data = map.get(dataKey).asInstanceOf[ValueMap]
-    data.containsKey("ADT_A01") should be (true)
-    val adt_ao1 = data.get("ADT_A01").asInstanceOf[ValueMap]
-    adt_ao1.containsKey("03_EVN") should be (true)
-    val evn = adt_ao1.get("03_EVN").asInstanceOf[ValueMap]
+    data.containsKey("03_EVN") should be (true)
+    val evn = data.get("03_EVN").asInstanceOf[ValueMap]
     evn.get("EVN-01") should be ("A08")
     val dt2 = evn.get("EVN-02-01").asInstanceOf[XMLGregorianCalendar]
     dt2.getYear should be(2014)
