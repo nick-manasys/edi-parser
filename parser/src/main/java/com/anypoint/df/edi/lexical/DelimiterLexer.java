@@ -270,9 +270,6 @@ public abstract class DelimiterLexer extends LexerBase
                         peekToken.append(chr);
                     }
                     value = reader.read();
-                    if (value < 0) {
-                        throw new IOException("Unexpected end of file in data");
-                    }
                     chr = (char)value;
                 }
                 

@@ -20,6 +20,7 @@ import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.schema.tools.{ DefaultHL7NumberProvider, DefaultHL7NumberValidator }
 import com.anypoint.df.edi.lexical.WriteException
 import com.anypoint.df.edi.schema.tools.YamlSupport
+import javax.xml.datatype.XMLGregorianCalendar
 
 class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
@@ -69,7 +70,14 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     props.get("MSH-04-01") should be ("UCSF")
     props.get("MSH-05-01") should be ("IE")
     props.get("MSH-06-01") should be ("UCSF")
-    props.get("MSH-07-01") should be ("20140221003028")
+    val dt = props.get("MSH-07-01").asInstanceOf[XMLGregorianCalendar]
+    dt.getYear should be(2014)
+    dt.getMonth should be(2)
+    dt.getDay should be (21)
+    dt.getHour should be (0)
+    dt.getMinute should be (30)
+    dt.getSecond should be (28)
+    dt.getFractionalSecond should be (null)
     props.get("MSH-08") should be ("HBBCKGRND")
     props.get("MSH-09-01") should be ("ADT")
     props.get("MSH-09-02") should be ("A08")
@@ -91,7 +99,14 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     msh.get("MSH-04-01") should be ("UCSF")
     msh.get("MSH-05-01") should be ("IE")
     msh.get("MSH-06-01") should be ("UCSF")
-    msh.get("MSH-07-01") should be ("20140221003028")
+    val dt1 = msh.get("MSH-07-01").asInstanceOf[XMLGregorianCalendar]
+    dt1.getYear should be(2014)
+    dt1.getMonth should be(2)
+    dt1.getDay should be (21)
+    dt1.getHour should be (0)
+    dt1.getMinute should be (30)
+    dt1.getSecond should be (28)
+    dt1.getFractionalSecond should be (null)
     msh.get("MSH-08") should be ("HBBCKGRND")
     msh.get("MSH-09-01") should be ("ADT")
     msh.get("MSH-09-02") should be ("A08")
@@ -107,7 +122,14 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     adt_ao1.containsKey("03_EVN") should be (true)
     val evn = adt_ao1.get("03_EVN").asInstanceOf[ValueMap]
     evn.get("EVN-01") should be ("A08")
-    evn.get("EVN-02-01") should be ("20140221003028")
+    val dt2 = evn.get("EVN-02-01").asInstanceOf[XMLGregorianCalendar]
+    dt2.getYear should be(2014)
+    dt2.getMonth should be(2)
+    dt2.getDay should be (21)
+    dt2.getHour should be (0)
+    dt2.getMinute should be (30)
+    dt2.getSecond should be (28)
+    dt2.getFractionalSecond should be (null)
     evn.get("EVN-03") should be (null)
     evn.get("EVN-04") should be ("REG_UPDATE")
     evn.get("EVN-05-01") should be (null)
@@ -179,6 +201,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
+    println(text)
 //    val swriter = new StringWriter
 //    YamlSupport.writeMap(input, swriter)
 //    println(swriter.toString())

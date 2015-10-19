@@ -163,7 +163,6 @@ public abstract class EdiConstants
         HL7Mapping.put("ID", DataType.STRINGDATA);
         HL7Mapping.put("IS", DataType.STRINGDATA);
         HL7Mapping.put("TX", DataType.STRINGDATA);
-        HL7Mapping.put("DTM", DataType.STRINGDATA);
         HL7Mapping.put("var", DataType.VARIES);
     }
     

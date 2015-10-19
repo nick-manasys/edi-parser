@@ -1,13 +1,19 @@
 package com.anypoint.df.edi.lexical;
 
 import static com.anypoint.df.edi.lexical.EdiConstants.ASCII_CHARSET;
+import static com.anypoint.df.edi.lexical.EdiConstants.maximumYear;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
-import java.math.BigInteger;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Map;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.anypoint.df.edi.lexical.EdiConstants.DataType;
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
@@ -23,6 +29,9 @@ public class HL7Lexer extends DelimiterLexer
         VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR
     }
     
+    /** Factory for creating XMLGregorianCalendars. */
+    private final DatatypeFactory typeFactory;
+    
     /**
      * Constructor.
      *
@@ -33,6 +42,11 @@ public class HL7Lexer extends DelimiterLexer
         super(is);
         substitutionChar = subst;
         segmentTerminator = (char)0x0D;
+        try {
+			typeFactory = DatatypeFactory.newInstance();
+		} catch (DatatypeConfigurationException e) {
+			throw new RuntimeException(e);
+		}
     }
     
     /**
@@ -99,6 +113,83 @@ public class HL7Lexer extends DelimiterLexer
      * @throws IOException
      */
     public void term(Map<String, Object> props) throws IOException {
+    }
+    
+    private int parseComponent(int start, int end) throws IOException {
+        int value = 0;
+        for (int i = start; i < end; i++) {
+            char chr = tokenBuilder.charAt(i);
+            if (chr < '0' || chr > '9') {
+                handleError(DataType.DATETIME, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
+            }
+            value = value * 10 + chr - '0';
+        }
+        return value;
+    }
+    
+    /**
+     * Get current token as a date/time value. The returned XMLGregorianCalendar instance includes all component values
+     * from the input, but is generally not a valid XML date/time since XML requires all components to be populated for
+     * each format variation while HL7 allows any number of components to be included following the four-digit year.
+     *
+     * @param minl minimum length
+     * @param maxl maximum length
+     * @param zone allow time zone
+     * @return
+     * @throws IOException
+     */
+    public XMLGregorianCalendar parseDateTime(int minl, int maxl, boolean zone) throws IOException {
+        int length = tokenBuilder.length();
+        XMLGregorianCalendar dt = typeFactory.newXMLGregorianCalendar();
+        if (zone && length > 5) {
+        	char sign = tokenBuilder.charAt(length - 5);
+        	if (sign == '-' || sign == '+') {
+        	    int hours = parseComponent(length - 4, length - 2);
+        		int mins = parseComponent(length - 2, length);
+        		if (hours > 23) {
+                    handleError(DataType.DATETIME, ErrorCondition.INVALID_DATE, "time zone offset hours value out of range: " + hours);
+        		} else if (mins > 59) {
+                    handleError(DataType.DATETIME, ErrorCondition.INVALID_DATE, "time zone offset minutes value out of range: " + mins);
+        		} else {
+        		    int offset = hours * 60 + mins;
+        		    dt.setTimezone(sign == '-' ? -offset : offset);
+        		}
+        		length -= 5;
+        	}
+        }
+        checkLength(DataType.DATETIME, length, minl, maxl);
+        if (length < 4 || (length < 14 && length % 2 == 1) || length > 19) {
+            handleError(DataType.DATETIME, ErrorCondition.INVALID_DATE, "length does not match a date/time format: " + tokenBuilder.substring(0,  length));
+        }
+        if (length >= 4) {
+            dt.setYear(parseComponent(0, 4));
+            if (length >= 6) {
+                dt.setMonth(parseComponent(4, 6));
+                if (length >= 8) {
+                    dt.setDay(parseComponent(6, 8));
+                    if (length >= 10) {
+                        dt.setHour(parseComponent(8,10));
+                        if (length >= 12) {
+                            dt.setMinute(parseComponent(10, 12));
+                            if (length >= 14) {
+                                dt.setSecond(parseComponent(12, 14));
+                                if (length >= 16) {
+                                    if (tokenBuilder.charAt(14) == '.') {
+                                        try {
+                                            dt.setFractionalSecond(new BigDecimal(tokenBuilder.substring(14, length)));
+                                        } catch (NumberFormatException e) {
+                                            handleError(DataType.DATETIME, ErrorCondition.INVALID_DATE, "invalid second fraction: " + tokenBuilder.substring(0,  length));
+                                        }
+                                    }
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+            }
+        }
+        return dt;
     }
     
     /**

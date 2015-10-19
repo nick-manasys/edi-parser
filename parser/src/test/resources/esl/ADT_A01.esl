@@ -2194,7 +2194,7 @@ composites:
   - { idRef: 'ST', usage: O }
 elements:
   - { id: 'DT', name: 'Date', type: DT, minLength: 1, maxLength: 8 }
-  - { id: 'DTM', name: 'Date/Time', type: ST, minLength: 1, maxLength: 24 }
+  - { id: 'DTM', name: 'Date/Time', type: DTM, minLength: 1, maxLength: 24 }
   - { id: 'FT', name: 'Formatted Text Data', type: ST, minLength: 1, maxLength: 65536 }
   - { id: 'GTS', name: 'General Timing Specification', type: AN, minLength: 1, maxLength: 199 }
   - { id: 'ID', name: 'Coded Value for HL7 Defined Tables', type: ST, minLength: 1, maxLength: 9999 }

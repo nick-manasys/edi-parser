@@ -113,11 +113,12 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
   /** Parse data element value. */
   def parseElement(elem: Element) = {
     val result = elem.dataType match {
-      case DATETIME | STRINGDATA | VARIES => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
-      case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
+      case DATETIME => lexer.parseDateTime(elem.minLength, elem.maxLength, true)
+      case DATE => lexer.parseDateTime(elem.minLength, elem.maxLength, false)
       case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
       case NUMERIC => lexer.parseUnscaledNumber(elem.minLength, elem.maxLength)
       case SEQID => lexer.parseSeqId
+      case STRINGDATA | VARIES => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
       case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
       case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in EDIFACT")
     }

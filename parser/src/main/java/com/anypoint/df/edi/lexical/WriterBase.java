@@ -17,6 +17,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Map;
 
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
  * Base EDI token writer. The writer outputs tokens of various types, with specified delimiter types.
  */
@@ -741,6 +744,65 @@ public abstract class WriterBase
         }
         while (builder.length() < minl) {
             builder.append('0');
+        }
+        writeToken(builder.toString());
+    }
+
+    /**
+     * Write X12 date value. Note that this avoids the use of the Java DateFormat class, which has high time and memory
+     * overhead.
+     *
+     * @param dt
+     * @param minl minimum length
+     * @param maxl maximum length
+     * @param zone allow time zone
+     * @throws IOException
+     */
+    public void writeDateTime(XMLGregorianCalendar dt, int minl, int maxl, boolean zone) throws IOException {
+        int value = dt.getYear();
+        if (value == DatatypeConstants.FIELD_UNDEFINED) {
+            throw new WriteException("missing required year value for date/time");
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append(padZeroes(Integer.toString(value), 4));
+        value = dt.getMonth();
+        if (value != DatatypeConstants.FIELD_UNDEFINED) {
+            builder.append(padZeroes(Integer.toString(value), 2));
+            value = dt.getDay();
+            if (value != DatatypeConstants.FIELD_UNDEFINED) {
+                builder.append(padZeroes(Integer.toString(value), 2));
+                value = dt.getHour();
+                if (value != DatatypeConstants.FIELD_UNDEFINED) {
+                    builder.append(padZeroes(Integer.toString(value), 2));
+                    value = dt.getMinute();
+                    if (value != DatatypeConstants.FIELD_UNDEFINED) {
+                        builder.append(padZeroes(Integer.toString(value), 2));
+                        value = dt.getSecond();
+                        if (value != DatatypeConstants.FIELD_UNDEFINED) {
+                            builder.append(padZeroes(Integer.toString(value), 2));
+                            BigDecimal fract = dt.getFractionalSecond();
+                            if (fract != null) {
+                                builder.append(fract.toPlainString());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (builder.length() < minl) {
+            throw new WriteException("date/time value missing required components: " + builder.toString());
+        }
+        if (builder.length() > maxl) {
+            builder.setLength(maxl);
+        }
+        if (zone) {
+            int offset = dt.getTimezone();
+            if (offset != DatatypeConstants.FIELD_UNDEFINED) {
+                builder.append(offset < 0 ? '-' : '+');
+                offset = Math.abs(offset);
+                builder.append(padZeroes(Integer.toString(offset / 60), 2));
+                builder.append(padZeroes(Integer.toString(offset % 60), 2));
+            }
         }
         writeToken(builder.toString());
     }

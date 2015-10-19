@@ -13,7 +13,7 @@ object HL7SchemaDefs {
   val msaKey = "MSA"
   val errsKey = "ERR"
 
-  val elemDTM = Element("DTM", "Date/Time", STRINGDATA, 4, 64)
+  val elemDTM = Element("DTM", "Date/Time", DATETIME, 4, 64)
   val elemID = Element("ID", "Coded Value for HL7 Defined Tables", STRINGDATA, 1, 199)
   val elemIS = Element("IS", "Coded Value for User-Defined Tables", STRINGDATA, 1, 20)
   val elemNM = Element("NM", "Numeric", NUMERIC, 1, 16)

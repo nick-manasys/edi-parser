@@ -32,7 +32,14 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
   /** Parse a segment component, which is either an element or a composite. */
   def parseComponent(comp: SegmentComponent, first: ItemType, rest: ItemType, map: ValueMap): Unit = {
     comp match {
-      case elemComp: ElementComponent => map put (comp.key, parseElement(elemComp.element))
+      case elemComp: ElementComponent =>
+        val elem = elemComp.element
+        if (comp.count > 1) {
+          val complist = new SimpleListImpl
+          map put (comp.key, complist)
+          complist add parseElement(elem)
+          while (baseLexer.currentType == REPETITION) complist add parseElement(elem)
+        } else map put (comp.key, parseElement(elem))
       case compComp: CompositeComponent => {
         val composite = compComp.composite
         if (comp.count > 1) {
@@ -198,7 +205,7 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
             }
 
             val ident = convertLoop.getOrElse(baseLexer.segmentTag)
-            if (!isEnvelopeSegment(ident)) {
+            if (baseLexer.currentType == ItemType.SEGMENT && !isEnvelopeSegment(ident)) {
 
               def adjustPosition(nextpos: String) = {
                 if (nextpos >= position) nextpos

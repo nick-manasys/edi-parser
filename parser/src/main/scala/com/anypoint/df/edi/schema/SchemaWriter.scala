@@ -12,6 +12,7 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.{ WriteException, WriterBase }
 import com.anypoint.df.edi.schema.EdiSchema._
 import scala.annotation.tailrec
+import javax.xml.datatype.XMLGregorianCalendar
 
 /** Write EDI document based on schema. */
 
@@ -73,13 +74,15 @@ abstract class SchemaWriter(val writer: WriterBase, val enforceRequireds: Boolea
 
     def writeSimple(value: Any, dtype: DataType, min: Int, max: Int) = dtype match {
       case ALPHA => writer.writeAlpha(value.asInstanceOf[String], min, max)
-      case ALPHANUMERIC | DATETIME | STRINGDATA | VARIES => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
+      case ALPHANUMERIC | STRINGDATA | VARIES => writer.writeAlphaNumeric(value.asInstanceOf[String], min, max)
       case ID => writer.writeId(value.asInstanceOf[String], min, max)
       case DATE => value match {
         case calendar: Calendar => writer.writeDate(calendar, min, max)
         case date: Date => writer.writeDate(date, min, max)
+        case xmlc: XMLGregorianCalendar => writer.writeDateTime(xmlc, min, max, false)
         case _ => throw new WriteException(s"Date value must be Date or Calendar instance, not ${value.getClass.getName}")
       }
+      case DATETIME => writer.writeDateTime(value.asInstanceOf[XMLGregorianCalendar], min, max, true)
       case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue, min, max)
       case NUMBER | REAL | NUMERIC => value match {
         case bigdec: BigDecimal => writer.writeDecimal(bigdec, min, max)
