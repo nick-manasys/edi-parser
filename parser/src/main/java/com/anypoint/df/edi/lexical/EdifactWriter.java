@@ -14,7 +14,7 @@ import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion;
 /**
  * Writer variation for EDIFACT.
  */
-public class EdifactWriter extends WriterBase
+public class EdifactWriter extends DelimiterWriter
 {
     private final boolean needUna;
     private final String overrideDelimiters;

@@ -541,8 +541,10 @@ object EdiSchema {
       case None => Set()
     }
     
-    val detailTerms = Terminations(0, terms(detail))
-    val summaryTerms = Terminations(0, terms(summary))
+    private val sumterms = terms(summary)
+    val summaryTerms = Terminations(0, sumterms)
+    private val detterms = terms(detail)
+    val detailTerms = Terminations(0, if (detail.isEmpty || detail.get.requiredComps.isEmpty) detterms ++ sumterms else detterms)
   }
 
   type StructureMap = Map[String, Structure]
@@ -585,7 +587,7 @@ object EdiSchema {
     def keyName(parentId: String, position: Int) = parentId + "-" + (if (position < 10) "0" + position else position)
     def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
   }
-  case object FlatFile extends EdiForm("FLAT") {
+  case object FlatFile extends EdiForm("FIXEDWIDTH") {
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""

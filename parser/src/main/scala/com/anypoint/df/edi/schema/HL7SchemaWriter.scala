@@ -32,13 +32,16 @@ trait HL7NumberProvider {
 /** Writer for HL7 EDI documents.
   */
 case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7NumberProvider, config: HL7WriterConfig)
-  extends SchemaWriter(new HL7Writer(out, config.charSet, config.delims, config.subChar), config.enforceRequires)
+  extends DelimiterSchemaWriter(new HL7Writer(out, config.charSet, config.delims, config.subChar), config.enforceRequires)
   with UtilityBase {
 
   import EdiSchema._
   import HL7Identity._
   import HL7SchemaDefs._
   import SchemaJavaValues._
+
+  /** Typed writer, for access to format-specific conversions and support. */
+  val writer = baseWriter.asInstanceOf[HL7Writer]
 
   /** Write top-level section of structure. */
   def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence) = writeSection(map, seq.items)

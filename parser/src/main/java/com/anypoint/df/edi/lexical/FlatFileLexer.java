@@ -1,7 +1,9 @@
 package com.anypoint.df.edi.lexical;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Calendar;
 
 import com.anypoint.df.edi.lexical.EdiConstants.DataType;
@@ -25,6 +27,7 @@ public class FlatFileLexer extends LexerBase
     public FlatFileLexer(InputStream is, int tag) {
         super(is);
         tagWidth = tag;
+        reader = new BufferedReader(new InputStreamReader(stream, EdiConstants.ASCII_CHARSET));
     }
     
     /**
@@ -52,9 +55,12 @@ public class FlatFileLexer extends LexerBase
             int chr = reader.read();
             if (chr == -1) {
                 throw new LexicalException("Unexpected end of file in line " + segmentNumber);
+            } else if (chr == '\r' || chr == '\n') {
+                throw new LexicalException("Unexpected end of line (expected " + (length - i) + " more characters) for line " + segmentNumber);
             }
             tokenBuilder.append((char)chr);
         }
+        elementNumber++;
     }
     
     /**
@@ -67,6 +73,7 @@ public class FlatFileLexer extends LexerBase
     public boolean nextLine() throws IOException {
         int chr = reader.read();
         if (chr == -1) {
+            currentType = ItemType.END;
             return false;
         }
         if (chr != '\n' && chr != '\r') {
@@ -74,15 +81,28 @@ public class FlatFileLexer extends LexerBase
         }
         while ((chr = reader.read()) == '\n' || chr == '\r');
         if (chr == -1) {
+            currentType = ItemType.END;
             return false;
         }
         tokenBuilder.setLength(0);
         tokenBuilder.append((char)chr);
         segmentNumber++;
+        elementNumber = 0;
         readToken(tagWidth - 1);
         segmentTag = tokenBuilder.toString();
         currentType = ItemType.SEGMENT;
         return true;
+    }
+    
+    /**
+     * Initialize for parsing input.
+     * 
+     * @throws IOException
+     */
+    public void init() throws IOException {
+        readToken(tagWidth);
+        segmentTag = tokenBuilder.toString();
+        currentType = ItemType.SEGMENT;
     }
     
     /**
@@ -147,7 +167,7 @@ public class FlatFileLexer extends LexerBase
                 lastns = i;
             }
         }
-        checkLength(DataType.ALPHANUMERIC, lastns, minl, maxl);
+        checkLength(DataType.ALPHANUMERIC, lastns + 1, minl, maxl);
         return tokenBuilder.substring(0, lastns + 1);
     }
     

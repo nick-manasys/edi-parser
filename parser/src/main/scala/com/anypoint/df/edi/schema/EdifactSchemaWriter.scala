@@ -1,14 +1,14 @@
 package com.anypoint.df.edi.schema
 
 import java.io.OutputStream
+import java.math.{ BigDecimal, BigInteger }
 import java.nio.charset.Charset
-import java.util.Calendar
-import java.util.GregorianCalendar
+import java.util.{ Calendar, Date, GregorianCalendar }
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.util.Try
-import com.anypoint.df.edi.lexical.{ EdifactWriter, WriteException, WriterBase }
+import com.anypoint.df.edi.lexical.{ EdifactWriter, WriteException }
 import com.anypoint.df.edi.lexical.EdifactConstants._
 
 /** Configuration parameters for EDIFACT schema writer.
@@ -30,12 +30,15 @@ trait EdifactNumberProvider {
 /** Writer for EDIFACT EDI documents.
   */
 case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider, config: EdifactWriterConfig)
-    extends SchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax, config.enforceChars,
-      config.delims, config.suffix, config.subChar, config.decimalMark), config.enforceRequires) {
+    extends DelimiterSchemaWriter(new EdifactWriter(out, config.charSet, config.version, config.syntax,
+      config.enforceChars, config.delims, config.suffix, config.subChar, config.decimalMark), config.enforceRequires) {
 
   import EdiSchema._
   import SchemaJavaValues._
   import EdifactSchemaDefs._
+
+  /** Typed writer, for access to format-specific conversions and support. */
+  val writer = baseWriter.asInstanceOf[EdifactWriter]
 
   var setCount = 0
   var setSegmentBase = 0

@@ -11,6 +11,7 @@ import java.util.Map;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.anypoint.df.edi.lexical.WriteException;
 import com.anypoint.df.edi.schema.EdiSchema;
 import com.anypoint.df.edi.schema.EdiSchemaVersion;
 import com.anypoint.df.edi.schema.EdiSchema.EdiForm;
@@ -83,6 +84,14 @@ public class WriterTest extends EdifactTestBase {
             assertTrue(matchWriteException(e, "length outside of allowed range"));
         }
         text = readAsString("/edifact/write/ORDERS96a-empty-rff-and-dtm.yaml");
+        map = YamlSupport.readMap(text);
+        try {
+            testWrite(map);
+            fail();
+        } catch (Exception e) {
+            assertTrue(matchWriteException(e, "missing required value"));
+        }
+        text = readAsString("/edifact/write/ORDERS96a-badchar.yaml");
         map = YamlSupport.readMap(text);
         try {
             testWrite(map);

@@ -15,7 +15,7 @@ import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 /**
  * Writer variation for X12.
  */
-public class X12Writer extends WriterBase
+public class X12Writer extends DelimiterWriter
 {
     /**
      * Constructor.

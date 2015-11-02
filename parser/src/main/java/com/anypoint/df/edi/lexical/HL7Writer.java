@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * Writer variation for HL7.
  */
-public class HL7Writer extends WriterBase
+public class HL7Writer extends DelimiterWriter
 {
     /**
      * Constructor.
@@ -46,5 +46,22 @@ public class HL7Writer extends WriterBase
      */
     public void term(Map<String, Object> props) throws IOException {
         // unused, to be eliminated
+    }
+    
+    /**
+     * Write HL7 sequence ID value.
+     *
+     * @param value
+     * @throws IOException
+     */
+    public void writeSeqId(int value) throws IOException {
+        if (value < 0) {
+            throw new WriteException("value cannot be negative");
+        }
+        String text = Integer.toString(value);
+        if (text.length() > 4) {
+            throw new WriteException("value too long");
+        }
+        writeToken(text);
     }
 }

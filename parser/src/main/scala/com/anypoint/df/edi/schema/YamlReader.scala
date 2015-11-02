@@ -460,7 +460,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     /** Read schema from YAML document, recursively reading and building on imported schemas. */
     def loadFully(reader: Reader): EdiSchema = {
       val input = snake.loadAs(reader, classOf[ValueMap]).asInstanceOf[ValueMap];
-      val version = EdiSchemaVersion(convertEdiForm(input.get(formKey).toString), getRequiredString(versionKey, input))
+      val version = EdiSchemaVersion(convertEdiForm(input.get(formKey).toString), getAsString(versionKey, input))
       val baseSchema = if (input.containsKey(importsKey)) {
         val impsin = getChildList(importsKey, input).asInstanceOf[java.util.List[String]]
         impsin.asScala.toList.foldLeft(new EdiSchema(version))((acc, path) => {

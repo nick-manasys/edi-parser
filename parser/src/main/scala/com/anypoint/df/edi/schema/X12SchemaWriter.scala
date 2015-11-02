@@ -31,12 +31,15 @@ trait X12NumberProvider {
 /** Writer for X12 EDI documents.
   */
 case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config: X12WriterConfig)
-    extends SchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
+    extends DelimiterSchemaWriter(new X12Writer(out, config.charSet, config.delims(0), config.delims(1),
       config.repsep, config.delims(3), config.suffix, config.subChar, config.stringChars), config.enforceRequires) {
 
   import EdiSchema._
   import SchemaJavaValues._
   import X12SchemaDefs._
+
+  /** Typed writer, for access to format-specific conversions and support. */
+  val writer = baseWriter.asInstanceOf[X12Writer]
 
   var setCount = 0
   var setSegmentBase = 0

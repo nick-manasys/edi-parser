@@ -20,7 +20,7 @@ import HL7SchemaDefs._
 import SchemaJavaValues._
 
 /** Parser for flat file documents. */
-case class FlatFileSchemaParser(in: InputStream, schema: EdiSchema) extends SchemaParser(new FlatFileLexer(in, 1)) {
+case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends SchemaParser(new FlatFileLexer(in, 1)) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
@@ -28,7 +28,7 @@ case class FlatFileSchemaParser(in: InputStream, schema: EdiSchema) extends Sche
   /** Current segment reference, used in error reporting. */
   var currentSegment: Segment = null
 
-  def describeSegment = if (currentSegment == null) "" else s" (${currentSegment.ident})"
+  def describeSegment = if (currentSegment == null) "" else s" ('${currentSegment.ident}')"
 
   def describeError(fatal: Boolean) = if (fatal) "fatal" else "recoverable"
 
@@ -65,6 +65,7 @@ case class FlatFileSchemaParser(in: InputStream, schema: EdiSchema) extends Sche
       case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
       case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in flat files")
     }
+    println(s"value for ${elem.name} is $result")
     result
   }
 
@@ -88,11 +89,8 @@ case class FlatFileSchemaParser(in: InputStream, schema: EdiSchema) extends Sche
     val map = new ValueMapImpl
     currentSegment = segment
     parseCompList(segment.components, DATA_ELEMENT, DATA_ELEMENT, map)
-    if (!lexer.nextLine) {
-      segmentError(false, "line longer than expected")
-//      lexer.
-    }
-    if (logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.segmentTag}'")
+    currentSegment = null
+    if (lexer.nextLine && logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.segmentTag}'")
     map
   }
 
@@ -100,6 +98,15 @@ case class FlatFileSchemaParser(in: InputStream, schema: EdiSchema) extends Sche
 
   /** Report segment error. */
   def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState, num: Int) = {
+    error match {
+      case ComponentErrors.TooManyLoops => segmentError(true, s"too many loop instances $ident")
+      case ComponentErrors.TooManyRepetitions => segmentError(true, s"too many segment repetitions $ident")
+      case ComponentErrors.MissingRequired => segmentError(true, s"missing required segment $ident")
+      case ComponentErrors.UnknownSegment => segmentError(false, s"unknown segment $ident")
+      case ComponentErrors.OutOfOrderSegment => segmentError(true, s"out of order segment $ident")
+      case ComponentErrors.UnusedSegment => segmentError(false, s"unused segment $ident")
+    }
+    lexer.nextLine
   }
 
   def convertSectionControl = None
@@ -112,7 +119,13 @@ case class FlatFileSchemaParser(in: InputStream, schema: EdiSchema) extends Sche
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {
     val map = new ValueMapImpl
+    lexer.init
+    parseStructure(struct, false, map)
     map
+  } catch {
+    case t: Throwable =>
+      t.printStackTrace
+      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })

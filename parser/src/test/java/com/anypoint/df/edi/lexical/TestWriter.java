@@ -9,7 +9,7 @@ import java.util.Map;
  * Writer for use in tests. This doesn't do any handling of envelope segments, but allows data segments to be written
  * directly.
  */
-public class TestWriter extends WriterBase
+public class TestWriter extends DelimiterWriter
 {
     /**
      * Constructor.

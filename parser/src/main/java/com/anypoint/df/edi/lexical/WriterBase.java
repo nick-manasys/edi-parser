@@ -21,15 +21,16 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
- * Base EDI token writer. The writer outputs tokens of various types, with specified delimiter types.
+ * Base token writing code for all forms of output. The actual token arranging code is implemented by subclasses, this
+ * just provides methods for dealing with common datatypes.
  */
 public abstract class WriterBase
 {
     /** Spaces used for padding. */
-    private static final String SPACES = "                    ";
+    protected static final String SPACES = "                                        ";
     
     /** Zeroes used for padding. */
-    private static final String ZEROES = "00000000000000000000";
+    protected static final String ZEROES = "00000000000000000000";
     
     /** Milliseconds per second. */
     private static final int MILLIS_PER_SECOND = 1000;
@@ -46,113 +47,23 @@ public abstract class WriterBase
     /** Writer wrapping document data stream. */
     protected final Writer writer;
     
-    /** Substitution character for invalid character in string (-1 if unused). */
-    private final int substitutionChar;
-    
-    /** Allowed character set for string data (<code>null</code> if unrestricted). */
-    private final boolean[] allowedChars;
-    
-    /** Sub-component delimiter (-1 if unused). */
-    private final int subCompSeparator;
-    
-    /** Sub-component delimiter. */
-    private final char componentSeparator;
-    
-    /** Data element delimiter. */
-    private final char dataSeparator;
-    
-    /** Repeated component delimiter (-1 if unused). */
-    protected final int repetitionSeparator;
-    
-    /** Release character (-1 if unused). */
-    private final int releaseIndicator;
-    
     /** Character used for decimal mark. */
     protected final char decimalMark;
     
-    /** Separator between segments (following segment terminator; <code>null</code> if none). */
-    protected final String segmentSeparator;
-
-    /** Segment terminator. */
-    private final char segmentTerminator;
-    
-    /** Flag for positioned at segment start. */
-    private boolean segmentStart;
-    
     /** Number of segments written. */
-    private int segmentCount;
-    
-    /** Number of groups in interchange. */
-    protected int groupCount;
-    
-    /** Number of skipped data elements. */
-    private int skippedElementCount;
-    
-    /** Number of skipped components. */
-    private int skippedCompCount;
-    
-    /** Number of skipped sub-components. */
-    private int skippedSubCompCount;
+    protected int segmentCount;
     
     /**
      * Constructor.
      *
      * @param os output
      * @param encoding character set encoding
-     * @param datasep data separator character
-     * @param compsep component separator character
-     * @param subsep sub-component separator character (-1 if unused)
-     * @param repsep repetition separator character (-1 if unused)
-     * @param segterm segment terminator character
-     * @param segsep inter-segment separator (following segment terminator; <code>null</code> if none)
-     * @param release release character
-     * @param subst substitution character for invalid character in string (-1 if unused)
      * @param mark decimal mark character
-     * @param chars allowed character set flags for string data (<code>null</code> if unrestricted)
      */
-    protected WriterBase(OutputStream os, Charset encoding, char datasep, char compsep, int subsep, int repsep, char segterm,
-        String segsep, int release, int subst, char mark, boolean[] chars) {
+    protected WriterBase(OutputStream os, Charset encoding, char mark) {
         stream = os;
-        dataSeparator = datasep;
-        componentSeparator = compsep;
-        subCompSeparator = subsep;
-        repetitionSeparator = repsep;
-        segmentTerminator = segterm;
-        decimalMark = mark;
-        segmentSeparator = segsep;
-        releaseIndicator = release;
-        substitutionChar = subst;
-        boolean[] allowed = null;
-        if (chars != null && releaseIndicator < 0) {
-            allowed = new boolean[chars.length];
-            System.arraycopy(chars, 0, allowed, 0, chars.length);
-            clearFlag(datasep, allowed);
-            clearFlag(compsep, allowed);
-            clearFlag(subsep, allowed);
-            clearFlag(repsep, allowed);
-            clearFlag(segterm, allowed);
-        }
-        allowedChars = allowed;
         writer = new OutputStreamWriter(new BufferedOutputStream(os), encoding);
-    }
-    
-    /**
-     * Clear flag for character in array, if in range.
-     *
-     * @param chr
-     * @param flags
-     */
-    private static void clearFlag(int chr, boolean[] flags) {
-        if (chr >= 0 && chr < flags.length) {
-            flags[chr] = false;
-        }
-    }
-    
-    /**
-     * Count a group present in interchange.
-     */
-    public void countGroup() {
-        groupCount++;
+        decimalMark = mark;
     }
     
     /**
@@ -162,33 +73,6 @@ public abstract class WriterBase
      */
     public int getSegmentCount() {
         return segmentCount; 
-    }
-    
-    /**
-     * Count a skipped data element in segment. This supports lazy writing of separators for skipped data elements to
-     * avoid trailing separators.
-     */
-    public void skipElement() {
-        skippedElementCount++;
-        skippedCompCount = 0;
-        skippedSubCompCount = 0;
-    }
-    
-    /**
-     * Count a skipped component in segment. This supports lazy writing of separators for skipped components to
-     * avoid trailing separators.
-     */
-    public void skipComponent() {
-        skippedCompCount++;
-        skippedSubCompCount = 0;
-    }
-    
-    /**
-     * Count a skipped sub-component in segment. This supports lazy writing of separators for skipped sub-components to
-     * avoid trailing separators.
-     */
-    public void skipSubcomponent() {
-        skippedSubCompCount++;
     }
     
     /**
@@ -217,118 +101,42 @@ public abstract class WriterBase
     public abstract void term(Map<String,Object> props) throws IOException;
     
     /**
-     * Check for start of segment, and write segment separator if so.
+     * Write token text with no checks on content or length.
      *
+     * @param text
      * @throws IOException
      */
-    private void checkSegmentStart() throws IOException {
-        if (segmentStart && segmentSeparator != null) {
-            writer.write(segmentSeparator);
-        }
-        segmentStart = false;
-    }
-
-    /**
-     * Write data separator(s). If any data values have been skipped this also writes out the separators for those
-     * values.
-     *
-     * @throws IOException
-     */
-    public void writeDataSeparator() throws IOException {
-        checkSegmentStart();
-        writer.write(dataSeparator);
-        for (int i = 0; i < skippedElementCount; i++) {
-            writer.write(dataSeparator);
-        }
-        skippedElementCount = 0;
-        skippedCompCount = 0;
-        skippedSubCompCount = 0;
-    }
-    
-    /**
-     * Write component separator(s). If any component values have been skipped this also writes out the separators
-     * for those values.
-     *
-     * @param count
-     * @throws IOException
-     */
-    public void writeComponentSeparator() throws IOException {
-        checkSegmentStart();
-        writer.write(componentSeparator);
-        for (int i = 0; i < skippedCompCount; i++) {
-            writer.write(componentSeparator);
-        }
-        skippedCompCount = 0;
-        skippedSubCompCount = 0;
-    }
-    
-    /**
-     * Write sub-component separator(s). If any sub-component values have been skipped this also writes out the
-     * separators for those values.
-     *
-     * @param count
-     * @throws IOException
-     */
-    public void writeSubcomponentSeparator() throws IOException {
-        checkSegmentStart();
-        writer.write((char)subCompSeparator);
-        for (int i = 0; i < skippedSubCompCount; i++) {
-            writer.write(subCompSeparator);
-        }
-        skippedSubCompCount = 0;
-    }
+    public abstract void writeToken(String text) throws IOException;
     
     /**
      * Write a segment terminator.
      *
      * @throws IOException
      */
-    public void writeSegmentTerminator() throws IOException {
-        writer.write(segmentTerminator);
-        skippedElementCount = 0;
-        skippedCompCount = 0;
-        skippedSubCompCount = 0;
-        segmentCount++;
-        segmentStart = true;
-    }
+    public abstract void writeSegmentTerminator() throws IOException;
     
     /**
-     * Write a repetition separator.
-     *
-     * @throws IOException
-     */
-    public void writeRepetitionSeparator() throws IOException {
-        checkSegmentStart();
-        writer.write(repetitionSeparator);
-        skippedElementCount = 0;
-        skippedCompCount = 0;
-        skippedSubCompCount = 0;
-    }
-    
-    /**
-     * Write token text with no checks on content or length.
-     * TODO: cleanup with array of bit flags for better performance
-     * TODO: enforce restrictions when no release character defined
+     * Write text with trailing space character padding. If the text is longer than the maximum length this throws an
+     * exception.
      *
      * @param text
-     * @throws IOException
+     * @param minl minimum length
+     * @param maxl maximum length
+     * @return value, <code>null</code> if empty
+     * @throws IOException 
      */
-    public void writeToken(String text) throws IOException {
-        checkSegmentStart();
-        if (releaseIndicator >= 0) {
-            StringBuilder builder = new StringBuilder(text);
-            for (int i = 0; i < builder.length(); i++) {
-                char chr = builder.charAt(i);
-                if (chr == dataSeparator || chr == componentSeparator || chr == repetitionSeparator || chr == segmentTerminator
-                    || chr == releaseIndicator) {
-                    builder.insert(i++, (char)releaseIndicator);
-                }
-            }
-            writer.write(builder.toString());
-        } else {
-            writer.write(text);
-        }
-    }
+    public abstract void writeSpacePadded(String text, int minl, int maxl) throws IOException;
+    
+    /**
+     * Write numeric value with leading zero padding.
+     *
+     * @param value
+     * @param minl minimum length
+     * @param maxl maximum length
+     * @param adj extra character count include (decimal point, exponent, etc.)
+     * @throws IOException 
+     */
+    public abstract void writeZeroPadded(String value, int minl, int maxl, int adj) throws IOException;
     
     /**
      * Get required property value, throwing an exception if the value is not defined.
@@ -344,55 +152,6 @@ public abstract class WriterBase
             throw new WriteException("missing required property value '" + key + "'");
         }
         return value;
-    }
-    
-    /**
-     * Write property value as alphanumeric token.
-     *
-     * @param key
-     * @param props
-     * @param dflt default value (<code>null</code> if none)
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @throws IOException 
-     */
-    protected void writeProperty(String key, Map<String, Object> props, String dflt, int minl, int maxl)
-        throws IOException {
-        String text;
-        if (dflt == null) {
-            writeAlphaNumeric(getRequired(key, props).toString(), minl, maxl);
-        } else {
-            text = (String)props.get(key);
-            if (text == null) {
-                text = dflt;
-            }
-            writeAlphaNumeric(text, minl, maxl);
-        }
-        writeDataSeparator();
-    }
-    
-    /**
-     * Write text with space characters appended to minimum length. If the text is longer than the maximum length this
-     * throws an exception.
-     *
-     * @param text
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @return value, <code>null</code> if empty
-     * @throws IOException 
-     */
-    protected void writePadded(String text, int minl, int maxl) throws IOException {
-        String token = text;
-        int length = token.length();
-        while (length < minl) {
-            int pad = Math.min(minl - length, SPACES.length());
-            token = token + SPACES.substring(0, pad);
-            length += pad;
-        }
-        if (token.length() > maxl) {
-            throw new WriteException("length outside of allowed range");
-        }
-        writeToken(token);
     }
    
     /**
@@ -410,72 +169,7 @@ public abstract class WriterBase
                 throw new WriteException("alpha value type cannot contain digit");
             }
         }
-        writePadded(text, minl, maxl);
-    }
-    
-    /**
-     * Write text as an alphanumeric value.
-     *
-     * @param text
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @throws IOException
-     */
-    public void writeAlphaNumeric(String text, int minl, int maxl) throws IOException {
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
-            if (allowedChars != null && (chr > allowedChars.length || !allowedChars[chr])) {
-                if (substitutionChar >= 0) {
-                    text = text.replace(chr, (char)substitutionChar);
-                } else {
-                    throw new WriteException("character '" + chr + "' not allowed in string");
-                }
-            }
-        }
-        writePadded(text, minl, maxl);
-    }
-    
-    /**
-     * Write text as an id value. This is the same as alphanumeric, except that at least one character must be present
-     * and the first character cannot be a space.
-     *
-     * @param text
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @throws IOException
-     */
-    public void writeId(String text, int minl, int maxl) throws IOException {
-        if (minl > 0 && text.length() == 0) {
-            throw new WriteException("at least one character must be present in id");
-        }
-        if (text.charAt(0) == ' ') {
-            throw new WriteException("first character of an id cannot be a space");
-        }
-        writeAlphaNumeric(text, minl, maxl);
-    }
-    
-    /**
-     * Pad a numeric value to a minimum length with leading zeroes. This recognizes a leading minus sign and doesn't
-     * include it in the length, but if any other non-counted characters are present (such as a decimal point) the
-     * passed-in minimum length needs to be adjusted to compensate.
-     *
-     * @param value
-     * @param minl
-     */
-    public static String padZeroes(String value, int minl) {
-        String text = value;
-        boolean negate = text.startsWith("-");
-        int length = text.length() - (negate ? 1 : 0);
-        while (length < minl) {
-            int pad = Math.min(minl - length, ZEROES.length());
-            if (negate) {
-                text = "-" + ZEROES.substring(0, pad) + text.substring(1);
-            } else {
-                text = ZEROES.substring(0, pad) + text;
-            }
-            length += pad;
-        }
-        return text;
+        writeSpacePadded(text, minl, maxl);
     }
     
     /**
@@ -487,13 +181,7 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeInt(int value, int minl, int maxl) throws IOException {
-        String text = padZeroes(Integer.toString(value), minl);
-        if (text.length() > maxl) {
-            if (!text.startsWith("-") || (text.length() - 1 > maxl)) {
-                throw new WriteException("value too long");
-            }
-        }
-        writeToken(text);
+        writeZeroPadded(Integer.toString(value), minl, maxl, 0);
     }
     
     /**
@@ -505,30 +193,7 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeLong(long value, int minl, int maxl) throws IOException {
-        String text = padZeroes(Long.toString(value), minl);
-        if (text.length() > maxl) {
-            if (!text.startsWith("-") || (text.length() - 1 > maxl)) {
-                throw new WriteException("value too long");
-            }
-        }
-        writeToken(text);
-    }
-    
-    /**
-     * Write HL7 sequence ID value.
-     *
-     * @param value
-     * @throws IOException
-     */
-    public void writeSeqId(int value) throws IOException {
-        if (value < 0) {
-            throw new WriteException("value cannot be negative");
-        }
-        String text = Integer.toString(value);
-        if (text.length() > 4) {
-            throw new WriteException("value too long");
-        }
-        writeToken(text);
+        writeZeroPadded(Long.toString(value), minl, maxl, 0);
     }
     
     /**
@@ -540,13 +205,7 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeBigInteger(BigInteger value, int minl, int maxl) throws IOException {
-        String text = padZeroes(value.toString(), minl);
-        if (text.length() > maxl) {
-            if (!text.startsWith("-") || (text.length() - 1 > maxl)) {
-                throw new WriteException("value too long");
-            }
-        }
-        writeToken(text);
+        writeZeroPadded(value.toString(), minl, maxl, 0);
     }
     
     /**
@@ -560,7 +219,8 @@ public abstract class WriterBase
      * @throws IOException
      */
     public void writeImplicitDecimal(BigDecimal value, int scale, int minl, int maxl) throws IOException {
-        writeBigInteger(value.movePointRight(scale).setScale(scale, RoundingMode.HALF_UP).toBigIntegerExact(), minl, maxl);
+        writeBigInteger(value.movePointRight(scale).setScale(scale, RoundingMode.HALF_UP).toBigIntegerExact(), minl,
+            maxl);
     }
     
     /**
@@ -583,24 +243,23 @@ public abstract class WriterBase
         } else if (scale >= 0 && Math.max(precision, scale) <= maxl) {
             
             // write as simple decimal
-            int adj = (value.signum() < 0 ? 1 : 0) + (scale > 0 ? 1 : 0);
-            writeToken(padZeroes(value.toPlainString(), minl + adj));
+            String text = value.toPlainString();
+            if (text.startsWith("0")) {
+                text = text.substring(1);
+            }
+            writeZeroPadded(text, minl, maxl, 1);
             return;
             
         } else {
             
             // convert using implied decimal (at end) and exponent
             BigDecimal adjusted = value.movePointRight(scale);
-            String text = adjusted.toBigIntegerExact().toString();
-            text = text + "E" + Integer.toString(-scale);
+            String text = adjusted.toBigIntegerExact().toString() + "E" + Integer.toString(-scale);
             int adj = value.signum() < 0 ? 2 : 1;
             if (scale > 0) {
                 adj++;
             }
-            if (text.length() > maxl + adj) {
-                throw new WriteException("length outside of allowed range");
-            }
-            writeToken(padZeroes(text, minl + adj));
+            writeZeroPadded(text, minl, maxl, adj);
         }
     }
     
@@ -617,23 +276,18 @@ public abstract class WriterBase
             writeBigInteger((BigInteger)number, minl, maxl);
         } else {
             BigDecimal value = (BigDecimal)number;
-            int precision = value.precision();
-            int scale = value.scale();
-            if (scale <= 0 && (precision - scale) <= maxl) {
+            if (value.scale() <= 0) {
                 
                 // write as simple integer
                 writeBigInteger(value.toBigIntegerExact(), minl, maxl);
                 return;
                 
-            } else if (scale >= 0 && Math.max(precision, scale) <= maxl) {
+            } else {
                 
                 // write as simple decimal
-                int adj = (value.signum() < 0 ? 1 : 0) + (scale > 0 ? 1 : 0);
-                writeToken(padZeroes(value.toPlainString(), minl + adj));
+                writeZeroPadded(value.toPlainString(), minl, maxl, 1);
                 return;
                 
-            } else {
-                throw new WriteException("length outside of allowed range");
             }
         }
     }
@@ -647,6 +301,25 @@ public abstract class WriterBase
     protected void appendTwoDigit(int num, StringBuilder builder) {
         if (num < 10) {
             builder.append('0');
+        }
+        builder.append(num);
+    }
+    
+    /**
+     * Append positive number as four-digit value, using leading zeroes if necessary.
+     *
+     * @param num
+     * @param builder
+     */
+    protected void appendFourDigit(int num, StringBuilder builder) {
+        if (num < 1000) {
+            builder.append('0');
+            if (num < 100) {
+                builder.append('0');
+                if (num < 10) {
+                    builder.append('0');
+                }
+            }
         }
         builder.append(num);
     }
@@ -764,22 +437,22 @@ public abstract class WriterBase
             throw new WriteException("missing required year value for date/time");
         }
         StringBuilder builder = new StringBuilder();
-        builder.append(padZeroes(Integer.toString(value), 4));
+        appendFourDigit(value, builder);
         value = dt.getMonth();
         if (value != DatatypeConstants.FIELD_UNDEFINED) {
-            builder.append(padZeroes(Integer.toString(value), 2));
+            appendTwoDigit(value, builder);
             value = dt.getDay();
             if (value != DatatypeConstants.FIELD_UNDEFINED) {
-                builder.append(padZeroes(Integer.toString(value), 2));
+                appendTwoDigit(value, builder);
                 value = dt.getHour();
                 if (value != DatatypeConstants.FIELD_UNDEFINED) {
-                    builder.append(padZeroes(Integer.toString(value), 2));
+                    appendTwoDigit(value, builder);
                     value = dt.getMinute();
                     if (value != DatatypeConstants.FIELD_UNDEFINED) {
-                        builder.append(padZeroes(Integer.toString(value), 2));
+                        appendTwoDigit(value, builder);
                         value = dt.getSecond();
                         if (value != DatatypeConstants.FIELD_UNDEFINED) {
-                            builder.append(padZeroes(Integer.toString(value), 2));
+                            appendTwoDigit(value, builder);
                             BigDecimal fract = dt.getFractionalSecond();
                             if (fract != null) {
                                 builder.append(fract.toPlainString());
@@ -800,8 +473,8 @@ public abstract class WriterBase
             if (offset != DatatypeConstants.FIELD_UNDEFINED) {
                 builder.append(offset < 0 ? '-' : '+');
                 offset = Math.abs(offset);
-                builder.append(padZeroes(Integer.toString(offset / 60), 2));
-                builder.append(padZeroes(Integer.toString(offset % 60), 2));
+                appendTwoDigit(offset / 60, builder);
+                appendTwoDigit(offset % 60, builder);
             }
         }
         writeToken(builder.toString());

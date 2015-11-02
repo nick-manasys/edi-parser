@@ -1,0 +1,6 @@
+1MISSION   201308020800MISSIONAUSTRALIA              2009110401                                                                                                                                                                                           
+3MISSIONAUSTRALIA              MISSION   CCCredit Card Batch 2009110401_01   AUD                                                                                                                                                                          
+5  00000000MISAUS-13659099  0000010000                                     a02N0000001HBOo                                                                                                                                                                
+70000010000010000MISSION   2009110401_01                                                                                                                                                                                                                  
+90100000001000000010000MISSION   MISSIONAUSTRALIA              2009110401                                                                                                                                                                                 
+
