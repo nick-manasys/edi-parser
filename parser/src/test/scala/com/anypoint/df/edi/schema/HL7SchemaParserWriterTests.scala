@@ -17,8 +17,8 @@ import java.io.FileInputStream
 import java.io.File
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants._
-import com.anypoint.df.edi.schema.tools.{ DefaultHL7NumberProvider, DefaultHL7NumberValidator }
 import com.anypoint.df.edi.lexical.WriteException
+import com.anypoint.df.edi.schema.tools.{ DefaultHL7NumberProvider }
 import com.anypoint.df.edi.schema.tools.YamlSupport
 import javax.xml.datatype.XMLGregorianCalendar
 
@@ -29,6 +29,10 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   import HL7SchemaDefs._
   import SchemaJavaValues._
 
+  case class EnvelopeHandler(val struct: Structure) extends HL7EnvelopeHandler {
+    def handleMsh(data: ValueMap) = struct
+  }
+  
   val DATETIME = "20140221003028"
   val MSH = s"MSH|^~\\&|APeX|UCSF|IE|UCSF|$DATETIME|HBBCKGRND|ADT^A08^ADT_A01|12869|T|2.5.1\r"
   val lead = MSH
@@ -50,11 +54,11 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   }
 
   val testSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
-    getClassLoader.getResourceAsStream("esl/ADT_A01-partial.esl"), "UTF-8"), Array())
-
+    getClassLoader.getResourceAsStream("esl/ADT_A01-partial.esl"), "UTF-8"), Array()).structures.head._2
+  
   def parseDoc(doc: String) = {
     val ins = new ByteArrayInputStream(doc.getBytes(ASCII_CHARSET))
-    val parser = HL7SchemaParser(ins, testSchema, new DefaultHL7NumberValidator, parserConfig)
+    val parser = HL7SchemaParser(ins, EnvelopeHandler(testSchema), parserConfig)
     parser.parse.get
   }
 
@@ -62,8 +66,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "parse the MSH segment start when initialized" in {
     val in = new ByteArrayInputStream(lead.getBytes())
-    val parser = HL7SchemaParser(in, EdiSchema(EdiSchemaVersion(HL7, "2.5.1"), Map.empty, Map.empty, Map.empty, Map.empty),
-      new DefaultHL7NumberValidator, parserConfig)
+    val parser = HL7SchemaParser(in, EnvelopeHandler(testSchema), parserConfig)
     val props = new ValueMapImpl
     parser.init(props)
     props.get("MSH-03-01") should be ("APeX")
@@ -89,7 +92,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "parse a complete message" in {
     val in = new ByteArrayInputStream((MSH + EVN + PID).getBytes())
-    val parser = HL7SchemaParser(in, testSchema, new DefaultHL7NumberValidator, parserConfig)
+    val parser = HL7SchemaParser(in, EnvelopeHandler(testSchema), parserConfig)
     val result = parser.parse
     result.isSuccess should be (true)
     val map = result.get
@@ -163,7 +166,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
   it should "roundtrip a simplified document" in {
     val msg = MSH + EVN + PID
     val in = new ByteArrayInputStream(msg.getBytes())
-    val parser = HL7SchemaParser(in, testSchema, new DefaultHL7NumberValidator, parserConfig)
+    val parser = HL7SchemaParser(in, EnvelopeHandler(testSchema), parserConfig)
     val result = parser.parse
     val input = result.get
     val out = new ByteArrayOutputStream
@@ -188,10 +191,10 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "roundtrip a complete document" in {
     val fullSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
-      getClassLoader.getResourceAsStream("esl/ADT_A01.esl"), "UTF-8"), Array())
+      getClassLoader.getResourceAsStream("esl/ADT_A01.esl"), "UTF-8"), Array()).structures.head._2
     val msg = readDoc("edi/ADT_A01.hl7")
     val in = new ByteArrayInputStream(msg.getBytes())
-    val parser = HL7SchemaParser(in, fullSchema, new DefaultHL7NumberValidator, parserConfig)
+    val parser = HL7SchemaParser(in, EnvelopeHandler(fullSchema), parserConfig)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -210,10 +213,10 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 
   it should "roundtrip a more complex document" in {
     val fullSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
-      getClassLoader.getResourceAsStream("esl/ADT_A01.esl"), "UTF-8"), Array())
+      getClassLoader.getResourceAsStream("esl/ADT_A01.esl"), "UTF-8"), Array()).structures.head._2
     val msg = readDoc("edi/ADT_A01-2.hl7")
     val in = new ByteArrayInputStream(msg.getBytes())
-    val parser = HL7SchemaParser(in, fullSchema, new DefaultHL7NumberValidator, parserConfig)
+    val parser = HL7SchemaParser(in, EnvelopeHandler(fullSchema), parserConfig)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get

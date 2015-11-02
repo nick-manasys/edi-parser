@@ -29,19 +29,17 @@ case class HL7ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val c
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
 
-/** Validator called by parser to check that received message identifiers are not duplicates. */
-trait HL7NumberValidator {
+/** Handler called by parser to validate received message header and return structure schema. */
+trait HL7EnvelopeHandler {
 
-  /** Validate received message control identifier.
-    * @param sender
-    * @param receiver
-    * @param control
+  /** Handle received message header.
+    * @param data
     */
-  def validateMessage(sender: HL7IdentityInformation, receiver: HL7IdentityInformation, control: String): Boolean
+  def handleMsh(data: ValueMap): Structure
 }
 
 /** Parser for HL7 EDI documents. */
-case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7NumberValidator, config: HL7ParserConfig)
+case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config: HL7ParserConfig)
   extends SchemaParser(new HL7Lexer(in, config.substitutionChar)) {
 
   import HL7SchemaDefs._
@@ -230,21 +228,10 @@ case class HL7SchemaParser(in: InputStream, schema: EdiSchema, numval: HL7Number
     val delims = init(mshmap)
     map put (delimiterCharacters, delims)
     lexer.setHandler(HL7ErrorHandler)
-    messageControl = getRequiredString(mshControlKey, mshmap)
-    val sender = buildIdentityInformation(mshSendingApplication, mshSendingFacility, mshmap)
-    val receiver = buildIdentityInformation(mshReceivingApplication, mshReceivingFacility, mshmap)
-    if (numval.validateMessage(sender, receiver, messageControl)) {
-      if (getRequiredString(mshVersionKey, mshmap) == schema.ediVersion.version) (
-        schema.structures(getRequiredString(mshStructureKey, mshmap)) match {
-          case t: Structure => {
-            map put (structureId, t.ident)
-            map put (structureName, t.name)
-            map put (dataKey, parseStructure(t, true, new ValueMapImpl))
-          }
-          case _ => messageError(ErrorMessageType)
-        })
-      else messageError(ErrorVersionId)
-    } else messageError(ErrorDuplicateKey)
+    val struct = evnhand.handleMsh(mshmap)
+    map put (structureId, struct.ident)
+    map put (structureName, struct.name)
+    map put (dataKey, parseStructure(struct, true, new ValueMapImpl))
     map
   } catch {
     case t: Throwable => t.printStackTrace

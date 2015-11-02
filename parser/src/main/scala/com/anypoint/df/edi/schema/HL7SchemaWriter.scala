@@ -12,6 +12,7 @@ import scala.collection.immutable.TreeMap
 import scala.util.Try
 import com.anypoint.df.edi.lexical.{ HL7Writer, WriteException, WriterBase }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
+import EdiSchema.Structure
 
 /** Configuration parameters for HL7 schema writer.
   */
@@ -31,7 +32,7 @@ trait HL7NumberProvider {
 
 /** Writer for HL7 EDI documents.
   */
-case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7NumberProvider, config: HL7WriterConfig)
+case class HL7SchemaWriter(out: OutputStream, struct: Structure, numprov: HL7NumberProvider, config: HL7WriterConfig)
   extends DelimiterSchemaWriter(new HL7Writer(out, config.charSet, config.delims, config.subChar), config.enforceRequires)
   with UtilityBase {
 
@@ -56,7 +57,6 @@ case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7Num
     val sender = buildIdentityInformation(mshSendingApplication, mshSendingFacility, props)
     val receiver = buildIdentityInformation(mshReceivingApplication, mshReceivingFacility, props)
     props put (mshControlKey, numprov.nextMessage(sender, receiver))
-    props put (mshVersionKey, schema.ediVersion.version)
     writer.init(props)
     writeCompList(props, DATA_ELEMENT, false, segMSH.components.drop(1))
     writer.writeSegmentTerminator
@@ -66,7 +66,7 @@ case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7Num
   def term(props: ValueMap) = writer.term(props)
 
   /** Check if an envelope segment (handled directly, outside of structure). */
-  def isEnvelopeSegment(segment: Segment) = schema.ediVersion.ediForm.isEnvelopeSegment(segment.ident)
+  def isEnvelopeSegment(segment: Segment) = HL7.isEnvelopeSegment(segment.ident)
 
   /** Stores list of string values matching the simple value components. */
   def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
@@ -86,14 +86,9 @@ case class HL7SchemaWriter(out: OutputStream, schema: EdiSchema, numprov: HL7Num
     val mshmap = getRequiredValueMap(mshKey, map)
     val msgType = getRequiredString(structureId, map)
     val datamap = getRequiredValueMap(dataKey, map)
-    schema.structures(msgType) match {
-      case t: Structure => {
-        mshmap put (mshStructureKey, msgType)
-        init(mshmap)
-        t.heading.foreach { seq => writeTopSection(0, datamap, seq) }
-      }
-      case _ => logAndThrow(s"Unknown message id $msgType")
-    }
+    mshmap put (mshStructureKey, msgType)
+    init(mshmap)
+    struct.heading.foreach { seq => writeTopSection(0, datamap, seq) }
   } catch {
     case e: WriteException => throw e
     case e: Throwable => logAndThrow("Writer error ", e)

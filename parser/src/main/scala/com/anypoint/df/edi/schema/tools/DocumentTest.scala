@@ -154,13 +154,6 @@ class DefaultHL7NumberProvider extends HL7NumberProvider {
   }
 }
 
-class DefaultHL7NumberValidator extends HL7NumberValidator {
-  import HL7Identity._
-  var msgNums = Set[String]()
-  def validateMessage(sender: HL7IdentityInformation, receiver: HL7IdentityInformation, control: String) =
-    msgNums.add(control)
-}
-
 sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs {
 
   /** Parse input message, reporting if any errors are found. */
