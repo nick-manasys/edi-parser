@@ -1,11 +1,7 @@
 package com.anypoint.df.edi.lexical;
 
-import static com.anypoint.df.edi.lexical.EdiConstants.maximumYear;
-
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 import org.apache.log4j.Logger;
 
@@ -47,6 +43,9 @@ public abstract class DelimiterLexer extends LexerBase
     /** Substitution character for invalid character in string (-1 if unused). */
     int substitutionChar;
     
+    /** Next token (empty if not yet scanned). */
+    StringBuilder peekToken;
+    
     /** Repetition number (from start of data element). */
     private int repetitionNumber;
     
@@ -58,9 +57,6 @@ public abstract class DelimiterLexer extends LexerBase
     
     /** Type of next token (ending delimiter of current token). */
     private ItemType nextType;
-    
-    /** Next token (empty if not yet scanned). */
-    private StringBuilder peekToken;
     
     /** Type of token following peeked token (ending delimiter of peek token, <code>null</code> if not yet scanned). */
     private ItemType peekType;
@@ -217,6 +213,12 @@ public abstract class DelimiterLexer extends LexerBase
     }
     
     /**
+     * Process escape character in input.
+     * @throws IOException 
+     */
+    abstract void handleEscape() throws IOException;
+    
+    /**
      * Parse token beyond the current token.
      *
      * @return token
@@ -241,12 +243,8 @@ public abstract class DelimiterLexer extends LexerBase
                 
                 // accumulate value text to next delimiter
                 char chr = (char)value;
-                boolean escape = false;
                 while (true) {
-                    if (escape) {
-                        peekToken.append(chr);
-                        escape = false;
-                    } else if (chr == subCompSeparator) {
+                    if (chr == subCompSeparator) {
                         peekType = ItemType.SUB_COMPONENT;
                         break;
                     } else if (chr == componentSeparator) {
@@ -262,7 +260,7 @@ public abstract class DelimiterLexer extends LexerBase
                         peekType = ItemType.REPETITION;
                         break;
                     } else if (chr == releaseIndicator) {
-                        escape = true;
+                        handleEscape();
                     } else if (value == -1) {
                         peekType = ItemType.END;
                         break;

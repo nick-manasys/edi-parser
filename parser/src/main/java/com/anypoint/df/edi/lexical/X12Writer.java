@@ -34,6 +34,17 @@ public class X12Writer extends DelimiterWriter
         String segsep, int subst, CharacterRestriction chset) {
         super(os, encoding, datasep, subsep, -1, repsep, segterm, segsep, -1, subst, '.', chset.flags());
     }
+    
+    /**
+     * Convert escaped character.
+     * 
+     * @param chr
+     * @return escape
+     * @throws WriteException 
+     */
+    String convertEscape(char chr) throws WriteException {
+        throw new WriteException("unsupported character in data " + chr);
+    }
 
     /**
      * Write the interchange control number value from properties.
@@ -102,7 +113,6 @@ public class X12Writer extends DelimiterWriter
         writeProperty(TEST_INDICATOR, props, "P", 1, 1);
         writeComponentSeparator();
         writeSegmentTerminator();
-        
         groupCount = 0;
     }
 

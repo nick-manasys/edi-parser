@@ -53,4 +53,8 @@ public class TestLexer extends DelimiterLexer
     public Object term(Map<String, Object> props) throws IOException {
         return null;
     }
+
+    @Override
+    void handleEscape() throws IOException {
+    }
 }

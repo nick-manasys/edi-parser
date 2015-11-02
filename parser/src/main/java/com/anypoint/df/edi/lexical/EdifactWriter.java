@@ -73,6 +73,20 @@ public class EdifactWriter extends DelimiterWriter
         }
         return version.defaultDelimiters(syntax);
     }
+    
+    /**
+     * Convert escaped character.
+     * 
+     * @param chr
+     * @return escape
+     * @throws WriteException 
+     */
+    String convertEscape(char chr) throws WriteException {
+        StringBuilder builder = new StringBuilder();
+        builder.append((char)releaseIndicator);
+        builder.append(chr);
+        return builder.toString();
+    }
 
     /**
      * @param props

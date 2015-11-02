@@ -24,9 +24,37 @@ public class HL7Writer extends DelimiterWriter
         super(os, encoding, delims.charAt(0), delims.charAt(1), delims.charAt(4), delims.charAt(2), '\r',
             null, delims.charAt(3), subst, '.', null);
     }
+    
+    /**
+     * Convert escaped character.
+     * 
+     * @param chr
+     * @return escape
+     * @throws WriteException 
+     */
+    String convertEscape(char chr) throws WriteException {
+        StringBuilder builder = new StringBuilder();
+        char rls = (char)releaseIndicator;
+        builder.append(rls);
+        if (chr == releaseIndicator) {
+            builder.append('E');
+        } else if (chr == dataSeparator) {
+            builder.append('F');
+        } else if (chr == repetitionSeparator) {
+            builder.append('R');
+        } else if (chr == componentSeparator) {
+            builder.append('S');
+        } else if (chr == subCompSeparator) {
+            builder.append('T');
+        } else {
+            throw new WriteException("unsupported character in data " + chr);
+        }
+        builder.append(rls);
+        return builder.toString();
+    }
 
     /**
-     * Initialize document write. This writes the MSH segment tag and separators, returing with the writer positioned
+     * Initialize document write. This writes the MSH segment tag and separators, returning with the writer positioned
      * for writing the MSH-3 value.
      *
      * @param props

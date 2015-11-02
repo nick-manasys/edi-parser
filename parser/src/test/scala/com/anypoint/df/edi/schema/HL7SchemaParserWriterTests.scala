@@ -170,8 +170,8 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val writer = HL7SchemaWriter(out, testSchema, docProvider, writerConfig)
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    println("original text:\n" + msg + "\n")
-    println("returned text:\n" + text + "\n")
+//    println("original text:\n" + msg + "\n")
+//    println("returned text:\n" + text + "\n")
     text should be (msg)
   }
 
@@ -199,13 +199,35 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    println(text)
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+//    println(swriter.toString())
+//    println("original text:\n" + msg + "\n")
+//    println("returned text:\n" + text + "\n")
+    // raw text won't match, because of extra delimitors and more on original message
+//    text should be (msg)
+  }
+
+  it should "roundtrip a more complex document" in {
+    val fullSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
+      getClassLoader.getResourceAsStream("esl/ADT_A01.esl"), "UTF-8"), Array())
+    val msg = readDoc("edi/ADT_A01-2.hl7")
+    val in = new ByteArrayInputStream(msg.getBytes())
+    val parser = HL7SchemaParser(in, fullSchema, new DefaultHL7NumberValidator, parserConfig)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+    val out = new ByteArrayOutputStream
+    val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
 //    YamlSupport.writeMap(input, swriter)
 //    println(swriter.toString())
     // raw text won't match, because of extra delimitors and more on original message
-//    println("original text:\n" + msg + "\n")
-//    println("returned text:\n" + text + "\n")
+    println("original text:\n" + msg + "\n")
+    println("returned text:\n" + text + "\n")
+    // raw text won't match, because of extra delimitors and more on original message
 //    text should be (msg)
   }
 }

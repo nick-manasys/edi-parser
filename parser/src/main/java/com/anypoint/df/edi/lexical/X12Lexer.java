@@ -58,6 +58,14 @@ public class X12Lexer extends DelimiterLexer
     }
     
     /**
+     * Process escape character in input. Not used by X12.
+     */
+    @Override
+    void handleEscape()  {
+        throw new RuntimeException("Not used for X12");
+    }
+    
+    /**
      * Get current token as an X12 number value.
      *
      * @param scale inverse power of ten multiplier

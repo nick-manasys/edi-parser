@@ -60,6 +60,19 @@ public class EdifactLexer extends DelimiterLexer
     }
     
     /**
+     * Process escape character in input.
+     * @throws IOException 
+     */
+    @Override
+    void handleEscape() throws IOException {
+        int value = reader.read();
+        if (value >= 0) {
+            char chr = (char)value;
+            peekToken.append(chr);
+        }
+    }
+
+    /**
      * First time interchange header read. This determines the character encoding used for all subsequent interchanges.
      * 
      * @param props

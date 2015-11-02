@@ -27,4 +27,9 @@ public class TestWriter extends DelimiterWriter
     @Override
     public void term(Map<String, Object> props) throws IOException {
     }
+
+    @Override
+    String convertEscape(char chr) throws WriteException {
+        return null;
+    }
 }

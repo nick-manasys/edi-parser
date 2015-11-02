@@ -11,26 +11,26 @@ import java.util.Map;
  */
 public abstract class DelimiterWriter extends WriterBase
 {
-    /** Substitution character for invalid character in string (-1 if unused). */
-    private final int substitutionChar;
-    
     /** Allowed character set for string data (<code>null</code> if unrestricted). */
     private final boolean[] allowedChars;
     
+    /** Substitution character for invalid character in string (-1 if unused). */
+    final int substitutionChar;
+    
     /** Sub-component delimiter (-1 if unused). */
-    private final int subCompSeparator;
+    final int subCompSeparator;
     
     /** Sub-component delimiter. */
-    private final char componentSeparator;
+    final char componentSeparator;
     
     /** Data element delimiter. */
-    private final char dataSeparator;
+    final char dataSeparator;
     
     /** Repeated component delimiter (-1 if unused). */
-    protected final int repetitionSeparator;
+    final int repetitionSeparator;
     
     /** Release character (-1 if unused). */
-    private final int releaseIndicator;
+    final int releaseIndicator;
     
     /** Separator between segments (following segment terminator; <code>null</code> if none). */
     protected final String segmentSeparator;
@@ -80,17 +80,33 @@ public abstract class DelimiterWriter extends WriterBase
         segmentSeparator = segsep;
         releaseIndicator = release;
         substitutionChar = subst;
+        int limit = Math.max(datasep, Math.max(compsep, Math.max(subsep, Math.max(repsep, Math.max(segterm,
+            release)))));
         boolean[] allowed = null;
-        if (chars != null && releaseIndicator < 0) {
+        if (chars == null) {
+            int size = Math.max(limit, 128);
+            allowed = initFlags(size);
+        } else if (limit > chars.length) {
+            allowed = initFlags(limit);
+            System.arraycopy(chars, 0, allowed, 0, chars.length);
+        } else {
             allowed = new boolean[chars.length];
             System.arraycopy(chars, 0, allowed, 0, chars.length);
-            clearFlag(datasep, allowed);
-            clearFlag(compsep, allowed);
-            clearFlag(subsep, allowed);
-            clearFlag(repsep, allowed);
-            clearFlag(segterm, allowed);
         }
+        clearFlag(datasep, allowed);
+        clearFlag(compsep, allowed);
+        clearFlag(subsep, allowed);
+        clearFlag(repsep, allowed);
+        clearFlag(segterm, allowed);
         allowedChars = allowed;
+    }
+    
+    private static boolean[] initFlags(int length) {
+        boolean[] flags = new boolean[length];
+        for (int i = 0; i < length; i++) {
+            flags[i] = true;
+        }
+        return flags;
     }
     
     /**
@@ -147,6 +163,15 @@ public abstract class DelimiterWriter extends WriterBase
     public void close() throws IOException {
         writer.close();
     }
+    
+    /**
+     * Convert escaped character.
+     * 
+     * @param chr
+     * @return escape
+     * @throws WriteException 
+     */
+    abstract String convertEscape(char chr) throws WriteException;
     
     /**
      * Initialize document output, writing any interchange header segment(s) required by the protocol variation.
@@ -252,30 +277,46 @@ public abstract class DelimiterWriter extends WriterBase
         skippedCompCount = 0;
         skippedSubCompCount = 0;
     }
+
+    /**
+     * Write text with character checks.
+     * 
+     * @param text
+     * @throws IOException
+     * @throws WriteException
+     */
+    private void writeText(String text) throws IOException, WriteException {
+        if (releaseIndicator >= 0) {
+            StringBuilder builder = new StringBuilder(text);
+            for (int i = 0; i < builder.length(); i++) {
+                char chr = builder.charAt(i);
+                if (chr < allowedChars.length && !allowedChars[chr]) {
+                    String escape = convertEscape(chr);
+                    builder.replace(i, i+1, escape);
+                    i += escape.length() - 1;
+                }
+            }
+            writer.write(builder.toString());
+        } else if (text.length() > 0) {
+            for (int i = 0; i < text.length(); i++) {
+                char chr = text.charAt(i);
+                if (chr < allowedChars.length && !allowedChars[chr]) {
+                    throw new WriteException("invalid character " + chr + " in data with no release character defined");
+                }
+            }
+            writer.write(text);
+        }
+    }
     
     /**
-     * Write token text with no checks on content or length.
-     * TODO: cleanup with array of bit flags for better performance
-     * TODO: enforce restrictions when no release character defined
+     * Write value text (or start of value text).
      *
      * @param text
      * @throws IOException
      */
     public void writeToken(String text) throws IOException {
         checkSegmentStart();
-        if (releaseIndicator >= 0) {
-            StringBuilder builder = new StringBuilder(text);
-            for (int i = 0; i < builder.length(); i++) {
-                char chr = builder.charAt(i);
-                if (chr == dataSeparator || chr == componentSeparator || chr == repetitionSeparator || chr == segmentTerminator
-                    || chr == releaseIndicator) {
-                    builder.insert(i++, (char)releaseIndicator);
-                }
-            }
-            writer.write(builder.toString());
-        } else if (text.length() > 0) {
-            writer.write(text);
-        }
+        writeText(text);
     }
     
     /**
@@ -294,7 +335,7 @@ public abstract class DelimiterWriter extends WriterBase
         if (length > maxl) {
             throw new WriteException("length outside of allowed range");
         }
-        writeToken(token);
+        writeText(token);
         while (length < minl) {
             int pad = Math.min(minl - length, SPACES.length());
             writer.write(SPACES, 0, pad);
@@ -400,16 +441,6 @@ public abstract class DelimiterWriter extends WriterBase
      * @throws IOException
      */
     public void writeAlphaNumeric(String text, int minl, int maxl) throws IOException {
-        for (int i = 0; i < text.length(); i++) {
-            char chr = text.charAt(i);
-            if (allowedChars != null && (chr > allowedChars.length || !allowedChars[chr])) {
-                if (substitutionChar >= 0) {
-                    text = text.replace(chr, (char)substitutionChar);
-                } else {
-                    throw new WriteException("character '" + chr + "' not allowed in string");
-                }
-            }
-        }
         writeSpacePadded(text, minl, maxl);
     }
     
