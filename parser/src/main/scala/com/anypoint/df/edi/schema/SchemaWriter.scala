@@ -128,7 +128,11 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
     }
     def writeGroup(key: String, group: GroupBase) =
       if (group.count == 1) writeSection(getRequiredValueMap(key, map), group.seq.items)
-      else writeRepeatingGroup(getRequiredMapList(key, map), group)
+      else {
+        val list = getRequiredMapList(key, map)
+        if (group.count > 0 && list.size > group.count) logAndThrow(s"too many values present for group/loop ${group.key} (maximum ${group.count})")
+        writeRepeatingGroup(list, group)
+      }
 
     val key = comp.key
     comp match {
@@ -278,6 +282,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
                   case MandatoryUsage => logAndThrow(s"no values present for property ${comp.name}")
                 }
                 else {
+                  if (list.size > comp.count) logAndThrow(s"too many values present for repeated component ${comp.key} (maximum ${comp.count})")
                   writeComponent(list.get(0), false)
                   list.asScala.drop(1).foreach { map => writeComponent(map, true) }
                 }
