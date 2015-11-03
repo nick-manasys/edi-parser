@@ -171,15 +171,17 @@ object HL7TablesConverter {
   }
 
   def buildSegments(grouped: Map[String, LineFields], names: Map[String, String],
-    comps: Map[String, ComponentBase]) = {
+    comps: Map[String, (String, ComponentBase)]) = {
     names.keys.foldLeft(Map[String, Segment]())((map, ident) => {
       val compList = grouped.get(ident) match {
         case Some(list) => list.foldLeft(List[SegmentComponent]())((acc, line) =>
           {
             val repeats = if (line(4) == "Y") line(5).toInt else 1
-            comps(line(2)) match {
-              case e: Element => ElementComponent(e, None, "", line(1).toInt, convertUsage(line(3)), repeats) :: acc
-              case c: Composite => CompositeComponent(c, None, "", line(1).toInt, convertUsage(line(3)), repeats) :: acc
+            val (nmtext, comp) = comps(line(2))
+            val name = if (nmtext.isEmpty) None else Some(nmtext)
+            comp match {
+              case e: Element => ElementComponent(e, name, "", line(1).toInt, convertUsage(line(3)), repeats) :: acc
+              case c: Composite => CompositeComponent(c, name, "", line(1).toInt, convertUsage(line(3)), repeats) :: acc
             }
           })
         case None => Nil
@@ -296,10 +298,10 @@ object HL7TablesConverter {
       }
 
       // data_item, description, data_structure, min_length, max_length
-      val elemMap = lineList(fileInput(version, dataElements)).foldLeft(Map[String, ComponentBase]())((acc, line) =>
+      val elemMap = lineList(fileInput(version, dataElements)).foldLeft(Map[String, (String, ComponentBase)]())((acc, line) =>
         compMap.get(line(2)) match {
-          case Some(c) => acc + (line(0) -> c)
-          case None if (line(2) == "-") => acc + (line(0) -> compMap("varies"))
+          case Some(c) => acc + (line(0) -> (line(1), c))
+          case None if (line(2) == "-") => acc + (line(0) -> (line(1), compMap("varies")))
           case _ => throw new IllegalStateException(s"failed lookup for ident ${line(2)}")
         })
 
