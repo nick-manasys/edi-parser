@@ -9,6 +9,7 @@ import java.io.StringWriter;
 
 import com.anypoint.df.edi.schema.EdiSchema;
 import com.anypoint.df.edi.schema.YamlReader;
+import com.anypoint.df.edi.schema.systests.edifact.EdifactTestBase;
 
 public abstract class TestBase {
 
@@ -27,6 +28,20 @@ public abstract class TestBase {
         } catch (Exception e) {
             throw new RuntimeException("Could not load schema file " + path, e);
         }
+    }
+
+    /**
+     * Load file as input stream.
+     * 
+     * @param path
+     * @return stream
+     */
+    protected static InputStream loadFile(String path) {
+        InputStream is = TestBase.class.getResourceAsStream(path);
+        if (is == null) {
+            throw new IllegalArgumentException("File " + path + " not found");
+        }
+        return is;
     }
     
     /**

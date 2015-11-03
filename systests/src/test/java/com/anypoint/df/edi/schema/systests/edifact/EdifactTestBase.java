@@ -7,15 +7,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.anypoint.df.edi.schema.SchemaJavaValues;
+import com.anypoint.df.edi.schema.EdiSchema.CompositeComponent;
+import com.anypoint.df.edi.schema.EdifactError;
 import com.anypoint.df.edi.schema.EdifactParserConfig;
 import com.anypoint.df.edi.schema.EdifactSchemaDefs;
-import com.anypoint.df.edi.schema.EdiSchema.*;
+import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.systests.TestBase;
 import com.anypoint.df.edi.schema.tools.DecodeContrl;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
@@ -236,6 +236,20 @@ public abstract class EdifactTestBase extends TestBase {
         }
         DocumentTest test = new DocumentTestEdifact(schema);
         return parseAndReturnAck(test, is);
+    }
+    
+    /**
+     * Verify error report.
+     * 
+     * @param error
+     * @param segment
+     * @param fatal
+     * @param code
+     */
+    protected void verifyError(EdifactError error, int segment, boolean fatal, String code) {
+        assertEquals(segment, error.segment());
+        assertEquals(fatal, error.fatal());
+        assertEquals(code, error.errorCode());
     }
     
     /**

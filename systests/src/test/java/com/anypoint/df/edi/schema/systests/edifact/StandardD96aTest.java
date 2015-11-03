@@ -1,13 +1,20 @@
 package com.anypoint.df.edi.schema.systests.edifact;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 
+import com.anypoint.df.edi.schema.EdifactAcknowledgment;
+import com.anypoint.df.edi.schema.EdifactError;
 import com.anypoint.df.edi.schema.EdifactParserConfig;
+import com.anypoint.df.edi.schema.SchemaJavaValues;
 import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestEdifact;
 
@@ -76,5 +83,26 @@ public class StandardD96aTest extends EdifactTestBase {
 //            stripAckDates(parseAndReturnAck("/edifact/d96a/ORDERS_D96A_repeated-ALI.edi")));
         assertEquals("UNB+UNOA:3+MODUS:ZZZ+MULESOFT:ZZZ+XXXXXXXXXXX+++ORDERS'UNH++CONTRL:3:1:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UCM+6424+ORDERS:D:96A:UN:EAN008+4'UCS+3+35'UCS+10+35'UNT+6+1'UNZ+1+1'",
             stripAckDates(parseAndReturnAck("/edifact/d96a/ORDERS_D96A-too-many-segments-repetitions.edi")));
+    }
+    
+    @Test
+    public void verifyErrors() {
+        DocumentTest test = new DocumentTestEdifact(schema);
+        InputStream is = loadFile("/edifact/d96a/ORDERS_D96A-too-many-segments-repetitions.edi");
+        Map<String, Object> result = test.parse(is);
+//        printAcknowledgments(result);
+        List<EdifactError> errors = (List<EdifactError>)result.get(SchemaJavaValues.errorListKey());
+        assertNotNull(errors);
+        assertEquals(2, errors.size());
+        verifyError(errors.get(0), 4, true, EdifactAcknowledgment.TooManySegmentRepetitions().code());
+        verifyError(errors.get(1), 11, true, EdifactAcknowledgment.TooManySegmentRepetitions().code());
+        is = loadFile("/edifact/d96a/ORDERS_D96A-unknown-segment.edi");
+        result = test.parse(is);
+//        printAcknowledgments(result);
+        errors = (List<EdifactError>)result.get(SchemaJavaValues.errorListKey());
+        assertNotNull(errors);
+        assertEquals(2, errors.size());
+        verifyError(errors.get(0), 6, true, EdifactAcknowledgment.InvalidOccurrence().code());
+        verifyError(errors.get(1), 9, true, EdifactAcknowledgment.InvalidOccurrence().code());
     }
 }

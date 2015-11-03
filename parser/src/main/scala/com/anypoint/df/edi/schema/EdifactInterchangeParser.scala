@@ -330,20 +330,20 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   /** Report segment error. */
   def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState, num: Int) = {
-    def addError(fatal: Boolean, error: SyntaxError) = {
+    def addError(index: Int, fatal: Boolean, error: SyntaxError) = {
       logErrorInMessage(fatal, false, num, s"${error.text}: $ident")
-      addToList(errorListKey, EdifactError(segmentIndex, fatal, error.code, error.text), messageMap)
+      addToList(errorListKey, EdifactError(index, fatal, error.code, error.text), messageMap)
       if (fatal) rejectMessage = true
       if (segmentGeneralError == null) segmentGeneralError = error
     }
 
     error match {
-      case ComponentErrors.TooManyLoops => addError(config.occursFail, TooManyGroupRepetitions)
-      case ComponentErrors.TooManyRepetitions => addError(config.occursFail, TooManySegmentRepetitions)
-      case ComponentErrors.MissingRequired => addError(true, MissingRequiredValue)
-      case ComponentErrors.UnknownSegment => addError(config.unknownFail, InvalidOccurrence)
-      case ComponentErrors.OutOfOrderSegment => addError(config.orderFail, NotSupportedInPosition)
-      case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(true, NotSupportedInPosition)
+      case ComponentErrors.TooManyLoops => addError(segmentIndex, config.occursFail, TooManyGroupRepetitions)
+      case ComponentErrors.TooManyRepetitions => addError(segmentIndex, config.occursFail, TooManySegmentRepetitions)
+      case ComponentErrors.MissingRequired => addError(lexer.getSegmentNumber, true, MissingRequiredValue)
+      case ComponentErrors.UnknownSegment => addError(lexer.getSegmentNumber, config.unknownFail, InvalidOccurrence)
+      case ComponentErrors.OutOfOrderSegment => addError(lexer.getSegmentNumber, config.orderFail, NotSupportedInPosition)
+      case ComponentErrors.UnusedSegment => if (config.unusedFail) addError(lexer.getSegmentNumber, true, NotSupportedInPosition)
     }
     state match {
       case ErrorStates.ParseComplete => handleSegmentErrors(num)
@@ -402,7 +402,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   def messageError(error: SyntaxError) = {
     logErrorInMessage(true, false, errorSegmentNumber, error.text)
-    addToList(errorListKey, EdifactError(segmentIndex, true, error.code, error.text), messageMap)
+    addToList(errorListKey, EdifactError(lexer.getSegmentNumber, true, error.code, error.text), messageMap)
     if (messageErrorCode == null) messageErrorCode = error
     rejectMessage = true
     discardStructure

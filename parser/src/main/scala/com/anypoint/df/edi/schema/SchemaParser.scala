@@ -179,11 +179,11 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
                 val count = loop.count
                 val key = loop.key
                 if (count == 1) {
-                  if (values.containsKey(key)) segmentError(ident, TooManyRepetitions, ParseComplete, number)
+                  if (values.containsKey(key)) segmentError(ident, TooManyLoops, ParseComplete, number)
                   else values put (key, data)
                 } else {
                   val list = getList(key, values)
-                  if (count > 0 && count <= list.size) segmentError(ident, TooManyRepetitions, ParseComplete, number)
+                  if (count > 0 && count <= list.size) segmentError(ident, TooManyLoops, ParseComplete, number)
                   list add data
                 }
               }
