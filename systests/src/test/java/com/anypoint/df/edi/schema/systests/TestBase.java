@@ -9,7 +9,6 @@ import java.io.StringWriter;
 
 import com.anypoint.df.edi.schema.EdiSchema;
 import com.anypoint.df.edi.schema.YamlReader;
-import com.anypoint.df.edi.schema.systests.edifact.EdifactTestBase;
 
 public abstract class TestBase {
 

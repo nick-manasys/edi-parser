@@ -2,7 +2,6 @@ package com.anypoint.df.edi.schema.systests.edifact;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -87,6 +86,7 @@ public class StandardD96aTest extends EdifactTestBase {
     
     @Test
     public void verifyErrors() {
+        loadSchema("/edifact/d96a/ORDERS.esl");
         DocumentTest test = new DocumentTestEdifact(schema);
         InputStream is = loadFile("/edifact/d96a/ORDERS_D96A-too-many-segments-repetitions.edi");
         Map<String, Object> result = test.parse(is);
