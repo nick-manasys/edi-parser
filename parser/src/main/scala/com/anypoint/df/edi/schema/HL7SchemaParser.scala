@@ -35,6 +35,7 @@ trait HL7EnvelopeHandler {
   /** Handle received message header.
     * @param data
     */
+  @throws(classOf[LexicalException])
   def handleMsh(data: ValueMap): Structure
 }
 
