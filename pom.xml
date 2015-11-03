@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mule.edi</groupId>
   <artifactId>edi</artifactId>
-  <version>1.0.0-HF1</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Mule EDI Support</name>
 
