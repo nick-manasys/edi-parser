@@ -183,8 +183,8 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(path)).getLines
     val builder = new StringBuilder
     lines.foreach(line => {
-      if (!builder.isEmpty) builder.append('\r')
       builder.append(line)
+      builder.append('\r')
     })
     builder.toString
   }
@@ -201,7 +201,7 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val out = new ByteArrayOutputStream
     val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
     writer.write(input).get //isSuccess should be (true)
-    val text = new String(out.toByteArray)
+//    val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
 //    YamlSupport.writeMap(input, swriter)
 //    println(swriter.toString())
@@ -209,6 +209,12 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
 //    println("returned text:\n" + text + "\n")
     // raw text won't match, because of extra delimitors and more on original message
 //    text should be (msg)
+  }
+  
+  def split(text: String, before: String, after: String) = {
+    val from = text.indexOf(before) + before.length
+    val to = text.indexOf(after)
+    text.substring(0, from) + text.substring(to)
   }
 
   it should "roundtrip a more complex document" in {
@@ -220,17 +226,15 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
+    val swriter = new StringWriter
+    YamlSupport.writeMap(input, swriter)
+    println(swriter.toString())
     val out = new ByteArrayOutputStream
     val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-//    val swriter = new StringWriter
-//    YamlSupport.writeMap(input, swriter)
-//    println(swriter.toString())
-    // raw text won't match, because of extra delimitors and more on original message
     println("original text:\n" + msg + "\n")
     println("returned text:\n" + text + "\n")
-    // raw text won't match, because of extra delimitors and more on original message
-//    text should be (msg)
+    split(text, "ADT^A01^ADT_A01|", "|2.5.1") should be (split(msg, "ADT^A01^ADT_A01|", "|2.5.1"))
   }
 }

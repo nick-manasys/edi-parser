@@ -262,14 +262,18 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
       case SUB_COMPONENT => delimWriter.skipSubcomponent
       case REPETITION =>
     }
+    
+    def compCheckr(comp: CompositeComponent): Boolean =
+      comp.composite.components.exists { ccc => map.containsKey(ccc.key) ||
+        (ccc.isInstanceOf[CompositeComponent] && compCheckr(ccc.asInstanceOf[CompositeComponent])) }
 
     comp match {
       case cc: CompositeComponent if (cc.count == 1) =>
-        if (cc.composite.components.exists { ccc => map containsKey ccc.key }) {
+        if (compCheckr(cc)) {
           writeComponent(map, false)
         } else {
           if (cc.usage == MandatoryUsage) logAndThrow(s"missing required value '${cc.name}'")
-          skipAtLevel(typ)
+          if (!skip) skipAtLevel(typ)
         }
       case _ =>
         if (map.containsKey(comp.key)) {
