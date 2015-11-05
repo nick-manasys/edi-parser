@@ -97,7 +97,7 @@ object YamlWriter extends WritesYaml with YamlDefs {
         case CompositeComponent(composite, _, _, _, _, _) => composite.ident
       }
       def componentDefaultNamed(component: SegmentComponent) = component match {
-        case ElementComponent(element, name, _, _, _, _) => component.name == element.name
+        case ElementComponent(element, _, _, _, _, _) => component.name == element.name
         case CompositeComponent(composite, _, _, _, _, _) => component.name == composite.name
       }
       @tailrec

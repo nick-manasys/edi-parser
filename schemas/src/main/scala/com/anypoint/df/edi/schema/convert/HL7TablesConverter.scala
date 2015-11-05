@@ -142,19 +142,21 @@ object HL7TablesConverter {
 
   @tailrec
   def buildComposites(grouped: Map[String, LineFields], names: Map[String, String],
-    elems: Map[String, Array[String]], built: Map[String, ComponentBase]): Map[String, ComponentBase] = {
+    compdets: Map[String, Array[String]], built: Map[String, ComponentBase]): Map[String, ComponentBase] = {
 
     /** Build composite definition from data structure components list. */
     def buildComposite(lines: List[Array[String]], comps: Map[String, ComponentBase]) = {
       val ident = lines.head(0)
       val compList = lines.map { line =>
-        comps(elems(line(2))(2)) match {
+        val compdet = compdets(line(2))
+        val name = Some(compdet(0))
+        comps(compdet(2)) match {
           case Element(id, nm, typ, mn, mx) => {
             val max = if (line(5).length > 0) line(5).toInt else mx
             val elem = Element(id, nm, typ, mn, max)
-            ElementComponent(elem, None, "", line(1).toInt, convertUsage(line(6)), 1)
+            ElementComponent(elem, name, "", line(1).toInt, convertUsage(line(6)), 1)
           }
-          case c: Composite => CompositeComponent(c, None, "", line(1).toInt, convertUsage(line(6)), 1)
+          case c: Composite => CompositeComponent(c, name, "", line(1).toInt, convertUsage(line(6)), 1)
         }
       }
       Composite(ident, names(ident), compList, Nil, 0)
@@ -162,12 +164,12 @@ object HL7TablesConverter {
 
     val building = grouped.filter {
       case (ident, lines) =>
-        lines.forall { line => built.contains(elems(line(2))(3)) }
+        lines.forall { line => built.contains(compdets(line(2))(3)) }
     }.map{ case (ident, lines) => ident }.toSet
     val merged = building.foldLeft(built)((acc, ident) => acc + (ident -> buildComposite(grouped(ident), acc)))
     val remain = grouped.filter { case (ident, lines) => !building.contains(ident) }
     if (remain.isEmpty) merged
-    else buildComposites(remain, names, elems, merged)
+    else buildComposites(remain, names, compdets, merged)
   }
 
   def buildSegments(grouped: Map[String, LineFields], names: Map[String, String],
