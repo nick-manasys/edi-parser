@@ -299,20 +299,27 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
     }
   }
 
-  /** Regenerate parsed document by writing map to output. This should give a document identical to the input, except
-    * for date/times and line endings following segment terminators.
+  /** Regenerate parsed document by writing map to output. This form allows specifying whether character restrictions
+   * are enforced when writing.
     */
-  override def printDoc(map: ValueMap) = {
+  def printDoc(map: ValueMap, enforce: Boolean) = {
     val os = new ByteArrayOutputStream
     val inter = getRequiredValueMap(interchangeKey, getMessage(map))
     val syntax = EDIFACT_CHARSETS.get(getAs(unbSyntax.components(0).key, "UNOA", inter))
     val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", inter))
-    val config = EdifactWriterConfig(syntax, version, false, true, -1, '.', ASCII_CHARSET,
+    val config = EdifactWriterConfig(syntax, version, enforce, true, -1, '.', ASCII_CHARSET,
       getAs(delimiterCharacters, null, map), "", false)
     val writer = EdifactSchemaWriter(os, new DefaultEdifactNumberProvider, config)
     val transacts = getRequiredValueMap(messagesMap, map)
     writer.write(map).get
     os.toString
+  }
+
+  /** Regenerate parsed document by writing map to output. This should give a document identical to the input, except
+    * for date/times and line endings following segment terminators.
+    */
+  override def printDoc(map: ValueMap) = {
+    printDoc(map, false)
   }
 
   /** Write CONTRL acknowledgement information from parse as output document. */

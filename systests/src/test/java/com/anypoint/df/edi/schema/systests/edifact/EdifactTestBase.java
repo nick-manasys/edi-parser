@@ -125,7 +125,7 @@ public abstract class EdifactTestBase extends TestBase {
      */
     protected void checkWrite(DocumentTest test, String text, Map<String, Object> result) {
         String output = test.printDoc(result);
-        System.out.println(output);
+//        System.out.println(output);
         List<String> segsin = prepareSegments('\'', '+', text);
         List<String> segsout = prepareSegments('\'', '+', output);
         Iterator<String> iterin = segsin.iterator();
@@ -253,14 +253,14 @@ public abstract class EdifactTestBase extends TestBase {
     }
     
     /**
-     * Write document as string.
+     * Write document as string, enforcing character restrictions.
      * 
      * @param map
      * @return text
      */
     public String testWrite(Map<String, Object> map) {
         EdifactParserConfig config = new EdifactParserConfig(true, true, true, true, true, true, true, false, -1);
-        DocumentTest test = new DocumentTestEdifact(schema, config);
-        return test.printDoc(map);
+        DocumentTestEdifact test = new DocumentTestEdifact(schema, config);
+        return test.printDoc(map, true);
     }
 }

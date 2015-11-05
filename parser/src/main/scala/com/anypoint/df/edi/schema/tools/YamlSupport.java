@@ -16,14 +16,27 @@ import org.yaml.snakeyaml.nodes.Tag;
 import org.yaml.snakeyaml.representer.Represent;
 import org.yaml.snakeyaml.representer.Representer;
 
+import com.anypoint.df.edi.schema.EdiSchema;
+import com.anypoint.df.edi.schema.EdiSchema.Structure;
+
 public class YamlSupport
 {
+    private final EdiSchema schema;
+    
+    public YamlSupport(EdiSchema s) {
+        schema = s;
+    }
+    
+    public YamlSupport() {
+        this(null);
+    }
+    
     public static void writeMap(Map<String, Object> map, Writer writer) {
         Yaml yaml = new Yaml(new EdiRepresenter(), new DumperOptions());
         yaml.dump(map, writer);
     }
     
-    public static Map<String, Object> readMap(String text) {
+    public Map<String, Object> readMap(String text) {
         Yaml yaml = new Yaml(new EdiConstructor());
         return (Map<String, Object>)yaml.load(new StringReader(text));
     }
@@ -33,6 +46,7 @@ public class YamlSupport
         public EdiRepresenter() {
             representers.put(BigDecimal.class, new RepresentBigDecimal());
             representers.put(BigInteger.class, new RepresentBigInteger());
+            representers.put(Structure.class, new RepresentStructure());
         }
         
         private class RepresentBigDecimal implements Represent {
@@ -48,13 +62,21 @@ public class YamlSupport
                 return representScalar(new Tag("!biginteger"), ((BigInteger)value).toString());
             }
         }
+        
+        private class RepresentStructure implements Represent {
+            @Override
+            public Node representData(Object value) {
+                return representScalar(new Tag("!structure"), ((Structure)value).ident());
+            }
+        }
     }
     
-    private static class EdiConstructor extends Constructor
+    private class EdiConstructor extends Constructor
     {
         public EdiConstructor() {
             yamlConstructors.put(new Tag("!bigdecimal"), new ConstructBigDecimal());
             yamlConstructors.put(new Tag("!biginteger"), new ConstructBigInteger());
+            yamlConstructors.put(new Tag("!structure"), new ConstructStructure());
         }
         
         private class ConstructBigDecimal extends AbstractConstruct {
@@ -70,6 +92,13 @@ public class YamlSupport
             public Object construct(Node node) {
                 String value = (String)constructScalar((ScalarNode)node);
                 return new BigInteger(value);
+            }
+        }
+        
+        private class ConstructStructure extends AbstractConstruct {
+            @Override
+            public Object construct(Node node) {
+                return schema.structures().apply((String)constructScalar((ScalarNode)node));
             }
         }
     }

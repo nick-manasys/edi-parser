@@ -286,26 +286,24 @@ public abstract class DelimiterWriter extends WriterBase
      * @throws WriteException
      */
     private void writeText(String text) throws IOException, WriteException {
-        if (releaseIndicator >= 0) {
-            StringBuilder builder = new StringBuilder(text);
-            for (int i = 0; i < builder.length(); i++) {
-                char chr = builder.charAt(i);
-                if (chr < allowedChars.length && !allowedChars[chr]) {
+        StringBuilder builder = new StringBuilder(text);
+        for (int i = 0; i < builder.length(); i++) {
+            char chr = builder.charAt(i);
+            if (chr < allowedChars.length && !allowedChars[chr]) {
+                if (releaseIndicator >= 0 && (chr == segmentTerminator || chr == dataSeparator ||
+                    chr == componentSeparator || chr == subCompSeparator || chr == repetitionSeparator ||
+                    chr == releaseIndicator)) {
                     String escape = convertEscape(chr);
                     builder.replace(i, i+1, escape);
                     i += escape.length() - 1;
+                } else if (substitutionChar >= 0) {
+                    builder.setCharAt(i, (char)substitutionChar);
+                } else {
+                    throw new WriteException("invalid character " + chr + " in data with no release character and/or substitution character defined");
                 }
             }
-            writer.write(builder.toString());
-        } else if (text.length() > 0) {
-            for (int i = 0; i < text.length(); i++) {
-                char chr = text.charAt(i);
-                if (chr < allowedChars.length && !allowedChars[chr]) {
-                    throw new WriteException("invalid character " + chr + " in data with no release character defined");
-                }
-            }
-            writer.write(text);
         }
+        writer.write(builder.toString());
     }
     
     /**

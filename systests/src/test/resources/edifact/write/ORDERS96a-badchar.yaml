@@ -18,14 +18,14 @@ Messages:
             NAD01: BT}
         - 0120_NAD: {NAD0202: '160', NAD08: '98104', NAD0201: '12345', NAD07: WA,
             NAD0501: 111 1st AVE S, NAD0203: '116', NAD0401: SHIP TO, NAD09: US, NAD01: ST,
-            NAD0503: SUITE 502, NAD0502: 5TH FLOOR, NAD06: SEATTLE}
+            NAD0503: SUITE ^502, NAD0502: 5TH FLOOR, NAD06: SEATTLE}
         0080_Segment_group_1:
         - 0090_RFF: {RFF0102: '12345678', RFF0101: CT}
         0280_Segment_group_7:
         - 0290_CUX: {CUX0101: '2', CUX0102: EUR}
       Summary:
         2110_CNT:
-        - {CNT0101: '2', CNT0102: !bigdecimal '1'}
+        - {CNT0101: '2', CNT0102: 1}
       Id: ORDERS
       MessageHeader: {UNH01: '6424', UNH0201: ORDERS, UNH0202: D, UNH0203: 96A, UNH0204: UN,
         UNH0205: EAN008}
@@ -35,12 +35,12 @@ Messages:
         - 0950_PIA:
           - {PIA01: '1', PIA0204: '92', PIA0202: BP, PIA0201: '12345678'}
           0980_QTY:
-          - {QTY0101: '21', QTY0102: !biginteger '10'}
+          - {QTY0101: '21', QTY0102: 10}
           1180_Segment_group_28:
-          - 1190_PRI: {PRI0103: CA, PRI0102: !bigdecimal '70', PRI0101: CAL, PRI0106: EA, PRI0105: !biginteger '1'}
+          - 1190_PRI: {PRI0103: CA, PRI0102: 70, PRI0101: CAL, PRI0106: EA, PRI0105: 1}
           1010_DTM:
           - {DTM0102: '20090515', DTM0103: '102', DTM0101: '10'}
-          0940_LIN: {LIN01: !!int '1', LIN0304: '90', LIN0301: '28040336', LIN0302: MF}
+          0940_LIN: {LIN01: 1, LIN0304: '90', LIN0301: '28040336', LIN0302: MF}
       Name: Purchase order message
 FunctionalAcksReceived: []
 FunctionalAcksGenerated: []

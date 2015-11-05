@@ -25,7 +25,7 @@ Messages:
         - 0290_CUX: {CUX0101: '2', CUX0102: EUR}
       Summary:
         2110_CNT:
-        - {CNT0101: '2', CNT0102: !bigdecimal '1'}
+        - {CNT0101: '2', CNT0102: 1}
       Id: ORDERS
       MessageHeader: {UNH01: '6424', UNH0201: ORDERS, UNH0202: D, UNH0203: 96A, UNH0204: UN,
         UNH0205: EAN008}
@@ -35,12 +35,22 @@ Messages:
         - 0950_PIA:
           - {PIA01: '1', PIA0204: '92', PIA0202: BP, PIA0201: '12345678'}
           0980_QTY:
-          - {QTY0101: '21', QTY0102: !biginteger '10'}
+          - {QTY0101: '21', QTY0102: 10}
           1180_Segment_group_28:
-          - 1190_PRI: {PRI0103: CA, PRI0102: !bigdecimal '70', PRI0101: CAL, PRI0106: EA, PRI0105: !biginteger '1'}
+          - 1190_PRI: {PRI0103: CA, PRI0102: 70, PRI0101: CAL, PRI0106: EA, PRI0105: 1}
           1010_DTM:
           - {DTM0102: '20090515', DTM0103: '102', DTM0101: '10'}
-          0940_LIN: {LIN01: !!int '1', LIN0304: '90', LIN0301: '28040336', LIN0302: MF}
+          0940_LIN: {LIN01: 1, LIN0304: '90', LIN0301: '28040336', LIN0302: MF}
       Name: Purchase order message
 FunctionalAcksReceived: []
-FunctionalAcksGenerated: []
+FunctionalAcksGenerated:
+- Interchange: {UNB07: ORDERS, UNB0102: '3', UNB0201: MODUS, UNB0202: ZZZ, UNB0301: MULESOFT,
+    UNB0302: ZZZ, UNB0401: 150608, UNB0402: 2032, UNB05: '582', UNB0101: UNOB}
+  Heading:
+    0020_UCI: {UCI01: '582', UCI0302: ZZZ, UCI04: '7', UCI0202: ZZZ, UCI0301: MODUS,
+      UCI0201: MULESOFT}
+  Summary: {}
+  Id: CONTRL
+  Structure: !structure 'CONTRL'
+  Detail: {}
+  Name: Application error and acknowledgement message

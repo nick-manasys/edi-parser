@@ -1,9 +1,8 @@
-Interchange: &id001 {UNB0102: '2', UNB0201: PATRICK, UNB0202: ZZ, UNB0301: 1STOP,
-  UNB0401: 150317, UNB0402: 856, UNB05: '000', UNB0101: UNOA}
 Messages:
   D00A:
     APERAK:
-    - Interchange: *id001
+    - Interchange: {UNB0102: '2', UNB0201: PATRICK, UNB0202: ZZ, UNB0301: 1STOP,
+        UNB0401: 150317, UNB0402: 856, UNB05: '000', UNB0101: UNOA}
       Heading:
         0030_DTM:
         - {DTM0102: '20150317085657', DTM0103: '204', DTM0101: '137'}
@@ -25,13 +24,7 @@ Messages:
         UNH0205: ANZ23}
       Detail: {}
       Name: Application error and acknowledgement message
+      Structure: !structure 'APERAK'
 Delimiters: '+: ''?'
-FunctionalAcksGenerated:
-- Interchange: {UNB0102: '2', UNB0201: 1STOP, UNB0202: ZZ, UNB0301: PATRICK, UNB0401: 150317,
-    UNB0302: ZZ, UNB0402: 856, UNB05: '000', UNB0101: UNOA}
-  Heading:
-    0020_UCI: {UCI01: '000', UCI04: '7', UCI0202: ZZ, UCI0301: 1STOP, UCI0201: PATRICK}
-  Summary: {}
-  Id: CONTRL
-  Detail: {}
-  Name: Application error and acknowledgement message
+FunctionalAcksReceived: []
+FunctionalAcksGenerated: []
