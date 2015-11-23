@@ -188,7 +188,7 @@ object HL7TablesConverter {
           })
         case None => Nil
       }
-      map + (ident -> Segment(ident, names(ident), compList.reverse, Nil))
+      map + (ident -> new Segment(ident, names(ident), compList.reverse, Nil))
     })
   }
 

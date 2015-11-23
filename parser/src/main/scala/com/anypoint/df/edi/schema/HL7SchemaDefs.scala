@@ -94,7 +94,7 @@ object HL7SchemaDefs {
     CompositeComponent(compHD.rewrite("SFT-01-08", convertEdiForm("HL7")), Some("Hierarchic Designator"), "SFT-01-08", 8, OptionalUsage, 1),
     ElementComponent(elemID, None, "SFT-01-09", 9, OptionalUsage, 1),
     ElementComponent(elemST, None, "SFT-01-10", 10, OptionalUsage, 1)), Nil, 0)
-  val segERR = Segment("ERR", "Error", List[SegmentComponent](
+  val segERR = new Segment("ERR", "Error", List[SegmentComponent](
     CompositeComponent(compELD, Some("Error Location and Description"), "ERR-01", 1, OptionalUsage, 1),
     CompositeComponent(compERL, Some("Error Location"), "ERR-02", 2, OptionalUsage, 1),
     CompositeComponent(compCWE.rewrite("ERR-03", convertEdiForm("HL7")), Some("Coded with Exceptions"), "ERR-03", 3, MandatoryUsage, 1),
@@ -107,14 +107,14 @@ object HL7SchemaDefs {
     CompositeComponent(compCWE.rewrite("ERR-10", convertEdiForm("HL7")), Some("Coded with Exceptions"), "ERR-10", 10, OptionalUsage, 1),
     CompositeComponent(compCWE.rewrite("ERR-11", convertEdiForm("HL7")), Some("Coded with Exceptions"), "ERR-11", 11, OptionalUsage, 1),
     CompositeComponent(compXTN, Some("Extended Telecommunication Number"), "ERR-12", 12, OptionalUsage, 1)), Nil)
-  val segMSA = Segment("MSA", "Message Acknowledgment", List[SegmentComponent](
+  val segMSA = new Segment("MSA", "Message Acknowledgment", List[SegmentComponent](
     ElementComponent(elemID, None, "MSA-01", 1, MandatoryUsage, 1),
     ElementComponent(elemST, None, "MSA-02", 2, MandatoryUsage, 1),
     ElementComponent(elemST, None, "MSA-03", 3, OptionalUsage, 1),
     ElementComponent(elemNM, None, "MSA-04", 4, OptionalUsage, 1),
     ElementComponent(Element("varies", "varies", VARIES, 0, 0), None, "MSA-05", 5, UnusedUsage, 1),
     CompositeComponent(compCE.rewrite("MSA-06", convertEdiForm("HL7")), Some("Coded Element"), "MSA-06", 6, OptionalUsage, 1)), Nil)
-  val segMSH = Segment("MSH", "Message Header", List[SegmentComponent](
+  val segMSH = new Segment("MSH", "Message Header", List[SegmentComponent](
     //    ElementComponent(elemST, None, "MSH-01", 1, MandatoryUsage, 1), (removed since not really a field)
     ElementComponent(elemST, None, "MSH-02", 2, MandatoryUsage, 1),
     CompositeComponent(compHD.rewrite("MSH-03", convertEdiForm("HL7")), Some("Hierarchic Designator"), "MSH-03", 3, OptionalUsage, 1),
@@ -136,7 +136,7 @@ object HL7SchemaDefs {
     CompositeComponent(compCE.rewrite("MSH-19", convertEdiForm("HL7")), Some("Coded Element"), "MSH-19", 19, OptionalUsage, 1),
     ElementComponent(elemID, None, "MSH-20", 20, OptionalUsage, 1),
     CompositeComponent(compEI, Some("Entity Identifier"), "MSH-21", 21, OptionalUsage, 1)), Nil)
-  val segSFT = Segment("SFT", "Software Segment", List[SegmentComponent](
+  val segSFT = new Segment("SFT", "Software Segment", List[SegmentComponent](
     CompositeComponent(compXON, Some("Extended Composite Name and Identification Number for Organizations"), "SFT-01", 1, MandatoryUsage, 1),
     ElementComponent(elemST, None, "SFT-02", 2, MandatoryUsage, 1),
     ElementComponent(elemST, None, "SFT-03", 3, MandatoryUsage, 1),

@@ -323,14 +323,14 @@ class EdifactTablesConverterTests extends FlatSpec with Matchers {
       ElementComponent(element7, Some("Structure component identifier"), "C78610", 10, MandatoryUsage, 1),
       ElementComponent(element8, Some("Object identification code qualifier"), "C78620", 20, ConditionalUsage, 1)), Nil, 0)
     val compmap = Map(comp1.ident -> comp1, comp2.ident -> comp2)
-    val seg1 = Segment("ALC", "ALLOWANCE OR CHARGE", List(
+    val seg1 = new Segment("ALC", "ALLOWANCE OR CHARGE", List(
       ElementComponent(element1, Some("ALLOWANCE OR CHARGE CODE QUALIFIER"), "ALC01", 10, MandatoryUsage, 1),
       CompositeComponent(comp1, Some("ALLOWANCE/CHARGE INFORMATION"), "ALC02", 20, ConditionalUsage, 1),
       ElementComponent(element4, Some("SETTLEMENT MEANS CODE"), "ALC03", 30, ConditionalUsage, 1),
       ElementComponent(element5, Some("CALCULATION SEQUENCE CODE"), "ALC04", 40, ConditionalUsage, 1)), Nil)
     val separator = "------\n\n"
     readSegments(stringLines(separator + segment1a), stempl1a, stempl1b, elemap, compmap) should be(List(seg1))
-    val seg2 = Segment("SCD", "STRUCTURE COMPONENT DEFINITION", List(
+    val seg2 = new Segment("SCD", "STRUCTURE COMPONENT DEFINITION", List(
       ElementComponent(element6, Some("STRUCTURE COMPONENT FUNCTION CODE QUALIFIER"), "SCD01", 10, MandatoryUsage, 1),
       CompositeComponent(comp2, Some("STRUCTURE COMPONENT IDENTIFICATION"), "SCD02", 20, ConditionalUsage, 1)), Nil)
     readSegments(stringLines(separator + segment1b), stempl1a, stempl1b, elemap, compmap) should be(List(seg2))

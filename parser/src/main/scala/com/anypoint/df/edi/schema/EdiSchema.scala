@@ -177,13 +177,17 @@ object EdiSchema {
   }
 
   /** Segment definition.
-    * @param ident
-    * @param name
+    * @param ident identifier (used for key, also as id/idRef in YAML)
+    * @param tag value in data (used to identify segments in data, generally same as ident but flat file may differ)
+    * @param name human readable name
     * @param components
     * @param rules
     */
-  case class Segment(val ident: String, val name: String, val components: List[SegmentComponent],
-    val rules: List[OccurrenceRule])
+  case class Segment(val ident: String, val tag: String, val name: String, val components: List[SegmentComponent],
+    val rules: List[OccurrenceRule]) {
+    def this(id: String, nm: String, comps: List[SegmentComponent], rls: List[OccurrenceRule]) =
+      this (id, id, nm, comps, rls)
+  }
 
   /** Segment position within a structure. Position numbers are reused across different tables of a structure
     * definition, so this gives a unique value for every segment.
@@ -194,7 +198,7 @@ object EdiSchema {
     def isBefore(other: SegmentPosition) =
       table < other.table || (table == other.table && position < other.position)
   }
-
+  
   /** Base for all structure components.
     * @param key map key for data
     * @param position segment (or starting segment) position
@@ -435,7 +439,8 @@ object EdiSchema {
     * @param ky
     * @param use
     * @param cnt
-    * @param items
+    * @param coice
+    * @param seq
     */
   sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int, val choice: Boolean,
     val seq: StructureSequence) extends StructureComponent(ky, pos, use, cnt) {
@@ -460,14 +465,17 @@ object EdiSchema {
     * @param ident group identifier
     * @param use
     * @param cnt
-    * @param itms
+    * @param ssq 
     * @param varkey key for field controlling variant selection
     * @param variants group variant forms
     * @param ky explicit key value (ident used by default)
+    * @param ch choice group flag
+    * @param tagStart starting column of tag field (ignored unless flat file)
+    * @param tagLength length of tag field (ignored unless flat file)
     */
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, ssq: StructureSequence, val varkey: Option[String],
-    val variants: List[VariantGroup], ky: Option[String] = None,
-    pos: Option[SegmentPosition] = None, ch: Boolean = false)
+    val variants: List[VariantGroup], ky: Option[String] = None, pos: Option[SegmentPosition] = None,
+    ch: Boolean = false, val tagStart: Option[Int] = None, val tagLength: Option[Int] = None)
     extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(ssq.startPos))),
       pos.getOrElse(ssq.startPos), use, cnt, ch, ssq) {
 
@@ -483,9 +491,13 @@ object EdiSchema {
     * @param detail
     * @param summary
     * @param version
+    * @param tagStart starting column of tag field (ignored unless flat file)
+    * @param tagLength length of tag field (ignored unless flat file)
     */
-  case class Structure(val ident: String, val name: String, val group: Option[String], val heading: Option[StructureSequence],
-    val detail: Option[StructureSequence], val summary: Option[StructureSequence], val version: EdiSchemaVersion) {
+  case class Structure(val ident: String, val name: String, val group: Option[String],
+    val heading: Option[StructureSequence], val detail: Option[StructureSequence],
+    val summary: Option[StructureSequence], val version: EdiSchemaVersion, val tagStart: Option[Int] = None,
+    val tagLength: Option[Int] = None) {
 
     /** Segments used in structure. */
     val segmentsUsed = {
@@ -549,7 +561,7 @@ object EdiSchema {
 
   type StructureMap = Map[String, Structure]
 
-  sealed abstract class EdiForm(val text: String) {
+  sealed abstract class EdiForm(val text: String, val sectioned: Boolean) {
     def isEnvelopeSegment(ident: String): Boolean
     val loopWrapperStart: String
     val loopWrapperEnd: String
@@ -560,7 +572,7 @@ object EdiSchema {
     /** Create key for version in data maps. */
     def versionKey(version: String): String
   }
-  case object EdiFact extends EdiForm("EDIFACT") {
+  case object EdiFact extends EdiForm("EDIFACT", true) {
     val envelopeSegs = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS")
     def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "UGH"
@@ -572,7 +584,7 @@ object EdiSchema {
     }
     def versionKey(version: String) = version.toUpperCase
   }
-  case object X12 extends EdiForm("X12") {
+  case object X12 extends EdiForm("X12", true) {
     val envelopeSegs = Set("ISA", "IEA", "GS", "GE", "ST", "SE")
     def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "LS"
@@ -580,14 +592,14 @@ object EdiSchema {
     def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
     def versionKey(version: String) = "v" + version
   }
-  case object HL7 extends EdiForm("HL7") {
+  case object HL7 extends EdiForm("HL7", false) {
     def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, position: Int) = parentId + "-" + (if (position < 10) "0" + position else position)
     def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
   }
-  case object FlatFile extends EdiForm("FIXEDWIDTH") {
+  case object FlatFile extends EdiForm("FIXEDWIDTH", false) {
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""

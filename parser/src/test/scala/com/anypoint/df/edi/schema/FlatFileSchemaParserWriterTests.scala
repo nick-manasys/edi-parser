@@ -62,8 +62,8 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     result.isSuccess should be (true)
     val input = result.get
     input get("Id") should be ("QBRequest")
-    val heading = input.get("Heading").asInstanceOf[ValueMap]
-    val seg1 = heading.get("1_1").asInstanceOf[ValueMap]
+    val data = input.get("Data").asInstanceOf[ValueMap]
+    val seg1 = data.get("1_1").asInstanceOf[ValueMap]
     seg1 get("101") should be ("MISSION")
     val date = seg1.get("102").asInstanceOf[GregorianCalendar]
     date get(Calendar.YEAR) should be (2013)

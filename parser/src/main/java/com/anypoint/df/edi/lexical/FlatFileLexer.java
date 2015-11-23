@@ -1,6 +1,8 @@
 package com.anypoint.df.edi.lexical;
 
 import java.io.BufferedReader;
+import java.io.EOFException;
+import java.io.FilterReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -14,20 +16,15 @@ import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
  * Lexer variation for flat files.
  */
 public class FlatFileLexer extends LexerBase
-{
-	/** Number of characters at start of line representing the segment tag. */
-	private final int tagWidth;
-	
+{	
     /**
      * Constructor.
      *
      * @param is input
-     * @param tag number of characters in tag at start of each line
      */
-    public FlatFileLexer(InputStream is, int tag) {
+    public FlatFileLexer(InputStream is) {
         super(is);
-        tagWidth = tag;
-        reader = new BufferedReader(new InputStreamReader(stream, EdiConstants.ASCII_CHARSET));
+        reader = new LineBasedReader(stream);
     }
     
     /**
@@ -43,25 +40,6 @@ public class FlatFileLexer extends LexerBase
         }
         nextLine();
     }
-
-    /**
-     * Read token characters.
-     * 
-     * @param length
-     * @throws IOException
-     */
-    private void readToken(int length) throws IOException {
-        for (int i = 0; i < length; i++) {
-            int chr = reader.read();
-            if (chr == -1) {
-                throw new LexicalException("Unexpected end of file in line " + segmentNumber);
-            } else if (chr == '\r' || chr == '\n') {
-                throw new LexicalException("Unexpected end of line (expected " + (length - i) + " more characters) for line " + segmentNumber);
-            }
-            tokenBuilder.append((char)chr);
-        }
-        elementNumber++;
-    }
     
     /**
      * Advance to next line of input. This checks for an expected line break as the next input and advances to the next
@@ -71,27 +49,17 @@ public class FlatFileLexer extends LexerBase
      * @throws IOException 
      */
     public boolean nextLine() throws IOException {
-        int chr = reader.read();
-        if (chr == -1) {
-            currentType = ItemType.END;
-            return false;
-        }
-        if (chr != '\n' && chr != '\r') {
-            throw new LexicalException("Missing expected line break after line " + segmentNumber);
-        }
-        while ((chr = reader.read()) == '\n' || chr == '\r');
-        if (chr == -1) {
-            currentType = ItemType.END;
-            return false;
-        }
-        tokenBuilder.setLength(0);
-        tokenBuilder.append((char)chr);
-        segmentNumber++;
-        elementNumber = 0;
-        readToken(tagWidth - 1);
-        segmentTag = tokenBuilder.toString();
-        currentType = ItemType.SEGMENT;
-        return true;
+        return ((LineBasedReader)reader).nextLine();
+    }
+    
+    /**
+     * Define segment tag position in line.
+     * 
+     * @param start
+     * @param length
+     */
+    public void setTagField(int start, int length) {
+        ((LineBasedReader)reader).setTagField(start, length);
     }
     
     /**
@@ -100,9 +68,12 @@ public class FlatFileLexer extends LexerBase
      * @throws IOException
      */
     public void init() throws IOException {
-        readToken(tagWidth);
-        segmentTag = tokenBuilder.toString();
-        currentType = ItemType.SEGMENT;
+        int chr = reader.read();
+        if (chr >= 0) {
+            ((LineBasedReader)reader).loadTag(chr);
+        } else {
+            currentType = ItemType.END;
+        }
     }
     
     /**
@@ -113,7 +84,7 @@ public class FlatFileLexer extends LexerBase
      */
     public void load(int width) throws IOException {
         tokenBuilder.setLength(0);
-        readToken(width);
+        ((LineBasedReader)reader).readToken(width);
         currentType = ItemType.DATA_ELEMENT;
     }
     
@@ -248,5 +219,148 @@ public class FlatFileLexer extends LexerBase
     public int parseTime(int minl, int maxl) throws IOException {
         load(maxl);
         return super.parseTime(minl, maxl);
+    }
+    
+    /**
+     * Reader which extracts segment tag from each line read, buffering and holding any text prior to the segment tag.
+     */
+    private class LineBasedReader extends FilterReader
+    {
+        /** Segment tag start position in line. */
+        private int tagStart;
+        
+        /** Length of segment tag. */
+        private int tagLength;
+        
+        /** Number of buffered character prior to start tag (from end of buffer). */
+        private int leadOffset;
+        
+        /** Buffer for characters preceding the tag in line (filled for every line). */
+        private char[] leadBuffer;
+
+        protected LineBasedReader(InputStream in) {
+            super(new BufferedReader(new InputStreamReader(stream, EdiConstants.ASCII_CHARSET)));
+        }
+        
+        /**
+         * Define segment tag position in line.
+         * 
+         * @param start
+         * @param length
+         */
+        protected void setTagField(int start, int length) {
+            tagStart = start;
+            tagLength = length;
+            leadBuffer = new char[start];
+        }
+        
+        /**
+         * Load segment tag from line. The current input position must be at the start of line when this is called.
+         * 
+         * @param chr initial character of line
+         */
+        protected void loadTag(int chr) throws IOException {
+            tokenBuilder.setLength(0);
+            if (tagStart > 0) {
+                leadBuffer[0] = (char)chr;
+                int offset = 1;
+                int remain = tagStart - 1;
+                int actual = 0;
+                while (remain > 0 && (actual = read(leadBuffer, offset, remain)) > 0) {
+                    offset += actual;
+                    remain -= actual;
+                }
+                if (actual < 0) {
+                    throw new EOFException("read only " + offset + " with " + tagStart + " expected");
+                }
+                leadOffset = 0;
+            } else {
+                tokenBuilder.append((char)chr);
+            }
+            segmentNumber++;
+            elementNumber = 0;
+            readToken(tagLength - tokenBuilder.length());
+            segmentTag = tokenBuilder.toString();
+            currentType = ItemType.SEGMENT;
+        }
+        
+        /**
+         * Advance to next line of input. This checks for an expected line break as the next input and advances to the
+         * next line, buffering any leading text and extracting the segment tag.
+         * 
+         * @return <code>true</code> if line present, <code>false</code> if end of input
+         * @throws IOException 
+         */
+        protected boolean nextLine() throws IOException {
+            int chr = read();
+            if (chr == -1) {
+                currentType = ItemType.END;
+                return false;
+            }
+            if (chr != '\n' && chr != '\r') {
+                throw new LexicalException("Missing expected line break after line " + segmentNumber);
+            }
+            while ((chr = reader.read()) == '\n' || chr == '\r');
+            if (chr == -1) {
+                currentType = ItemType.END;
+                return false;
+            }
+            loadTag(chr);
+            return true;
+        }
+
+        /**
+         * Read token characters.
+         * 
+         * @param length
+         * @throws IOException
+         */
+        protected void readToken(int length) throws IOException {
+            for (int i = 0; i < length; i++) {
+                int chr = read();
+                if (chr == -1) {
+                    throw new LexicalException("Unexpected end of file in line " + segmentNumber);
+                } else if (chr == '\r' || chr == '\n') {
+                    throw new LexicalException("Unexpected end of line (expected " + (length - i) + " more characters) for line " + segmentNumber);
+                }
+                tokenBuilder.append((char)chr);
+            }
+            elementNumber++;
+        }
+
+        @Override
+        public int read() throws IOException {
+            if (leadOffset < tagStart) {
+                return leadBuffer[leadOffset++];
+            }
+            return super.read();
+        }
+
+        @Override
+        public int read(char[] cbuf, int off, int len) throws IOException {
+            int actual = 0;
+            int remain = len;
+            if (leadOffset < tagStart) {
+                int use = Math.min(len, tagStart - leadOffset);
+                System.arraycopy(leadBuffer, leadOffset, cbuf, off, use);
+                leadOffset += use;
+                actual = use;
+                remain -= use;
+            }
+            if (remain > 0) {
+                return actual + super.read(cbuf, off + actual, remain);
+            }
+            return actual;
+        }
+
+        @Override
+        public boolean markSupported() {
+            return false;
+        }
+
+        @Override
+        public void mark(int readAheadLimit) throws IOException {
+            throw new UnsupportedOperationException("mark() is not supported");
+        }
     }
 }

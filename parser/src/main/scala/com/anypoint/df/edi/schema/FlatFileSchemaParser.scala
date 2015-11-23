@@ -20,7 +20,7 @@ import HL7SchemaDefs._
 import SchemaJavaValues._
 
 /** Parser for flat file documents. */
-case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends SchemaParser(new FlatFileLexer(in, 1)) {
+case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends SchemaParser(new FlatFileLexer(in)) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
@@ -119,8 +119,11 @@ case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends Sche
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {
     val map = new ValueMapImpl
+    lexer.setTagField(struct.tagStart.get, struct.tagLength.get)
     lexer.init
-    parseStructure(struct, false, map)
+    map put (structureId, struct.ident)
+    map put (structureName, struct.name)
+    map put (dataKey, parseStructure(struct, true, new ValueMapImpl))
     map
   } catch {
     case t: Throwable =>

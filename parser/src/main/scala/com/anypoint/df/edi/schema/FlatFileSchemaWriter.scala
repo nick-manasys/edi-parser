@@ -105,7 +105,9 @@ case class FlatFileSchemaWriter(out: OutputStream, structure: Structure, config:
 
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
-    writeStructure(map, structure)
+    writer.setTagField(structure.tagStart.get)
+    val datamap = getRequiredValueMap(dataKey, map)
+    structure.heading.foreach { seq => writeTopSection(0, datamap, seq) }
   } catch {
     case e: WriteException => throw e
     case e: Throwable => logAndThrow("Writer error ", e)

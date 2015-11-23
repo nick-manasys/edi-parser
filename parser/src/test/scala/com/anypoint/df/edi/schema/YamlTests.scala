@@ -18,6 +18,8 @@ class RoundtripTest extends FlatSpec with Matchers {
     val writer = new StringWriter
     YamlWriter.write(schema, Array(), writer)
     val result = writer.toString()
+    println(input)
+    println(result)
     result should be (input)
   }
 }

@@ -3,15 +3,11 @@ package com.anypoint.df.edi.lexical;
 
 import static com.anypoint.df.edi.lexical.EdiConstants.maximumYear;
 
-import java.io.BufferedOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.nio.charset.Charset;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -41,9 +37,6 @@ public abstract class WriterBase
     /** Milliseconds per hour. */
     private static final int MILLIS_PER_HOUR = MILLIS_PER_MINUTE * 60;
     
-    /** Destination stream for document data. */
-    protected final OutputStream stream;
-    
     /** Writer wrapping document data stream. */
     protected final Writer writer;
     
@@ -60,9 +53,8 @@ public abstract class WriterBase
      * @param encoding character set encoding
      * @param mark decimal mark character
      */
-    protected WriterBase(OutputStream os, Charset encoding, char mark) {
-        stream = os;
-        writer = new OutputStreamWriter(new BufferedOutputStream(os), encoding);
+    protected WriterBase(Writer wrtr, char mark) {
+        writer = wrtr;
         decimalMark = mark;
     }
     
@@ -101,12 +93,13 @@ public abstract class WriterBase
     public abstract void term(Map<String,Object> props) throws IOException;
     
     /**
-     * Write token text with no checks on content or length.
+     * Write a segment start tag. This must always be called before any of the write value methods are called for the
+     * segment data.
      *
-     * @param text
+     * @param tag
      * @throws IOException
      */
-    public abstract void writeToken(String text) throws IOException;
+    public abstract void writeSegmentTag(String tag) throws IOException;
     
     /**
      * Write a segment terminator.
@@ -114,6 +107,14 @@ public abstract class WriterBase
      * @throws IOException
      */
     public abstract void writeSegmentTerminator() throws IOException;
+    
+    /**
+     * Write token text with no checks on content or length.
+     *
+     * @param text
+     * @throws IOException
+     */
+    public abstract void writeToken(String text) throws IOException;
     
     /**
      * Write text with trailing space character padding. If the text is longer than the maximum length this throws an
@@ -153,7 +154,7 @@ public abstract class WriterBase
         }
         return value;
     }
-   
+    
     /**
      * Write text as an alpha value.
      *

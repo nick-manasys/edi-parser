@@ -332,7 +332,7 @@ object EdifactTablesConverter {
         if (!genNumber) lines.skipToLead
         val items = itemr(Nil, 10)
         if (items.isEmpty) throw new IllegalArgumentException(s"No values defined for segment ${heads(1)}")
-        buildr(Segment(heads(1), heads(2), items, Nil) :: acc)
+        buildr(new Segment(heads(1), heads(2), items, Nil) :: acc)
       } else acc reverse
     }
 

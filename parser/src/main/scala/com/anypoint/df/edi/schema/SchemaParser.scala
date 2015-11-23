@@ -67,7 +67,7 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
 
   /** Report a repetition error on a composite component. This can probably be generalized in the future. */
   def repetitionError(comp: CompositeComponent): Unit
-  
+
   /** Parse data element value (and if appropriate, advance to the next element). */
   def parseElement(elem: Element): Object
 
@@ -103,20 +103,23 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
   /** Get current segment number for error reporting. */
   def segmentNumber: Int
 
-  /** Report segment error.
-    * @param ident segment ident
-    * @param error
-    * @param state current state, used for handling (segment should be discarded if WontParse)
-    * @param number segment number
-    */
+  /**
+   * Report segment error.
+   * @param ident segment ident
+   * @param error
+   * @param state current state, used for handling (segment should be discarded if WontParse)
+   * @param number segment number
+   */
   def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState, number: Int): Unit
 
-  /** Parse a complete structure body (not including any envelope segments). The returned map has separate child maps
-    * for each of the three sections of a structure (heading, detail, and summary). Each child map uses the component
-    * position combined with the segment or group name as key. For a segment or group with no repeats allowed the
-    * value is the map of the values in the segment or components in the group. For a segment or group with repeats
-    * allowed the value is a list of maps, one for each occurrence..
-    */
+  /**
+   * Parse a complete structure body (not including any envelope segments). If the call specifies onepart, a single
+   * child map is added for the structure data; otherwise, separate child maps are used for each of the three standard
+   * sections (heading, detail, and summary). Each child map uses the component position combined with the segment or
+   * group name as key. For a segment or group with no repeats allowed the value is the map of the values in the
+   * segment or components in the group. For a segment or group with repeats allowed the value is a list of maps, one
+   * for each occurrence..
+   */
   def parseStructure(structure: Structure, onepart: Boolean, topMap: ValueMap) = {
 
     import ComponentErrors._
@@ -131,24 +134,26 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
         list
       }
 
-    /** Parse a structure data table.
-      * @param table index
-      * @param optseq table structure sequence option
-      * @param terms terminations from next table
-      * @param map table data map
-      */
+    /**
+     * Parse a structure data table. As a convenience, this returns the passed-in table data map.
+     * @param table index
+     * @param optseq table structure sequence option
+     * @param terms terminations from next table
+     * @param map table data map
+     */
     def parseTable(table: Int, optseq: Option[StructureSequence], terms: Terminations, map: ValueMap) = {
 
       def parseStructureSequence(seq: StructureSequence, terms: List[Terminations], values: ValueMap): Unit = {
 
-        /** Parse subsequence components, matching input against included segments. Each segment is at a unique position
-          * in the subsequence, so it's easy to tell when segments are out of order by tracking the current position.
-          * Input segments not included in the subsequence are first checked against the terminations set for this
-          * subsequence, then against the termination sets for containing loops (at least up to the first required
-          * termination), and if found in either of these the subsequence is ended and this returns.
-          * @param subsq
-          * @returns true if exiting structure sequence, false if just moving to next subsequence
-          */
+        /**
+         * Parse subsequence components, matching input against included segments. Each segment is at a unique position
+         * in the subsequence, so it's easy to tell when segments are out of order by tracking the current position.
+         * Input segments not included in the subsequence are first checked against the terminations set for this
+         * subsequence, then against the termination sets for containing loops (at least up to the first required
+         * termination), and if found in either of these the subsequence is ended and this returns.
+         * @param subsq
+         * @returns true if exiting structure sequence, false if just moving to next subsequence
+         */
         def parseSubsequence(subsq: StructureSubsequence): Boolean = {
 
           def checkTerm(ident: String) = {
@@ -190,9 +195,10 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
               loopStack.pop
             }
 
-            /** Parse a wrapped loop, handling wrap open and close segments directly.
-              * @param wrap
-              */
+            /**
+             * Parse a wrapped loop, handling wrap open and close segments directly.
+             * @param wrap
+             */
             def parseWrappedLoop(wrap: LoopWrapperComponent): Unit = {
               if (wrap.usage == UnusedUsage)
                 segmentError(wrap.open.ident, UnusedSegment, ParseComplete, segmentNumber)

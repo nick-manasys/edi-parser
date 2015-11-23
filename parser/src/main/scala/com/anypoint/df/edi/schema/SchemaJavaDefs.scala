@@ -56,6 +56,16 @@ trait SchemaJavaDefs {
   def getAsInt(key: String, map: ValueMap) = getAs[Integer](key, map).intValue()
 
   def getAsMap(key: String, map: ValueMap) = getAs[ValueMap](key, map)
+  
+  def getStringOption(key: String, dflt: Option[String], map: ValueMap): Option[String] =
+    if (map.containsKey(key)) Some(getAs[String](key, map)) else dflt
+  
+  def getStringOption(key: String, map: ValueMap): Option[String] = getStringOption(key, None, map)
+  
+  def getIntOption(key: String, dflt: Option[Int], map: ValueMap): Option[Int] =
+    if (map.containsKey(key)) Some(getAsInt(key, map)) else dflt
+  
+  def getIntOption(key: String, map: ValueMap): Option[Int] = getIntOption(key, None, map)
 
   def getAs[T <: Object](key: String, dflt: => T, map: ValueMap): T =
     if (map.containsKey(key)) map.get(key).asInstanceOf[T]

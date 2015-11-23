@@ -70,11 +70,13 @@ object YamlWriter extends WritesYaml with YamlDefs {
       writeIndented(s"$groupKey:", indent + 1, writer)
       writeGroupComponent(wrap.wrapped, indent + 1)
     }
-
+    
     def writeGroupComponent(group: GroupComponent, indent: Int): Unit = {
       writeIndented("- " + keyValueQuote(groupIdKey, group.ident), indent, writer)
       writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1, writer)
       if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1, writer)
+      group.tagStart.foreach { x => writeIndented(keyValuePair(tagStartKey, x), indent + 1, writer) }
+      group.tagLength.foreach { x => writeIndented(keyValuePair(tagLengthKey, x), indent + 1, writer) }
       val childPos = group.seq.items.head.position
       if (group.position != childPos) {
         writeIndented(keyValueQuote(positionKey, group.position.position), indent + 1, writer)
@@ -140,9 +142,13 @@ object YamlWriter extends WritesYaml with YamlDefs {
           case Some(g) => writeIndented(keyValuePair(classKey, g), 1, writer)
           case None =>
         }
-        transact.heading.foreach { seq => writeStructureComps(headingKey, seq.items, 1) }
-        transact.detail.foreach { seq => writeStructureComps(detailKey, seq.items, 1) }
-        transact.summary.foreach { seq => writeStructureComps(summaryKey, seq.items, 1) }
+        transact.tagStart.foreach { x => writeIndented(keyValuePair(tagStartKey, x), 1, writer) }
+        transact.tagLength.foreach { x => writeIndented(keyValuePair(tagLengthKey, x), 1, writer) }
+        if (schema.ediVersion.ediForm.sectioned) {
+          transact.heading.foreach { seq => writeStructureComps(headingKey, seq.items, 1) }
+          transact.detail.foreach { seq => writeStructureComps(detailKey, seq.items, 1) }
+          transact.summary.foreach { seq => writeStructureComps(summaryKey, seq.items, 1) }
+        } else transact.heading.foreach { seq => writeStructureComps(dataKey, seq.items, 1) }
       })
     }
     if (!schema.segments.isEmpty) {
@@ -151,6 +157,7 @@ object YamlWriter extends WritesYaml with YamlDefs {
       writeIndented("segments:", 0, writer)
       schema.segments.values.toList.sortBy { segment => segment.ident } foreach (segment => {
         writeIndented("- " + keyValueQuote(idKey, segment.ident), 0, writer)
+        if (segment.ident != segment.tag) writeIndented(keyValuePair(tagKey, segment tag), 1, writer)
         writeIndented(keyValuePair(nameKey, segment name), 1, writer)
         writeSegmentComponents(valuesKey, segment.components, 1)
         if (!segment.rules.isEmpty) {

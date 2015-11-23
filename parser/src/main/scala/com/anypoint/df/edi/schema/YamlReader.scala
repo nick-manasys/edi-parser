@@ -182,11 +182,14 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         case _ => throw new IllegalArgumentException(s"Value $countKey must be an integer or the string '$anyRepeatsValue'")
       }
       if (values.containsKey(itemsKey)) {
+        val ident = getRequiredString(groupIdKey, values)
         val items = getRequiredMapList(itemsKey, values)
         val postext = getAsString(positionKey, values)
         val position = if (postext == null) None else Some(SegmentPosition(table, postext))
         val seq = StructureSequence(true, parseComponent(items.asScala.toList, Nil))
-        GroupComponent(getRequiredString(groupIdKey, values), use, count, seq, None, Nil, None, position)
+        val tagStart = getIntOption(tagStartKey, values)
+        val tagLength = getIntOption(tagLengthKey, values)
+        GroupComponent(ident, use, count, seq, None, Nil, None, position, false, tagStart, tagLength)
       } else if (values.containsKey(wrapIdKey)) {
         val wrapid = getRequiredString(wrapIdKey, values)
         val list = getRequiredMapList(groupKey, values)
@@ -280,7 +283,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
                     if (values.containsKey(itemsKey)) {
                       StructureSequence(true, overLevel(getRequiredMapList(itemsKey, values), group.seq.items))
                     } else group.seq
-                  overr(t, GroupComponent(group.ident, use, count, seq, group.varkey, group.variants) :: prior, bt)
+                  val tagStart = getIntOption(tagStartKey, group.tagStart, values)
+                  val tagLength = getIntOption(tagLengthKey, group.tagLength, values)
+                  overr(t, GroupComponent(group.ident, use, count, seq, group.varkey, group.variants, group.ky,
+                    group.pos, group.ch, tagStart, tagLength) :: prior, bt)
                 }
               }
               else overr(remain, bh :: prior, bt)
@@ -367,10 +373,11 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     getRequiredMapList(segmentsKey, input).asScala.toList.
       foldLeft(basedefs)((map, segmap) => if (segmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, segmap)
+        val tag = getAs(tagKey, ident, segmap)
         val list = getAs[MapList](valuesKey, segmap)
         val comps = if (list == null) Nil else parseSegmentComponents(ident, list, elements, composites, form)
         val name = getRequiredString(nameKey, segmap)
-        map + (ident -> Segment(ident, name, comps, getRules(segmap, comps)))
+        map + (ident -> Segment(ident, tag, name, comps, getRules(segmap, comps)))
       } else if (segmap.containsKey(idRefKey)) {
         val idref = getRequiredString(idRefKey, segmap)
         basedefs.get(idref) match {
@@ -380,9 +387,9 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
             if (segmap.containsKey(valuesKey)) {
               val list = getRequiredMapList(valuesKey, segmap)
               val comps = parseSegmentOverlayComponents(idref, list, elements, composites, basecomps)
-              map + (idref -> Segment(idref, name, comps, getRules(segmap, comps)))
+              map + (idref -> Segment(idref, basedef.tag, name, comps, getRules(segmap, comps)))
             } else {
-              map + (idref -> Segment(idref, name, basedef.components, getRules(segmap, basecomps)))
+              map + (idref -> Segment(idref, basedef.tag, name, basedef.components, getRules(segmap, basecomps)))
             }
           }
           case None => throw new IllegalStateException(s"referenced segment $idref is not defined")
@@ -398,25 +405,36 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       case Some(seq) => seq.items
       case None => Nil
     }
+    def dataSection(key: String, values: ValueMap, index: Int): Option[StructureSequence] =
+      if (values.containsKey(key)) {
+        if (!version.ediForm.sectioned) throw new IllegalArgumentException(s"section $key is not allowed for schemas of type ${version.ediForm.text}")
+        optSeq(parseStructurePart(key, values, version.ediForm, index, segments))
+      } else None
+    val firstkey = if (version.ediForm.sectioned) headingKey else dataKey
     getRequiredMapList(structuresKey, input).asScala.toList.
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
         val name = getRequiredString(nameKey, transmap)
-        val group = if (transmap.containsKey(classKey)) Some(transmap.get(classKey).asInstanceOf[String]) else None
-        val heading = optSeq(parseStructurePart(headingKey, transmap, version.ediForm, 0, segments))
-        val detail = optSeq(parseStructurePart(detailKey, transmap, version.ediForm, 1, segments))
-        val summary = optSeq(parseStructurePart(summaryKey, transmap, version.ediForm, 2, segments))
-        map + (ident -> Structure(ident, name, group, heading, detail, summary, version))
+        val group = getStringOption(classKey, transmap)
+        val heading = optSeq(parseStructurePart(firstkey, transmap, version.ediForm, 0, segments))
+        val detail = dataSection(detailKey, transmap, 1)
+        val summary = dataSection(summaryKey, transmap, 2)
+        val tagStart = getIntOption(tagStartKey, transmap)
+        val tagLength = getIntOption(tagLengthKey, transmap)
+        val struct = Structure(ident, name, group, heading, detail, summary, version, tagStart, tagLength)
+        map + (ident -> struct)
       } else if (transmap.containsKey(idRefKey)) {
         val idref = getRequiredString(idRefKey, transmap)
         if (!basedefs.contains(idref)) throw new IllegalStateException(s"referenced structure $idref is not defined")
         val basedef = basedefs(idref)
         val name = getAs(nameKey, basedef.name, transmap)
-        val group = getAs(classKey, basedef.group, transmap)
-        val heading = optSeq(parseStructureOverlayPart(headingKey, transmap, sectionItems(basedef.heading), segments))
+        val group = getStringOption(classKey, basedef.group, transmap)
+        val heading = optSeq(parseStructureOverlayPart(firstkey, transmap, sectionItems(basedef.heading), segments))
         val detail = optSeq(parseStructureOverlayPart(detailKey, transmap, sectionItems(basedef.detail), segments))
         val summary = optSeq(parseStructureOverlayPart(summaryKey, transmap, sectionItems(basedef.summary), segments))
-        map + (idref -> Structure(idref, name, group, heading, detail, summary, version))
+        val tagStart = getIntOption(tagStartKey, basedef.tagStart, transmap)
+        val tagLength = getIntOption(tagLengthKey, basedef.tagLength, transmap)
+        map + (idref -> Structure(idref, name, group, heading, detail, summary, version, tagStart, tagLength))
       } else throw new IllegalStateException(s"structure definition needs either $idKey or $idRefKey value"))
     }
 
@@ -493,11 +511,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     }
 
     val loaded = loadFully(reader)
-    EdiSchema(loaded.ediVersion, loaded.elements, loaded.composites, loaded.segments,
-      loaded.structures.map {
-        case (k, Structure(ident, name, group, heading, detail, summary, loaded.ediVersion)) => (k,
-          Structure(ident, name, group, heading, detail, summary, loaded.ediVersion))
-      })
+    EdiSchema(loaded.ediVersion, loaded.elements, loaded.composites, loaded.segments, loaded.structures)
   }
 }
 

@@ -126,7 +126,7 @@ object X12TablesConverter {
             }
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
-          map + (key -> Segment(key, segNames(key), comps, Nil))
+          map + (key -> new Segment(key, segNames(key), comps, Nil))
         }
       })
 

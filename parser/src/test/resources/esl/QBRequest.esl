@@ -2,9 +2,10 @@ form: FIXEDWIDTH
 structures:
 - id: 'QBRequest'
   name: QuickBatch Request
-  heading:
+  tagStart: 0
+  tagLength: 1
+  data:
   - { idRef: '1', position: '1', usage: M }
-  detail:
   - groupId: 'Batch'
     usage: O
     count: '>1'
@@ -12,13 +13,13 @@ structures:
     - { idRef: '3', position: '1', usage: M }
     - { idRef: '5', position: '2', usage: M, count: '>1' }
     - { idRef: '7', position: '3', usage: M }
-  summary:
   - { idRef: '9', position: '1', usage: M }
 - id: 'QBResponse'
   name: QuickBatch Response
-  heading:
+  tagStart: 0
+  tagLength: 1
+  data:
   - { idRef: '1', position: '1', usage: M }
-  detail:
   - groupId: 'Batch'
     usage: O
     count: '>1'
@@ -26,7 +27,6 @@ structures:
     - { idRef: '3', position: '1', usage: M }
     - { idRef: '5', position: '2', usage: M, count: '>1' }
     - { idRef: '7', position: '3', usage: M }
-  summary:
   - { idRef: '9', position: '1', usage: M }
 segments:
 - id: '1'

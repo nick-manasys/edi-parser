@@ -1,8 +1,10 @@
 
 package com.anypoint.df.edi.lexical;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -71,7 +73,7 @@ public abstract class DelimiterWriter extends WriterBase
      */
     protected DelimiterWriter(OutputStream os, Charset encoding, char datasep, char compsep, int subsep, int repsep, char segterm,
         String segsep, int release, int subst, char mark, boolean[] chars) {
-        super(os, encoding, mark);
+        super(new BufferedWriter(new OutputStreamWriter(os, encoding)), mark);
         dataSeparator = datasep;
         componentSeparator = compsep;
         subCompSeparator = subsep;
@@ -155,11 +157,10 @@ public abstract class DelimiterWriter extends WriterBase
         skippedSubCompCount++;
     }
     
-    /**
-     * Close writer when output completed.
-     *
-     * @throws IOException
+    /* (non-Javadoc)
+     * @see com.anypoint.df.edi.lexical.WriterBase#close()
      */
+    @Override
     public void close() throws IOException {
         writer.close();
     }
@@ -172,22 +173,6 @@ public abstract class DelimiterWriter extends WriterBase
      * @throws WriteException 
      */
     abstract String convertEscape(char chr) throws WriteException;
-    
-    /**
-     * Initialize document output, writing any interchange header segment(s) required by the protocol variation.
-     *
-     * @param props
-     * @throws IOException 
-     */
-    public abstract void init(Map<String, Object> props) throws IOException;
-    
-    /**
-     * Complete document output, writing any interchange trailer segment(s) required by the protocol variation.
-     *
-     * @param props
-     * @throws IOException
-     */
-    public abstract void term(Map<String,Object> props) throws IOException;
     
     /**
      * Check for start of segment, and write segment separator if so.
@@ -251,11 +236,18 @@ public abstract class DelimiterWriter extends WriterBase
         skippedSubCompCount = 0;
     }
     
-    /**
-     * Write a segment terminator.
-     *
-     * @throws IOException
+    /* (non-Javadoc)
+     * @see com.anypoint.df.edi.lexical.WriterBase#writeSegmentTag(java.lang.String)
      */
+    @Override
+    public void writeSegmentTag(String tag) throws IOException {
+        writeToken(tag);
+    }
+
+    /* (non-Javadoc)
+     * @see com.anypoint.df.edi.lexical.WriterBase#writeSegmentTerminator()
+     */
+    @Override
     public void writeSegmentTerminator() throws IOException {
         writer.write(segmentTerminator);
         skippedElementCount = 0;
@@ -306,27 +298,19 @@ public abstract class DelimiterWriter extends WriterBase
         writer.write(builder.toString());
     }
     
-    /**
-     * Write value text (or start of value text).
-     *
-     * @param text
-     * @throws IOException
+    /* (non-Javadoc)
+     * @see com.anypoint.df.edi.lexical.WriterBase#writeToken(java.lang.String)
      */
+    @Override
     public void writeToken(String text) throws IOException {
         checkSegmentStart();
         writeText(text);
     }
     
-    /**
-     * Write text with space characters appended to minimum length. If the text is longer than the maximum length this
-     * throws an exception.
-     *
-     * @param text
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @return value, <code>null</code> if empty
-     * @throws IOException 
+    /* (non-Javadoc)
+     * @see com.anypoint.df.edi.lexical.WriterBase#writeSpacePadded(java.lang.String, int, int)
      */
+    @Override
     public void writeSpacePadded(String text, int minl, int maxl) throws IOException {
         String token = text;
         int length = token.length();
@@ -352,6 +336,7 @@ public abstract class DelimiterWriter extends WriterBase
      * @param adj extra character count include (decimal point, exponent, etc.)
      * @throws IOException 
      */
+    @Override
     public void writeZeroPadded(String value, int minl, int maxl, int adj) throws IOException {
         String text = value;
         int length = text.length() - adj;

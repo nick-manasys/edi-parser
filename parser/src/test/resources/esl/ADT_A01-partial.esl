@@ -3,7 +3,7 @@ version: '2.5.1'
 structures:
 - id: 'ADT_A01'
   name: ADT_A01
-  heading:
+  data:
   - { idRef: 'MSH', position: '01', usage: M }
   - { idRef: 'EVN', position: '03', usage: M }
   - { idRef: 'PID', position: '04', usage: M }

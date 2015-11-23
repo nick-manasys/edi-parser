@@ -142,7 +142,7 @@ object EdifactSchemaDefs {
     ElementComponent(Element("0052", "Message version number", ALPHANUMERIC, 0, 3), None, "UNG0701", 10, MandatoryUsage, 1),
     ElementComponent(Element("0054", "Message release number", ALPHANUMERIC, 0, 3), None, "UNG0702", 20, MandatoryUsage, 1),
     ElementComponent(Element("0057", "Association assigned code", ALPHANUMERIC, 0, 6), None, "UNG0703", 30, ConditionalUsage, 1)), Nil, 0)
-  val segUNBv3 = Segment("UNB", "INTERCHANGE HEADER", List[SegmentComponent](
+  val segUNBv3 = new Segment("UNB", "INTERCHANGE HEADER", List[SegmentComponent](
     CompositeComponent(compS001v3, Some("SYNTAX IDENTIFIER"), "UNB01", 10, MandatoryUsage, 1),
     CompositeComponent(compS002v3, Some("INTERCHANGE SENDER"), "UNB02", 20, MandatoryUsage, 1),
     CompositeComponent(compS003v3, Some("INTERCHANGE RECIPIENT"), "UNB03", 30, MandatoryUsage, 1),
@@ -154,7 +154,7 @@ object EdifactSchemaDefs {
     ElementComponent(Element("0031", "ACKNOWLEDGEMENT REQUEST", INTEGER, 1, 1), None, "UNB09", 90, ConditionalUsage, 1),
     ElementComponent(Element("0032", "INTERCHANGE AGREEMENT IDENTIFIER", ALPHANUMERIC, 0, 35), None, "UNB10", 100, ConditionalUsage, 1),
     ElementComponent(Element("0035", "TEST INDICATOR", INTEGER, 1, 1), None, "UNB11", 110, ConditionalUsage, 1)), Nil)
-  val segUNBv4 = Segment("UNB", "INTERCHANGE HEADER", List[SegmentComponent](
+  val segUNBv4 = new Segment("UNB", "INTERCHANGE HEADER", List[SegmentComponent](
     CompositeComponent(compS001v4, Some("SYNTAX IDENTIFIER"), "UNB01", 10, MandatoryUsage, 1),
     CompositeComponent(compS002v4, Some("INTERCHANGE SENDER"), "UNB02", 20, MandatoryUsage, 1),
     CompositeComponent(compS003v4, Some("INTERCHANGE RECIPIENT"), "UNB03", 30, MandatoryUsage, 1),
@@ -166,10 +166,10 @@ object EdifactSchemaDefs {
     ElementComponent(Element("0031", "ACKNOWLEDGEMENT REQUEST", INTEGER, 1, 1), None, "UNB09", 90, ConditionalUsage, 1),
     ElementComponent(Element("0032", "INTERCHANGE AGREEMENT IDENTIFIER", ALPHANUMERIC, 0, 35), None, "UNB10", 100, ConditionalUsage, 1),
     ElementComponent(Element("0035", "TEST INDICATOR", INTEGER, 1, 1), None, "UNB11", 110, ConditionalUsage, 1)), Nil)
-  val segUNE = Segment("UNE", "GROUP TRAILER", List[SegmentComponent](
+  val segUNE = new Segment("UNE", "GROUP TRAILER", List[SegmentComponent](
     ElementComponent(Element("0060", "Group Control Count", INTEGER, 0, 6), Some("GROUP CONTROL COUNT"), "UNE01", 10, MandatoryUsage, 1),
     ElementComponent(elem0048, Some("GROUP REFERENCE NUMBER"), "UNE02", 20, MandatoryUsage, 1)), Nil)
-  val segUNGv3 = Segment("UNG", "GROUP HEADER", List[SegmentComponent](
+  val segUNGv3 = new Segment("UNG", "GROUP HEADER", List[SegmentComponent](
     ElementComponent(Element("0038", "MESSAGE GROUP IDENTIFICATION", ALPHANUMERIC, 0, 6), None, "UNG01", 10, ConditionalUsage, 1),
     CompositeComponent(compS006, Some("APPLICATION SENDER IDENTIFICATION"), "UNG02", 20, ConditionalUsage, 1),
     CompositeComponent(compS007, Some("APPLICATION RECIPIENT IDENTIFICATION"), "UNG03", 30, ConditionalUsage, 1),
@@ -178,7 +178,7 @@ object EdifactSchemaDefs {
     ElementComponent(Element("0051", "Controlling agency", ALPHANUMERIC, 0, 2), Some("CONTROLLING AGENCY, CODED"), "UNG06", 60, ConditionalUsage, 1),
     CompositeComponent(compS008, Some("MESSAGE VERSION"), "UNG07", 70, ConditionalUsage, 1),
     ElementComponent(Element("0058", "APPLICATION PASSWORD", ALPHANUMERIC, 0, 14), None, "UNG08", 80, ConditionalUsage, 1)), Nil)
-  val segUNGv4 = Segment("UNG", "GROUP HEADER", List[SegmentComponent](
+  val segUNGv4 = new Segment("UNG", "GROUP HEADER", List[SegmentComponent](
     ElementComponent(Element("0038", "MESSAGE GROUP IDENTIFICATION", ALPHANUMERIC, 0, 6), None, "UNG01", 10, ConditionalUsage, 1),
     CompositeComponent(compS006, Some("APPLICATION SENDER IDENTIFICATION"), "UNG02", 20, ConditionalUsage, 1),
     CompositeComponent(compS007, Some("APPLICATION RECIPIENT IDENTIFICATION"), "UNG03", 30, ConditionalUsage, 1),
@@ -187,9 +187,9 @@ object EdifactSchemaDefs {
     ElementComponent(Element("0051", "Controlling agency", ALPHANUMERIC, 0, 2), Some("CONTROLLING AGENCY, CODED"), "UNG06", 60, ConditionalUsage, 1),
     CompositeComponent(compS008, Some("MESSAGE VERSION"), "UNG07", 70, ConditionalUsage, 1),
     ElementComponent(Element("0058", "APPLICATION PASSWORD", ALPHANUMERIC, 0, 14), None, "UNG08", 80, ConditionalUsage, 1)), Nil)
-  val segUNS = Segment("UNS", "SECTION CONTROL", List[SegmentComponent](
+  val segUNS = new Segment("UNS", "SECTION CONTROL", List[SegmentComponent](
     ElementComponent(Element("0081", "SECTION IDENTIFICATION", ALPHA, 1, 1), None, "UNS01", 10, MandatoryUsage, 1)), Nil)
-  val segUNZ = Segment("UNZ", "INTERCHANGE TRAILER", List[SegmentComponent](
+  val segUNZ = new Segment("UNZ", "INTERCHANGE TRAILER", List[SegmentComponent](
     ElementComponent(Element("0036", "INTERCHANGE CONTROL COUNT", INTEGER, 0, 6), None, "UNZ01", 10, MandatoryUsage, 1),
     ElementComponent(elem0020, Some("INTERCHANGE CONTROL REFERENCE"), "UNZ02", 20, MandatoryUsage, 1)), Nil)
 
@@ -254,10 +254,10 @@ object EdifactSchemaDefs {
   val compS020 = Composite("S020", "REFERENCE IDENTIFICATION", List[SegmentComponent](
     ElementComponent(Element("0813", "REFERENCE QUALIFIER", ALPHANUMERIC, 0, 3), Some("Reference qualifier"), "S02001", 10, MandatoryUsage, 1),
     ElementComponent(Element("0802", "REFERENCE IDENTIFICATION NUMBER", ALPHANUMERIC, 0, 35), Some("Reference identification number"), "S02002", 20, MandatoryUsage, 1)), Nil, 0)
-  val segUCD = Segment("UCD", "DATA ELEMENT ERROR INDICATION", List[SegmentComponent](
+  val segUCD = new Segment("UCD", "DATA ELEMENT ERROR INDICATION", List[SegmentComponent](
     ElementComponent(elem0085, Some("SYNTAX ERROR, CODED"), "UCD01", 10, MandatoryUsage, 1),
     CompositeComponent(compS011_2, Some("DATA ELEMENT IDENTIFICATION"), "UCD02", 20, MandatoryUsage, 1)), Nil)
-  val segUCFv3 = Segment("UCF", "FUNCTIONAL GROUP RESPONSE", List[SegmentComponent](
+  val segUCFv3 = new Segment("UCF", "FUNCTIONAL GROUP RESPONSE", List[SegmentComponent](
     ElementComponent(Element("0048", "Functional group reference number", ALPHANUMERIC, 0, 14), Some("FUNCTIONAL GROUP REFERENCE NUMBER"), "UCF01", 10, MandatoryUsage, 1),
     CompositeComponent(compS006, Some("APPLICATION SENDER'S IDENTIFICATION"), "UCF02", 20, MandatoryUsage, 1),
     CompositeComponent(compS007, Some("APPLICATION RECIPIENTS IDENTIFICATION"), "UCF03", 30, MandatoryUsage, 1),
@@ -265,7 +265,7 @@ object EdifactSchemaDefs {
     ElementComponent(elem0085, Some("SYNTAX ERROR, CODED"), "UCF05", 50, ConditionalUsage, 1),
     ElementComponent(Element("0135", "SERVICE SEGMENT TAG, CODED", ALPHANUMERIC, 0, 3), None, "UCF06", 60, ConditionalUsage, 1),
     CompositeComponent(compS011_0, Some("DATA ELEMENT IDENTIFICATION"), "UCF07", 70, ConditionalUsage, 1)), Nil)
-  val segUCFv4 = Segment("UCF", "FUNCTIONAL GROUP RESPONSE", List[SegmentComponent](
+  val segUCFv4 = new Segment("UCF", "FUNCTIONAL GROUP RESPONSE", List[SegmentComponent](
     ElementComponent(Element("0048", "Functional group reference number", ALPHANUMERIC, 0, 14), Some("FUNCTIONAL GROUP REFERENCE NUMBER"), "UCF01", 10, MandatoryUsage, 1),
     CompositeComponent(compS006, Some("APPLICATION SENDER'S IDENTIFICATION"), "UCF02", 20, MandatoryUsage, 1),
     CompositeComponent(compS007, Some("APPLICATION RECIPIENTS IDENTIFICATION"), "UCF03", 30, MandatoryUsage, 1),
@@ -275,7 +275,7 @@ object EdifactSchemaDefs {
     CompositeComponent(compS011_0, Some("DATA ELEMENT IDENTIFICATION"), "UCF07", 70, ConditionalUsage, 1),
     ElementComponent(elem0534, None, "UCF08", 80, ConditionalUsage, 1),
     ElementComponent(elem0138, None, "UCF09", 90, ConditionalUsage, 1)), Nil)
-  val segUCIv3 = Segment("UCI", "INTERCHANGE RESPONSE", List[SegmentComponent](
+  val segUCIv3 = new Segment("UCI", "INTERCHANGE RESPONSE", List[SegmentComponent](
     ElementComponent(Element("0020", "Interchange control reference", ALPHANUMERIC, 0, 14), Some("INTERCHANGE CONTROL REFERENCE"), "UCI01", 10, MandatoryUsage, 1),
     CompositeComponent(compS002v3.rewrite("UCI02", EdiFact), Some("INTERCHANGE SENDER"), "UCI02", 20, MandatoryUsage, 1),
     CompositeComponent(compS003v3.rewrite("UCI03", EdiFact), Some("INTERCHANGE RECIPIENT"), "UCI03", 30, MandatoryUsage, 1),
@@ -283,7 +283,7 @@ object EdifactSchemaDefs {
     ElementComponent(elem0085, Some("SYNTAX ERROR, CODED"), "UCI05", 50, ConditionalUsage, 1),
     ElementComponent(elem0013, Some("SERVICE SEGMENT TAG, CODED"), "UCI06", 60, ConditionalUsage, 1),
     CompositeComponent(compS011_3, Some("DATA ELEMENT IDENTIFICATION"), "UCI07", 70, ConditionalUsage, 1)), Nil)
-  val segUCIv4 = Segment("UCI", "INTERCHANGE RESPONSE", List[SegmentComponent](
+  val segUCIv4 = new Segment("UCI", "INTERCHANGE RESPONSE", List[SegmentComponent](
     ElementComponent(Element("0020", "Interchange control reference", ALPHANUMERIC, 0, 14), Some("INTERCHANGE CONTROL REFERENCE"), "UCI01", 10, MandatoryUsage, 1),
     CompositeComponent(compS002v4.rewrite("UCI02", EdiFact), Some("INTERCHANGE SENDER"), "UCI02", 20, MandatoryUsage, 1),
     CompositeComponent(compS003v4.rewrite("UCI03", EdiFact), Some("INTERCHANGE RECIPIENT"), "UCI03", 30, MandatoryUsage, 1),
@@ -293,14 +293,14 @@ object EdifactSchemaDefs {
     CompositeComponent(compS011_3, Some("DATA ELEMENT IDENTIFICATION"), "UCI07", 70, ConditionalUsage, 1),
     ElementComponent(elem0534, None, "UCI08", 80, ConditionalUsage, 1),
     ElementComponent(elem0138, None, "UCI09", 90, ConditionalUsage, 1)), Nil)
-  val segUCMv3 = Segment("UCM", "MESSAGE/PACKAGE RESPONSE", List[SegmentComponent](
+  val segUCMv3 = new Segment("UCM", "MESSAGE/PACKAGE RESPONSE", List[SegmentComponent](
     ElementComponent(elem0062, Some("MESSAGE REFERENCE NUMBER"), "UCM01", 10, ConditionalUsage, 1),
     CompositeComponent(compS009_0, Some("MESSAGE IDENTIFIER"), "UCM02", 20, ConditionalUsage, 1),
     ElementComponent(elem0083, Some("ACTION, CODED"), "UCM03", 30, MandatoryUsage, 1),
     ElementComponent(elem0085, Some("SYNTAX ERROR, CODED"), "UCM04", 40, ConditionalUsage, 1),
     ElementComponent(elem0013, Some("SERVICE SEGMENT TAG, CODED"), "UCM05", 50, ConditionalUsage, 1),
     CompositeComponent(compS011_1, Some("DATA ELEMENT IDENTIFICATION"), "UCM06", 60, ConditionalUsage, 1)), Nil)
-  val segUCMv4 = Segment("UCM", "MESSAGE/PACKAGE RESPONSE", List[SegmentComponent](
+  val segUCMv4 = new Segment("UCM", "MESSAGE/PACKAGE RESPONSE", List[SegmentComponent](
     ElementComponent(elem0062, Some("MESSAGE REFERENCE NUMBER"), "UCM01", 10, ConditionalUsage, 1),
     CompositeComponent(compS009_0, Some("MESSAGE IDENTIFIER"), "UCM02", 20, ConditionalUsage, 1),
     ElementComponent(elem0083, Some("ACTION, CODED"), "UCM03", 30, MandatoryUsage, 1),
@@ -311,15 +311,15 @@ object EdifactSchemaDefs {
     CompositeComponent(compS020, Some("REFERENCE IDENTIFICATION"), "UCM08", 80, ConditionalUsage, 99),
     ElementComponent(elem0534, None, "UCM09", 90, ConditionalUsage, 1),
     ElementComponent(elem0138, None, "UCM10", 100, ConditionalUsage, 1)), Nil)
-  val segUCS = Segment("UCS", "SEGMENT ERROR INDICATION", List[SegmentComponent](
+  val segUCS = new Segment("UCS", "SEGMENT ERROR INDICATION", List[SegmentComponent](
     ElementComponent(Element("0096", "Segment position in message", INTEGER, 0, 6), Some("SEGMENT POSITION IN MESSAGE BODY"), "UCS01", 10, MandatoryUsage, 1),
     ElementComponent(elem0085, Some("SYNTAX ERROR, CODED"), "UCS02", 20, ConditionalUsage, 1)), Nil)
-  val segUNHv3 = Segment("UNH", "MESSAGE HEADER", List[SegmentComponent](
+  val segUNHv3 = new Segment("UNH", "MESSAGE HEADER", List[SegmentComponent](
     ElementComponent(elem0062, Some("MESSAGE REFERENCE NUMBER"), "UNH01", 10, MandatoryUsage, 1),
     CompositeComponent(compS009_1, Some("MESSAGE IDENTIFIER"), "UNH02", 20, MandatoryUsage, 1),
     ElementComponent(Element("0068", "Common access reference", ALPHANUMERIC, 0, 35), Some("COMMON ACCESS REFERENCE"), "UNH03", 30, ConditionalUsage, 1),
     CompositeComponent(compS010, Some("STATUS OF THE TRANSFER"), "UNH04", 40, ConditionalUsage, 1)), Nil)
-  val segUNHv4 = Segment("UNH", "MESSAGE HEADER", List[SegmentComponent](
+  val segUNHv4 = new Segment("UNH", "MESSAGE HEADER", List[SegmentComponent](
     ElementComponent(elem0062, Some("MESSAGE REFERENCE NUMBER"), "UNH01", 10, MandatoryUsage, 1),
     CompositeComponent(compS009_1, Some("MESSAGE IDENTIFIER"), "UNH02", 20, MandatoryUsage, 1),
     ElementComponent(Element("0068", "Common access reference", ALPHANUMERIC, 0, 35), Some("COMMON ACCESS REFERENCE"), "UNH03", 30, ConditionalUsage, 1),
@@ -327,7 +327,7 @@ object EdifactSchemaDefs {
     CompositeComponent(compS016, Some("MESSAGE SUBSET IDENTIFICATION"), "UNH05", 50, ConditionalUsage, 1),
     CompositeComponent(compS017, Some("MESSAGE IMPLEMENTATION GUIDELINE IDENTIFICATION"), "UNH06", 60, ConditionalUsage, 1),
     CompositeComponent(compS018, Some("SCENARIO IDENTIFICATION"), "UNH07", 70, ConditionalUsage, 1)), Nil)
-  val segUNT = Segment("UNT", "MESSAGE TRAILER", List[SegmentComponent](
+  val segUNT = new Segment("UNT", "MESSAGE TRAILER", List[SegmentComponent](
     ElementComponent(Element("0074", "Number of segments in a message", INTEGER, 0, 6), Some("NUMBER OF SEGMENTS IN A MESSAGE"), "UNT01", 10, MandatoryUsage, 1),
     ElementComponent(elem0062, Some("MESSAGE REFERENCE NUMBER"), "UNT02", 20, MandatoryUsage, 1)), Nil)
     
