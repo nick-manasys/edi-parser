@@ -363,8 +363,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     def trimComps(comps: List[SegmentComponent], trim: Int) = {
       val (keep, drop) = comps.splitAt(trim)
       keep ::: (drop.foldLeft(List[SegmentComponent]())((acc, comp) => comp match {
-        case ElementComponent(element, oname, key, pos, _, count) =>
-          ElementComponent(element, oname, key, pos, UnusedUsage, count) :: acc
+        case ElementComponent(element, oname, key, pos, _, count, value) =>
+          ElementComponent(element, oname, key, pos, UnusedUsage, count, value) :: acc
         case CompositeComponent(composite, oname, key, pos, _, count) =>
           CompositeComponent(composite, oname, key, pos, UnusedUsage, count) :: acc
       }).reverse)

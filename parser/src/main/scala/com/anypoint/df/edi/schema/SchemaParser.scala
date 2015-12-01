@@ -261,7 +261,7 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
                     else segmentError(baseLexer.segmentTag, UnknownSegment, WontParse, segmentNumber)
                     parseComponent(position)
                   }
-                case _ => throw new IllegalStateException(s"Illegal structure at position $position")
+                case Some(x) => throw new IllegalStateException(s"Illegal structure at position $position (type is ${x.getClass.getName})")
               }
             } else true
           }

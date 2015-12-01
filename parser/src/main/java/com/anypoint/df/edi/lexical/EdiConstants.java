@@ -75,6 +75,8 @@ public abstract class EdiConstants
         REAL("R", X12_FLAG),
         SEQID("SI", HL7_FLAG),
         STRINGDATA("ST", HL7_FLAG),
+        // TEXT type is used only when a value is defined in the schema for an unused or ignored element
+        TEXT("", X12_FLAG | EDIFACT_FLAG | HL7_FLAG),
         TIME("TM", X12_FLAG | HL7_FLAG),
         VARIES("varies", HL7_FLAG);
         

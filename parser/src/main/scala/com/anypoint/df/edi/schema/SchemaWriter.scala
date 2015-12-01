@@ -27,9 +27,8 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
 
   val logger = Logger.getLogger(getClass.getName)
 
-  /**
-   * Log error and throw as WriteException if enforcing restrictions.
-   */
+  /** Log error and throw as WriteException if enforcing restrictions.
+    */
   def logAndThrow(text: String) =
     if (enforceRequireds) {
       val e = new WriteException(text)
@@ -37,10 +36,9 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
       throw e
     } else logger error text
 
-  /**
-   * Log error and throw as WriteException if enforcing restrictions. If the cause is already a WriteException this
-   *  appends the text to the existing exception text and throws a new WriteException.
-   */
+  /** Log error and throw as WriteException if enforcing restrictions. If the cause is already a WriteException this
+    * appends the text to the existing exception text and throws a new WriteException.
+    */
   def logAndThrow(text: String, cause: Throwable) = {
     logger error (text, cause)
     if (enforceRequireds) cause match {
@@ -62,12 +60,11 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
 
   val EmptySendMap = Map[Option[ValueMap], List[ValueMap]]()
 
-  /**
-   * Group maps of data to be sent based on equality of an envelope map, which may or may not be present.
-   * @param sends send data maps
-   * @param key sort map name
-   * @param groups accumulated map to lists of send data maps
-   */
+  /** Group maps of data to be sent based on equality of an envelope map, which may or may not be present.
+    * @param sends send data maps
+    * @param key sort map name
+    * @param groups accumulated map to lists of send data maps
+    */
   def groupSends(sends: Iterable[ValueMap], key: String, groups: SendMap) =
     sends.foldLeft(groups)((acc, map) => {
       val value = if (map.containsKey(key)) Some(getAsMap(key, map)) else None
@@ -87,7 +84,7 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
         writeValue(map, typ, skip, h)
       } catch {
         case e: WriteException => throw e
-        case e: Exception => 
+        case e: Exception =>
           e.printStackTrace
           throw new WriteException(s"${e.getMessage} on component ${h.key}")
       }
@@ -108,10 +105,9 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
     baseWriter.writeSegmentTerminator
   }
 
-  /**
-   * Write a portion of structure data represented by a list of components (which may be segment references or
-   * loops) from a map.
-   */
+  /** Write a portion of structure data represented by a list of components (which may be segment references or
+    * loops) from a map.
+    */
   def writeSection(map: ValueMap, comps: List[StructureComponent]): Unit = comps.foreach(comp => {
 
     /** Write a (potentially) repeating segment from a list of maps. */
@@ -178,15 +174,14 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
   /** Write top-level section of structure. */
   def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence): Unit
 
-  /**
-   * Write a complete structure. The supplied map has a maximum of five values: the structure id and name, and
-   * separate child maps for each of the three sections of a structure (heading, detail, and summary). Each child map
-   * is keyed by segment name (with the ID suffixed in parenthesis) or group id. For a segment with no repeats allowed
-   * the associated value is the map of the values in the segment. For a segment with repeats allowed the value is a
-   * list of maps, one for each occurrence of the segment. For a group the value is also a list of maps, with each map
-   * of the same form as the child maps of the top-level result (so keys are segment or nested group names, values are
-   * maps or lists).
-   */
+  /** Write a complete structure. The supplied map has a maximum of five values: the structure id and name, and
+    * separate child maps for each of the three sections of a structure (heading, detail, and summary). Each child map
+    * is keyed by segment name (with the ID suffixed in parenthesis) or group id. For a segment with no repeats allowed
+    * the associated value is the map of the values in the segment. For a segment with repeats allowed the value is a
+    * list of maps, one for each occurrence of the segment. For a group the value is also a list of maps, with each map
+    * of the same form as the child maps of the top-level result (so keys are segment or nested group names, values are
+    * maps or lists).
+    */
   def writeStructure(map: ValueMap, structure: Structure) {
     structure.heading.foreach { seq => writeTopSection(0, getRequiredValueMap(structureHeading, map), seq) }
     structure.detail.foreach { seq => writeTopSection(0, getRequiredValueMap(structureDetail, map), seq) }
@@ -225,7 +220,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
       }
       case DATETIME => delimWriter.writeDateTime(value.asInstanceOf[XMLGregorianCalendar], min, max, true)
       case INTEGER => delimWriter.writeInt(value.asInstanceOf[Integer].intValue, min, max)
-      case NUMBER | REAL | NUMERIC => value match {
+      case NUMBER | NUMERIC | REAL => value match {
         case bigdec: BigDecimal => delimWriter.writeDecimal(bigdec, min, max)
         case integer: Integer => delimWriter.writeInt(integer, min, max)
         case long: Long => delimWriter.writeLong(long, min, max)
@@ -238,8 +233,8 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
       case typ: DataType if (typ.isDecimal) =>
         delimWriter.writeImplicitDecimal(value.asInstanceOf[BigDecimal], typ.decimalPlaces, min, max)
     }
-
-    def writeComponent(value: Object, repeat: Boolean) = {
+    
+    def writeSeparator(repeat: Boolean) =
       if (repeat) delimWriter.writeRepetitionSeparator
       else if (!skip) typ match {
         case SEGMENT => delimWriter.writeSegmentTerminator
@@ -247,25 +242,33 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
         case COMPONENT => delimWriter.writeComponentSeparator
         case SUB_COMPONENT => delimWriter.writeSubcomponentSeparator
       }
+
+    def writeComponent(value: Object, repeat: Boolean) = {
+      writeSeparator(repeat)
       comp match {
-        case ElementComponent(elem, _, _, _, _, _) =>
+        case ElementComponent(elem, _, _, _, _, _, _) =>
           writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
         case CompositeComponent(composite, _, _, _, _, _) =>
           writeCompList(value.asInstanceOf[ValueMap], typ.nextLevel, true, composite.components)
       }
     }
 
-    def skipAtLevel(typ: ItemType) = typ match {
+    def skipAtLevel = {
+      if (!skip) typ match {
       case SEGMENT => delimWriter.writeSegmentTerminator
       case DATA_ELEMENT => delimWriter.skipElement
       case COMPONENT => delimWriter.skipComponent
       case SUB_COMPONENT => delimWriter.skipSubcomponent
       case REPETITION =>
-    }
-    
+    }}
+
     def compCheckr(comp: CompositeComponent): Boolean =
-      comp.composite.components.exists { ccc => map.containsKey(ccc.key) ||
-        (ccc.isInstanceOf[CompositeComponent] && compCheckr(ccc.asInstanceOf[CompositeComponent])) }
+      comp.composite.components.exists { ccc =>
+        map.containsKey(ccc.key) || (ccc match {
+          case cc: CompositeComponent => compCheckr(cc)
+          case ec: ElementComponent => ec.value.isDefined
+        })
+      }
 
     comp match {
       case cc: CompositeComponent if (cc.count == 1) =>
@@ -273,7 +276,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
           writeComponent(map, false)
         } else {
           if (cc.usage == MandatoryUsage) logAndThrow(s"missing required value '${cc.name}'")
-          if (!skip) skipAtLevel(typ)
+          skipAtLevel
         }
       case _ =>
         if (map.containsKey(comp.key)) {
@@ -282,10 +285,9 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
           if (comp.count > 1) {
             value match {
               case list: SimpleList =>
-                if (list.isEmpty()) comp.usage match {
-                  case MandatoryUsage => logAndThrow(s"no values present for property ${comp.name}")
-                }
-                else {
+                if (list.isEmpty) {
+                  if (comp.usage == MandatoryUsage) logAndThrow(s"no values present for property ${comp.name}")
+                } else {
                   if (list.size > comp.count) logAndThrow(s"too many values present for repeated component ${comp.key} (maximum ${comp.count})")
                   writeComponent(list.get(0), false)
                   list.asScala.drop(1).foreach { map => writeComponent(map, true) }
@@ -295,7 +297,27 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
           } else writeComponent(value, false)
         } else {
           if (comp.usage == MandatoryUsage) logAndThrow(s"missing required value '${comp.name}'")
-          if (!skip) skipAtLevel(typ)
+          comp match {
+            case cc: CompositeComponent => skipAtLevel
+            case ec: ElementComponent =>
+              if (ec.value.isDefined) {
+                writeSeparator(false)
+                val elem = ec.element
+                val value = ec.value.get
+                elem.dataType match {
+                  case ALPHA | ALPHANUMERIC | ID | STRINGDATA | VARIES =>
+                    delimWriter.writeSpacePadded(value, elem.minLength, elem.maxLength)
+                  case INTEGER | NUMBER | NUMERIC | REAL | SEQID =>
+                    val adj = (if (value.charAt(0) == '-') 1 else 0) + (if (value.indexOf('-', 1) > 0) 1 else 0) +
+                      (if (value.indexOf(delimWriter.decimalMark, 1) >= 0) 1 else 0) +
+                      (if (value.indexOf('E') >= 0) 1 else 0)
+                    delimWriter.writeZeroPadded(value, elem.minLength, elem.maxLength, adj)
+                  case _ =>
+                    if (value.length < elem.minLength || value.length > elem.maxLength) logAndThrow(s"length ${value.length} of value for '${ec.name}' is outside limits")
+                    else delimWriter.writeToken(value)
+                }
+              } else skipAtLevel
+          }
         }
     }
   }

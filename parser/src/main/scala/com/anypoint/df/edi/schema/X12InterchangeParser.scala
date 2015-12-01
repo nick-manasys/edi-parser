@@ -218,7 +218,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           val compC030Comps = xk4Comps(0).asInstanceOf[CompositeComponent].composite.components
           xk4 put (compC030Comps(0).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
           comp match {
-            case ElementComponent(elem, _, _, _, _, _) => xk4 put (xk4Comps(1).key, Integer.valueOf(elem.ident))
+            case ElementComponent(elem, _, _, _, _, _, _) => xk4 put (xk4Comps(1).key, Integer.valueOf(elem.ident))
             case _: CompositeComponent => xk4 put (compC030Comps(1).key, Integer.valueOf(lexer.getComponentNumber))
           }
           if (comp.count != 1) xk4 put (compC030Comps(2).key, Integer.valueOf(lexer.getRepetitionNumber))

@@ -9,6 +9,7 @@ trait YamlDefs {
   val nameKey = "name"
   val positionKey = "position"
   val usageKey = "usage"
+  val valueKey = "value"
   val valuesKey = "values"
   val typeKey = "type"
   val afterKey = "after"

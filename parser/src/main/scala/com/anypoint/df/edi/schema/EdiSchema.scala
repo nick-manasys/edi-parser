@@ -20,6 +20,7 @@ object EdiSchema {
   case object OptionalUsage extends Usage("O")
   case object ConditionalUsage extends Usage("C")
   case object UnusedUsage extends Usage("U")
+  case object IgnoredUsage extends Usage("I")
   def convertUsage(value: String) = value match {
     case MandatoryUsage.code => MandatoryUsage
     case OptionalUsage.code => OptionalUsage
@@ -73,8 +74,11 @@ object EdiSchema {
     * @param pos numeric position
     * @param use
     * @param cnt maximum repetition count
+    * @param value fixed text value for unused (checked on input, written on output) and ignored (written on output)
+    * usage types
     */
-  case class ElementComponent(val element: Element, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int)
+  case class ElementComponent(val element: Element, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int,
+    val value: Option[String] = None)
     extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt)
 
   /** Composite segment component.
@@ -531,7 +535,7 @@ object EdiSchema {
       def referencer(comps: List[SegmentComponent], elements: Set[Element]): Set[Element] =
         comps.foldLeft(elements)((acc, comp) => comp match {
           case CompositeComponent(composite, _, _, _, _, _) => referencer(composite.components, acc)
-          case ElementComponent(element, _, _, _, _, _) => acc + element
+          case ElementComponent(element, _, _, _, _, _, _) => acc + element
         })
       segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
     }

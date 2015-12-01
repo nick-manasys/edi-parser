@@ -37,11 +37,11 @@ public abstract class WriterBase
     /** Milliseconds per hour. */
     private static final int MILLIS_PER_HOUR = MILLIS_PER_MINUTE * 60;
     
+    /** Character used for decimal mark. */
+    public final char decimalMark;
+    
     /** Writer wrapping document data stream. */
     protected final Writer writer;
-    
-    /** Character used for decimal mark. */
-    protected final char decimalMark;
     
     /** Number of segments written. */
     protected int segmentCount;

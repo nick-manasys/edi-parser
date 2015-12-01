@@ -95,11 +95,11 @@ object YamlWriter extends WritesYaml with YamlDefs {
 
     def writeSegmentComponents(label: String, comps: List[SegmentComponent], indent: Int): Unit = {
       def componentId(component: SegmentComponent) = component match {
-        case ElementComponent(element, _, _, _, _, _) => element.ident
+        case ElementComponent(element, _, _, _, _, _, _) => element.ident
         case CompositeComponent(composite, _, _, _, _, _) => composite.ident
       }
       def componentDefaultNamed(component: SegmentComponent) = component match {
-        case ElementComponent(element, _, _, _, _, _) => component.name == element.name
+        case ElementComponent(element, _, _, _, _, _, _) => component.name == element.name
         case CompositeComponent(composite, _, _, _, _, _) => component.name == composite.name
       }
       @tailrec
