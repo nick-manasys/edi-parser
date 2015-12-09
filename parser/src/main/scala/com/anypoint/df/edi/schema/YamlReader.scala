@@ -376,7 +376,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val tag = getAs(tagKey, ident, segmap)
         val list = getAs[MapList](valuesKey, segmap)
         val comps = if (list == null) Nil else parseSegmentComponents(ident, list, elements, composites, form)
-        val name = getRequiredString(nameKey, segmap)
+        val name = getAs(nameKey, "", segmap)
         map + (ident -> Segment(ident, tag, name, comps, getRules(segmap, comps)))
       } else if (segmap.containsKey(idRefKey)) {
         val idref = getRequiredString(idRefKey, segmap)
