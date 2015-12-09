@@ -1,14 +1,13 @@
 package com.anypoint.df.edi.schema.convert
 
 import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStream, InputStreamReader, OutputStreamWriter }
-
 import scala.annotation.tailrec
 import scala.io.Source
-
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
+import scala.collection.{ mutable => cm }
 
 /** Application to generate HL7 message schemas from table data.
   */
@@ -18,8 +17,8 @@ object HL7TablesConverter {
   val yamlExtension = ".esl"
 
   // file names
-  val messageNames = "message_types.txt"
-  val eventCodes = "events.txt"
+  //  val messageNames = "message_types.txt"
+  //  val eventCodes = "events.txt"
   val eventMessages = "event_message_types.txt"
   val messageStructures = "msg_struct_id_segments.txt"
   val segmentNames = "segments.txt"
@@ -32,8 +31,8 @@ object HL7TablesConverter {
 
   /** Specialized usage code conversion for HL7. */
   def convertUsage(code: String) = code match {
-    case "B" | "(B) R" => OptionalUsage
-    case "W" => UnusedUsage
+    case "B" | "(B) R" | "RE" => OptionalUsage
+    case "W" | "X" => UnusedUsage
     case "R" | "" => MandatoryUsage
     case _ => EdiSchema.convertUsage(code)
   }
@@ -60,12 +59,12 @@ object HL7TablesConverter {
     * will be in reversed order (if ordered).
     */
   def foldInput[T](in: InputStream, z: T)(f: (T, List[String]) => T) =
-    Source.fromInputStream(in, "ISO-8859-1").getLines.filter(line => line.length > 0).foldLeft(z)((z, line) =>
+    Source.fromInputStream(in, "UTF-8").getLines.filter(line => line.length > 0).foldLeft(z)((z, line) =>
       f(z, splitValues(line)))
 
   type LineFields = List[Array[String]]
   /** Convert input to list of arrays of strings (list reverse ordered). */
-  def lineList(in: InputStream) = foldInput(in, Nil.asInstanceOf[LineFields]) ((list, line) => line.toArray :: list)
+  def lineList(in: InputStream) = foldInput(in, Nil.asInstanceOf[LineFields])((list, line) => line.toArray :: list)
 
   /** Generate map from first column of data to list of remaining values in row. */
   def nameMap(in: InputStream) = foldInput(in, Map.empty[String, Array[String]])((map, list) =>
@@ -108,7 +107,7 @@ object HL7TablesConverter {
 
   /** Write schema to file. */
   def writeSchema(schema: EdiSchema, name: String, imports: Array[String], outdir: File) = {
-    println(s"writing schema $name")
+//    println(s"writing schema $name")
     val file = new File(outdir, name + yamlExtension)
     val writer = new OutputStreamWriter(new FileOutputStream(file), "UTF-8")
     YamlWriter.write(schema, imports, writer)
@@ -144,11 +143,20 @@ object HL7TablesConverter {
   def buildComposites(grouped: Map[String, LineFields], names: Map[String, String],
     compdets: Map[String, Array[String]], built: Map[String, ComponentBase]): Map[String, ComponentBase] = {
 
+    val missingDetails = cm.Set[String]()
+
+    def compDetail(key: String): Array[String] = compdets.get(key) match {
+      case Some(array) => array
+      case None =>
+        missingDetails += key
+        Array("", "", "", "", "", "")
+    }
+
     /** Build composite definition from data structure components list. */
     def buildComposite(lines: List[Array[String]], comps: Map[String, ComponentBase]) = {
       val ident = lines.head(0)
       val compList = lines.map { line =>
-        val compdet = compdets(line(2))
+        val compdet = compDetail(line(2))
         val name = Some(compdet(0))
         comps(compdet(2)) match {
           case Element(id, nm, typ, mn, mx) => {
@@ -164,32 +172,48 @@ object HL7TablesConverter {
 
     val building = grouped.filter {
       case (ident, lines) =>
-        lines.forall { line => built.contains(compdets(line(2))(3)) }
-    }.map{ case (ident, lines) => ident }.toSet
+        lines.forall { line => built.contains(compDetail(line(2))(3)) }
+    }.map { case (ident, lines) => ident }.toSet
     val merged = building.foldLeft(built)((acc, ident) => acc + (ident -> buildComposite(grouped(ident), acc)))
     val remain = grouped.filter { case (ident, lines) => !building.contains(ident) }
+    if (missingDetails.nonEmpty) throw new IllegalStateException(s"Missing component definitions for: $missingDetails")
     if (remain.isEmpty) merged
-    else buildComposites(remain, names, compdets, merged)
+    else if (grouped.size == remain.size) {
+      val keys = remain.map { case (name: String, _) => name }
+      throw new IllegalStateException(s"Circular references in definitions for data structures: $keys")
+    } else buildComposites(remain, names, compdets, merged)
   }
 
   def buildSegments(grouped: Map[String, LineFields], names: Map[String, String],
     comps: Map[String, (String, ComponentBase)]) = {
-    names.keys.foldLeft(Map[String, Segment]())((map, ident) => {
+    var failed = false
+    val result = names.keys.foldLeft(Map[String, Segment]())((map, ident) => {
       val compList = grouped.get(ident) match {
         case Some(list) => list.foldLeft(List[SegmentComponent]())((acc, line) =>
-          {
-            val repeats = if (line(4) == "Y") line(5).toInt else 1
+          try {
+            val repeats =
+              if (line(4) == "Y") {
+                if (line(5).length == 0) 0
+                else line(5).toInt
+              } else 1
             val (nmtext, comp) = comps(line(2))
             val name = if (nmtext.isEmpty) None else Some(nmtext)
             comp match {
               case e: Element => ElementComponent(e, name, "", line(1).toInt, convertUsage(line(3)), repeats) :: acc
               case c: Composite => CompositeComponent(c, name, "", line(1).toInt, convertUsage(line(3)), repeats) :: acc
             }
+          } catch {
+            case e: Exception =>
+              println(s"ERROR: processing segment $ident ${line(1)} got exception $e")
+              failed = true
+              acc
           })
         case None => Nil
       }
       map + (ident -> new Segment(ident, names(ident), compList.reverse, Nil))
     })
+    if (failed) throw new RuntimeException("Processing aborted")
+    result
   }
 
   def buildStructures(grouped: Map[String, LineFields], segs: Map[String, Segment], version: EdiSchemaVersion) = {
@@ -245,7 +269,7 @@ object HL7TablesConverter {
         case _ => (Nil, comps.reverse)
       }
 
-    grouped.foldLeft(List[Structure]()){
+    grouped.foldLeft(List[Structure]()) {
       case (list, (ident, lines)) => {
         Structure(ident, ident, None, Some(StructureSequence(false, buildr(lines, Nil)._2)), None, None, version)
       } :: list
@@ -268,7 +292,7 @@ object HL7TablesConverter {
     }
     else yamldir.mkdirs
     val yamlrdr = new YamlReader()
-    hl7dir.listFiles.foreach (version => {
+    hl7dir.listFiles.foreach(version => {
       println(s"Processing ${version.getName}")
       val vernum = version.getName.drop(1).replace('_', '.')
       val schemaVersion = EdiSchemaVersion(HL7, vernum)
@@ -282,43 +306,54 @@ object HL7TablesConverter {
       val groupedDataStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { _(0) }
 
       // build element definitions for elementary components
+      val missingComps = cm.Set[String]()
       val elemDefs = dataStructs.filter { _(4) == "1" }.foldLeft(Map.empty[String, Element])((map, line) => {
         val ident = line(0)
-        val compline = groupedDataStructs(ident).head
-        val mintext = compline(4)
-        val minlen = if (mintext.length > 0) mintext.toInt else 1
-        val maxlen = compline(5).toInt
-        map + (ident -> Element(line(0), line(1), EdiConstants.toHL7Type(line(2)), minlen, if (maxlen == 0) 9999 else maxlen))
+        groupedDataStructs.get(ident) match {
+          case Some(list) =>
+            val compline = list.head
+            val mintext = compline(4)
+            val minlen = if (mintext.length > 0) mintext.toInt else 1
+            val maxtext = compline(5)
+            val maxlen = if (maxtext.length > 0) maxtext.toInt else 0
+            map + (ident -> Element(line(0), line(1), EdiConstants.toHL7Type(line(2)), minlen, if (maxlen == 0) 9999 else maxlen))
+          case None =>
+            missingComps += ident
+            map + (ident -> Element(ident, "", EdiConstants.toHL7Type(ident), 1, 9999))
+        }
       })
-      println("Generated element definitions:")
-      elemDefs.keys.foreach { ident => println(ident) }
+      if (missingComps.nonEmpty) println(s"WARNING: Missing components for data structures: $missingComps")
+//      println("Generated element definitions:")
+//      elemDefs.keys.foreach { ident => println(ident) }
       val simpleComps = compDetails.filter { case (ident, line) => elemDefs.contains(line(3)) }
       val compMap = buildComposites(groupedDataStructs, structNames, compDetails, elemDefs)
-      compMap.foreach {
-        case (key, elem: Element) => println(s"$key => ${elem.name} (element)")
-        case (key, comp: Composite) => println(s"$key => ${comp.name} (composite with ${comp.components.length} components)")
-      }
+//      compMap.foreach {
+//        case (key, elem: Element) => println(s"$key => ${elem.name} (element)")
+//        case (key, comp: Composite) => println(s"$key => ${comp.name} (composite with ${comp.components.length} components)")
+//      }
 
       // data_item, description, data_structure, min_length, max_length
       val elemMap = lineList(fileInput(version, dataElements)).foldLeft(Map[String, (String, ComponentBase)]())((acc, line) =>
         compMap.get(line(2)) match {
           case Some(c) => acc + (line(0) -> (line(1), c))
           case None if (line(2) == "-") => acc + (line(0) -> (line(1), compMap("varies")))
-          case _ => throw new IllegalStateException(s"failed lookup for ident ${line(2)}")
+          case _ =>
+            println(s"WARNING: Failed lookup for ident ${line(2)}")
+            acc
         })
 
       // seg_code, seq_no, data_item, req_opt, repetitional, repetitions
       val groupedSegStructs = lineList(fileInput(version, segmentStructures)).reverse.groupBy { _(0) }
       // seg_code, description, visible
-      val segNames = lineList(fileInput(version, segmentNames)).filter { line => (line(2) == "1" ) }.
+      val segNames = lineList(fileInput(version, segmentNames)).filter { line => (line(2) == "1") }.
         foldLeft(Map[String, String]()) {
           (acc, line) => acc + (line(0) -> line(1))
         }
       val segments = buildSegments(groupedSegStructs, segNames, elemMap)
-      println("Segments:")
-      segments.foreach {
-        case (key, comp) => println(s" $key => ${comp.name} with ${comp.components.size} top-level components")
-      }
+//      println("Segments:")
+//      segments.foreach {
+//        case (key, comp) => println(s" $key => ${comp.name} with ${comp.components.size} top-level components")
+//      }
       val compDefs = compMap.foldLeft(Map[String, Composite]()) {
         case (acc, (key, value: Composite)) => acc + (key -> value)
         case (acc, _) => acc
@@ -333,7 +368,7 @@ object HL7TablesConverter {
       outdir.mkdirs
       writeSchema(baseSchema, "basedefs", Array(), outdir)
       verifySchema(baseSchema, "basedefs", outdir, yamlrdr)
-      
+
       val listWriter = new FileWriter(new File(outdir, "structures.txt"))
       structures foreach (struct => {
         val schema = EdiSchema(schemaVersion, Map[String, Element](), Map[String, Composite](),
