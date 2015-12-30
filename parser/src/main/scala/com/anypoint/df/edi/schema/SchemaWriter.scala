@@ -95,7 +95,7 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
 
   /** Write a segment from a map of values. */
   def writeSegment(map: ValueMap, segment: Segment): Unit = {
-    baseWriter.writeSegmentTag(segment.ident)
+    baseWriter.writeSegmentTag(segment.tag)
     try {
       writeCompList(map, DATA_ELEMENT, false, segment.components)
     } catch {
