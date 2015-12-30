@@ -17,6 +17,7 @@
   </properties>
 
   <modules>
+<!--    <module>ltm</module>  -->
     <module>parser</module>
     <module>schemas</module>
     <module>systests</module>
@@ -50,4 +51,5 @@
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
+  
 </project>
