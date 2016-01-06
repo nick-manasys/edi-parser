@@ -19,7 +19,7 @@ trait SchemaJavaDefs {
     else throw new IllegalArgumentException(s"missing required value '$key'")
 
   def getRequiredString(key: String, map: ValueMap): String = {
-    def value = getRequiredValue(key, map)
+    val value = getRequiredValue(key, map)
     if (value.isInstanceOf[String]) value.asInstanceOf[String]
     else throw new IllegalArgumentException(s"not a string value '$key'")
   }
@@ -32,13 +32,13 @@ trait SchemaJavaDefs {
   }
 
   def getRequiredValueMap(key: String, map: ValueMap): ValueMap = {
-    def value = getRequiredValue(key, map)
+    val value = getRequiredValue(key, map)
     if (value.isInstanceOf[ValueMap]) value.asInstanceOf[ValueMap]
     else throw new IllegalArgumentException(s"not a value map '$key'")
   }
 
   def getRequiredMapList(key: String, map: ValueMap): MapList = {
-    def value = getRequiredValue(key, map)
+    val value = getRequiredValue(key, map)
     if (value.isInstanceOf[MapList]) value.asInstanceOf[MapList]
     else throw new IllegalArgumentException(s"not a map list '$key'")
   }
