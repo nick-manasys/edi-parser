@@ -50,4 +50,5 @@
       <uniqueVersion>false</uniqueVersion>
     </snapshotRepository>
   </distributionManagement>
+  
 </project>
