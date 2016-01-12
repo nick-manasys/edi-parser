@@ -28,23 +28,30 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
 
   /** Stack of loop nestings currently active in parse. */
   val loopStack = Stack[GroupComponent]()
+  
+  def userValue(usage: Usage) = usage match {
+    case UnusedUsage | IgnoredUsage => false
+    case _ => true
+  }
 
   /** Parse a segment component, which is either an element or a composite. */
   def parseComponent(comp: SegmentComponent, first: ItemType, rest: ItemType, map: ValueMap): Unit = {
+    def storeValue(value: Object) = {
+      if (userValue(comp.usage)) map put (comp.key, value)
+    }
     comp match {
       case elemComp: ElementComponent =>
         val elem = elemComp.element
         if (comp.count > 1) {
           val complist = new SimpleListImpl
-          map put (comp.key, complist)
           complist add parseElement(elem)
           while (baseLexer.currentType == REPETITION) complist add parseElement(elem)
-        } else map put (comp.key, parseElement(elem))
+          storeValue(complist)
+        } else storeValue(parseElement(elem))
       case compComp: CompositeComponent => {
         val composite = compComp.composite
         if (comp.count > 1) {
           val complist = new MapListImpl
-          map put (comp.key, complist)
           // TODO: is this check necessary? should never get here if not
           if (baseLexer.currentType == first) {
             val compmap = new ValueMapImpl
@@ -59,7 +66,8 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
               repetitionError(compComp)
               while (complist.size > comp.count) complist.remove(comp.count)
             }
-          }
+          } else throw new IllegalStateException("internal error - unexpected state")
+          storeValue(complist)
         } else parseCompList(composite.components, first, rest, map)
       }
     }

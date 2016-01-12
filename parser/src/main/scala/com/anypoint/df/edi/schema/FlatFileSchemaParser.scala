@@ -32,7 +32,7 @@ case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends Sche
 
   def describeError(fatal: Boolean) = if (fatal) "fatal" else "recoverable"
 
-  def positionInMessage = s"segment ${lexer.getSegmentNumber + 1}$describeSegment"
+  def positionInMessage = s"line ${lexer.getSegmentNumber}$describeSegment"
 
   def describeComponent(incomp: Boolean) =
     if (incomp) {
@@ -123,7 +123,7 @@ case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends Sche
     lexer.init
     map put (structureId, struct.ident)
     map put (structureName, struct.name)
-    map put (dataKey, parseStructure(struct, true, new ValueMapImpl))
+    map put (struct.ident, parseStructure(struct, true, new ValueMapImpl))
     map
   } catch {
     case t: Throwable =>

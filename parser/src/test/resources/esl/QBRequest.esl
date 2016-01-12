@@ -5,31 +5,32 @@ structures:
   tagStart: 0
   tagLength: 1
   data:
-  - { idRef: '1', position: '1', usage: M }
+  - { idRef: 'FCH', position: '1', usage: M }
   - groupId: 'Batch'
     usage: O
     count: '>1'
     items:
-    - { idRef: '3', position: '1', usage: M }
-    - { idRef: '5', position: '2', usage: M, count: '>1' }
-    - { idRef: '7', position: '3', usage: M }
-  - { idRef: '9', position: '1', usage: M }
+    - { idRef: 'BCH', position: '2', usage: M }
+    - { idRef: 'TDR', position: '3', usage: M, count: '>1' }
+    - { idRef: 'BCF', position: '4', usage: M }
+  - { idRef: 'FCF', position: '5', usage: M }
 - id: 'QBResponse'
   name: QuickBatch Response
   tagStart: 0
   tagLength: 1
   data:
-  - { idRef: '1', position: '1', usage: M }
+  - { idRef: 'FCH', position: '1', usage: M }
   - groupId: 'Batch'
     usage: O
     count: '>1'
     items:
-    - { idRef: '3', position: '1', usage: M }
-    - { idRef: '5', position: '2', usage: M, count: '>1' }
-    - { idRef: '7', position: '3', usage: M }
-  - { idRef: '9', position: '1', usage: M }
+    - { idRef: 'BCH', position: '2', usage: M }
+    - { idRef: 'TDR', position: '3', usage: M, count: '>1' }
+    - { idRef: 'BCF', position: '4', usage: M }
+  - { idRef: 'FCF', position: '5', usage: M }
 segments:
-- id: '1'
+- id: 'FCH'
+  tag: '1'
   name: File Control Header Record
   values:
   - { idRef: 'CommCode', position: 1, usage: M }
@@ -38,7 +39,8 @@ segments:
   - { idRef: 'ClientName', position: 4, usage: M }
   - { idRef: 'FileId', position: 5, usage: M }
   - { idRef: 'Filler107', position: 6, usage: U }
-- id: '3'
+- id: 'BCH'
+  tag: '3'
   name: Batch Control Header Record
   values:
   - { idRef: 'CompName', position: 1, usage: M }
@@ -49,7 +51,8 @@ segments:
   - { idRef: 'RefundFlag', position: 6, usage: O }
   - { idRef: 'Currency', position: 7, usage: O }
   - { idRef: 'Filler309', position: 8, usage: U }
-- id: '5'
+- id: 'TDR'
+  tag: '5'
   name: Transaction Detail Record
   values:
   - { idRef: 'Unused502', position: 1, usage: U }
@@ -63,7 +66,8 @@ segments:
   - { idRef: 'AuthId', position: 9, usage: O }
   - { idRef: 'ECI', position: 10, usage: O }
   - { idRef: 'Filler512', position: 11, usage: U }
-- id: '7'
+- id: 'BCF'
+  tag: '7'
   name: Batch Control Footer Record
   values:
   - { idRef: 'BatchTransCount', position: 1, usage: M }
@@ -71,7 +75,8 @@ segments:
   - { idRef: 'CompCode', position: 3, usage: M }
   - { idRef: 'BatchId', position: 4, usage: M }
   - { idRef: 'Filler706', position: 5, usage: U }
-- id: '9'
+- id: 'FCF'
+  tag: '9'
   name: File Control Footer Record
   values:
   - { idRef: 'FileBatchCount', position: 1, usage: M }

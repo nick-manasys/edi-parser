@@ -33,6 +33,11 @@ case class FlatFileSchemaWriter(out: OutputStream, structure: Structure, config:
 
   /** Typed writer, for access to format-specific conversions and support. */
   val writer = baseWriter.asInstanceOf[FlatFileWriter]
+  
+  def userValue(usage: Usage) = usage match {
+    case UnusedUsage | IgnoredUsage => false
+    case _ => true
+  }
 
   /** Write a value from map. */
   def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
@@ -72,7 +77,7 @@ case class FlatFileSchemaWriter(out: OutputStream, structure: Structure, config:
     comp match {
       case cc: CompositeComponent =>
         val comp = cc.composite
-        if (comp.components.exists { ccc => map containsKey ccc.key }) {
+        if (userValue(cc.usage) && comp.components.exists { ccc => map containsKey ccc.key }) {
           writeCompList(map, typ.nextLevel, true, comp.components)
         } else {
           if (cc.usage == MandatoryUsage) logAndThrow(s"missing required value '${cc.name}'")
@@ -80,7 +85,8 @@ case class FlatFileSchemaWriter(out: OutputStream, structure: Structure, config:
         }
       case ec: ElementComponent =>
         val elem = ec.element
-        writeSimple(map.get(ec.key), elem.dataType, elem.minLength, elem.maxLength)
+        val value = if (userValue(ec.usage)) map.get(ec.key) else null
+        writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
     }
   }
 
@@ -106,7 +112,7 @@ case class FlatFileSchemaWriter(out: OutputStream, structure: Structure, config:
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
     writer.setTagField(structure.tagStart.get)
-    val datamap = getRequiredValueMap(dataKey, map)
+    val datamap = getRequiredValueMap(structure.ident, map)
     structure.heading.foreach { seq => writeTopSection(0, datamap, seq) }
   } catch {
     case e: WriteException => throw e

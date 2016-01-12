@@ -95,7 +95,7 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
 
   /** Write a segment from a map of values. */
   def writeSegment(map: ValueMap, segment: Segment): Unit = {
-    baseWriter.writeSegmentTag(segment.ident)
+    baseWriter.writeSegmentTag(segment.tag)
     try {
       writeCompList(map, DATA_ELEMENT, false, segment.components)
     } catch {
@@ -111,12 +111,16 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
   def writeSection(map: ValueMap, comps: List[StructureComponent]): Unit = comps.foreach(comp => {
 
     /** Write a (potentially) repeating segment from a list of maps. */
-    def writeRepeatingSegment(list: MapList, segment: Segment): Unit =
-      list.asScala.foreach { map => writeSegment(map, segment) }
+    def writeRepeatingSegment(list: MapList, segment: Segment): Unit = {
+      val iter = list.iterator
+      while (iter.hasNext) writeSegment(iter.next, segment)
+    }
 
     /** Write a (potentially) repeating group from a list of maps. */
-    def writeRepeatingGroup(list: MapList, group: GroupBase): Unit =
-      list.asScala.foreach { map => writeSection(map, group.seq.items) }
+    def writeRepeatingGroup(list: MapList, group: GroupBase): Unit = {
+      val iter = list.iterator
+      while (iter.hasNext) writeSection(iter.next, group.seq.items)
+    }
 
     def checkMissing = comp.usage match {
       case MandatoryUsage => logAndThrow(s"missing required value '${comp.key}'")

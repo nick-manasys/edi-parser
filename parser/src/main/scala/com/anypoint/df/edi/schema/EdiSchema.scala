@@ -212,9 +212,9 @@ object EdiSchema {
   sealed abstract class StructureComponent(val key: String, val position: SegmentPosition, val usage: Usage,
     val count: Int)
 
-  private def ident(comp: StructureComponent) = comp match {
-    case r: ReferenceComponent => r.segment.ident
-    case g: GroupBase => g.leadSegmentRef.segment.ident
+  private def tag(comp: StructureComponent) = comp match {
+    case r: ReferenceComponent => r.segment.tag
+    case g: GroupBase => g.leadSegmentRef.segment.tag
     case w: LoopWrapperComponent => w.startCode
   }
 
@@ -249,12 +249,13 @@ object EdiSchema {
     
     private val lastRequired = if (requiredComps.nonEmpty) requiredComps.last else null
 
-    /** Idents of all segments used at this level, and of all segments reused at level. */
+    /** Tags of all segments used at this level, and of all segments reused at level. */
     val (allAtLevel, reusedSegments) =
-      items.filterNot { comp => comp.isInstanceOf[WildcardComponent] || comp.isInstanceOf[LoopWrapperComponent] }.map { ident(_) }.
-      foldLeft((Set[String](), Set[String]())) {
-        case ((segs, reps), ident) =>
-          if (segs.contains(ident)) (segs, reps + ident) else (segs + ident, reps)
+      items.filterNot {
+        comp => comp.isInstanceOf[WildcardComponent] || comp.isInstanceOf[LoopWrapperComponent]
+      }.map { tag(_) }.foldLeft((Set[String](), Set[String]())) {
+        case ((segs, reps), tag) =>
+          if (segs.contains(tag)) (segs, reps + tag) else (segs + tag, reps)
       }
     
 //    println(s"handling structure from $startPos: ${items.foldLeft("")((txt, comp) => txt + " " + comp.key)})")
@@ -290,14 +291,14 @@ object EdiSchema {
       val seqs = sm.Buffer[StructureSubsequence]()
 
       def addNormal(incl: CompList, terms: Terminations) = {
-        val comps = incl.map { c => (ident(c), c) }.toMap
+        val comps = incl.map { c => (tag(c), c) }.toMap
         // build terminations for all groups included in subsequence
         val (_, _, grps) = incl.reverse.foldLeft((terms.required, terms.idents, Map[GroupComponent, Terminations]())) {
           case ((cnt, ids, acc), comp) =>
             val ncnt = if (comp.usage == MandatoryUsage) cnt + 1 else cnt
-            val nids = ids + ident(comp)
+            val nids = ids + tag(comp)
             comp match {
-              case g: GroupComponent => (ncnt, nids, acc + (g -> Terminations(cnt, ids + ident(g.leadSegmentRef))))
+              case g: GroupComponent => (ncnt, nids, acc + (g -> Terminations(cnt, ids + tag(g.leadSegmentRef))))
               case _ => (ncnt, nids, acc)
             }
         }
@@ -309,7 +310,7 @@ object EdiSchema {
         seqs += StructureSubsequence(wild.position.position, comps, Terminations(1, comps.keySet), Map())
       }
       def addRequired(req: StructureComponent) = {
-        val id = ident(req)
+        val id = tag(req)
         seqs += StructureSubsequence(req.position.position, Map(id -> req), Terminations(1, Set(id)), Map())
       }
 
@@ -326,8 +327,8 @@ object EdiSchema {
         }
         def addNonEmpty(acc: CompList, rest: CompList) = {
           if (acc.nonEmpty) {
-            val termIds = rest.map { ident(_) }.toSet
-            val inclIds = acc.map { ident(_) }.toSet
+            val termIds = rest.map { tag(_) }.toSet
+            val inclIds = acc.map { tag(_) }.toSet
             addNormal(acc, Terminations(reqCount(rest), termIds -- inclIds))
           }
           splitr(rest, Nil)
@@ -335,8 +336,8 @@ object EdiSchema {
         @tailrec
         def splitr(rem: CompList, acc: CompList): Unit = rem match {
           case h :: t =>
-            val id = ident(h)
-            if ((reusedSegments.contains(id) && t.exists { ident(_) == id })) {
+            val id = tag(h)
+            if ((reusedSegments.contains(id) && t.exists { tag(_) == id })) {
               val (seq, rest) = findreq(t, h :: acc)
               if (rest.isEmpty) splitHead(h, t)
               else addNonEmpty(seq, rest)
@@ -345,8 +346,8 @@ object EdiSchema {
           case _ => if (!acc.isEmpty) addNormal(acc.reverse, terms)
         }
         def splitHead(head: StructureComponent, rest: CompList) = {
-          val restIds = rest.map { ident(_) }.toSet - ident(head)
-          val termIds = if (head.count == 1) restIds + ident(head) else restIds
+          val restIds = rest.map { tag(_) }.toSet - tag(head)
+          val termIds = if (head.count == 1) restIds + tag(head) else restIds
           addNormal(List(head), Terminations(reqCount(rest), termIds))
           splitr(rest, Nil)
         }
@@ -370,7 +371,7 @@ object EdiSchema {
             lead match {
               case split :+ last =>
                 if (!last.isInstanceOf[ReferenceComponent] || last.usage != MandatoryUsage || last.count != 1) throw new IllegalStateException("Structure uses wildcard segment without preceding required singleton segment reference")
-                splitReuses(split, Terminations(1, Set(ident(last))))
+                splitReuses(split, Terminations(1, Set(tag(last))))
                 addRequired(last)
               case _ =>
             }
@@ -548,7 +549,7 @@ object EdiSchema {
         @tailrec
         def termr(rem: List[StructureComponent], acc: Set[String]): Set[String] = rem match {
           case h :: t =>
-            val nacc = acc + EdiSchema.ident(h)
+            val nacc = acc + EdiSchema.tag(h)
             if (h.usage == MandatoryUsage) nacc else termr(t, nacc)
           case _ => acc
         }

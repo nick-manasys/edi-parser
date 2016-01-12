@@ -24,11 +24,11 @@ segments:
   name: Name
   values:
   - { idRef: '98', name: 'Type of Organization', usage: M }
-  - { idRef: '93', usage: U }
-  - { idRef: '66', name: 'ID Code Qualifier', usage: U }
-  - { idRef: '67', name: 'Identifying Number', usage: U }
-  - { idRef: '706', usage: U }
-  - { idRef: '98', usage: U }
+  - { idRef: '93', usage: O }
+  - { idRef: '66', name: 'ID Code Qualifier', usage: O }
+  - { idRef: '67', name: 'Identifying Number', usage: O }
+  - { idRef: '706', usage: O }
+  - { idRef: '98', usage: O }
 - id: 'N2'
   name: Additional Name Information
   values:
@@ -43,24 +43,24 @@ segments:
   name: Baseline Item Data
   values:
   - { idRef: '350', usage: O }
-  - { idRef: '380', name: 'Quantity Ordered', usage: U }
+  - { idRef: '380', name: 'Quantity Ordered', usage: O }
   - { idRef: '355', name: 'Unit of Measurement Code', usage: O }
-  - { idRef: '212', usage: U }
+  - { idRef: '212', usage: O }
   - { idRef: '639', usage: O }
-  - { idRef: '235', usage: U }
-  - { idRef: '234', usage: U }
-  - { idRef: '235', usage: U }
-  - { idRef: '234', usage: U }
-  - { idRef: '235', usage: U }
-  - { idRef: '234', usage: U }
-  - { idRef: '235', usage: U }
-  - { idRef: '234', usage: U }
-  - { idRef: '235', usage: U }
-  - { idRef: '234', usage: U }
-  - { idRef: '235', usage: U }
-  - { idRef: '234', usage: U }
-  - { idRef: '235', usage: U }
-  - { idRef: '234', usage: U }
+  - { idRef: '235', usage: O }
+  - { idRef: '234', usage: O }
+  - { idRef: '235', usage: O }
+  - { idRef: '234', usage: O }
+  - { idRef: '235', usage: O }
+  - { idRef: '234', usage: O }
+  - { idRef: '235', usage: O }
+  - { idRef: '234', usage: O }
+  - { idRef: '235', usage: O }
+  - { idRef: '234', usage: O }
+  - { idRef: '235', usage: O }
+  - { idRef: '234', usage: O }
+  - { idRef: '235', usage: O }
+  - { idRef: '234', usage: O }
   - { idRef: '350', name: 'Not a real value - testing YAML support', position: 99, usage: O }
 - id: 'SE'
   name: Transaction Set Trailer

@@ -62,29 +62,28 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     result.isSuccess should be (true)
     val input = result.get
     input get("Id") should be ("QBRequest")
-    val data = input.get("Data").asInstanceOf[ValueMap]
-    val seg1 = data.get("1_1").asInstanceOf[ValueMap]
-    seg1 get("101") should be ("MISSION")
-    val date = seg1.get("102").asInstanceOf[GregorianCalendar]
+    val data = input.get("QBRequest").asInstanceOf[ValueMap]
+    val seg1 = data.get("1_FCH").asInstanceOf[ValueMap]
+    seg1.size should be (5)
+    seg1 get("FCH01") should be ("MISSION")
+    val date = seg1.get("FCH02").asInstanceOf[GregorianCalendar]
     date get(Calendar.YEAR) should be (2013)
     date get(Calendar.MONTH) should be (7)
     date get(Calendar.DAY_OF_MONTH) should be (2)
-    seg1 get("103") should be (Integer.valueOf(28800000))
-    seg1 get("104") should be ("MISSIONAUSTRALIA")
-    seg1 get("105") should be ("2009110401")
-    seg1 get("106") should be ("")
+    seg1 get("FCH03") should be (Integer.valueOf(28800000))
+    seg1 get("FCH04") should be ("MISSIONAUSTRALIA")
+    seg1 get("FCH05") should be ("2009110401")
+    val seg2 = data.get("5_FCF").asInstanceOf[ValueMap]
+    seg2.size should be (6)
+    seg2 get("FCF01") should be (Integer.valueOf(1))
+    seg2 get("FCF02") should be (Integer.valueOf(1))
+    seg2 get("FCF03") should be (Integer.valueOf(10000))
+    seg2 get("FCF04") should be ("MISSION")
+    seg2 get("FCF05") should be ("MISSIONAUSTRALIA")
+    seg2 get("FCF06") should be ("2009110401")
   }
 
   behavior of "FlatFileSchemaWriter"
-
-  it should "roundtrip a simplified document" in {
-    val msg = line1 + line9
-    val in = new ByteArrayInputStream(msg.getBytes())
-    val parser = FlatFileSchemaParser(in, testSchema.structures.values.head)
-    val result = parser.parse
-    result.isSuccess should be (true)
-    val input = result.get
-  }
 
   /** Reads a copy of a test document into memory, standardizing line endings. */
   def readDoc(path: String) = {
