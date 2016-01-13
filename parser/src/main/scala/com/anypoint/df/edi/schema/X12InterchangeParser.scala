@@ -33,25 +33,28 @@ case class X12ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val c
   val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
   val reportDataErrors: Boolean, val generate999: Boolean, val substitutionChar: Int, val strChar: CharacterRestriction)
 
+case class X12HandlerInterchangeError(val error: InterchangeNoteCode, val text: String)
+case class X12HandlerGroupError(val error: GroupSyntaxError, val text: String)
+case class X12HandlerTransactionError(val error: TransactionSyntaxError, val text: String)
+
 /** Application callback to determine handling of envelope structures. */
 trait X12EnvelopeHandler {
 
-  /** Handle ISA segment data, returning either an InterchangeNoteCode (if there's a problem that prevents processing of
-    * the interchange) or the parser configuration to be used for reading the interchange (or <code>null</code> if
-    * default parser configuration to be used).
+  /** Handle ISA segment data, returning either an X12HandlerInterchangeError (if there's a problem that prevents
+    * processing of the interchange) or the parser configuration to be used for reading the interchange (or
+    * <code>null</code> if default parser configuration to be used).
     */
-  @throws(classOf[LexicalException])
   def handleIsa(map: ju.Map[String, Object]): Object
 
-  /** Handle GS segment data, returning either an GroupSyntaxError (if there's a problem that prevents processing of
-    * the group) or the parser configuration to be used for reading the interchange (or <code>null</code> if to use the
-    * parser configuration previously set).
+  /** Handle GS segment data, returning either an X12HandlerGroupError (if there's a problem that prevents processing of
+    * the group) or the parser configuration to be used for reading the group (or <code>null</code> if to continue using
+    * the parser configuration previously set).
     */
-  @throws(classOf[LexicalException])
   def handleGs(map: ju.Map[String, Object]): Object
 
-  /** Handle ST segment data, returning either a StructureSyntaxError (if there's a problem that prevents processing of
-    * the transaction set) or the transaction schema definition for parsing and validating the transaction set data.
+  /** Handle ST segment data, returning either an X12HandlerTransactionError (if there's a problem that prevents
+    * processing of the transaction set) or the transaction schema definition for parsing and validating the transaction
+    * set data.
     */
   def handleSt(map: ju.Map[String, Object]): Object
 }
@@ -62,11 +65,11 @@ case class X12Error(@BeanProperty val segment: Int, @BeanProperty val fatal: Boo
   def this() = this(0, false, ErrorType.INTERCHANGE_NOTE, "", "")
 }
 
-/** Exception reporting problem in interchange. */
-case class X12InterchangeException(val note: InterchangeNoteCode, val text: String, val cause: Throwable = null)
-extends RuntimeException(text, cause)
-
 class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12EnvelopeHandler) extends SchemaJavaDefs {
+
+  /** Exception reporting problem in interchange. */
+  case class X12InterchangeException(val note: InterchangeNoteCode, val text: String, val cause: Throwable = null)
+    extends Exception(text, cause)
 
   val logger = Logger.getLogger(getClass.getName)
 
@@ -128,10 +131,10 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** One or more segments of transaction in error flag. */
     var oneOrMoreSegmentsInError = false
-    
+
     /** Current transaction set data map. */
     var transactionMap: ValueMap = null
-    
+
     /** Current group data map. */
     var groupMap: ValueMap = null
 
@@ -143,7 +146,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** Accumulated transaction errors. */
     val transactionErrors = Buffer[TransactionSyntaxError]()
-    
+
     /** Accumulated group errors. */
     val groupErrors = Buffer[GroupSyntaxError]()
 
@@ -367,12 +370,14 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     /** Check if at functional group open segment. */
     def isGroupOpen = checkSegment(GSSegment)
 
-    def groupError(error: GroupSyntaxError) = {
+    def groupError(error: GroupSyntaxError, text: String) = {
       groupErrors += error
       addToList(errorListKey,
-        X12Error(lexer.getSegmentNumber, true, ErrorType.GROUP_SYNTAX, error.code, error.text), groupMap)
-      logGroupEnvelopeError(true, false, error.text)
+        X12Error(lexer.getSegmentNumber, true, ErrorType.GROUP_SYNTAX, error.code, text), groupMap)
+      logGroupEnvelopeError(true, false, text)
     }
+    
+    def groupError(error: GroupSyntaxError): Unit = groupError(error, error.text)
 
     /** Parse start of a functional group. */
     def openGroup =
@@ -403,12 +408,14 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       }
     }
 
-    def transactionError(error: TransactionSyntaxError) = {
+    def transactionError(error: TransactionSyntaxError, text: String) = {
       transactionErrors += error
       addToList(errorListKey,
-        X12Error(lexer.getSegmentNumber, true, ErrorType.TRANSACTION_SYNTAX, error.code, error.text), transactionMap)
-      logErrorInStructure(true, false, error.text)
+        X12Error(lexer.getSegmentNumber, true, ErrorType.TRANSACTION_SYNTAX, error.code, text), transactionMap)
+      logErrorInStructure(true, false, text)
     }
+    
+    def transactionError(error: TransactionSyntaxError): Unit = transactionError(error, error.text)
 
     /** Check if at transaction set open segment. */
     def isSetOpen = checkSegment(STSegment)
@@ -498,13 +505,12 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           setack put (groupKeys(2), xk5data)
           rejectStructure = false
           var data: ValueMap = null
-          val result = handler.handleSt(setprops)
-          result match {
+          handler.handleSt(setprops) match {
             case s: Structure => {
               data = handleStructure(s, setprops, setack)
               data put (structureSchema, s)
             }
-            case e: TransactionSyntaxError => transactionError(e)
+            case X12HandlerTransactionError(code, text) => transactionError(code, text)
           }
           while (lexer.currentType != END && !isEnvelopeSegment(lexer.segmentTag)) {
             logger.error(s"discarding $positionInStructure (${lexer.segmentTag}) found when looking for transaction set end")
@@ -553,39 +559,37 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         groupMap = openGroup
         if (rejectStructure) throw new X12InterchangeException(InterchangeInvalidContent, "invalid GH segment")
         else {
-          val groupErr = handler.handleGs(groupMap) match {
-            case e: GroupSyntaxError => e
-            case x =>
+          val ackhead = new ValueMapImpl
+          val ak1data = new ValueMapImpl
+          ak1data put (segAK1Comps(0) key, groupMap get (groupFunctionalIdentifierKey))
+          ak1data put (segAK1Comps(1) key, groupMap get (groupControlNumberHeaderKey))
+          var countPresent = 0
+          handler.handleGs(groupMap) match {
+            case X12HandlerGroupError(code, text) => {
+              groupError(code)
+              discardToGroupEnd
+              lexer.discardSegment
+            }
+            case x => {
               if (x.isInstanceOf[X12ParserConfig]) setConfig(x.asInstanceOf[X12ParserConfig])
-              null
+              groupStartSegment = lexer.getSegmentNumber - 2
+              groupNumber = getRequiredInt(groupControlNumberHeaderKey, groupMap)
+              val version = getRequiredString(groupVersionReleaseIndustryKey, groupMap)
+              if (version.startsWith("005")) ak1data put (segAK1Comps(2) key, version)
+              lexer.countGroup
+              parseGroup(version, ackhead)
+              countPresent = closeGroup(groupMap)
+            }
           }
-          groupStartSegment = lexer.getSegmentNumber - 2
-          groupNumber = getRequiredInt(groupControlNumberHeaderKey, groupMap)
-          val version = getRequiredString(groupVersionReleaseIndustryKey, groupMap)
-          lexer.countGroup
           val ackroot = buildAckRoot(inter)
           val groupcopy = new ValueMapImpl(groupMap)
           swap(groupApplicationSenderKey, groupApplicationReceiverKey, groupcopy)
           ackroot put (groupKey, groupcopy)
-          val ackhead = new ValueMapImpl
           ackroot put (structureHeading, ackhead)
           ackroot put (structureDetail, new ValueMapImpl)
           ackroot put (structureSummary, new ValueMapImpl)
           ackroot put (structureSchema, if (config generate999) trans999 else trans997)
-          val ak1data = new ValueMapImpl
           ackhead put (ackTransKeys(config generate999)(1), ak1data)
-          ak1data put (segAK1Comps(0) key, groupMap get (groupFunctionalIdentifierKey))
-          ak1data put (segAK1Comps(1) key, groupMap get (groupControlNumberHeaderKey))
-          if (version.startsWith("005")) ak1data put (segAK1Comps(2) key, version)
-          var countPresent = 0
-          if (groupErr == null) {
-            parseGroup(version, ackhead)
-            countPresent = closeGroup(groupMap)
-          } else {
-            groupError(groupErr)
-            discardToGroupEnd
-            lexer.discardSegment
-          }
           val ak9data = new ValueMapImpl
           val error = ackhead.containsKey(segAK2 ident)
           ackhead put (ackTransKeys(config generate999)(3), ak9data)
@@ -657,11 +661,9 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     map put (functionalAcksGenerated, funcAckList)
     val transLists = new ValueMapImpl().asInstanceOf[ju.Map[String, MapList]]
     map put (transactionsMap, transLists)
+    map put (errorListKey, new ju.ArrayList[X12Error])
 
-    def interchangeError(interchange: ValueMap, code: InterchangeNoteCode) = {
-      val text = s"Irrecoverable error in $InterchangeStartSegment at ${lexer.getSegmentNumber - 1}" +
-        (if (interchange.containsKey(INTER_CONTROL)) " with control number " + interchange.get(INTER_CONTROL)) +
-        ": " + code
+    def interchangeError(code: InterchangeNoteCode, text: String) = {
       logger error text
       throw X12InterchangeException(code, text)
     }
@@ -690,7 +692,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         init(inter) match {
           case InterchangeStartStatus.NO_DATA => done = true
           case InterchangeStartStatus.VALID => handler.handleIsa(inter) match {
-            case code: InterchangeNoteCode => interchangeError(inter, code)
+            case X12HandlerInterchangeError(code, text) => interchangeError(code, text)
             case x => {
               map put (delimiterCharacters, buildDelims)
               val parser = new X12SchemaParser(inter, map)
@@ -718,7 +720,12 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
             }
           }
           case status => LexerStartStatusInterchangeNote get (status) match {
-            case Some(code) => interchangeError(inter, code)
+            case Some(code) => {
+              val text = s"Irrecoverable error in $InterchangeStartSegment at ${lexer.getSegmentNumber - 1}" +
+                (if (inter.containsKey(INTER_CONTROL)) " with control number " + inter.get(INTER_CONTROL)) +
+                ": " + code
+              interchangeError(code, text)
+            }
             case None => throw new IllegalStateException(s"No handling defined for lexer start status $status")
           }
         }
@@ -727,7 +734,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           buildTA1(lexer.getSegmentNumber, interchangeAck, e.note, 0, inter)
           discardInterchange
         }
-        case e: IOException => {
+        case e: Exception => {
           buildTA1(lexer.getSegmentNumber, AcknowledgedRejected, InterchangeEndOfFile, 0, inter)
           throw e
         }

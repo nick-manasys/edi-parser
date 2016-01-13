@@ -15,7 +15,9 @@ object Decode999 extends SchemaJavaDefs {
   import X12SchemaDefs._
 
   def decode(root: ValueMap) = {
-    if (getRequiredString(structureId, root) != trans999.ident) throw new IllegalArgumentException("Not a 999 structure")
+    if (getRequiredString(structureId, root) != trans999.ident) {
+      throw new IllegalArgumentException("Not a 999 structure")
+    }
     val builder = new StringBuilder
     def decodeC030(comp: SegmentComponent, map: ValueMap) = {
       val comps = comp.asInstanceOf[EdiSchema.CompositeComponent].composite.components

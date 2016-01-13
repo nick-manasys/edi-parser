@@ -4,6 +4,7 @@ import java.io.InputStreamReader
 import java.io.StringReader
 import java.io.StringWriter
 import java.math.BigDecimal
+import java.{ util => ju }
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
 import collection.JavaConverters._
@@ -135,11 +136,6 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     getSyntaxVersion(input) should be ("1")
   }
 
-  it should "throw an exception when date length in UNB doesn't match syntax version" in {
-    val modDoc = UNA + testDoc.substring(0, 9) + '1' + testDoc.substring(10)
-    intercept[EdifactInterchangeException] { parseDoc(modDoc) }
-  }
-
   it should "parse syntax version 2" in {
     val modDoc = UNA + testDoc.substring(0, 9) + '2' + testDoc.substring(10, 44) + testDoc.substring(46)
     val input = parseDoc(modDoc)
@@ -169,6 +165,14 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val map = parser.parse.get
     val acks = map.get(functionalAcksGenerated).asInstanceOf[MapList]
     acks.size should be (0)
+  }
+
+  it should "report an error when date length in UNB doesn't match syntax version" in {
+    val modDoc = UNA + testDoc.substring(0, 9) + '1' + testDoc.substring(10)
+    val input = parseDoc(modDoc)
+    val errors = input.get(errorListKey).asInstanceOf[ju.List[EdifactError]]
+    errors.size should be (1)
+    errors.get(0) should be (EdifactError(1, true, "18", "more than maximum length for data type N0 at element 4: '06082015' (effective length 8 is greater than 6)"))
   }
 
   val writerConfig = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, false, true, -1, '.', ASCII_CHARSET, "+:*'?", "\n", false)

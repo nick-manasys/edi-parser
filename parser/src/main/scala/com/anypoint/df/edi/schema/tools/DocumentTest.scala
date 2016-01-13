@@ -123,7 +123,7 @@ class DefaultEdifactEnvelopeHandler(config: EdifactParserConfig, schema: EdiSche
   def handleUng(map: ju.Map[String, Object]) = {
     val groupRef = getRequiredString(groupHeadReferenceKey, map)
     msgRefs = Set[String]()
-    if (groupRefs.add(groupRef)) null else DuplicateDetected
+    if (groupRefs.add(groupRef)) null else EdifactHandlerError(DuplicateDetected, DuplicateDetected.text)
   }
 
   /** Handle UNH segment data, returning either a SyntaxError (if there's a problem that prevents processing of the
