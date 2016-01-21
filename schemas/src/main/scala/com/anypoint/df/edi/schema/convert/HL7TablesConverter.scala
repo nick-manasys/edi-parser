@@ -158,7 +158,7 @@ object HL7TablesConverter {
       val compList = lines.map { line =>
         val compdet = compDetail(line(2))
         val name = Some(compdet(0))
-        comps(compdet(2)) match {
+        comps(compdet(3)) match {
           case Element(id, nm, typ, mn, mx) => {
             val max = if (line(5).length > 0) line(5).toInt else mx
             val elem = Element(id, nm, typ, mn, max)
@@ -180,7 +180,7 @@ object HL7TablesConverter {
     if (remain.isEmpty) merged
     else if (grouped.size == remain.size) {
       val keys = remain.map { case (name: String, _) => name }
-      throw new IllegalStateException(s"Circular references in definitions for data structures: $keys")
+      throw new IllegalStateException(s"Circular or undefined references in definitions for data structures: $keys")
     } else buildComposites(remain, names, compdets, merged)
   }
 
@@ -311,6 +311,7 @@ object HL7TablesConverter {
         val ident = line(0)
         groupedDataStructs.get(ident) match {
           case Some(list) =>
+            if (list.length > 1) println(s"WARNING: Ignoring multiple components for elementary data structure $ident")
             val compline = list.head
             val mintext = compline(4)
             val minlen = if (mintext.length > 0) mintext.toInt else 1
@@ -325,7 +326,7 @@ object HL7TablesConverter {
       if (missingComps.nonEmpty) println(s"WARNING: Missing components for data structures: $missingComps")
 //      println("Generated element definitions:")
 //      elemDefs.keys.foreach { ident => println(ident) }
-      val simpleComps = compDetails.filter { case (ident, line) => elemDefs.contains(line(3)) }
+//      val simpleComps = compDetails.filter { case (ident, line) => elemDefs.contains(line(3)) }
       val compMap = buildComposites(groupedDataStructs, structNames, compDetails, elemDefs)
 //      compMap.foreach {
 //        case (key, elem: Element) => println(s"$key => ${elem.name} (element)")
