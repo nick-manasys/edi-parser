@@ -65,7 +65,6 @@ case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends Sche
       case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
       case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in flat files")
     }
-    println(s"value for ${elem.name} is $result")
     result
   }
 
