@@ -157,6 +157,13 @@ public abstract class EdiConstants
         throw new IllegalArgumentException("Unknown type code " + code);
     }
     
+    public static DataType toUnrestrictedType(String code) {
+        if (NAMETYPES.containsKey(code)) {
+            return NAMETYPES.get(code);
+        }
+        throw new IllegalArgumentException("Unknown type code " + code);
+    }
+    
     private static final Map<String, DataType> HL7Mapping = new HashMap<>();
     static {
         // treat specialized HL7 types as variations on string data types
