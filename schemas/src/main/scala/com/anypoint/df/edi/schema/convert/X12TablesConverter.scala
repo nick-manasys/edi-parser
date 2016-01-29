@@ -26,6 +26,8 @@ object X12TablesConverter {
   val compositeDetailsName = "comdetl.txt"
   val elementHeadersName = "elehead.txt"
   val elementDetailsName = "eledetl.txt"
+  
+  val groupIdentSuffix = "_Loop"
 
   /** Split comma-separated quoted values from string into list. */
   def splitValues(s: String) = {
@@ -135,7 +137,7 @@ object X12TablesConverter {
     groups: ListOfKeyedLists, excludeSegs: Set[Segment], version: EdiSchemaVersion) = {
 
     /** Converted form of component information from structure details row. */
-    case class ComponentInfo(segment: Segment, seq: String, usage: Usage, repeat: Int, loop: List[ComponentInfo])
+    case class ComponentInfo(segment: Segment, seq: String, usage: Usage, repeat: Int, loopId: String, loop: List[ComponentInfo])
 
     /** Map from area name to component information list. */
     type AreaMap = Map[String, List[ComponentInfo]]
@@ -144,11 +146,11 @@ object X12TablesConverter {
     def convertComponents(rows: List[List[String]]): AreaMap = {
 
       /** Convert string values to component information structure. */
-      def info(segid: String, seq: String, req: String, max: String, nested: List[ComponentInfo]) = {
+      def info(segid: String, seq: String, req: String, max: String, loopId: String, nested: List[ComponentInfo]) = {
         val segment = segments(segid)
         val usage = convertUsage(req)
         val repeat = if (max == ">1") 0 else max.toInt
-        ComponentInfo(segment, seq, usage, repeat, nested)
+        ComponentInfo(segment, seq, usage, repeat, loopId, nested)
       }
 
       /** Start a new loop (need separate function to keep convertr tail recursive). */
@@ -172,11 +174,11 @@ object X12TablesConverter {
             (remain, acc)
           } else if (depth == at) {
             // continuing at current loop level
-            convertr(tail, at, false, info(segid, seq, req, max, Nil) :: acc)
+            convertr(tail, at, false, info(segid, seq, req, max, loopid, Nil) :: acc)
           } else {
             // starting a nested loop
             val (rest, nested) = descend(remain, depth + 1)
-            convertr(rest, depth, false, info(segid, seq, req, repeat, nested) :: acc)
+            convertr(rest, depth, false, info(segid, seq, req, repeat, loopid, nested) :: acc)
           }
         }
         case Nil => (Nil, acc)
@@ -192,13 +194,14 @@ object X12TablesConverter {
       @tailrec
       def buildr(remain: List[ComponentInfo], acc: List[StructureComponent]): List[StructureComponent] =
         remain match {
-          case ComponentInfo(segment, seq, usage, repeat, loop) :: tail =>
+          case ComponentInfo(segment, seq, usage, repeat, loopId, loop) :: tail =>
             if (loop.isEmpty) {
               val position = SegmentPosition(table, seq)
               if (segment.ident == "LS") acc match {
                 case (group: GroupComponent) :: (leref: ReferenceComponent) :: t => {
+                  val grpid = group.ident.stripSuffix(groupIdentSuffix)
                   val wrap = LoopWrapperComponent(segment, leref.segment, position, leref.position,
-                    OptionalUsage, group.leadSegmentRef.segment.ident, group)
+                    OptionalUsage, grpid, group)
                   buildr(tail, wrap :: t)
                 }
                 case _ => throw new IllegalStateException("Malformed LS/LE loop")
@@ -212,7 +215,7 @@ object X12TablesConverter {
               if (comps.isEmpty) buildr(tail, acc)
               else {
                 val seq = StructureSequence(true, comps)
-                buildr(tail, GroupComponent(segment.ident + "_Loop", usage, repeat, seq, None, Nil) :: acc)
+                buildr(tail, GroupComponent(loopId + groupIdentSuffix, usage, repeat, seq, None, Nil) :: acc)
               }
             }
           case _ => acc
