@@ -118,4 +118,37 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 //    println("returned text:\n" + text + "\n")
     text should be (msg)
   }
+  
+  val altMessage = """0Acme Corp.          123456127 Mega Way        Los Angles  CA900262135551212
+1George    Sam            President      president@acme.corp                                   0000000000000000000020151130
+1Sally     Smith          V.P. Sales     sallys@acme.corp                                      0000000000000000000020151210
+0Ardvark Enterprises 1341335 Pikes Place       Seattle     WA980262065552341
+1Jane      Jones          CEO            janiejones@ardvark.co                                 0000000000000000000020140812
+"""
+
+  val altSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/CompanyContacts.esl"), "UTF-8"), Array())
+  
+  val altStructure = altSchema.structures("CompanyContacts")
+
+  it should "roundtrip another document" in {
+    val in = new ByteArrayInputStream(altMessage.getBytes())
+    val parser = FlatFileSchemaParser(in, altStructure)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+    val ywriter = new StringWriter
+    YamlSupport.writeMap(input, ywriter)
+    println(ywriter.toString)
+    val out = new ByteArrayOutputStream
+    val writer = FlatFileSchemaWriter(out, altStructure, FlatFileWriterConfig(true, ASCII_CHARSET))
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray)
+    println(text)
+    val swriter = new StringWriter
+    YamlSupport.writeMap(input, swriter)
+    println(swriter.toString())
+    println("returned text:\n" + text + "\n")
+    text should be (altMessage)
+  }
 }
