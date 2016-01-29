@@ -160,4 +160,29 @@ class X12SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     lines.foreach(line => builder.append(line))
     text should be (builder.toString)
   }
+
+  it should "use the configured whitespace segment separator" in {
+    val yamlIn = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
+    val schema = new YamlReader().loadYaml(new InputStreamReader(yamlIn, "UTF-8"), Array())
+    val messageIn = getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")
+    val parser = new X12InterchangeParser(messageIn, ASCII_CHARSET,
+      new DefaultX12EnvelopeHandler(parserConfig, schema))
+    val parseResult = parser.parse
+    parseResult.isInstanceOf[Success[ValueMap]] should be (true)
+    val out = new ByteArrayOutputStream
+    val config = X12WriterConfig(true, CharacterRestriction.EXTENDED, -1, ASCII_CHARSET, "*>U~", "\r\n")
+    val provider = new DefaultX12NumberProvider
+    val writer = X12SchemaWriter(out, provider, config)
+    val props = parseResult.get
+    props put (interchangeKey, new ValueMapImpl)
+    provider.interNum = 1243
+    provider.groupNum = 167
+    provider.setNum = 175
+    writer.write(props)
+    val text = new String(out.toByteArray) + "\r\n"
+    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/cdw850sample.edi")).getLines
+    val builder = new StringBuilder
+    lines.foreach(line => builder.append(line + "\r\n"))
+    text should be (builder.toString)
+  }
 }

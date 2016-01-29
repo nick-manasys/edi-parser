@@ -122,7 +122,7 @@ public class X12Writer extends DelimiterWriter
      * @see com.anypoint.df.edi.lexical.WriterBase#term(java.util.Map)
      */
     public void term(Map<String, Object> props) throws IOException {
-        writer.write("IEA");
+        writeToken("IEA");
         writeDataSeparator();
         writeInt(groupCount, 1, 5);
         writeDataSeparator();
