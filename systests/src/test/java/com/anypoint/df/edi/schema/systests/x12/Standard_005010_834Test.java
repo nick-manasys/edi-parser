@@ -13,5 +13,6 @@ public class Standard_005010_834Test extends X12TestBase {
     @Test
     public void verifyWrite() throws Exception {
         parseAndCheckWrite("/x12/005010/test834/834.edi");
+        parseAndCheckWrite("/x12/005010/test834/834-2.edi");
     }
 }

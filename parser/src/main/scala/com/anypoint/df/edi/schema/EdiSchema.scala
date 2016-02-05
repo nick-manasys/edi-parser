@@ -437,7 +437,7 @@ object EdiSchema {
     extends StructureComponent(wrapped.key, start, use, 1) {
     val startCode = open.ident + groupId
     val endCode = close.ident + groupId
-    val groupTerms = Terminations(1, Set(endCode))
+    val groupTerms = Terminations(1, Set(endCode, wrapped.leadSegmentRef.segment.ident))
   }
 
   /** Base for group components.

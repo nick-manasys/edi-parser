@@ -208,14 +208,18 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
              * @param wrap
              */
             def parseWrappedLoop(wrap: LoopWrapperComponent): Unit = {
-              if (wrap.usage == UnusedUsage)
-                segmentError(wrap.open.ident, UnusedSegment, ParseComplete, segmentNumber)
-              baseLexer.discardSegment
-              parseLoop(wrap.wrapped, wrap.groupTerms)
-              convertLoop match {
-                case Some(wrap.endCode) => baseLexer.discardSegment
-                case _ => segmentError(wrap.close.ident, MissingRequired, ParseComplete, segmentNumber)
+              @tailrec
+              def parser: String = {
+                parseLoop(wrap.wrapped, wrap.groupTerms)
+                val ident = convertLoop.getOrElse(baseLexer.segmentTag)
+                if (ident == wrap.wrapped.leadSegmentRef.segment.ident) parser
+                else ident
               }
+              
+              if (wrap.usage == UnusedUsage) segmentError(wrap.open.ident, UnusedSegment, ParseComplete, segmentNumber)
+              baseLexer.discardSegment
+              if (parser == wrap.endCode) baseLexer.discardSegment
+              else segmentError(wrap.close.ident, MissingRequired, ParseComplete, segmentNumber)
             }
 
             val ident = convertLoop.getOrElse(baseLexer.segmentTag)
