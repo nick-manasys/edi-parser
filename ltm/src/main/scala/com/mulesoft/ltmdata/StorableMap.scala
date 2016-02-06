@@ -1,7 +1,7 @@
 
 package com.mulesoft.ltmdata
 
-import java.io.{ DataInput, DataOutput }
+import java.io.{ DataInput, DataOutputStream }
 import java.{ lang => jl }
 import java.math.BigDecimal
 
@@ -36,15 +36,15 @@ class StorableMap(val descriptor: MapDescriptor) extends scm.HashMap[String, Obj
 
   override def +=(kv: (String, Object)): this.type = {
     val e = findOrAddEntry(kv._1, kv._2)
-    if (e eq null) memorySize += valueSize(kv._2)
+    if (e eq null) memorySize += ItemType.valueSize(kv._2)
     else {
-      memorySize += valueSize(kv._2) - valueSize(e.value)
+      memorySize += ItemType.valueSize(kv._2) - ItemType.valueSize(e.value)
       e.value = kv._2
     }
     this
   }
 
-  def write(os: DataOutput): Unit = {
+  def write(os: DataOutputStream): Unit = {
     val writeIndex = if (descriptor.keys.size <= 256) (n: Int) => os.writeByte(n) else (n: Int) => os.writeShort(n)
     os.writeShort(size)
     foreach {

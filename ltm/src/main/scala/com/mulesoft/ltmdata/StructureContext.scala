@@ -6,7 +6,7 @@ import java.io.File
 
 /** Structure context, used to track all map descriptors and assign indexes.
   */
-class StructureContext {
+class StructureContext(val maxMemory: Long) {
 
   val descriptors = scm.Buffer[MapDescriptor]()
 

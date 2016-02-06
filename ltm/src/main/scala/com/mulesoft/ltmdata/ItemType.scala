@@ -1,7 +1,7 @@
 
 package com.mulesoft.ltmdata
 
-import java.io.{ DataInput, DataOutput }
+import java.io.{ DataInput, DataOutputStream }
 import java.{ lang => jl }
 import java.math.{ BigDecimal, BigInteger }
 
@@ -10,23 +10,23 @@ import scala.collection.{ mutable => scm }
 /** Type definitions for stored data. Each type implements the appropriate handling to read and write values.
   */
 sealed abstract class ItemType(val index: Int, val clas: Class[_ <: Object]) {
-  def write(v: Object, os: DataOutput): Unit
+  def write(v: Object, os: DataOutputStream): Unit
   def read(is: DataInput, ctx: StructureContext): Object
 }
 case object StringType extends ItemType(0, classOf[String]) {
-  def write(v: Object, os: DataOutput) = os.writeUTF(v.asInstanceOf[String])
+  def write(v: Object, os: DataOutputStream) = os.writeUTF(v.asInstanceOf[String])
   def read(is: DataInput, ctx: StructureContext) = is.readUTF
 }
 case object IntegerType extends ItemType(1, classOf[Integer]) {
-  def write(v: Object, os: DataOutput) = os.writeInt(v.asInstanceOf[Integer].intValue)
+  def write(v: Object, os: DataOutputStream) = os.writeInt(v.asInstanceOf[Integer].intValue)
   def read(is: DataInput, ctx: StructureContext) = Integer.valueOf(is.readInt)
 }
 case object LongType extends ItemType(2, classOf[jl.Long]) {
-  def write(v: Object, os: DataOutput) = os.writeLong(v.asInstanceOf[Long].intValue)
+  def write(v: Object, os: DataOutputStream) = os.writeLong(v.asInstanceOf[Long].intValue)
   def read(is: DataInput, ctx: StructureContext) = jl.Long.valueOf(is.readLong)
 }
 case object DecimalType extends ItemType(3, classOf[BigDecimal]) {
-  def write(v: Object, os: DataOutput) = {
+  def write(v: Object, os: DataOutputStream) = {
     val d = v.asInstanceOf[BigDecimal]
     val byts = d.toBigInteger.toByteArray
     if (byts.length > Short.MaxValue) throw new IllegalStateException("Maximum length exceeded for value")
@@ -43,7 +43,7 @@ case object DecimalType extends ItemType(3, classOf[BigDecimal]) {
   }
 }
 case object BufferType extends ItemType(4, classOf[scm.Buffer[Object]]) {
-  def write(v: Object, os: DataOutput) = {
+  def write(v: Object, os: DataOutputStream) = {
     val buffer = v.asInstanceOf[scm.Buffer[Object]]
     os.writeInt(buffer.size)
     buffer.foreach { v =>
@@ -70,7 +70,7 @@ case object BufferType extends ItemType(4, classOf[scm.Buffer[Object]]) {
   }
 }
 case object MapType extends ItemType(5, classOf[StorableMap]) {
-  def write(v: Object, os: DataOutput) = {
+  def write(v: Object, os: DataOutputStream) = {
     val map = v.asInstanceOf[StorableMap]
     os.writeShort(map.descriptor.index)
     map.write(os)
@@ -82,7 +82,7 @@ case object MapType extends ItemType(5, classOf[StorableMap]) {
   }
 }
 case object ValueSeqType extends ItemType(6, classOf[StorableValueSeq]) {
-  def write(v: Object, os: DataOutput) = {
+  def write(v: Object, os: DataOutputStream) = {
     val seq = v.asInstanceOf[StorableValueSeq]
     seq.write(os)
   }
@@ -93,7 +93,7 @@ case object ValueSeqType extends ItemType(6, classOf[StorableValueSeq]) {
   }
 }
 case object MapSeqType extends ItemType(7, classOf[StorableMapSeq]) {
-  def write(v: Object, os: DataOutput) = {
+  def write(v: Object, os: DataOutputStream) = {
     val seq = v.asInstanceOf[StorableMapSeq]
     seq.write(os)
   }
@@ -118,7 +118,7 @@ object ItemType {
 
   def stringSize(s: String) = (39 + s.size) & -8
 
-  def valueSize(value: Object) = value match {
+  def valueSize(value: Object): Long = value match {
     case s: String => stringSize(s)
     case i: Integer => 16
     case l: jl.Long => 24
