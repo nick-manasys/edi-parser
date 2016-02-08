@@ -1,10 +1,11 @@
 
 package com.mulesoft.ltmdata
 
-import collection.AbstractIterator
-import collection.{ immutable => sci, mutable => scm }
-
+import java.{ util => ju }
 import java.io.{ BufferedOutputStream, DataInput, DataOutput, DataOutputStream, File, FileOutputStream, RandomAccessFile }
+
+import collection.AbstractIterator
+import collection.{ mutable => scm }
 
 /** Storable sequence of data maps or values. Each storable sequence is backed by a separate file. Once the decision is
   * made to start storing the data (as determined by the maxMemory size for the sequence) the storage file is created
@@ -16,7 +17,7 @@ import java.io.{ BufferedOutputStream, DataInput, DataOutput, DataOutputStream, 
   * penalty. Positioning forward is done by just reading and discarding values. Positioning backward is done by
   * resetting input to the start of the store file and reading forward.
   */
-abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] with StorableStructure {
+abstract class StorableSeq[A <: Object](ctx: StructureContext) extends scm.Seq[A] with StorableStructure with Iterable[A] {
 
   import StorableSeq._
   
@@ -87,7 +88,7 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] wi
     }
   }
 
-  protected class StorableSequenceIterator extends AbstractIterator[A] {
+  protected class StorableSequenceIterator extends AbstractIterator[A] with ju.Iterator[A] {
     var index = 0
 
     switchToInput
@@ -112,6 +113,10 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] wi
   def memSize = storageHandler.memSize
 
   def add(item: A): Unit = storageHandler.add(item)
+  def update(index: Int, item: A): Unit = {
+    if (index == size) storageHandler.add(item)
+    else throw new UnsupportedOperationException("Implement only supports appending, not modifying")
+  }
 
   def +=(item: A): Unit = storageHandler.add(item)
 

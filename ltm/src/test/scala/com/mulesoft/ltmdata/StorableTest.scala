@@ -81,7 +81,8 @@ class StorableTest extends FlatSpec with Matchers {
   val mapSize = {
     val ctx = new StructureContext(1000000)
     val map = ctx.newMap(ctx.addDescriptor(mapKeys))
-    fillMap(baseNumber, map).memSize
+    fillMap(baseNumber, map)
+    map.memSize
   }
   
   val mapCtxMemoryLimit = mapSize * inMemoryCount + 1
