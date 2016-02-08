@@ -1,34 +1,47 @@
 
 package com.mulesoft.ltmdata
 
-import java.{ util => ju }
-import java.io.{ BufferedOutputStream, DataInput, DataOutput, DataOutputStream, File, FileOutputStream, RandomAccessFile }
-
+import annotation.tailrec
 import collection.AbstractIterator
 import collection.{ mutable => scm }
+
+import java.{ util => ju }
+import java.io.{ BufferedOutputStream, DataInput, DataOutput, DataOutputStream, File, FileOutputStream, RandomAccessFile }
 
 /** Storable sequence of data maps or values. Each storable sequence is backed by a separate file. Once the decision is
   * made to start storing the data (as determined by the maxMemory size for the sequence) the storage file is created
   * and all current sequence data is written to the file and then discarded. As more values are added they are appended
   * directly to the file. It's possible that storing may take place at multiple levels, so that an ancestor of a
   * storable sequence will itself be storing to a file.
-  * 
+  *
   * The storage format is optimized for sequential access, but does allow random access with a substantial performance
   * penalty. Positioning forward is done by just reading and discarding values. Positioning backward is done by
   * resetting input to the start of the store file and reading forward.
   */
-abstract class StorableSeq[A <: Object](ctx: StructureContext) extends scm.Seq[A] with StorableStructure with Iterable[A] {
+abstract class StorableSeq[A <: Object](ctx: StructureContext) extends ju.AbstractList[A] with StorableStructure {
 
   import StorableSeq._
-  
-  trait StorageMode {
-    def size: Int
+
+  abstract class StorageMode extends scm.Seq[A] {
     def memSize: Long
     def add(item: A): Unit
     def get(idx: Int): A
     def write(os: DataOutput): Unit
     def finishOutput: Unit
     def initInput: Unit
+
+    def update(index: Int, item: A): Unit = {
+      if (index == size) storageHandler.add(item)
+      else throw new UnsupportedOperationException("Implement only supports appending, not modifying")
+    }
+
+    def +=(item: A): Unit = add(item)
+
+    def apply(idx: Int): A = get(idx)
+    
+    def length: Int = size
+
+    override def iterator = new StorableSequenceIterator
   }
 
   protected class MemoryStorage extends StorageMode {
@@ -36,17 +49,21 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends scm.Seq[A
     var buffer = new scm.ArrayBuffer[A]
     var totalSize = baseMemoryUse
 
-    def size = buffer.size
+    override def size = buffer.size
 
     def memSize = totalSize
 
     def add(item: A) = {
       buffer += item
-      val itemSize =
-        if (item.isInstanceOf[StorableStructure]) item.asInstanceOf[StorableStructure].memSize
-        else ItemType.valueSize(item)
-      totalSize += itemSize
-      if (totalSize >= ctx.maxMemory) switchToFile(buffer)
+      ctx.maximumMemory match {
+        case Some(l) =>
+          val itemSize =
+            if (item.isInstanceOf[StorableStructure]) item.asInstanceOf[StorableStructure].memSize
+            else ItemType.valueSize(item)
+          totalSize += itemSize
+          if (totalSize >= l) switchToFile(buffer)
+        case None =>
+      }
     }
 
     def get(idx: Int) = buffer(idx)
@@ -66,7 +83,7 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends scm.Seq[A
     var outStream: DataOutputStream = null
     var inStream: RandomAccessFile = null
 
-    def size = storedCount
+    override def size = storedCount
 
     def memSize = 0
 
@@ -98,7 +115,7 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends scm.Seq[A
     def next: A = {
       val ind = index
       index += 1
-      apply(ind)
+      storageHandler.apply(ind)
     }
   }
 
@@ -108,21 +125,35 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends scm.Seq[A
 
   protected def writeItem(item: A, os: DataOutput): Unit
 
-  override def size = storageHandler.size
-
   def memSize = storageHandler.memSize
 
-  def add(item: A): Unit = storageHandler.add(item)
-  def update(index: Int, item: A): Unit = {
-    if (index == size) storageHandler.add(item)
-    else throw new UnsupportedOperationException("Implement only supports appending, not modifying")
+  override def size = storageHandler.size
+
+  override def add(item: A): Boolean = {
+    storageHandler.add(item)
+    true
   }
 
   def +=(item: A): Unit = storageHandler.add(item)
 
   def apply(idx: Int): A = storageHandler.get(idx)
 
-  def iterator: Iterator[A] = new StorableSequenceIterator
+  //  override def indexOf(item: A): Int = {
+  //    @tailrec
+  //    def findr(index: Int): Int = {
+  //      if (index > size) -1
+  //      else if (storageHandler.get(index) == item) index
+  //      else findr(index + 1)
+  //    }
+  //    findr(0)
+  //  }
+
+  def get(idx: Int) = storageHandler.get(idx)
+
+  override def iterator = storageHandler.iterator
+  
+  override def equals(other: Any) =
+    other.isInstanceOf[StorableSeq[A]] && storageHandler == other.asInstanceOf[StorableSeq[A]].storageHandler
 
   def length = storageHandler.size
 
@@ -148,7 +179,7 @@ class StorableMapSeq(ctx: StructureContext) extends StorableSeq[StorableMap](ctx
 
     def readItem = {
       val index = inStream.readShort
-      val map = ctx.newMap(ctx.descriptors(index))
+      val map = ctx.newMap(ctx.descriptors(index)).asInstanceOf[StorableMap]
       map.read(inStream, ctx)
       inItem += 1
       map
@@ -182,7 +213,7 @@ class StorableMapSeq(ctx: StructureContext) extends StorableSeq[StorableMap](ctx
   def read(is: DataInput) = {
     val length = is.readInt
     if (is.readBoolean) {
-      (0 to length).foreach { _ => storageHandler.add(MapType.read(is, ctx)) }
+      (0 to length).foreach { _ => storageHandler.add(MapType.read(is, ctx).asInstanceOf[StorableMap]) }
     } else {
       val path = is.readUTF
       val fileStore = new MapFileStorage(new File(path), length)
@@ -225,7 +256,7 @@ class StorableValueSeq(ctx: StructureContext) extends StorableSeq[Object](ctx) {
       readItem(inStream)
     }
   }
-  
+
   protected def writeItem(value: Object, os: DataOutput) = ItemType.writeTyped(value, os)
 
   protected def switchToFile(seq: Seq[Object]) = {

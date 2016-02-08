@@ -62,7 +62,10 @@ class StorableMap(val descriptor: MapDescriptor) extends ju.AbstractMap[String, 
     case Some(v) => v
     case None => null
   }
-
+  
+  override def equals(other: Any) =
+    other.isInstanceOf[StorableMap] && baseMap == other.asInstanceOf[StorableMap].baseMap
+  
   def remove(key: String): Object = baseMap.remove(key) match {
     case Some(v) => v
     case None => null

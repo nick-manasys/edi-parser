@@ -12,7 +12,7 @@ class StorableTest extends FlatSpec with Matchers {
   val outMemoryCount = 40
   val relPrimeMultiplier = 13
   
-  val ctxValues = new StructureContext(integerSize * inMemoryCount + StorableSeq.baseMemoryUse + 1)
+  val ctxValues = new StorableStructureContext(integerSize * inMemoryCount + StorableSeq.baseMemoryUse + 1)
   
   behavior of "StorableValueSeq"
   
@@ -79,14 +79,14 @@ class StorableTest extends FlatSpec with Matchers {
   
   val baseNumber = 1000000
   val mapSize = {
-    val ctx = new StructureContext(1000000)
+    val ctx = new StorableStructureContext(1000000)
     val map = ctx.newMap(ctx.addDescriptor(mapKeys))
     fillMap(baseNumber, map)
     map.memSize
   }
   
   val mapCtxMemoryLimit = mapSize * inMemoryCount + 1
-  val ctxMaps = new StructureContext(mapCtxMemoryLimit)
+  val ctxMaps = new StorableStructureContext(mapCtxMemoryLimit)
   val mapDescriptor = ctxMaps.addDescriptor(mapKeys)
   
   behavior of "StorableMap"

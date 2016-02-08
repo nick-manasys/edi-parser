@@ -67,7 +67,7 @@ case object MapType extends ItemType(5, classOf[StorableMap]) {
     map.write(os)
   }
   def read(is: DataInput, ctx: StructureContext) = {
-    val map = ctx.newMap(ctx.getDescriptor(is.readShort))
+    val map = ctx.newMap(ctx.getDescriptor(is.readShort)).asInstanceOf[StorableMap]
     map.read(is, ctx)
     map
   }
@@ -78,7 +78,7 @@ case object ValueSeqType extends ItemType(6, classOf[StorableValueSeq]) {
     seq.write(os)
   }
   def read(is: DataInput, ctx: StructureContext) = {
-    val seq = ctx.newValueSeq
+    val seq = ctx.newValueSeq.asInstanceOf[StorableValueSeq]
     seq.read(is)
     seq
   }
@@ -89,7 +89,7 @@ case object MapSeqType extends ItemType(7, classOf[StorableMapSeq]) {
     seq.write(os)
   }
   def read(is: DataInput, ctx: StructureContext) = {
-    val seq = ctx.newMapSeq
+    val seq = ctx.newMapSeq.asInstanceOf[StorableMapSeq]
     seq.read(is)
     seq
   }
