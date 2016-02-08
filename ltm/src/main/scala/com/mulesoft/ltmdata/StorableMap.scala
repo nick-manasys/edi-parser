@@ -1,7 +1,7 @@
 
 package com.mulesoft.ltmdata
 
-import java.io.{ DataInput, DataOutputStream }
+import java.io.{ DataInput, DataOutput }
 import java.{ lang => jl }
 import java.math.BigDecimal
 
@@ -9,12 +9,13 @@ import scala.collection.{ mutable => scm }
 
 /** Storable map for data. The storage format for a map is a leading count followed by key-value pairs. The key is given
   * by index in the descriptor key list. Indexes are one byte if the number of possible keys is 256 or less, two bytes
-  * if more. Values start with a one-byte type code, and generally use standard Java DataInput/DataOutput formats, with
-  * UTF for Strings and BigDecimals written as an integer scale followed by a byte array with leading length byte.
+  * if more. Values are in standard form as defined by item type.
   */
 class StorableMap(val descriptor: MapDescriptor) extends scm.HashMap[String, Object] with StorableStructure {
+  
+  import StorableMap._
 
-  var memorySize: Long = 0
+  var memorySize = baseMemoryUse
 
   def memSize = memorySize
   
@@ -44,7 +45,7 @@ class StorableMap(val descriptor: MapDescriptor) extends scm.HashMap[String, Obj
     this
   }
 
-  def write(os: DataOutputStream): Unit = {
+  def write(os: DataOutput): Unit = {
     val writeIndex = if (descriptor.keys.size <= 256) (n: Int) => os.writeByte(n) else (n: Int) => os.writeShort(n)
     os.writeShort(size)
     foreach {
@@ -69,10 +70,14 @@ class StorableMap(val descriptor: MapDescriptor) extends scm.HashMap[String, Obj
       if (descriptor.keys.size <= 256) () => is.readByte.toInt & 0xFF
       else () => is.readShort.toInt & 0xFFFF
     val size = is.readShort
-    (0 to size) foreach { _ =>
+    (0 until size) foreach { _ =>
       val index = readIndex()
       val typ = ItemType.types(is.readByte)
       put(descriptor.keys(index), typ.read(is, ctx))
     }
   }
+}
+
+object StorableMap {
+  val baseMemoryUse: Long = 64
 }

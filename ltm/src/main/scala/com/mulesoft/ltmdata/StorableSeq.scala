@@ -4,32 +4,36 @@ package com.mulesoft.ltmdata
 import collection.AbstractIterator
 import collection.{ immutable => sci, mutable => scm }
 
-import java.io.{ BufferedOutputStream, DataInput, DataOutputStream, File, FileOutputStream, RandomAccessFile }
+import java.io.{ BufferedOutputStream, DataInput, DataOutput, DataOutputStream, File, FileOutputStream, RandomAccessFile }
 
-/** Storable sequence of data maps. Each storable sequence is backed by a separate file. Once the decision is made to
-  * start storing the data (as determined by the maxMemory size for the sequence) the storage file is created and all
-  * current child maps are written to the file and then discarded. As more child maps are added they are appended to the
-  * file and then discarded. It's possible that storing may take place at multiple levels, so that an ancestor of a
-  * storable sequence will itself be storing to a file. No special format is used for the stored data, it just consists
-  * of the concatenated data for all child maps. Reading back the child maps is optimized for sequential retrieval, with
-  * relative position used to move to the desired child map.
+/** Storable sequence of data maps or values. Each storable sequence is backed by a separate file. Once the decision is
+  * made to start storing the data (as determined by the maxMemory size for the sequence) the storage file is created
+  * and all current sequence data is written to the file and then discarded. As more values are added they are appended
+  * directly to the file. It's possible that storing may take place at multiple levels, so that an ancestor of a
+  * storable sequence will itself be storing to a file.
+  * 
+  * The storage format is optimized for sequential access, but does allow random access with a substantial performance
+  * penalty. Positioning forward is done by just reading and discarding values. Positioning backward is done by
+  * resetting input to the start of the store file and reading forward.
   */
 abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] with StorableStructure {
 
+  import StorableSeq._
+  
   trait StorageMode {
     def size: Int
     def memSize: Long
     def add(item: A): Unit
     def get(idx: Int): A
-    def write(os: DataOutputStream): Unit
+    def write(os: DataOutput): Unit
+    def finishOutput: Unit
     def initInput: Unit
-    def finish: Unit
   }
 
-  class MemoryStorage extends StorageMode {
+  protected class MemoryStorage extends StorageMode {
 
     var buffer = new scm.ArrayBuffer[A]
-    var totalSize: Long = 0
+    var totalSize = baseMemoryUse
 
     def size = buffer.size
 
@@ -46,18 +50,18 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] wi
 
     def get(idx: Int) = buffer(idx)
 
-    def write(os: DataOutputStream): Unit = {
-      os.writeShort(length)
+    def write(os: DataOutput): Unit = {
+      os.writeInt(length)
       os.writeBoolean(true)
       buffer.foreach { item => writeItem(item, os) }
     }
 
+    def finishOutput = {}
     def initInput = {}
-    def finish = {}
   }
 
-  abstract class BaseFileStorage(file: File) extends StorageMode {
-    var storedCount = 0
+  protected abstract class BaseFileStorage(file: File, count: Int) extends StorageMode {
+    var storedCount = count
     var outStream: DataOutputStream = null
     var inStream: RandomAccessFile = null
 
@@ -65,13 +69,13 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] wi
 
     def memSize = 0
 
-    def write(os: DataOutputStream): Unit = {
-      os.writeShort(length)
+    def write(os: DataOutput): Unit = {
+      os.writeInt(length)
       os.writeBoolean(false)
       os.writeUTF(file.getAbsolutePath)
     }
 
-    def finish = {
+    def finishOutput = {
       if (outStream != null) {
         outStream.close
         outStream = null
@@ -83,11 +87,10 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] wi
     }
   }
 
-  class StorableSequenceIterator extends AbstractIterator[A] {
+  protected class StorableSequenceIterator extends AbstractIterator[A] {
     var index = 0
-    
-    storageHandler.finish
-    storageHandler.initInput
+
+    switchToInput
 
     override def size = storageHandler.size
     def hasNext = index < size
@@ -100,6 +103,10 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] wi
 
   var storageHandler: StorageMode = new MemoryStorage
 
+  protected def switchToFile(seq: Seq[A]): Unit
+
+  protected def writeItem(item: A, os: DataOutput): Unit
+
   override def size = storageHandler.size
 
   def memSize = storageHandler.memSize
@@ -108,27 +115,26 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends Seq[A] wi
 
   def +=(item: A): Unit = storageHandler.add(item)
 
-  def switchToFile(seq: Seq[A]): Unit
-
-  def writeItem(item: A, os: DataOutputStream): Unit
-
   def apply(idx: Int): A = storageHandler.get(idx)
 
   def iterator: Iterator[A] = new StorableSequenceIterator
 
   def length = storageHandler.size
 
-  def write(os: DataOutputStream) = storageHandler.write(os)
+  def write(os: DataOutput) = storageHandler.write(os)
 
-  def finish = storageHandler.finish
+  def switchToInput = {
+    storageHandler.finishOutput
+    storageHandler.initInput
+  }
 }
 
 class StorableMapSeq(ctx: StructureContext) extends StorableSeq[StorableMap](ctx) {
 
-  class MapFileStorage(file: File) extends BaseFileStorage(file) {
+  protected class MapFileStorage(file: File, count: Int) extends BaseFileStorage(file, count) {
 
     def this(items: Seq[StorableMap], file: File) = {
-      this(file)
+      this(file, 0)
       outStream = new DataOutputStream(new FileOutputStream(file))
       items.foreach { add(_) }
     }
@@ -150,84 +156,22 @@ class StorableMapSeq(ctx: StructureContext) extends StorableSeq[StorableMap](ctx
     }
 
     def get(idx: Int) = {
-      while (inItem > idx) {
-        val size = inStream.readInt
-        inStream.seek(inStream.getFilePointer - 4 - size)
-        inItem -= 1
+      if (inItem > idx) {
+        inStream.seek(0)
+        inItem = 0
       }
       while (inItem < idx) readItem
       readItem
     }
   }
 
-  def switchToFile(seq: Seq[StorableMap]) = {
+  protected def switchToFile(seq: Seq[StorableMap]) = {
     storageHandler = new MapFileStorage(seq, ctx.newOut)
   }
 
-  def writeItem(map: StorableMap, os: DataOutputStream) = {
-    val start = os.size
+  protected def writeItem(map: StorableMap, os: DataOutput) = {
     os.writeShort(map.descriptor.index)
     map.write(os)
-    val size: Int = os.size - start
-    os.write(size)
-  }
-
-  def read(is: DataInput) = {
-    val length = is.readShort
-    if (is.readBoolean) {
-      (0 to length).foreach { _ => storageHandler.add(MapType.read(is, ctx)) }
-    } else {
-      val path = is.readUTF
-      val fileStore = new MapFileStorage(new File(path))
-      storageHandler = fileStore
-      fileStore.initInput
-    }
-  }
-}
-
-class StorableValueSeq(ctx: StructureContext) extends StorableSeq[Object](ctx) {
-
-  class ValueFileStorage(file: File) extends BaseFileStorage(file) {
-
-    def this(items: Seq[Object], file: File) = {
-      this(file)
-      outStream = new DataOutputStream(new FileOutputStream(file))
-      items.foreach { add(_) }
-    }
-
-    var inItem = 0
-
-    def add(value: Object) = {
-      if (outStream == null) throw new IllegalStateException("Cannot add to seq after finish")
-      writeItem(value, outStream)
-      storedCount += 1
-    }
-
-    def get(idx: Int) = {
-      while (inItem > idx) {
-        val size = inStream.readInt
-        inStream.seek(inStream.getFilePointer - 4 - size)
-        inItem -= 1
-      }
-      while (inItem < idx) readItem(inStream)
-      readItem(inStream)
-    }
-  }
-
-  def readItem(is: DataInput) = {
-    val index = is.readByte
-    val itemType = ItemType.types(index)
-    itemType.read(is, ctx)
-  }
-
-  def writeItem(value: Object, os: DataOutputStream) = {
-    val itemType = ItemType.itemType(value)
-    os.writeByte(itemType.index)
-    itemType.write(value, os)
-  }
-
-  def switchToFile(seq: Seq[Object]) = {
-    storageHandler = new ValueFileStorage(seq, ctx.newOut)
   }
 
   def read(is: DataInput) = {
@@ -236,9 +180,66 @@ class StorableValueSeq(ctx: StructureContext) extends StorableSeq[Object](ctx) {
       (0 to length).foreach { _ => storageHandler.add(MapType.read(is, ctx)) }
     } else {
       val path = is.readUTF
-      val fileStore = new ValueFileStorage(new File(path))
+      val fileStore = new MapFileStorage(new File(path), length)
       storageHandler = fileStore
       fileStore.initInput
     }
   }
+}
+
+class StorableValueSeq(ctx: StructureContext) extends StorableSeq[Object](ctx) {
+
+  protected class ValueFileStorage(file: File, count: Int) extends BaseFileStorage(file, count) {
+
+    def this(items: Seq[Object], file: File) = {
+      this(file, 0)
+      outStream = new DataOutputStream(new FileOutputStream(file))
+      items.foreach { add(_) }
+    }
+
+    var inItem = 0
+
+    def readItem(is: DataInput) = {
+      val value = ItemType.readTyped(is, ctx)
+      inItem += 1
+      value
+    }
+
+    def add(value: Object) = {
+      if (outStream == null) throw new IllegalStateException("Cannot add to seq after finish")
+      writeItem(value, outStream)
+      storedCount += 1
+    }
+
+    def get(idx: Int) = {
+      if (inItem > idx) {
+        inStream.seek(0)
+        inItem = 0
+      }
+      while (inItem < idx) readItem(inStream)
+      readItem(inStream)
+    }
+  }
+  
+  protected def writeItem(value: Object, os: DataOutput) = ItemType.writeTyped(value, os)
+
+  protected def switchToFile(seq: Seq[Object]) = {
+    storageHandler = new ValueFileStorage(seq, ctx.newOut)
+  }
+
+  def read(is: DataInput) = {
+    val length = is.readInt
+    if (is.readBoolean) {
+      (1 to length).foreach { _ => storageHandler.add(ItemType.readTyped(is, ctx)) }
+    } else {
+      val path = is.readUTF
+      val fileStore = new ValueFileStorage(new File(path), length)
+      storageHandler = fileStore
+      fileStore.initInput
+    }
+  }
+}
+
+object StorableSeq {
+  val baseMemoryUse: Long = 64
 }
