@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.mule.edi</groupId>
   <artifactId>edi</artifactId>
-  <version>1.0.2-SNAPSHOT</version>
+  <version>1.1.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Mule EDI Support</name>
 
@@ -17,7 +17,7 @@
   </properties>
 
   <modules>
-<!--    <module>ltm</module>  -->
+    <module>ltm</module>
     <module>parser</module>
     <module>schemas</module>
     <module>systests</module>
