@@ -25,6 +25,7 @@ import EdiSchema._
 import EdifactAcknowledgment._
 import EdifactSchemaDefs._
 import SchemaJavaValues._
+import com.mulesoft.ltmdata.StorageContext
 
 /** Configuration parameters for EDIFACT schema parser.
   */
@@ -65,13 +66,20 @@ case class EdifactError(@BeanProperty val segment: Int, @BeanProperty val fatal:
 }
 
 case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, handler: EdifactEnvelopeHandler)
-  extends SchemaParser(new EdifactLexer(in, defaultDelims)) {
+  extends SchemaParser(new EdifactLexer(in, defaultDelims), StorageContext.workingContext) {
 
   /** Exception reporting problem in interchange. */
   case class EdifactInterchangeException(error: SyntaxError, text: String, cause: Throwable = null)
     extends Exception(text, cause) {
     def this(err: SyntaxError, txt: String) = this(err, txt, null)
   }
+  
+  // keys in message map (excludes structure key)
+  val structureDescriptor =
+    storageContext.addDescriptor(Array(structureId, structureName, structureHeading, structureDetail, structureSummary))
+
+  // value key used in multiple maps
+  val errorListKey = "Errors"
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[EdifactLexer]
@@ -308,7 +316,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
   def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
     segmentIndex = lexer.getSegmentNumber
-    val map = new ValueMapImpl
+    val map = storageContext.newMap(segment.keys)
     segmentErrors.clear
     currentSegment = segment
     val segNum = errorSegmentNumber
@@ -420,7 +428,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       inMessage = true
       rejectMessage = false
       messageErrorCode = null
-      currentUCM = new ValueMapImpl
+      currentUCM = storageContext.newMap(ucmSegment(syntaxVersion).keys)
       messageStartSegment = lexer.getSegmentNumber
       val unhSeg = unhSegment(syntaxVersion)
       val values = parseSegment(unhSeg, outsidePosition)
@@ -462,28 +470,28 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       val ucmSeg = ucmSegment(syntaxVersion)
       currentUCM put (ucmSeg.components(2).key, ackcode.code)
       if (messageErrorCode != null) currentUCM put (ucmSeg.components(3).key, messageErrorCode.code)
-      val sg1 = new ValueMapImpl
+      val sg1 = storageContext.newMap(contrlSg1(syntaxVersion).keys)
       val group1Comps = contrlSg1Comps(syntaxVersion)
       sg1 put (group1Comps(0).key, currentUCM)
       if (!messageErrors.isEmpty) {
 
         // create segment group 2 instance for each segment with error(s)
-        val sg2list = new MapListImpl
+        val sg2list = storageContext.newMapSeq
         sg1 put (group1Comps(1).key, sg2list)
         messageErrors.foreach(segerr => {
-          val sg2 = new ValueMapImpl
+          val sg2 = storageContext.newMap(CONTRLsg2.keys)
           sg2list add sg2
-          val ucs = new ValueMapImpl
+          val ucs = storageContext.newMap(segUCS.keys)
           ucs put (segUCS.components(0).key, Integer.valueOf(segerr.segmentPosition))
           if (segerr.errorCode != null) ucs put (segUCS.components(1).key, segerr.errorCode)
           sg2 put (contrlSg2Comps(0).key, ucs)
           if (!segerr.dataErrors.isEmpty) {
 
             // add UCD for each data error in segment
-            val ucdlist = new MapListImpl
+            val ucdlist = storageContext.newMapSeq
             sg2 put (contrlSg2Comps(1).key, ucdlist)
             segerr.dataErrors.foreach(dataerr => {
-              val ucd = new ValueMapImpl
+              val ucd = storageContext.newMap(segUCD.keys)
               ucd put (segUCD.components(0).key, dataerr.error.code)
               def elems = segUCD.components(1).asInstanceOf[CompositeComponent].composite.components
               ucd put (elems(0).key, Integer.valueOf(dataerr.elementPosition))
@@ -530,6 +538,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     while (!isGroupClose)
       if (isSetOpen) {
         groupMessageCount += 1
+        lexer.discardSegment
         discardStructure
       } else lexer.discardSegment
 
@@ -578,22 +587,22 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
     }
 
     rootMap = new ValueMapImpl
-    val ackGeneratedList = new MapListImpl
+    val ackGeneratedList = storageContext.newMapSeq
     rootMap put (functionalAcksGenerated, ackGeneratedList)
-    val ackReceivedList = new MapListImpl
+    val ackReceivedList = storageContext.newMapSeq
     rootMap put (functionalAcksReceived, ackReceivedList)
-    val transLists = new ValueMapImpl().asInstanceOf[ju.Map[String, MapList]]
+    val transLists = new ValueMapImpl
     rootMap put (messagesMap, transLists)
     val schemaVersionMessages = getOrSet(messagesMap, new ValueMapImpl, rootMap)
     rootMap put (errorListKey, new ju.ArrayList[EdifactError]())
 
     def buildFuncCONTRL(interchange: ValueMap) = {
-      val ctrlmap = new ValueMapImpl
       val msg = contrlMsg(syntaxVersion)
+      val ctrlmap = storageContext.newMap(structureDescriptor)
       ctrlmap put (structureId, msg.ident)
       ctrlmap put (structureName, msg.name)
       ctrlmap put (structureSchema, msg)
-      val intercopy = new ValueMapImpl(interchange)
+      val intercopy = storageContext.newMemoryResidentMap(interchange)
       swap(interHeadSenderQualKey, interHeadRecipientQualKey, intercopy)
       swap(interHeadSenderIdentKey, interHeadRecipientIdentKey, intercopy)
       ctrlmap put (interchangeKey, intercopy)
@@ -605,7 +614,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
         lexer.setHandler(null)
         segmentGeneralError = null
         segmentErrors.clear
-        val inter = new ValueMapImpl()
+        val inter = new ValueMapImpl
         syntaxVersion = init(inter)
         rootMap put (delimiterCharacters, buildDelims)
         parseCompList(unbSegment(syntaxVersion).components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, inter)
@@ -638,19 +647,19 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
         contrlGroup1s.clear
         contrlGroup3s.clear
         val ackroot = buildFuncCONTRL(interchangeMap)
-        val ackhead = new ValueMapImpl
+        val contrl = contrlMsg(syntaxVersion)
+        val ackhead = storageContext.newMap(contrl.headingKeys)
         ackroot put (structureHeading, ackhead)
-        ackroot put (structureDetail, new ValueMapImpl)
-        ackroot put (structureSummary, new ValueMapImpl)
+        ackroot put (structureDetail, storageContext.newMap(storageContext.emptyDescriptor))
+        ackroot put (structureSummary, storageContext.newMap(storageContext.emptyDescriptor))
         ackGeneratedList add ackroot
-        val interack = new ValueMapImpl
         val segUCI = uciSegment(syntaxVersion)
+        val interack = storageContext.newMap(segUCI.keys)
         interack put (segUCI.components(0).key, interchangeReference)
         copyComposite(unbSender, interchangeMap,
           segUCI.components(1).asInstanceOf[CompositeComponent].composite, interack)
         copyComposite(unbRecipient, interchangeMap,
           segUCI.components(2).asInstanceOf[CompositeComponent].composite, interack)
-        val contrl = contrlMsg(syntaxVersion)
         ackhead put (contrl.heading.get.items(1).key, interack)
 
         def parseMessage(group: Option[ValueMap]) = {
@@ -664,7 +673,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
                 config = cfg
                 lexer.asInstanceOf[EdifactLexer].configure(config.substitutionChar, config.enforceChars)
               }
-              messageMap = new ValueMapImpl
+              messageMap = storageContext.newMap(structureDescriptor)
               parseStructure(struct, false, messageMap)
               if (isSetClose) {
                 closeSet(setprops)
@@ -679,7 +688,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
                       val version = getRequiredString(msgHeadMessageVersionKey, setprops) +
                         getRequiredString(msgHeadMessageReleaseKey, setprops)
                       val msgLists = getOrSet(version, new ValueMapImpl, schemaVersionMessages)
-                      getOrSet(setid, new MapListImpl, msgLists)
+                      getOrSet(setid, storageContext.newMapSeq, msgLists)
                     }
                   list add (messageMap)
                   interchangeGoodCount = interchangeGoodCount + 1
@@ -743,12 +752,12 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
           }
         } finally {
           if (!contrlGroup1s.isEmpty) {
-            val g1list = new MapListImpl
+            val g1list = storageContext.newMapSeq
             contrlGroup1s.foreach(map => g1list.add(map))
             ackhead put (contrl.heading.get.items(2).key, g1list)
           }
           if (!contrlGroup3s.isEmpty) {
-            val g3list = new MapListImpl
+            val g3list = storageContext.newMapSeq
             contrlGroup3s.foreach(map => g3list.add(map))
             ackhead put (contrl.heading.get.items(3).key, g3list)
           }

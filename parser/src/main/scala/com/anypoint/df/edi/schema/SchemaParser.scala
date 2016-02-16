@@ -4,8 +4,8 @@ import scala.annotation.tailrec
 import scala.collection.mutable.{ Buffer, Stack }
 import scala.util.Try
 
-import java.io.IOException
-import java.io.InputStream
+import java.io.{ IOException, InputStream }
+import java.{ util => ju }
 
 import org.apache.log4j.Logger
 
@@ -17,8 +17,10 @@ import com.anypoint.df.edi.lexical.ErrorHandler
 import com.anypoint.df.edi.lexical.ErrorHandler._
 import com.anypoint.df.edi.schema.EdiSchema._
 
+import com.mulesoft.ltmdata.StorageContext
+
 /** Parse EDI document based on schema. */
-abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
+abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: StorageContext) extends SchemaJavaDefs {
 
   import SchemaJavaValues._
 
@@ -43,7 +45,7 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
       case elemComp: ElementComponent =>
         val elem = elemComp.element
         if (comp.count > 1) {
-          val complist = new SimpleListImpl
+          val complist = storageContext.newValueSeq
           complist add parseElement(elem)
           while (baseLexer.currentType == REPETITION) complist add parseElement(elem)
           storeValue(complist)
@@ -51,14 +53,15 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
       case compComp: CompositeComponent => {
         val composite = compComp.composite
         if (comp.count > 1) {
-          val complist = new MapListImpl
+          val complist = storageContext.newMapSeq
           // TODO: is this check necessary? should never get here if not
           if (baseLexer.currentType == first) {
-            val compmap = new ValueMapImpl
+            val descript = storageContext.addDescriptor(composite.keys)
+            val compmap: ju.Map[String, Object] = storageContext.newMap(descript)
             parseCompList(composite.components, first, rest, compmap)
-            complist add compmap
+            complist.add(compmap)
             while (baseLexer.currentType == REPETITION) {
-              val repmap = new ValueMapImpl
+              val repmap = storageContext.newMap(descript)
               parseCompList(composite.components, REPETITION, rest, repmap)
               complist add repmap
             }
@@ -134,10 +137,10 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
     import ErrorStates._
 
     /** Get list of maps for key. If the list is not already set, this creates and returns a new one. */
-    def getList(key: String, values: ValueMap) =
-      if (values.containsKey(key)) values.get(key).asInstanceOf[MapList]
+    def getList(key: String, values: ValueMap): ju.List[ju.Map[String, Object]] =
+      if (values.containsKey(key)) values.get(key).asInstanceOf[ju.List[ju.Map[String, Object]]]
       else {
-        val list = new MapListImpl
+        val list = storageContext.newMapSeq
         values put (key, list)
         list
       }
@@ -183,7 +186,7 @@ abstract class SchemaParser(val baseLexer: LexerBase) extends SchemaJavaDefs {
             def parseLoop(loop: GroupComponent, groupTerm: Terminations): Unit = {
               loopStack.push(loop)
               val ident = baseLexer.segmentTag
-              val data = new ValueMapImpl
+              val data = storageContext.newMap(loop.keys)
               val number = segmentNumber
               if (loop.usage == UnusedUsage) segmentError(ident, UnusedSegment, ParseComplete, number)
               // need to add handling of variant loops back in

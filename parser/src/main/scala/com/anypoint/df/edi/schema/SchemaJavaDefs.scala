@@ -7,9 +7,9 @@ trait SchemaJavaDefs {
 
   type ValueMap = ju.Map[String, Object]
   type ValueMapImpl = ju.HashMap[String, Object]
-  type MapList = ju.List[ValueMap]
+  type MapList = ju.Collection[ValueMap]
   type MapListImpl = ju.ArrayList[ValueMap]
-  type SimpleList = ju.List[Object]
+  type SimpleList = ju.Collection[Object]
   type SimpleListImpl = ju.ArrayList[Object]
   type RealNumber = java.math.BigDecimal
   type IntegerNumber = Integer

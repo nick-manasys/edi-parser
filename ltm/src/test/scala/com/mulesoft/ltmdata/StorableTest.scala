@@ -12,7 +12,7 @@ class StorableTest extends FlatSpec with Matchers {
   val outMemoryCount = 40
   val relPrimeMultiplier = 13
   
-  val ctxValues = new StorableStructureContext(integerSize * inMemoryCount + StorableSeq.baseMemoryUse + 1)
+  val ctxValues = new StorableStorageContext(integerSize * inMemoryCount + StorableSeq.baseMemoryUse + 1)
   
   behavior of "StorableValueSeq"
   
@@ -79,14 +79,14 @@ class StorableTest extends FlatSpec with Matchers {
   
   val baseNumber = 1000000
   val mapSize = {
-    val ctx = new StorableStructureContext(1000000)
-    val map = ctx.newMap(ctx.addDescriptor(mapKeys))
+    val ctx = new StorableStorageContext(1000000)
+    val map = ctx.newMap(ctx.addDescriptor(mapKeys)).asInstanceOf[StorableMap]
     fillMap(baseNumber, map)
     map.memSize
   }
   
   val mapCtxMemoryLimit = mapSize * inMemoryCount + 1
-  val ctxMaps = new StorableStructureContext(mapCtxMemoryLimit)
+  val ctxMaps = new StorableStorageContext(mapCtxMemoryLimit)
   val mapDescriptor = ctxMaps.addDescriptor(mapKeys)
   
   behavior of "StorableMap"
@@ -100,35 +100,35 @@ class StorableTest extends FlatSpec with Matchers {
   }
   
   it should "store and retrieve from stream" in {
-    val map1 = ctxMaps.newMap(mapDescriptor)
+    val map1 = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
     val bytes = writeToBytes(map1)
     val dis = new DataInputStream(new ByteArrayInputStream(bytes))
-    val map2 = ctxMaps.newMap(mapDescriptor)
+    val map2 = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
     map2.read(dis, ctxValues)
     map1 should be (map2)
   }
   
   it should "support nested sequences kept in memory" in {
-    val map1 = ctxMaps.newMap(mapDescriptor)
+    val map1 = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
     val seq = ctxValues.newValueSeq
     (1 to inMemoryCount) foreach { i => seq += Integer.valueOf(i) }
     map1 += ("seq" -> seq)
     val bytes = writeToBytes(map1)
     val dis = new DataInputStream(new ByteArrayInputStream(bytes))
-    val map2 = ctxMaps.newMap(mapDescriptor)
+    val map2 = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
     map2.read(dis, ctxValues)
     map1 should be (map2)
   }
   
   it should "support nested lists dumped to file" in {
-    val map1 = ctxMaps.newMap(mapDescriptor)
+    val map1 = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
     val seq = ctxValues.newValueSeq
     seq += jl.Long.valueOf(0)
     while (seq.memSize > 0) seq += jl.Long.valueOf(seq.memSize)
     map1 += ("seq" -> seq)
     val bytes = writeToBytes(map1)
     val dis = new DataInputStream(new ByteArrayInputStream(bytes))
-    val map2 = ctxMaps.newMap(mapDescriptor)
+    val map2 = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
     map2.read(dis, ctxValues)
     map1 should be (map2)
   }
@@ -138,9 +138,9 @@ class StorableTest extends FlatSpec with Matchers {
   val adjustedInMemoryCount = ((mapCtxMemoryLimit - StorableSeq.baseMemoryUse) / mapSize).toInt
   
   it should "keep data in memory to maximum size" in {
-    val seq = ctxMaps.newMapSeq
+    val seq = ctxMaps.newMapSeq.asInstanceOf[StorableMapSeq]
     val maps = (1 to adjustedInMemoryCount).map { i =>
-      val map = ctxMaps.newMap(mapDescriptor)
+      val map = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
       fillMap(baseNumber + i, map)
       seq += map
       seq.memSize should be (StorableSeq.baseMemoryUse + i * mapSize)
@@ -152,15 +152,15 @@ class StorableTest extends FlatSpec with Matchers {
       case (map, i) => map should be (maps(i))
     }
     (1 to adjustedInMemoryCount) foreach { i =>
-      val map = seq(i - 1)
+      val map = seq.get(i - 1)
       map should be (maps(i - 1))
     }
   }
   
   it should "dump to file when maximum size exceeded" in {
-    val seq = ctxMaps.newMapSeq
+    val seq = ctxMaps.newMapSeq.asInstanceOf[StorableMapSeq]
     val maps = (1 to outMemoryCount).map { i =>
-      val map = ctxMaps.newMap(mapDescriptor)
+      val map = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
       fillMap(baseNumber + i, map)
       seq += map
       if (i <= adjustedInMemoryCount) seq.memSize should be (StorableSeq.baseMemoryUse + i * mapSize)
@@ -179,9 +179,9 @@ class StorableTest extends FlatSpec with Matchers {
   }
   
   it should "support both sequential and random access to dumped values" in {
-    val seq = ctxMaps.newMapSeq
+    val seq = ctxMaps.newMapSeq.asInstanceOf[StorableMapSeq]
     val maps = (1 to outMemoryCount).map { i =>
-      val map = ctxMaps.newMap(mapDescriptor)
+      val map = ctxMaps.newMap(mapDescriptor).asInstanceOf[StorableMap]
       fillMap(baseNumber + i, map)
       seq += map
       map

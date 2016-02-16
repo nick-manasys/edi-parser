@@ -148,7 +148,7 @@ UNZ+1+50'"""
       Map[String, EdiSchema.Structure]()).merge(transCONTRLv4)
     val parser = new EdifactInterchangeParser(is, null, new DefaultEdifactEnvelopeHandler(config, schema))
     parser.parse match {
-      case Success(root) => println(decode(getRequiredMapList("CONTRL", getRequiredValueMap(messagesMap, root)).get(0)))
+      case Success(root) => println(decode(getRequiredMapList("CONTRL", getRequiredValueMap(messagesMap, root)).iterator.next))
       case Failure(e) => throw e
     }
   }

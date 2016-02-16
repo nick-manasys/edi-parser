@@ -443,21 +443,17 @@ object X12Acknowledgment {
   val segAK2Comps = segAK2.components.toArray
   val segAK1Comps = segAK1.components.toArray
   val segCTXComps = segCTX.components.toArray
-  val groupIK4Keys = groupIK4.seq.items map { comp => comp.key } toArray
-  val groupIK3Keys = groupIK3.seq.items map { comp => comp.key } toArray
-  val groupAK3Keys = groupAK3.seq.items map { comp => comp.key } toArray
-  val groupAK2_997Keys = groupAK2_997.seq.items map { comp => comp.key } toArray
-  val groupAK2_999Keys = groupAK2_999.seq.items map { comp => comp.key } toArray
-  val trans997Keys = trans997.heading.get.items map { comp => comp.key } toArray
-  val trans999Keys = trans999.heading.get.items map { comp => comp.key } toArray
   
   // access methods to select appropriate model
-  def groupXK2Keys(generate999: Boolean) = if (generate999) groupAK2_999Keys else groupAK2_997Keys
-  def groupXK3Keys(generate999: Boolean) = if (generate999) groupIK3Keys else groupAK3Keys
+  def groupXK2Keys(generate999: Boolean) = if (generate999) groupAK2_999.keys else groupAK2_997.keys
+  def groupXK3Keys(generate999: Boolean) = if (generate999) groupIK3.keys else groupAK3.keys
   def segXK3Comps(generate999: Boolean) = if (generate999) segIK3Comps else segAK3Comps
+  def segXK3Keys(generate999: Boolean) = if (generate999) segIK3.keys else segAK3.keys
   def segXK4Comps(generate999: Boolean) = if (generate999) segIK4Comps else segAK4Comps
+  def segXK4Keys(generate999: Boolean) = if (generate999) segIK4.keys else segAK4.keys
   def segXK5Comps(generate999: Boolean) = if (generate999) segIK5Comps else segAK5Comps
-  def ackTransKeys(generate999: Boolean) = if (generate999) trans999Keys else trans997Keys
+  def segXK5Keys(generate999: Boolean) = if (generate999) segIK5.keys else segAK5.keys
+  def ackTransKeys(generate999: Boolean) = if (generate999) trans999.headingKeys else trans997.headingKeys
 
   // TA1 acknowledgment data (generated code)
   val segTA1 = new Segment("TA1", "Interchange Acknowledgment", List[SegmentComponent](

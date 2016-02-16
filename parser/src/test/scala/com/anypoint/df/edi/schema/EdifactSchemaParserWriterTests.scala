@@ -126,7 +126,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   def getSyntaxVersion(root: ValueMap) = {
     val messages = getRequiredValueMap(messagesMap, root)
     val trans = getRequiredValueMap("D96A", messages)
-    val order = getRequiredMapList("ORDERS", trans).get(0)
+    val order = getRequiredMapList("ORDERS", trans).iterator.next
     getRequiredValueMap(interchangeKey, order).get(interHeadSyntaxVersionKey)
   }
 
@@ -257,7 +257,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   def extractMessage(vkey: String, mtype: String, root: ValueMap) = {
     val vmap = getRequiredValueMap(messagesMap, root)
     val mmap = getRequiredValueMap(vkey, vmap)
-    getRequiredMapList(mtype, mmap).get(0)
+    getRequiredMapList(mtype, mmap).iterator.next
   }
 
   it should "use interchange data at message level to override root level" in {
@@ -308,21 +308,21 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
   it should "throw an exception when missing required component value" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    val segment = getRequiredMapList("0030_DTM", getRequiredValueMap(structureHeading, message)).get(0)
+    val segment = getRequiredMapList("0030_DTM", getRequiredValueMap(structureHeading, message)).iterator.next
     segment remove ("DTM0101")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when a number value is given a string" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    val segment = getRequiredMapList("2110_CNT", getRequiredValueMap(structureSummary, message)).get(0)
+    val segment = getRequiredMapList("2110_CNT", getRequiredValueMap(structureSummary, message)).iterator.next
     segment put ("CNT0102", "1")
     intercept[WriteException] { oneshotWriter.write(input).get }
   }
   it should "throw an exception when a string value is given a number" in {
     val input = parseDoc(testDoc)
     val message = extractMessage("D96A", "ORDERS", input)
-    val segment = getRequiredMapList("2110_CNT", getRequiredValueMap(structureSummary, message)).get(0)
+    val segment = getRequiredMapList("2110_CNT", getRequiredValueMap(structureSummary, message)).iterator.next
     segment put ("CNT0101", Integer.valueOf(2))
     intercept[WriteException] { oneshotWriter.write(input).get }
   }

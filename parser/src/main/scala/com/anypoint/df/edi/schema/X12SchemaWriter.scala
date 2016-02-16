@@ -100,14 +100,13 @@ case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config
         vmap.asInstanceOf[ValueMap].asScala.foldLeft(acc) {
           case (acc, (ident, list)) => {
             val transMaps = list.asInstanceOf[MapList].asScala
-            (0 until transMaps.size) map { i =>
-              val transMap = transMaps(i)
-              transMap put (transIndexKey, Integer.valueOf(i))
-              if (transMap.containsKey(structureId)) {
-                if (ident != transMap.get(structureId)) {
-                  throw new WriteException("$ident at position $i has type ${msgMap.get(transactionId)} (wrong message list)")
+            transMaps.zipWithIndex.foreach { case (map, index) =>
+              map put (transIndexKey, Integer.valueOf(index))
+              if (map.containsKey(structureId)) {
+                if (ident != map.get(structureId)) {
+                  throw new WriteException(s"$ident at position $index has type ${map.get(structureId)} (wrong message list)")
                 }
-              } else transMap put (structureId, ident)
+              } else map put (structureId, ident)
             }
             groupSends(transMaps, SchemaJavaValues.interchangeKey, acc)
           }

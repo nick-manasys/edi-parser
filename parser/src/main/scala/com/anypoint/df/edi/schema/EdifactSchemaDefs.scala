@@ -411,6 +411,9 @@ object EdifactSchemaDefs {
   /** Get the CONTRL message components for the syntax version. */
   def contrlComps(version: SyntaxVersion) = if (version == SyntaxVersion.VERSION4) contrlCompsv4 else contrlCompsv3
   
+  /** Get the CONTRL message segment group 1 for the syntax version. */
+  def contrlSg1(version: SyntaxVersion) = if (version == SyntaxVersion.VERSION4) CONTRLsg1v4 else CONTRLsg1v3
+  
   /** Get the CONTRL message segment group 1 components for the syntax version. */
   def contrlSg1Comps(version: SyntaxVersion) =
     if (version == SyntaxVersion.VERSION4) contrlSg1Compsv4 else contrlSg1Compsv3

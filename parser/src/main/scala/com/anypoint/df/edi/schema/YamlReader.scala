@@ -194,7 +194,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val wrapid = getRequiredString(wrapIdKey, values)
         val list = getRequiredMapList(groupKey, values)
         if (list.size != 1) throw new IllegalArgumentException(s"Single group definition required for loop with $wrapIdKey $wrapid")
-        val group = convertComponent(list.get(0)).asInstanceOf[GroupComponent]
+        val group = convertComponent(list.iterator.next).asInstanceOf[GroupComponent]
         if (segments.contains(form.loopWrapperStart) && segments.contains(form.loopWrapperEnd)) {
           val start = SegmentPosition(table, getRequiredString(positionKey, values))
           val end = SegmentPosition(table, getRequiredString(endPositionKey, values))

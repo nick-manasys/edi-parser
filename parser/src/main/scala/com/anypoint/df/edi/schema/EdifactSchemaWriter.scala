@@ -125,7 +125,7 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
   def write(map: ValueMap) = Try(try {
     
     def openInterchange(optmap: Option[ValueMap], interRoot: ValueMap) = {
-      val interProps = new ValueMapImpl(interRoot)
+      val interProps = new ValueMapImpl
       optmap.foreach(interProps.putAll(_))
       val selfId = getRequiredString(interHeadSenderIdentKey, interProps)
       val selfQual = getAsString(interHeadSenderQualKey, interProps)
@@ -159,8 +159,8 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
     def sendList(msgs: List[ValueMap], context: String, inter: ValueMap) = {
       msgs foreach (msgData => try {
         val setProps =
-          if (msgData.containsKey(messageHeaderKey)) new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
-          else new ValueMapImpl
+          if (msgData.containsKey(messageHeaderKey))  new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
+          else  new ValueMapImpl
         val struct = getAsRequired[Structure](structureSchema, msgData)
         val msgType = getRequiredString(structureId, msgData)
         setProps put (msgHeadMessageTypeKey, msgType)
@@ -190,7 +190,7 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
       case (acc, (version, vmap)) => {
         vmap.asInstanceOf[ValueMap].asScala.foldLeft(acc) {
           case (acc, (ident, list)) => {
-            val msgMaps = list.asInstanceOf[MapList].asScala
+            val msgMaps = list.asInstanceOf[MapList].asScala.toIndexedSeq
             (0 until msgMaps.size) map { i =>
               val msgMap = msgMaps(i)
               msgMap put (msgIndexKey, Integer.valueOf(i))
@@ -205,9 +205,9 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
         }
       }
     }
-    val sendAcks = getAs(functionalAcksToSend, new MapListImpl, map)
+    val sendAcks = getAs(functionalAcksToSend,  new MapListImpl, map)
     if (interchanges.isEmpty && sendAcks.isEmpty) throw new WriteException("no messages to be sent")
-    val interRoot = if (map.containsKey(interchangeKey)) getRequiredValueMap(interchangeKey, map) else new ValueMapImpl
+    val interRoot = if (map.containsKey(interchangeKey)) getRequiredValueMap(interchangeKey, map) else  new ValueMapImpl
     val ackInterchanges = sendAcks.asScala.foldLeft(Map[Option[ValueMap], List[ValueMap]]()) { (acc, map) =>
       val key = Some(getRequiredValueMap(interchangeKey, map))
       acc.get(key) match {

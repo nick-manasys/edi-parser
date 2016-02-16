@@ -7,6 +7,7 @@ import java.{ util => ju }
 
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
+import com.mulesoft.ltmdata.MemoryResident
 
 /** EDI schema representation.
   *
@@ -153,6 +154,15 @@ object EdiSchema {
       } else true
   }
 
+  private def collectKeys(comps: List[SegmentComponent], keys: List[String]): Array[String] =
+    comps.foldLeft(keys) { (acc, comp) =>
+      if (comp.count == 1) comp match {
+        case ec: ElementComponent => ec.key :: acc
+        case cc: CompositeComponent => cc.composite.keys.toList ::: acc
+      }
+      else comp.key :: acc
+    }.reverse.toArray
+
   /** Composite definition.
     * @param id unique identifier
     * @param nm readable name
@@ -178,6 +188,7 @@ object EdiSchema {
         },
         rules, maxLength)
     val isSimple = components.forall { comp => comp.isInstanceOf[ElementComponent] }
+    val keys = collectKeys(components, Nil)
   }
 
   /** Segment definition.
@@ -191,6 +202,7 @@ object EdiSchema {
     val rules: List[OccurrenceRule]) {
     def this(id: String, nm: String, comps: List[SegmentComponent], rls: List[OccurrenceRule]) =
       this (id, id, nm, comps, rls)
+    val keys = collectKeys(components, Nil)
   }
 
   /** Segment position within a structure. Position numbers are reused across different tables of a structure
@@ -202,7 +214,7 @@ object EdiSchema {
     def isBefore(other: SegmentPosition) =
       table < other.table || (table == other.table && position < other.position)
   }
-  
+
   /** Base for all structure components.
     * @param key map key for data
     * @param position segment (or starting segment) position
@@ -223,7 +235,7 @@ object EdiSchema {
     */
   case class StructureSubsequence(val startPos: String, val comps: Map[String, StructureComponent],
     val terms: Terminations, val groupTerms: Map[GroupComponent, Terminations]) {
-//    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms [${terms.required} required]: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
+    //    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms [${terms.required} required]: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
   }
 
   /** Termination segment identifiers for group.
@@ -231,7 +243,7 @@ object EdiSchema {
     * @param idents segment identifiers for terminating level
     */
   case class Terminations(val required: Int, val idents: Set[String])
-    
+
   val emptyTerminations = Terminations(0, Set())
 
   /** Sequence of structure components (segments and groups). This supports both loops and structure sections, adding
@@ -242,11 +254,11 @@ object EdiSchema {
   case class StructureSequence(private val loop: Boolean, val items: List[StructureComponent]) {
 
     /** Start position. */
-    val startPos =  items.head.position
+    val startPos = items.head.position
 
     /** All required components in sequence. */
     val requiredComps = items.filter { _.usage == MandatoryUsage }
-    
+
     private val lastRequired = if (requiredComps.nonEmpty) requiredComps.last else null
 
     /** Tags of all segments used at this level, and of all segments reused at level. */
@@ -257,9 +269,9 @@ object EdiSchema {
         case ((segs, reps), tag) =>
           if (segs.contains(tag)) (segs, reps + tag) else (segs + tag, reps)
       }
-    
-//    println(s"handling structure from $startPos: ${items.foldLeft("")((txt, comp) => txt + " " + comp.key)})")
-//    println(s"found ${reusedSegments.size} reused segments: ${reusedSegments.foldLeft("")((txt, seg) => txt + " " + seg)})")
+
+    //    println(s"handling structure from $startPos: ${items.foldLeft("")((txt, comp) => txt + " " + comp.key)})")
+    //    println(s"found ${reusedSegments.size} reused segments: ${reusedSegments.foldLeft("")((txt, seg) => txt + " " + seg)})")
 
     //
     // Splitting sequences into subsequences:
@@ -302,7 +314,7 @@ object EdiSchema {
               case _ => (ncnt, nids, acc)
             }
         }
-//        grps.foreach { case (grp, terms) => println(s"group ${grp.ident} has terms (${terms.required} required): ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})") }
+        //        grps.foreach { case (grp, terms) => println(s"group ${grp.ident} has terms (${terms.required} required): ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})") }
         seqs += StructureSubsequence(incl.head.position.position, comps, terms, grps)
       }
       def addWild(wild: WildcardComponent) = {
@@ -382,10 +394,10 @@ object EdiSchema {
 
       splitWilds(items)
       // TODO: check if any problems here
-//      val count = seqs.foldLeft(0)((sum, subsq) => sum + subsq.comps.size)
-//      if (count != items.size) {
-//        println(s"count $count != ${items.size}")
-//      }
+      //      val count = seqs.foldLeft(0)((sum, subsq) => sum + subsq.comps.size)
+      //      if (count != items.size) {
+      //        println(s"count $count != ${items.size}")
+      //      }
       seqs.toList
     }
 
@@ -440,6 +452,16 @@ object EdiSchema {
     val groupTerms = Terminations(1, Set(endCode, wrapped.leadSegmentRef.segment.ident))
   }
 
+  private def collectKeys(seq: StructureSequence): Array[String] = {
+    seq.items.foldLeft(List[String]()) { (acc, comp) =>
+      if (comp.count == 1) comp match {
+        case group: GroupBase => group.keys.toList ::: acc
+        case _ => comp.key :: acc
+      }
+      else comp.key :: acc
+    }.reverse.toArray
+  }
+
   /** Base for group components.
     * @param ky
     * @param use
@@ -454,6 +476,7 @@ object EdiSchema {
       case (g: GroupBase) :: t => g.leadSegmentRef
       case _ => throw new IllegalStateException(s"first item in sequence is not a segment reference")
     }
+    val keys = collectKeys(seq)
   }
 
   /** Variant of a group component. The items in a variant must be a subset of the items in the group.
@@ -470,7 +493,7 @@ object EdiSchema {
     * @param ident group identifier
     * @param use
     * @param cnt
-    * @param ssq 
+    * @param ssq
     * @param varkey key for field controlling variant selection
     * @param variants group variant forms
     * @param ky explicit key value (ident used by default)
@@ -502,7 +525,9 @@ object EdiSchema {
   case class Structure(val ident: String, val name: String, val group: Option[String],
     val heading: Option[StructureSequence], val detail: Option[StructureSequence],
     val summary: Option[StructureSequence], val version: EdiSchemaVersion, val tagStart: Option[Int] = None,
-    val tagLength: Option[Int] = None) {
+    val tagLength: Option[Int] = None) extends MemoryResident {
+    
+    def memoryId = ident
 
     /** Segments used in structure. */
     val segmentsUsed = {
@@ -543,7 +568,7 @@ object EdiSchema {
 
     /** Ids of all segments used in structure at any level. */
     val segmentIds = segmentsUsed.map(segment => segment.ident)
-    
+
     private def terms(section: Option[StructureSequence]): Set[String] = section match {
       case Some(seq) => {
         @tailrec
@@ -557,11 +582,19 @@ object EdiSchema {
       }
       case None => Set()
     }
-    
+
     private val sumterms = terms(summary)
     val summaryTerms = Terminations(0, sumterms)
     private val detterms = terms(detail)
     val detailTerms = Terminations(0, if (detail.isEmpty || detail.get.requiredComps.isEmpty) detterms ++ sumterms else detterms)
+
+    private def optionKeys(oseq: Option[StructureSequence]) = oseq match {
+      case Some(seq) => collectKeys(seq)
+      case None => Array[String]()
+    }
+    val headingKeys = optionKeys(heading)
+    val detailKeys = optionKeys(detail)
+    val summaryKeys = optionKeys(summary)
   }
 
   type StructureMap = Map[String, Structure]
@@ -573,7 +606,7 @@ object EdiSchema {
 
     /** Construct data value key name from parent identifier and position value. */
     def keyName(parentId: String, position: Int): String
-    
+
     /** Create key for version in data maps. */
     def versionKey(version: String): String
   }

@@ -4,14 +4,11 @@ import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.{ util => ju }
 import java.util.{ Calendar, GregorianCalendar }
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable.Buffer
 import scala.beans.BeanProperty
 import scala.util.{ Try, Success }
-
 import org.apache.log4j.Logger
-
 import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, X12Lexer }
 import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
 import com.anypoint.df.edi.lexical.EdiConstants.DataType._
@@ -21,11 +18,11 @@ import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
 import com.anypoint.df.edi.lexical.X12Constants._
 import com.anypoint.df.edi.lexical.X12Constants.ErrorType
 import com.anypoint.df.edi.lexical.X12Lexer._
-
 import EdiSchema._
 import SchemaJavaValues._
 import X12Acknowledgment._
 import X12SchemaDefs._
+import com.mulesoft.ltmdata.StorageContext
 
 /** Configuration parameters for X12 schema parser.
   */
@@ -66,6 +63,12 @@ case class X12Error(@BeanProperty val segment: Int, @BeanProperty val fatal: Boo
 }
 
 class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12EnvelopeHandler) extends SchemaJavaDefs {
+  
+  val storageContext = StorageContext.workingContext
+  
+  // keys in message map (excludes structure key)
+  val structureDescriptor =
+    storageContext.addDescriptor(Array(structureId, structureName, structureHeading, structureDetail, structureSummary))
 
   /** Exception reporting problem in interchange. */
   case class X12InterchangeException(val note: InterchangeNoteCode, val text: String, val cause: Throwable = null)
@@ -76,7 +79,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
   val lexer = new X12Lexer(in, charSet)
 
   /** Parser for X12 EDI documents. A separate parser instance is created for each interchange. */
-  private class X12SchemaParser(inter: ValueMap, root: ValueMap) extends SchemaParser(lexer) {
+  private class X12SchemaParser(inter: ValueMap, root: ValueMap) extends SchemaParser(lexer, storageContext) {
 
     /** Configuration in use. */
     private var config: X12ParserConfig = null
@@ -216,7 +219,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         if (fatal) rejectStructure = true
         val comp = currentSegment.components(lexer.getElementNumber)
         if (config.reportDataErrors) {
-          val xk4 = new ValueMapImpl
+          val xk4 = storageContext.newMap(segXK4Keys(config generate999))
           val xk4Comps = segXK4Comps(config generate999)
           val compC030Comps = xk4Comps(0).asInstanceOf[CompositeComponent].composite.components
           xk4 put (compC030Comps(0).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
@@ -228,7 +231,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           xk4 put (xk4Comps(2).key, error.code toString)
           if (error != InvalidCharacter) xk4 put (xk4Comps(3).key, lexer.token())
           if (config generate999) {
-            val ik4Group = new ValueMapImpl
+            val ik4Group = storageContext.newMap(groupIK4.keys)
             ik4Group put (groupIK4.seq.items.head.key, xk4)
             dataErrors += ik4Group
           } else dataErrors += xk4
@@ -288,7 +291,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
     def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
       if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
-      val map = new ValueMapImpl
+      val map = storageContext.newMap(segment.keys)
       dataErrors.clear
       currentSegment = segment
       lexer.advance
@@ -302,14 +305,14 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       }
       if (!dataErrors.isEmpty && config.reportDataErrors) {
         logger.info(s"error(s) found in parsing segment")
-        val xk3 = new ValueMapImpl
-        val xk3data = new ValueMapImpl
+        val xk3Keys = groupXK3Keys(config generate999)
+        val xk3 = storageContext.newMap(xk3Keys)
+        val xk3data = storageContext.newMap(segXK3Keys(config generate999))
         val xk3Comps = segXK3Comps(config generate999)
         xk3data put (xk3Comps(0) key, segment.ident)
         xk3data put (xk3Comps(1) key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment))
         if (loopStack.nonEmpty) xk3data put (xk3Comps(2) key, loopStack.top.ident)
         xk3data put (xk3Comps(3) key, DataErrorsSegment.code.toString)
-        val xk3Keys = groupXK3Keys(config generate999)
         xk3 put (xk3Keys(0), xk3data)
         xk3 put (xk3Keys(1), dataErrors.reverse.asJava)
         segmentErrors += xk3
@@ -326,9 +329,9 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       def addError(fatal: Boolean, error: SegmentSyntaxError) = {
         oneOrMoreSegmentsInError = true
         if (config.reportDataErrors) {
-          val xk3 = new ValueMapImpl
-          val xk3data = new ValueMapImpl
           val xk3Keys = groupXK3Keys(config generate999)
+          val xk3 = storageContext.newMap(xk3Keys)
+          val xk3data = storageContext.newMap(segXK3Keys(config generate999))
           xk3 put (xk3Keys(0), xk3data)
           val xk3Comps = segXK3Comps(config generate999)
           xk3data put (xk3Comps(0) key, ident)
@@ -474,7 +477,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     def parseGroup(version: String, ackhead: ValueMap) = {
 
       def handleStructure(t: Structure, setprops: ValueMap, setack: ValueMap): ValueMap = {
-        val data = new ValueMapImpl
+        val data = storageContext.newMap(structureDescriptor)
         transactionMap = data
         parseStructure(t, false, data)
         transactionMap = null
@@ -486,22 +489,22 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         data
       }
 
-      val setacks = new MapListImpl
-      val transLists = getOrSet("v" + version.take(6), new ValueMapImpl, schemaVersionTransactions)
+      val setacks = storageContext.newMapSeq
+      val transLists = getOrSet("v" + version.take(6), storageContext.newMemoryResidentMap, schemaVersionTransactions)
       while (lexer.currentType != END && !isGroupEnvelope && !isInterchangeEnvelope) {
         if (isSetOpen) {
           val (setid, setprops) = openSet
           transactionNumber = getRequiredString(setControlNumberHeaderKey, setprops)
-          val setack = new ValueMapImpl
-          val ak2data = new ValueMapImpl
           val groupKeys = groupXK2Keys(config.generate999)
+          val setack = storageContext.newMap(groupKeys)
+          val ak2data = storageContext.newMap(segAK2.keys)
           setack put (groupKeys(0), ak2data)
           ak2data put (segAK2.components(0) key, setprops get (setIdentifierCodeKey))
           ak2data put (segAK2.components(1) key, transactionNumber)
           if (version.startsWith("005010") && setprops.containsKey(setImplementationConventionKey)) {
             ak2data put (segAK2.components(2) key, setprops get (setImplementationConventionKey))
           }
-          val xk5data = new ValueMapImpl
+          val xk5data = storageContext.newMap(segAK5.keys)
           setack put (groupKeys(2), xk5data)
           rejectStructure = false
           var data: ValueMap = null
@@ -527,7 +530,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
             (0 until limit) foreach (i => xk5data put (xk5Comps(i + 1) key, transactionErrors(i).code.toString))
             if (data != null) mergeToList(errorListKey, data, groupMap)
           } else {
-            val list = getOrSet(setid, new MapListImpl, transLists)
+            val list = getOrSet(setid, storageContext.newMapSeq, transLists)
             list add (data)
             groupAcceptCount += 1
             xk5data put (xk5Comps(0) key, AcceptedTransaction code)
@@ -542,10 +545,10 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     }
 
     def buildAckRoot(interchange: ValueMap) = {
-      val ackroot = new ValueMapImpl
+      val ackroot = storageContext.newMemoryResidentMap
       ackroot put (structureId, ackTransCode)
       ackroot put (structureName, (if (config generate999) trans999 else trans997) name)
-      val intercopy = new ValueMapImpl(interchange)
+      val intercopy = storageContext.newMemoryResidentMap(interchange)
       ackroot put (interchangeKey, intercopy)
       swap(SENDER_ID_QUALIFIER, RECEIVER_ID_QUALIFIER, intercopy)
       swap(SENDER_ID, RECEIVER_ID, intercopy)
@@ -559,8 +562,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         groupMap = openGroup
         if (rejectStructure) throw new X12InterchangeException(InterchangeInvalidContent, "invalid GH segment")
         else {
-          val ackhead = new ValueMapImpl
-          val ak1data = new ValueMapImpl
+          val ackhead = storageContext.newMemoryResidentMap
+          val ak1data = storageContext.newMap(segAK1.keys)
           ak1data put (segAK1Comps(0) key, groupMap get (groupFunctionalIdentifierKey))
           ak1data put (segAK1Comps(1) key, groupMap get (groupControlNumberHeaderKey))
           var countPresent = 0
@@ -582,15 +585,15 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
             }
           }
           val ackroot = buildAckRoot(inter)
-          val groupcopy = new ValueMapImpl(groupMap)
+          val groupcopy = storageContext.newMemoryResidentMap(groupMap)
           swap(groupApplicationSenderKey, groupApplicationReceiverKey, groupcopy)
           ackroot put (groupKey, groupcopy)
           ackroot put (structureHeading, ackhead)
-          ackroot put (structureDetail, new ValueMapImpl)
-          ackroot put (structureSummary, new ValueMapImpl)
+          ackroot put (structureDetail, storageContext.newMemoryResidentMap)
+          ackroot put (structureSummary, storageContext.newMemoryResidentMap)
           ackroot put (structureSchema, if (config generate999) trans999 else trans997)
           ackhead put (ackTransKeys(config generate999)(1), ak1data)
-          val ak9data = new ValueMapImpl
+          val ak9data = storageContext.newMap(segAK9.keys)
           val error = ackhead.containsKey(segAK2 ident)
           ackhead put (ackTransKeys(config generate999)(3), ak9data)
           val result =
@@ -621,7 +624,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       if (checkSegment("TA1")) {
         val receiveTA1s =
           if (root.containsKey(interchangeAcksReceived)) getAs[MapList](interchangeAcksReceived, root)
-          else new MapListImpl
+          else storageContext.newMapSeq
         while (lexer.segmentTag == "TA1") receiveTA1s add parseSegment(segTA1, SegmentPosition(0, ""))
         root put (interchangeAcksReceived, receiveTA1s)
       }
@@ -654,12 +657,12 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       builder toString
     }
 
-    val map = new ValueMapImpl
-    val interAckList = new MapListImpl
+    val map = storageContext.newMemoryResidentMap
+    val interAckList = storageContext.newMapSeq
     map put (interchangeAcksGenerated, interAckList)
-    val funcAckList = new MapListImpl
+    val funcAckList = storageContext.newMapSeq
     map put (functionalAcksGenerated, funcAckList)
-    val transLists = new ValueMapImpl().asInstanceOf[ju.Map[String, MapList]]
+    val transLists = storageContext.newMemoryResidentMap.asInstanceOf[ju.Map[String, MapList]]
     map put (transactionsMap, transLists)
     map put (errorListKey, new ju.ArrayList[X12Error])
 
@@ -670,7 +673,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     def buildTA1(segment: Int, ack: InterchangeAcknowledgmentCode, note: InterchangeNoteCode, groups: Int,
       inter: ValueMap) = {
-      val ta1map = new ValueMapImpl
+      val ta1map = storageContext.newMemoryResidentMap
       ta1map put (segTA1.components(0) key, inter get (INTER_CONTROL))
       ta1map put (segTA1.components(1) key, inter get (INTERCHANGE_DATE))
       ta1map put (segTA1.components(2) key, inter get (INTERCHANGE_TIME))
@@ -684,7 +687,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     var done = false
     while (!done) {
-      val inter = new ValueMapImpl
+      val inter = storageContext.newMemoryResidentMap
       var interchangeAck: InterchangeAcknowledgmentCode = AcknowledgedRejected
       try {
         lexer.setHandler(null)

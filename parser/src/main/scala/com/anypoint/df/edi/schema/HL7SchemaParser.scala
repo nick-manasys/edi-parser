@@ -18,6 +18,7 @@ import EdiSchema._
 import HL7Identity._
 import HL7SchemaDefs._
 import SchemaJavaValues._
+import com.mulesoft.ltmdata.StorageContext
 
 /** Configuration parameters for HL7 schema parser. If either receiver or sender identity information is included it
   * is verified in processed messages.
@@ -41,7 +42,7 @@ trait HL7EnvelopeHandler {
 
 /** Parser for HL7 EDI documents. */
 case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config: HL7ParserConfig)
-  extends SchemaParser(new HL7Lexer(in, config.substitutionChar)) {
+  extends SchemaParser(new HL7Lexer(in, config.substitutionChar), StorageContext.workingContext) {
 
   import HL7SchemaDefs._
   import HL7Acknowledgment._
@@ -98,7 +99,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
     logErrorInMessage(fatal, true, text)
     if (fatal) acknowledgmentCode = AcknowledgedApplicationReject
     else if (acknowledgmentCode == AcknowledgedApplicationAccept) acknowledgmentCode = AcknowledgedApplicationError
-    val errmap = new ValueMapImpl
+    val errmap = storageContext.newMap(segERR.keys)
     // TODO: generate the actual ERR segment values
     val elnum = lexer.getElementNumber + 1
     val compnum = if (lexer.getComponentNumber > 0 || lexer.nextType == COMPONENT) lexer.getComponentNumber + 1 else -1
@@ -158,7 +159,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
-    val map = new ValueMapImpl
+    val map = storageContext.newMap(segment.keys)
     currentSegment = segment
     lexer.advance
     parseCompList(segment.components, DATA_ELEMENT, DATA_ELEMENT, map)
@@ -182,7 +183,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
       logErrorInMessage(fatal, false, s"$text: $ident")
       if (fatal) acknowledgmentCode = AcknowledgedApplicationReject
       else if (acknowledgmentCode == AcknowledgedApplicationAccept) acknowledgmentCode = AcknowledgedApplicationError
-      val errmap = new ValueMapImpl
+      val errmap = storageContext.newMap(segERR.keys)
       // TODO: if (segmentGeneralError == null) segmentGeneralError = error
     }
 
@@ -203,7 +204,6 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
   def messageError(error: ErrorCode) = {
     logErrorInMessage(true, false, error.text)
     acknowledgmentCode = AcknowledgedApplicationReject
-    val errmap = new ValueMapImpl
     discardStructure
   }
 
@@ -224,7 +224,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {
     val map = new ValueMapImpl
-    val mshmap = new ValueMapImpl
+    val mshmap = storageContext.newMap(segMSH.keys)
     map put (mshKey, mshmap)
     val delims = init(mshmap)
     map put (delimiterCharacters, delims)
@@ -232,7 +232,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
     val struct = evnhand.handleMsh(mshmap)
     map put (structureId, struct.ident)
     map put (structureName, struct.name)
-    map put (dataKey, parseStructure(struct, true, new ValueMapImpl))
+    map put (dataKey, parseStructure(struct, true, storageContext.newMap(struct.headingKeys)))
     map
   } catch {
     case t: Throwable => t.printStackTrace

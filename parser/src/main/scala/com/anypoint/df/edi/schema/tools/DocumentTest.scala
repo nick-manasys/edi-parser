@@ -227,7 +227,7 @@ case class DocumentTestX12(es: EdiSchema, config: X12ParserConfig) extends Docum
       val versions = new ValueMapImpl
       val ackcode = if (config generate999) "999" else "997"
       val structures = new ValueMapImpl
-      val group = getAs(groupKey, getRequiredValueMap(groupKey, acks.get(0)), map)
+      val group = getAs(groupKey, getRequiredValueMap(groupKey, acks.iterator.next), map)
       val verkey = schema.ediVersion.ediForm.versionKey(getRequiredString(groupVersionReleaseIndustryKey, group).take(6))
       versions put (verkey, structures)
       structures put (ackcode, acks)
@@ -283,7 +283,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
   def getMessage(root: ValueMap) = {
     val messages = getRequiredValueMap(messagesMap, root)
     val version = messages.values().iterator.next.asInstanceOf[ValueMap]
-    version.values().iterator.next.asInstanceOf[MapList].get(0)
+    version.values().iterator.next.asInstanceOf[MapList].iterator.next
   }
 
   /** Prepare input message for output, reversing the sender and receiver values. */
@@ -325,7 +325,7 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
   /** Write CONTRL acknowledgement information from parse as output document. */
   override def printAck(map: ValueMap) = {
     val os = new ByteArrayOutputStream
-    val inter = getRequiredValueMap(interchangeKey, getRequiredMapList(functionalAcksGenerated, map).get(0))
+    val inter = getRequiredValueMap(interchangeKey, getRequiredMapList(functionalAcksGenerated, map).iterator.next)
     val version = EDIFACT_VERSIONS.get(getAs(unbSyntax.components(1).key, "4", inter))
     val config = EdifactWriterConfig(LEVELA, SyntaxVersion.VERSION3, false, true, -1, '.', ASCII_CHARSET,
       getAs(delimiterCharacters, "", map), "", false)

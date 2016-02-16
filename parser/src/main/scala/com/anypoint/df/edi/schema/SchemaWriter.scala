@@ -293,8 +293,9 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
                   if (comp.usage == MandatoryUsage) logAndThrow(s"no values present for property ${comp.name}")
                 } else {
                   if (list.size > comp.count) logAndThrow(s"too many values present for repeated component ${comp.key} (maximum ${comp.count})")
-                  writeComponent(list.get(0), false)
-                  list.asScala.drop(1).foreach { map => writeComponent(map, true) }
+                  val iter = list.iterator
+                  writeComponent(iter.next, false)
+                  while (iter.hasNext) writeComponent(iter.next, true)
                 }
               case _ => throw new WriteException(s"expected list of values for property ${comp.name}")
             }

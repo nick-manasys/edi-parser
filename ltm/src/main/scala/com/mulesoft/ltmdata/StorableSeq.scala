@@ -18,7 +18,7 @@ import java.io.{ BufferedOutputStream, DataInput, DataOutput, DataOutputStream, 
   * penalty. Positioning forward is done by just reading and discarding values. Positioning backward is done by
   * resetting input to the start of the store file and reading forward.
   */
-abstract class StorableSeq[A <: Object](ctx: StructureContext) extends ju.AbstractList[A] with StorableStructure {
+abstract class StorableSeq[A <: Object](ctx: StorageContext) extends ju.AbstractList[A] with StorableStructure {
 
   import StorableSeq._
 
@@ -165,13 +165,13 @@ abstract class StorableSeq[A <: Object](ctx: StructureContext) extends ju.Abstra
   }
 }
 
-class StorableMapSeq(ctx: StructureContext) extends StorableSeq[StorableMap](ctx) {
+class StorableMapSeq(ctx: StorageContext) extends StorableSeq[StorableMap](ctx) {
 
   protected class MapFileStorage(file: File, count: Int) extends BaseFileStorage(file, count) {
 
     def this(items: Seq[StorableMap], file: File) = {
       this(file, 0)
-      outStream = new DataOutputStream(new FileOutputStream(file))
+      outStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))
       items.foreach { add(_) }
     }
 
@@ -179,7 +179,7 @@ class StorableMapSeq(ctx: StructureContext) extends StorableSeq[StorableMap](ctx
 
     def readItem = {
       val index = inStream.readShort
-      val map = ctx.newMap(ctx.descriptors(index)).asInstanceOf[StorableMap]
+      val map = ctx.newMap(ctx.getDescriptor(index)).asInstanceOf[StorableMap]
       map.read(inStream, ctx)
       inItem += 1
       map
@@ -223,13 +223,13 @@ class StorableMapSeq(ctx: StructureContext) extends StorableSeq[StorableMap](ctx
   }
 }
 
-class StorableValueSeq(ctx: StructureContext) extends StorableSeq[Object](ctx) {
+class StorableValueSeq(ctx: StorageContext) extends StorableSeq[Object](ctx) {
 
   protected class ValueFileStorage(file: File, count: Int) extends BaseFileStorage(file, count) {
 
     def this(items: Seq[Object], file: File) = {
       this(file, 0)
-      outStream = new DataOutputStream(new FileOutputStream(file))
+      outStream = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))
       items.foreach { add(_) }
     }
 

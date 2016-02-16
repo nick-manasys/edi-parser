@@ -18,9 +18,11 @@ import EdiSchema._
 import HL7Identity._
 import HL7SchemaDefs._
 import SchemaJavaValues._
+import com.mulesoft.ltmdata.StorageContext
 
 /** Parser for flat file documents. */
-case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends SchemaParser(new FlatFileLexer(in)) {
+case class FlatFileSchemaParser(in: InputStream, struct: Structure)
+extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
@@ -85,7 +87,7 @@ case class FlatFileSchemaParser(in: InputStream, struct: Structure) extends Sche
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
-    val map = new ValueMapImpl
+    val map = storageContext.newMap(segment.keys)
     currentSegment = segment
     parseCompList(segment.components, DATA_ELEMENT, DATA_ELEMENT, map)
     currentSegment = null

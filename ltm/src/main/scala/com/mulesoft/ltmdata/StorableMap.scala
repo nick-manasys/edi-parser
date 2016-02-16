@@ -96,7 +96,7 @@ class StorableMap(val descriptor: MapDescriptor) extends ju.AbstractMap[String, 
     }
   }
 
-  def read(is: DataInput, ctx: StructureContext): Unit = {
+  def read(is: DataInput, ctx: StorageContext): Unit = {
     val readIndex =
       if (descriptor.keys.size <= 256) () => is.readByte.toInt & 0xFF
       else () => is.readShort.toInt & 0xFFFF

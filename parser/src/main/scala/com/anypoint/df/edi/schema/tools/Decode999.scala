@@ -45,26 +45,26 @@ object Decode999 extends SchemaJavaDefs {
     builder ++= s"From ${getRequiredString(SENDER_ID_QUALIFIER, inter)}:${getRequiredString(SENDER_ID, inter)}\n"
     builder ++= s"To ${getRequiredString(RECEIVER_ID_QUALIFIER, inter)}:${getRequiredString(RECEIVER_ID, inter)}\n"
     val ackhead = getRequiredValueMap(structureHeading, root)
-    val ak1data = getRequiredValueMap(trans997Keys(1), ackhead)
+    val ak1data = getRequiredValueMap(trans997.headingKeys(1), ackhead)
     builder ++= s"Acknowledged group code ${getRequiredString(segAK1Comps(0) key, ak1data)} with control number ${getRequiredInt(segAK1.components(1) key, ak1data)}"
     applyIfPresent[String](segAK1Comps(2) key, ak1data, value => builder ++= s", version $value")
     builder ++= "\n"
     applyIfPresent[MapList](groupAK2_999 key, ackhead, list =>
       foreachMapInList(list, { map =>
         {
-          val ak2data = getRequiredValueMap(groupAK2_999Keys(0), map)
+          val ak2data = getRequiredValueMap(groupAK2_999.keys(0), map)
           builder ++= s" Structure ${getRequiredString(segAK2Comps(0) key, ak2data)} with control number ${getRequiredString(segAK2.components(1) key, ak2data)}"
           applyIfPresent[String](segAK2Comps(2) key, ak2data, value => builder ++= s", implementation reference $value")
           builder ++= "\n"
           applyIfPresent[MapList](groupIK3 key, map, list =>
             foreachMapInList(list, { map =>
               {
-                val ik3data = getRequiredValueMap(groupIK3Keys(0), map)
+                val ik3data = getRequiredValueMap(groupIK3.keys(0), map)
                 builder ++= s"  Segment ${getRequiredString(segIK3Comps(0) key, ik3data)} at position ${getRequiredInt(segIK3.components(1) key, ik3data)}"
                 applyIfPresent[String](segIK3Comps(2) key, ik3data, value => builder ++= s" (loop $value)")
                 applyIfPresent[String](segIK3Comps(3) key, ik3data, value => builder ++= s" has syntax error ${SegmentSyntaxErrors(value).text}")
                 builder ++= "\n"
-                applyIfPresent[MapList](groupIK3Keys(1), map, list =>
+                applyIfPresent[MapList](groupIK3.keys(1), map, list =>
                   foreachMapInList(list, { ik4data =>
                     {
                       builder ++= "  "
@@ -77,7 +77,7 @@ object Decode999 extends SchemaJavaDefs {
                   }))
               }
             }))
-          val ik5data = getRequiredValueMap(groupAK2_999Keys(2), map)
+          val ik5data = getRequiredValueMap(groupAK2_999.keys(2), map)
           builder ++= s" Structure ${TransactionAcknowledgmentCodes(getRequiredString(segIK5Comps(0) key, ik5data)).text}\n"
           applyIfPresent[String](segIK5Comps(1) key, ik5data, value => {
             builder ++= " Error codes: "
@@ -87,7 +87,7 @@ object Decode999 extends SchemaJavaDefs {
           })
         }
       }))
-    val ak9data = getRequiredValueMap(trans999Keys(3), ackhead)
+    val ak9data = getRequiredValueMap(trans999.headingKeys(3), ackhead)
     builder ++= s"Group result: ${GroupAcknowledgmentCodes(getRequiredString(segAK9Comps(0) key, ak9data)).text}, contained ${getRequiredInt(segAK9.components(1) key, ak9data)} structure set(s) with ${getRequiredInt(segAK9.components(2) key, ak9data)} received and ${getRequiredInt(segAK9.components(3) key, ak9data)} accepted\n"
     applyIfPresent[String](segAK9Comps(4) key, ak9data, value => {
       builder ++= " Error codes: "
