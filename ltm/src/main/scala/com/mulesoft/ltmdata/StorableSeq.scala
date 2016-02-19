@@ -117,6 +117,7 @@ abstract class StorableSeq[A <: Object](ctx: StorageContext) extends ju.Abstract
       index += 1
       storageHandler.apply(ind)
     }
+    def remove = throw new UnsupportedOperationException("Sequence is not modifiable")
   }
 
   var storageHandler: StorageMode = new MemoryStorage
