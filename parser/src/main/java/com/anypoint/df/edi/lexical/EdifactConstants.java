@@ -8,10 +8,8 @@ import java.util.Map;
 /**
  * Constants for EDIFACT documents.
  */
-public final class EdifactConstants extends EdiConstants
+public final class EdifactConstants
 {
-    private EdifactConstants() {}
-    
     // UNB message values stored in map
     public static final String SYNTAX_IDENTIFIER = "UNB0101";
     public static final String SYNTAX_VERSION_NUMBER = "UNB0102";
@@ -32,13 +30,13 @@ public final class EdifactConstants extends EdiConstants
     
     static {
         levelACharacterSet = new boolean[128];
-        fillChars('A', 'Z', levelACharacterSet);
-        fillChars('0', '9', levelACharacterSet);
-        setChars(" .,-()/=,+:?!\"%&*;<>".toCharArray(), levelACharacterSet);
+        EdiConstants.fillChars('A', 'Z', levelACharacterSet);
+        EdiConstants.fillChars('0', '9', levelACharacterSet);
+        EdiConstants.setChars(" .,-()/=,+:?!\"%&*;<>".toCharArray(), levelACharacterSet);
         levelBCharacterSet = new boolean[128];
         System.arraycopy(levelACharacterSet, 0, levelBCharacterSet, 0, levelACharacterSet.length);
-        fillChars('a', 'z', levelBCharacterSet);
-        setChars(" .,-()/'+:=?!\"%&*;<>\014\015\017".toCharArray(), levelBCharacterSet);
+        EdiConstants.fillChars('a', 'z', levelBCharacterSet);
+        EdiConstants.setChars(" .,-()/'+:=?!\"%&*;<>\014\015\017".toCharArray(), levelBCharacterSet);
     }
     
     // standard character sets
@@ -69,10 +67,10 @@ public final class EdifactConstants extends EdiConstants
             return characterFlags;
         }
     }
-    public static final SyntaxIdentifier LEVELA = new SyntaxIdentifier("UNOA", ASCII_CHARSET, levelACharacterSet);
-    public static final SyntaxIdentifier LEVELB = new SyntaxIdentifier("UNOB", ASCII_CHARSET, levelBCharacterSet);
+    public static final SyntaxIdentifier LEVELA = new SyntaxIdentifier("UNOA", EdiConstants.ASCII_CHARSET, levelACharacterSet);
+    public static final SyntaxIdentifier LEVELB = new SyntaxIdentifier("UNOB", EdiConstants.ASCII_CHARSET, levelBCharacterSet);
     public static final SyntaxIdentifier LEVELC = new SyntaxIdentifier("UNOC", Charset.forName("ISO8859_1"), null);
-    public static final SyntaxIdentifier LEVELY = new SyntaxIdentifier("UNOY", ASCII_CHARSET, null);
+    public static final SyntaxIdentifier LEVELY = new SyntaxIdentifier("UNOY", EdiConstants.ASCII_CHARSET, null);
     public static final Map<String,SyntaxIdentifier> EDIFACT_CHARSETS;
     static {
         EDIFACT_CHARSETS = new HashMap<>();
