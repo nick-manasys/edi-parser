@@ -234,7 +234,8 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
                 }
               }
 
-              subsq.comps get (ident) match {
+              val compStruct = subsq.comps get (ident)
+              compStruct match {
                 case Some(ref: ReferenceComponent) =>
                   val segment = ref.segment
                   val key = ref.key
@@ -265,7 +266,11 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
                   val nextpos = adjustPosition(wrap.wrapped.position.position)
                   parseWrappedLoop(wrap)
                   parseComponent(nextpos)
-                case None =>
+                case Some(x) =>
+                  val text = s"Illegal structure of type ${x.getClass.getName} at position $position (ident $ident)"
+                  throw new IllegalStateException(text)
+                case _ =>
+                  // it's got to be a None, but this way it'll be handled even when None changes (see B2B-80)
                   if (subsq.terms.idents.contains(ident)) false
                   else if (checkTerm(ident)) true
                   else {
@@ -274,7 +279,6 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
                     else segmentError(baseLexer.segmentTag, UnknownSegment, WontParse, segmentNumber)
                     parseComponent(position)
                   }
-                case Some(x) => throw new IllegalStateException(s"Illegal structure at position $position (type is ${x.getClass.getName})")
               }
             } else true
           }
