@@ -196,7 +196,7 @@ object X12TablesConverter {
         remain match {
           case ComponentInfo(segment, seq, usage, repeat, loopId, loop) :: tail =>
             if (loop.isEmpty) {
-              val position = SegmentPosition(table, seq)
+              val position = new DefinedPosition(table, seq)
               if (segment.ident == "LS") acc match {
                 case (group: GroupComponent) :: (leref: ReferenceComponent) :: t => {
                   val grpid = group.ident.stripSuffix(groupIdentSuffix)

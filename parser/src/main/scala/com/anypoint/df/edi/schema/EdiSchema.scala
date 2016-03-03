@@ -43,13 +43,13 @@ object EdiSchema {
   // TODO: add dependency rules to schema representation
 
   /** Component base definition.
-    * @param ident unique identifier
+    * @param ident unique identifier (empty string if inlined)
     * @param name readable name
     */
   sealed abstract class ComponentBase(val ident: String, val name: String)
 
   /** Element definition.
-    * @param id unique identifier
+    * @param id unique identifier (empty string if inlined)
     * @param nm readable name
     * @param dataType type
     * @param minLength minimum value length
@@ -164,7 +164,7 @@ object EdiSchema {
     }.reverse.toArray
 
   /** Composite definition.
-    * @param id unique identifier
+    * @param id unique identifier (empty string if inlined)
     * @param nm readable name
     * @param components
     * @param rules
@@ -192,14 +192,16 @@ object EdiSchema {
   }
 
   /** Segment definition.
-    * @param ident identifier (used for key, also as id/idRef in YAML)
-    * @param tag value in data (used to identify segments in data, generally same as ident but flat file may differ)
+    * @param ident identifier (used for key in multisegment schemas, also as id/idRef in YAML if non in-lined; ignored
+    * in single segment schemas)
+    * @param tag value in data (used to identify segments in data, generally same as ident but flat file may differ or
+    * not be used)
     * @param name human readable name
     * @param components
     * @param rules
     */
-  case class Segment(val ident: String, val tag: String, val name: String, val components: List[SegmentComponent],
-    val rules: List[OccurrenceRule]) {
+  case class Segment(val ident: String, val tag: String, val name: String,
+    val components: List[SegmentComponent], val rules: List[OccurrenceRule]) {
     def this(id: String, nm: String, comps: List[SegmentComponent], rls: List[OccurrenceRule]) =
       this (id, id, nm, comps, rls)
     val keys = collectKeys(components, Nil)
@@ -210,9 +212,16 @@ object EdiSchema {
     * @param table
     * @param position
     */
-  case class SegmentPosition(table: Int, position: String) {
-    def isBefore(other: SegmentPosition) =
+  sealed abstract class SegmentPosition(val table: Int, val position: String) {
+    def before(other: SegmentPosition) =
       table < other.table || (table == other.table && position < other.position)
+    def defined: Boolean
+  }
+  class DefinedPosition(table: Int, position: String) extends SegmentPosition(table, position) {
+    def defined = true
+  }
+  object StartPosition extends SegmentPosition(-1, "") {
+    def defined = false
   }
 
   /** Base for all structure components.
@@ -598,8 +607,13 @@ object EdiSchema {
   }
 
   type StructureMap = Map[String, Structure]
+  
+  sealed abstract class SchemaLayout(val structures: Boolean, val sectioned: Boolean)
+  case object MultiTableStructure extends SchemaLayout(true, true)
+  case object SingleTableStructure extends SchemaLayout(true, false)
+  case object SingleSegment extends SchemaLayout(false, false)
 
-  sealed abstract class EdiForm(val text: String, val sectioned: Boolean) {
+  sealed abstract class EdiForm(val text: String, val layout: SchemaLayout, val fixed: Boolean) {
     def isEnvelopeSegment(ident: String): Boolean
     val loopWrapperStart: String
     val loopWrapperEnd: String
@@ -610,7 +624,7 @@ object EdiSchema {
     /** Create key for version in data maps. */
     def versionKey(version: String): String
   }
-  case object EdiFact extends EdiForm("EDIFACT", true) {
+  case object EdiFact extends EdiForm("EDIFACT", MultiTableStructure, false) {
     val envelopeSegs = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS")
     def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "UGH"
@@ -622,7 +636,7 @@ object EdiSchema {
     }
     def versionKey(version: String) = version.toUpperCase
   }
-  case object X12 extends EdiForm("X12", true) {
+  case object X12 extends EdiForm("X12", MultiTableStructure, false) {
     val envelopeSegs = Set("ISA", "IEA", "GS", "GE", "ST", "SE")
     def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "LS"
@@ -630,14 +644,28 @@ object EdiSchema {
     def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
     def versionKey(version: String) = "v" + version
   }
-  case object HL7 extends EdiForm("HL7", false) {
+  case object HL7 extends EdiForm("HL7", SingleTableStructure, false) {
     def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, position: Int) = parentId + "-" + (if (position < 10) "0" + position else position)
     def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
   }
-  case object FlatFile extends EdiForm("FIXEDWIDTH", false) {
+  case object FlatFile extends EdiForm("FLATFILE", SingleTableStructure, true) {
+    def isEnvelopeSegment(ident: String) = false
+    val loopWrapperStart = ""
+    val loopWrapperEnd = ""
+    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def versionKey(version: String) = version
+  }
+  case object FixedWidth extends EdiForm("FIXEDWIDTH", SingleSegment, true) {
+    def isEnvelopeSegment(ident: String) = false
+    val loopWrapperStart = ""
+    val loopWrapperEnd = ""
+    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def versionKey(version: String) = version
+  }
+  case object Copybook extends EdiForm("COPYBOOK", SingleSegment, true) {
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
@@ -649,6 +677,8 @@ object EdiSchema {
     case X12.text => X12
     case HL7.text => HL7
     case FlatFile.text => FlatFile
+    case FixedWidth.text => FixedWidth
+    case Copybook.text => Copybook
     case _ => throw new IllegalArgumentException(s"Unknown EDI form $value")
   }
 }
@@ -665,8 +695,16 @@ case class EdiSchema(val ediVersion: EdiSchemaVersion, val elements: Map[String,
   def merge(other: EdiSchema) = EdiSchema(ediVersion, elements ++ other.elements, composites ++ other.composites,
     segments ++ other.segments, structures ++ other.structures)
   def merge(transact: EdiSchema.Structure) = {
-    val elemMap = elements ++ (transact.elementsUsed.foldLeft(Map[String, EdiSchema.Element]())((map, elem) => map + (elem.ident -> elem)))
-    val compMap = composites ++ (transact.compositesUsed.foldLeft(Map[String, EdiSchema.Composite]())((map, comp) => map + (comp.ident -> comp)))
+    val elemMap = elements ++ (transact.elementsUsed.foldLeft(Map[String, EdiSchema.Element]())((map, elem) =>
+      elem.ident match {
+        case "" => map
+        case id => map + (id -> elem)
+      }))
+    val compMap = composites ++ (transact.compositesUsed.foldLeft(Map[String, EdiSchema.Composite]())((map, comp) =>
+      comp.ident match {
+        case "" => map
+        case id => map + (id -> comp)
+      }))
     val segMap = segments ++ (transact.segmentsUsed.foldLeft(Map[String, EdiSchema.Segment]())((map, seg) => map + (seg.ident -> seg)))
     val transMap = structures + (transact.ident -> transact)
     EdiSchema(ediVersion, elemMap, compMap, segMap, transMap)

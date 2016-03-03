@@ -358,19 +358,19 @@ object X12Acknowledgment {
     ElementComponent(elem1705, None, "ST03", 3, OptionalUsage, 1)), Nil)
 
   val groupAK3 = GroupComponent("AK3", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
-    ReferenceComponent(segAK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
-    ReferenceComponent(segAK4, SegmentPosition(0, "0500"), OptionalUsage, 99))), None, Nil)
+    ReferenceComponent(segAK3, new DefinedPosition(0, "0400"), OptionalUsage, 1),
+    ReferenceComponent(segAK4, new DefinedPosition(0, "0500"), OptionalUsage, 99))), None, Nil)
   val groupAK2_997 = GroupComponent("AK2", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
-    ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
+    ReferenceComponent(segAK2, new DefinedPosition(0, "0300"), OptionalUsage, 1),
     groupAK3,
-    ReferenceComponent(segAK5, SegmentPosition(0, "0600"), MandatoryUsage, 1))), None, Nil)
+    ReferenceComponent(segAK5, new DefinedPosition(0, "0600"), MandatoryUsage, 1))), None, Nil)
   val funcAckVersion = EdiSchemaVersion(EdiSchema.X12, "005010")
   val trans997 = Structure("997", "Functional Acknowledgment", Some("FA"), Some(StructureSequence(false, List[StructureComponent](
-    ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
-    ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
+    ReferenceComponent(segST, new DefinedPosition(0, "0100"), MandatoryUsage, 1),
+    ReferenceComponent(segAK1, new DefinedPosition(0, "0200"), MandatoryUsage, 1),
     groupAK2_997,
-    ReferenceComponent(segAK9, SegmentPosition(0, "0700"), MandatoryUsage, 1),
-    ReferenceComponent(segSE, SegmentPosition(0, "0800"), MandatoryUsage, 1)))),
+    ReferenceComponent(segAK9, new DefinedPosition(0, "0700"), MandatoryUsage, 1),
+    ReferenceComponent(segSE, new DefinedPosition(0, "0800"), MandatoryUsage, 1)))),
     None, None, funcAckVersion)
 
   // 999 acknowledgment schema (generated code, eliminated duplicates from 997)
@@ -414,22 +414,22 @@ object X12Acknowledgment {
     ElementComponent(elem618, None, "IK506", 6, OptionalUsage, 1)), Nil)
     
   val groupIK4 = GroupComponent("IK4", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
-    ReferenceComponent(segIK4, SegmentPosition(0, "0600"), OptionalUsage, 1),
-    ReferenceComponent(segCTX, SegmentPosition(0, "0700"), OptionalUsage, 10))), None, Nil)
+    ReferenceComponent(segIK4, new DefinedPosition(0, "0600"), OptionalUsage, 1),
+    ReferenceComponent(segCTX, new DefinedPosition(0, "0700"), OptionalUsage, 10))), None, Nil)
   val groupIK3 = GroupComponent("IK3", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
-    ReferenceComponent(segIK3, SegmentPosition(0, "0400"), OptionalUsage, 1),
-    ReferenceComponent(segCTX, SegmentPosition(0, "0500"), OptionalUsage, 10),
+    ReferenceComponent(segIK3, new DefinedPosition(0, "0400"), OptionalUsage, 1),
+    ReferenceComponent(segCTX, new DefinedPosition(0, "0500"), OptionalUsage, 10),
     groupIK4)), None, Nil)
   val groupAK2_999 = GroupComponent("AK2", OptionalUsage, -1, StructureSequence(true, List[StructureComponent](
-    ReferenceComponent(segAK2, SegmentPosition(0, "0300"), OptionalUsage, 1),
+    ReferenceComponent(segAK2, new DefinedPosition(0, "0300"), OptionalUsage, 1),
     groupIK3,
-    ReferenceComponent(segIK5, SegmentPosition(0, "0800"), MandatoryUsage, 1))), None, Nil)
+    ReferenceComponent(segIK5, new DefinedPosition(0, "0800"), MandatoryUsage, 1))), None, Nil)
   val trans999 = Structure("999", "Implementation Acknowledgment", Some("FA"), Some(StructureSequence(false, List[StructureComponent](
-    ReferenceComponent(segST, SegmentPosition(0, "0100"), MandatoryUsage, 1),
-    ReferenceComponent(segAK1, SegmentPosition(0, "0200"), MandatoryUsage, 1),
+    ReferenceComponent(segST, new DefinedPosition(0, "0100"), MandatoryUsage, 1),
+    ReferenceComponent(segAK1, new DefinedPosition(0, "0200"), MandatoryUsage, 1),
     groupAK2_999,
-    ReferenceComponent(segAK9, SegmentPosition(0, "0900"), MandatoryUsage, 1),
-    ReferenceComponent(segSE, SegmentPosition(0, "1000"), MandatoryUsage, 1)))),
+    ReferenceComponent(segAK9, new DefinedPosition(0, "0900"), MandatoryUsage, 1),
+    ReferenceComponent(segSE, new DefinedPosition(0, "1000"), MandatoryUsage, 1)))),
     None, None, funcAckVersion)
 
   // random access arrays of keys

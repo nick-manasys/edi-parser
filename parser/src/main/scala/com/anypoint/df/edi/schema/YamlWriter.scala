@@ -4,46 +4,123 @@ import scala.annotation.tailrec
 
 import java.io.{ StringWriter, Writer }
 
-trait WritesYaml {
+class YamlFormatter(writer: Writer) {
+  
+  import EdiSchema.SegmentPosition
 
   val indentText = "  "
+  var indentCount = 0
+  var formStack = List(false)
+  var firstInner = true
+  
+  private def indent = writer append (indentText * indentCount)
+  
+  /** Write key with value to follow. */
+  def writeKey(key: String): YamlFormatter = {
+    if (formStack.head) {
+      if (firstInner) firstInner = false
+      else writer append ", "
+    } else {
+      if (firstInner) firstInner = false
+      else indent
+    }
+    writer append key + ": "
+    this
+  }
+  
+  /** Write key and end line. */
+  def keyLine(key: String): YamlFormatter = {
+    writeKey(key)
+    writer append "\n"
+    this
+  }
 
   /** Write simple key-value pair. */
-  def keyValuePair(key: String, value: String) = key + ": " + value
+  def keyValuePair(key: String, value: String): YamlFormatter = {
+    writeKey(key)
+    writer append value
+    if (!formStack.head) writer append "\n"
+    this
+  }
+
+  /** Write optional (only if value is non-empty) key-value pair. */
+  def keyValueOptionalPair(key: String, value: String): YamlFormatter = {
+    if (value.nonEmpty) keyValuePair(key, value)
+    else this
+  }
 
   /** Write simple key-value pair. */
-  def keyValuePair(key: String, value: Int) = key + ": " + value.toString
+  def keyValuePair(key: String, value: Int): YamlFormatter = keyValuePair(key, value.toString)
+
+  /** Write key-repetition count pair. */
+  def keyCountPair(key: String, count: Int): YamlFormatter = {
+    if (count == 0) keyValuePair(key, "'>1'")
+    else keyValuePair(key, count)
+  }
+
+  /** Write optional (only if != 1) key-repetition count pair. */
+  def keyCountOptionalPair(key: String, count: Int): YamlFormatter = {
+    if (count == 1) this
+    else keyCountPair(key, count)
+  }
+
+  /** Write optional (only if value != 0) key-value pair. */
+  def keyNonzeroOptionalPair(key: String, count: Int): YamlFormatter = {
+    if (count == 0) this
+    else keyValuePair(key, count)
+  }
 
   /** Write key-quoted value pair. */
-  def keyValueQuote(key: String, value: String) = {
+  def keyValueQuote(key: String, value: String): YamlFormatter = {
     val builder = new StringBuilder
-    builder ++= key ++= ": '"
+    builder += '\''
     value.toList.foreach(chr =>
       if (chr == '\'') builder ++= "''"
       else builder + chr)
     builder + '\''
-    builder.toString
+    keyValuePair(key, builder.toString)
   }
 
-  /** Write text indended to level. */
-  def writeIndented(text: String, indent: Int, writer: Writer) = {
-    def writeIndent(indent: Int) = writer append (indentText * indent)
-    writeIndent(indent)
+  /** Write optional (only if value is non-empty) key-quoted value pair. */
+  def keyValueOptionalQuote(key: String, value: String): YamlFormatter = {
+    if (value.nonEmpty) keyValueQuote(key, value)
+    else this
+  }
+  
+  def keyPositionOptionalPair(key: String, pos: SegmentPosition): YamlFormatter = {
+    if (pos.defined) keyValueQuote(key, pos.position) else this
+  }
+
+  /** Write arbitrary text indended to level. */
+  def writeIndented(text: String) = {
+    indent
     writer append text
     writer append "\n"
   }
-
-  /** Get repetition count text value. */
-  def countText(count: Int) =
-    if (count == 0) "'>1'"
-    else count toString
+  
+  def openGrouping(compact: Boolean): YamlFormatter = {
+    indent
+    formStack = compact :: formStack
+    if (compact) writer append "- { "
+    else writer append "- "
+    indentCount += 1
+    firstInner = true
+    this
+  }
+  
+  def openGrouping: YamlFormatter = openGrouping(formStack.head)
+  
+  def closeGrouping = {
+    val compact = formStack.head
+    formStack = formStack.tail
+    if (compact) writer append " }\n"
+    indentCount -= 1
+  }
 }
 
 /** Write YAML representation of EDI schema.
-  *
-  * @author MuleSoft, Inc.
   */
-object YamlWriter extends WritesYaml with YamlDefs {
+object YamlWriter extends YamlDefs {
 
   import EdiSchema._
 
@@ -54,145 +131,181 @@ object YamlWriter extends WritesYaml with YamlDefs {
     * @param writer
     */
   def write(schema: EdiSchema, imports: Array[String], writer: Writer) = {
-
-    def writeReferenceComponent(refer: ReferenceComponent, indent: Int): Unit = {
-      writeIndented("- { " + keyValueQuote(idRefKey, refer.segment.ident) + ", " +
-        keyValueQuote(positionKey, refer.position.position) + ", " + keyValuePair(usageKey, refer.usage.code toString) +
-        (if (refer.count != 1) ", " + keyValuePair(countKey, countText(refer.count)) else "") +
-        " }", indent, writer)
-    }
-
-    def writeWrapperComponent(wrap: LoopWrapperComponent, indent: Int): Unit = {
-      writeIndented("- " + keyValueQuote(wrapIdKey, wrap.groupId), indent, writer)
-      writeIndented(keyValueQuote(positionKey, wrap.position.position), indent + 1, writer)
-      writeIndented(keyValueQuote(endPositionKey, wrap.endPosition.position), indent + 1, writer)
-      writeIndented(keyValuePair(usageKey, wrap.usage.code toString), indent + 1, writer)
-      writeIndented(s"$groupKey:", indent + 1, writer)
-      writeGroupComponent(wrap.wrapped, indent + 1)
-    }
     
-    def writeGroupComponent(group: GroupComponent, indent: Int): Unit = {
-      writeIndented("- " + keyValueQuote(groupIdKey, group.ident), indent, writer)
-      writeIndented(keyValuePair(usageKey, group.usage.code toString), indent + 1, writer)
-      if (group.count != 1) writeIndented(keyValuePair(countKey, countText(group.count)), indent + 1, writer)
-      group.tagStart.foreach { x => writeIndented(keyValuePair(tagStartKey, x), indent + 1, writer) }
-      group.tagLength.foreach { x => writeIndented(keyValuePair(tagLengthKey, x), indent + 1, writer) }
-      val childPos = group.seq.items.head.position
-      if (group.position != childPos) {
-        writeIndented(keyValueQuote(positionKey, group.position.position), indent + 1, writer)
-      }
-      writeStructureComps(itemsKey, group.seq.items, indent + 1)
+    val formatter = new YamlFormatter(writer)
+
+    def writeReferenceComponent(refer: ReferenceComponent): Unit = {
+      val segment = refer.segment
+      formatter.openGrouping(true).keyValueOptionalQuote(idRefKey, segment.ident).
+        keyPositionOptionalPair(positionKey, refer.position)
+      if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, refer.usage.code)
+      formatter.keyCountOptionalPair(countKey, refer.count)
+      if (segment.ident.isEmpty) writeSegmentDetails(segment)
+      formatter.closeGrouping
     }
 
-    def writeStructureComps(label: String, segments: List[StructureComponent], indent: Int): Unit = {
-      writeIndented(label + ":", indent, writer)
+    def writeWrapperComponent(wrap: LoopWrapperComponent): Unit = {
+      formatter.openGrouping(false).keyValueQuote(wrapIdKey, wrap.groupId).
+        keyPositionOptionalPair(positionKey, wrap.position).keyPositionOptionalPair(endPositionKey, wrap.endPosition)
+      if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, wrap.usage.code)
+      formatter.keyLine(groupKey)
+      writeGroupComponent(wrap.wrapped)
+      formatter.closeGrouping
+    }
+
+    def writeGroupComponent(group: GroupComponent): Unit = {
+      formatter.openGrouping(false).keyValueQuote(groupIdKey, group.ident).keyCountOptionalPair(countKey, group.count)
+      if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, group.usage.code)
+      group.tagStart.foreach { x => formatter.keyValuePair(tagStartKey, x) }
+      group.tagLength.foreach { x => formatter.keyValuePair(tagLengthKey, x) }
+      val childPos = group.seq.items.head.position
+      if (group.position != childPos) formatter.keyValueQuote(positionKey, group.position.position)
+      writeStructureComps(itemsKey, group.seq.items)
+      formatter.closeGrouping
+    }
+
+    def writeStructureComps(key: String, segments: List[StructureComponent]): Unit = {
+      formatter.keyLine(key)
       segments foreach (segbase => segbase match {
-        case refer: ReferenceComponent => writeReferenceComponent(refer, indent)
-        case wrap: LoopWrapperComponent => writeWrapperComponent(wrap, indent)
-        case group: GroupComponent => writeGroupComponent(group, indent)
+        case refer: ReferenceComponent => writeReferenceComponent(refer)
+        case wrap: LoopWrapperComponent => writeWrapperComponent(wrap)
+        case group: GroupComponent => writeGroupComponent(group)
       })
     }
 
-    def writeSegmentComponents(label: String, comps: List[SegmentComponent], indent: Int): Unit = {
-      def componentId(component: SegmentComponent) = component match {
-        case ElementComponent(element, _, _, _, _, _, _) => element.ident
-        case CompositeComponent(composite, _, _, _, _, _) => composite.ident
+    def writeElementDetails(elem: Element, named: Boolean) = {
+      if (named) formatter.keyValueOptionalQuote(nameKey, elem.name)
+      formatter.keyValuePair(typeKey, elem.dataType.code)
+      if (elem.minLength == elem.maxLength) formatter.keyValuePair(lengthKey, elem.minLength)
+      else formatter.keyValuePair(minLengthKey, elem.minLength).keyValuePair(maxLengthKey, elem.maxLength)
+    }
+
+    def writeCompositeDetails(comp: Composite, named: Boolean) = {
+      if (named) formatter.keyValueOptionalQuote(nameKey, comp.name)
+      formatter.keyNonzeroOptionalPair(maxLengthKey, comp.maxLength).keyLine(valuesKey)
+      writeSegmentComponents(comp.components)
+    }
+
+    def writeSegmentComponents(comps: List[SegmentComponent]): Unit = {
+      def writeElement(ecomp: ElementComponent, dfltpos: Int) = {
+        val elem = ecomp.element
+        formatter.keyValueOptionalQuote(idRefKey, elem.ident)
+        val anon = ecomp.name == elem.name
+        if (!anon) formatter.keyValueOptionalQuote(nameKey, ecomp.name)
+        if (ecomp.position != dfltpos) formatter.keyValuePair(positionKey, ecomp.position)
+        if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, ecomp.usage.code toString)
+        formatter.keyCountOptionalPair(countKey, ecomp.count)
+        if (elem.ident.isEmpty) writeElementDetails(elem, anon)
       }
-      def componentDefaultNamed(component: SegmentComponent) = component match {
-        case ElementComponent(element, _, _, _, _, _, _) => component.name == element.name
-        case CompositeComponent(composite, _, _, _, _, _) => component.name == composite.name
+      def writeComposite(ccomp: CompositeComponent, dfltpos: Int) = {
+        val comp = ccomp.composite
+        formatter.keyValueOptionalQuote(idRefKey, comp.ident)
+        val anon = ccomp.name == comp.name
+        if (!anon) formatter.keyValueOptionalQuote(nameKey, ccomp.name)
+        if (ccomp.position != dfltpos) formatter.keyValuePair(positionKey, ccomp.position)
+        if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, ccomp.usage.code toString)
+        formatter.keyCountOptionalPair(countKey, ccomp.count)
+        if (comp.ident.isEmpty) writeCompositeDetails(comp, anon)
       }
       @tailrec
-      def writerr(remain: List[SegmentComponent], dfltpos: Int): Unit = remain match {
-        case comp :: t =>
-          {
-            writeIndented("- { " + keyValueQuote(idRefKey, componentId(comp)) + ", " +
-              (if (componentDefaultNamed(comp)) "" else (keyValueQuote(nameKey, comp.name) + ", ")) +
-              (if (comp.position == dfltpos) "" else (keyValuePair(positionKey, comp.position.toString) + ", ")) +
-              keyValuePair(usageKey, comp.usage.code toString) +
-              (if (comp.count != 1) ", " + keyValuePair(countKey, countText(comp.count)) else "") +
-              " }", indent, writer)
+      def writerr(remain: List[SegmentComponent], dfltpos: Int): Unit = {
+        remain match {
+          case comp :: t =>
+            formatter.openGrouping(true)
+            comp match {
+              case ec: ElementComponent => writeElement(ec, dfltpos)
+              case cc: CompositeComponent => writeComposite(cc, dfltpos)
+            }
+            formatter.closeGrouping
             writerr(t, dfltpos + 1)
-          }
-        case _ =>
+          case _ =>
+        }
       }
-      writeIndented(label + ":", indent, writer)
+      
       writerr(comps, 1)
+    }
+    
+    def writeSegmentDetails(segment: Segment) = {
+      formatter.keyValueOptionalQuote(nameKey, segment.name)
+      if (segment.ident != segment.tag) formatter.keyValueOptionalQuote(tagKey, segment tag)
+      formatter.keyLine(valuesKey)
+      writeSegmentComponents(segment.components)
+      if (!segment.rules.isEmpty) {
+        formatter.keyLine(rulesKey)
+        segment.rules foreach (rule => {
+          val builder = new StringBuilder
+          builder ++= "- { " ++= typeKey ++= ": " ++= rule.code ++= ", " ++= valuesKey ++= ": ["
+          builder ++= rule.components.head.position.toString
+          rule.components.tail foreach (comp => builder ++= ", " ++= comp.position.toString)
+          builder ++= " ]"
+          formatter.writeIndented(builder.toString)
+        })
+      }
     }
 
     // start with schema type and version
-    writeIndented(keyValuePair(formKey, schema.ediVersion.ediForm.text), 0, writer)
-    writeIndented(keyValueQuote(versionKey, schema.ediVersion.version), 0, writer)
+    formatter.keyValuePair(formKey, schema.ediVersion.ediForm.text)
+    formatter.keyValueOptionalQuote(versionKey, schema.ediVersion.version)
     if (imports.nonEmpty) {
 
       // write list of imports
-      writer.append(s"$importsKey: [ '${imports.head}'")
-      imports.tail.foreach { path => writer.append(s", '$path'") }
-      writer.append(" ]\n")
-
+      val builder = new StringBuilder
+      builder ++= importsKey ++= ": [ '" ++= imports.head ++= "'"
+      imports.tail.foreach { builder ++= ", '" ++= _ ++= "'" }
+      builder ++= " ]"
+      formatter.writeIndented(builder.toString)
     }
     if (!schema.structures.isEmpty) {
 
       // write structure details
-      writeIndented(s"$structuresKey:", 0, writer)
-      schema.structures.values.toList.sortBy { transact => transact.ident } foreach (transact => {
-        writeIndented("- " + keyValueQuote(idKey, transact.ident), 0, writer)
-        writeIndented(keyValuePair(nameKey, transact.name), 1, writer)
-        transact.group match {
-          case Some(g) => writeIndented(keyValuePair(classKey, g), 1, writer)
+      formatter.keyLine(structuresKey)
+      schema.structures.values.toList.sortBy { _.ident } foreach (struct => {
+        formatter.openGrouping.keyValueOptionalQuote(idKey, struct.ident).keyValueOptionalQuote(nameKey, struct.name)
+        struct.group match {
+          case Some(g) => formatter.keyValuePair(classKey, g)
           case None =>
         }
-        transact.tagStart.foreach { x => writeIndented(keyValuePair(tagStartKey, x), 1, writer) }
-        transact.tagLength.foreach { x => writeIndented(keyValuePair(tagLengthKey, x), 1, writer) }
-        if (schema.ediVersion.ediForm.sectioned) {
-          transact.heading.foreach { seq => writeStructureComps(headingKey, seq.items, 1) }
-          transact.detail.foreach { seq => writeStructureComps(detailKey, seq.items, 1) }
-          transact.summary.foreach { seq => writeStructureComps(summaryKey, seq.items, 1) }
-        } else transact.heading.foreach { seq => writeStructureComps(dataKey, seq.items, 1) }
+        struct.tagStart.foreach { x => formatter.keyValuePair(tagStartKey, x) }
+        struct.tagLength.foreach { x => formatter.keyValuePair(tagLengthKey, x) }
+        if (schema.ediVersion.ediForm.layout.sectioned) {
+          struct.heading.foreach { seq => writeStructureComps(headingKey, seq.items) }
+          struct.detail.foreach { seq => writeStructureComps(detailKey, seq.items) }
+          struct.summary.foreach { seq => writeStructureComps(summaryKey, seq.items) }
+        } else struct.heading.foreach { seq => writeStructureComps(dataKey, seq.items) }
+        formatter.closeGrouping
       })
     }
     if (!schema.segments.isEmpty) {
 
       // write segment details
-      writeIndented("segments:", 0, writer)
-      schema.segments.values.toList.sortBy { segment => segment.ident } foreach (segment => {
-        writeIndented("- " + keyValueQuote(idKey, segment.ident), 0, writer)
-        if (segment.ident != segment.tag) writeIndented(keyValuePair(tagKey, segment tag), 1, writer)
-        writeIndented(keyValuePair(nameKey, segment name), 1, writer)
-        writeSegmentComponents(valuesKey, segment.components, 1)
-        if (!segment.rules.isEmpty) {
-          writeIndented(s"$rulesKey:", 1, writer)
-          segment.rules foreach (rule => {
-            val builder = new StringBuilder
-            builder ++= "- {" ++= keyValueQuote(typeKey, rule.code) ++= s" $valuesKey: ["
-            builder ++= rule.components.head.position.toString
-            rule.components.tail foreach (comp => builder ++= comp.position.toString ++= ", ")
-            builder ++= "]"
-            writeIndented(builder.toString, 1, writer)
-          })
-        }
+      formatter.keyLine(segmentsKey)
+      schema.segments.values.toList.sortBy { _.ident } foreach (segment => {
+        formatter.openGrouping.keyValueOptionalQuote(idKey, segment ident)
+        writeSegmentDetails(segment)
+        formatter.closeGrouping
       })
     }
     if (!schema.composites.isEmpty) {
 
       // write composites details
-      writeIndented(compositesKey + ":", 0, writer)
-      schema.composites.values.toList.sortBy { composite => composite.ident } foreach (composite => {
-        writeIndented("- " + keyValueQuote(idKey, composite.ident), 0, writer)
-        writeIndented(keyValueQuote(nameKey, composite name), 1, writer)
-        writeSegmentComponents(valuesKey, composite.components, 1)
+      formatter.keyLine(compositesKey)
+      schema.composites.values.toList.sortBy { _.ident }.foreach (comp => {
+        formatter.openGrouping.keyValueOptionalQuote(idKey, comp ident)
+        writeCompositeDetails(comp, true)
+        formatter.closeGrouping
       })
     }
     if (!schema.elements.isEmpty) {
 
       // write element details
-      writeIndented("elements:", 0, writer)
-      schema.elements.values.toList.sortBy { element => element.ident } foreach (element =>
-        writeIndented("- { " + keyValueQuote(idKey, element.ident) + ", " +
-          keyValueQuote(nameKey, element name) + ", " +
-          keyValuePair(typeKey, element.dataType.code) + ", " +
-          keyValuePair(minLengthKey, element.minLength toString) + ", " +
-          keyValuePair(maxLengthKey, element.maxLength toString) + " }", 1, writer))
+      formatter.keyLine(elementsKey)
+      formatter.indentCount += 1
+      schema.elements.values.toList.sortBy { _.ident }.foreach (elem => {
+        formatter.openGrouping(true).keyValueOptionalQuote(idKey, elem ident)
+        writeElementDetails(elem, true)
+        formatter.closeGrouping
+      })
+      formatter.indentCount -= 1
     }
   }
 }

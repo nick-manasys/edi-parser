@@ -133,7 +133,7 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
     comps.foreach(comp => {
       comp match {
         case ref: ReferenceComponent => {
-          val position = s"""SegmentPosition(${ref.position.table}, "${ref.position.position}")"""
+          val position = s"""new DefinedPosition(${ref.position.table}, "${ref.position.position}")"""
           val text = s"ReferenceComponent(${genName(ref.segment)}, $position, ${ref.use}, ${ref.count})"
           if (builder.length > BREAK_LINE_LENGTH) builder.breakAppend(text)
           else builder.append(text)

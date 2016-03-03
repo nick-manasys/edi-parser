@@ -14,6 +14,41 @@ import com.anypoint.df.edi.schema._
 import com.anypoint.df.edi.schema.EdiSchema._
 import com.anypoint.df.edi.schema.SchemaJavaValues._
 
+trait WritesYaml {
+
+  val indentText = "  "
+
+  /** Write simple key-value pair. */
+  def keyValuePair(key: String, value: String) = key + ": " + value
+
+  /** Write simple key-value pair. */
+  def keyValuePair(key: String, value: Int) = key + ": " + value.toString
+
+  /** Write key-quoted value pair. */
+  def keyValueQuote(key: String, value: String) = {
+    val builder = new StringBuilder
+    builder ++= key ++= ": '"
+    value.toList.foreach(chr =>
+      if (chr == '\'') builder ++= "''"
+      else builder + chr)
+    builder + '\''
+    builder.toString
+  }
+
+  /** Write text indended to level. */
+  def writeIndented(text: String, indent: Int, writer: Writer) = {
+    def writeIndent(indent: Int) = writer append (indentText * indent)
+    writeIndent(indent)
+    writer append text
+    writer append "\n"
+  }
+
+  /** Get repetition count text value. */
+  def countText(count: Int) =
+    if (count == 0) "'>1'"
+    else count toString
+}
+
 object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
 
   /** Merge all values from the first map into the second map. If the same key exist in both maps, the value of the

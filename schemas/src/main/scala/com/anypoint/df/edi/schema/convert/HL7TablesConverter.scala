@@ -232,7 +232,7 @@ object HL7TablesConverter {
           val code = h(2)
           segs.get(code) match {
             case Some(seg) => {
-              val segpos = SegmentPosition(0, zeroPad(h(1), 2))
+              val segpos = new DefinedPosition(0, zeroPad(h(1), 2))
               val count = h(4) match {
                 case "0" => 1
                 case "1" => 0

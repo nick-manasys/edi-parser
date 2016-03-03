@@ -389,7 +389,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         groupStartSegment = lexer.getSegmentNumber
         groupStructureCount = 0
         groupAcceptCount = 0
-        val map = parseSegment(GSSegment, outsidePosition)
+        val map = parseSegment(GSSegment, StartPosition)
         inGroup = true
         map
       } else throw new IllegalStateException("missing required GS segment")
@@ -401,7 +401,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     def closeGroup(props: ValueMap) = {
       inGroup = false
       if (checkSegment(GESegment)) {
-        val endprops = parseSegment(GESegment, SegmentPosition(0, "9999"))
+        val endprops = parseSegment(GESegment, StartPosition)
         if (props.get(groupControlNumberHeaderKey) != endprops.get(groupControlNumberTrailerKey)) groupError(GroupControlNumberMismatch)
         if (endprops.get(groupNumberSetsIncludedKey) != groupStructureCount) groupError(GroupTransactionCountError)
         endprops.get(groupNumberSetsIncludedKey).asInstanceOf[Integer]
@@ -430,7 +430,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         oneOrMoreSegmentsInError = false
         inStructure = true
         transactionStartSegment = lexer.getSegmentNumber
-        val values = parseSegment(STSegment, outsidePosition)
+        val values = parseSegment(STSegment, StartPosition)
         groupStructureCount += 1
         (values.get(setIdentifierCodeKey).asInstanceOf[String], values)
       } else throw new IllegalStateException("not positioned at ST segment")
@@ -441,7 +441,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
     /** Parse close of a transaction set. */
     def closeSet(props: ValueMap) = {
       if (checkSegment(SESegment)) {
-        val endprops = parseSegment(SESegment, SegmentPosition(0, "9999"))
+        val endprops = parseSegment(SESegment, StartPosition)
         if (props.get(setControlNumberHeaderKey) != endprops.get(setControlNumberTrailerKey)) {
           transactionError(ControlNumberMismatch)
         }
@@ -625,7 +625,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         val receiveTA1s =
           if (root.containsKey(interchangeAcksReceived)) getAs[MapList](interchangeAcksReceived, root)
           else storageContext.newMapSeq
-        while (lexer.segmentTag == "TA1") receiveTA1s add parseSegment(segTA1, SegmentPosition(0, ""))
+        while (lexer.segmentTag == "TA1") receiveTA1s add parseSegment(segTA1, StartPosition)
         root put (interchangeAcksReceived, receiveTA1s)
       }
     }

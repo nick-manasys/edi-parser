@@ -146,8 +146,8 @@ object HL7SchemaDefs {
 
   val ackVersion = EdiSchemaVersion(EdiSchema.HL7, null)
   val transACK = Structure("ACK", "ACK", None, Some(StructureSequence(false, List[StructureComponent](
-    ReferenceComponent(segMSH, SegmentPosition(0, "01"), MandatoryUsage, 1), ReferenceComponent(segSFT, SegmentPosition(0, "02"), OptionalUsage, -1),
-    ReferenceComponent(segMSA, SegmentPosition(0, "03"), MandatoryUsage, 1), ReferenceComponent(segERR, SegmentPosition(0, "04"), OptionalUsage, -1)))),
+    ReferenceComponent(segMSH, new DefinedPosition(0, "01"), MandatoryUsage, 1), ReferenceComponent(segSFT, new DefinedPosition(0, "02"), OptionalUsage, -1),
+    ReferenceComponent(segMSA, new DefinedPosition(0, "03"), MandatoryUsage, 1), ReferenceComponent(segERR, new DefinedPosition(0, "04"), OptionalUsage, -1)))),
     None, None, ackVersion)
 
   val mshEncodingCharsKey = segMSH.components(0).key

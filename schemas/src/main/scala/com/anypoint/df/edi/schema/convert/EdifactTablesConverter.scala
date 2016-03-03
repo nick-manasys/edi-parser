@@ -399,7 +399,7 @@ object EdifactTablesConverter {
             val fields = parseTemplate(tmpl, true, 3, lines)
             val usage = convertUsage(fields(4))
             val repeat = fields(5).filter { _.isDigit }.toInt
-            val position = SegmentPosition(table, fields(0))
+            val position = new DefinedPosition(table, fields(0))
             if (fields(2) == "") {
               // start of a new loop definition
               if (fields(3) == "") throw new IllegalArgumentException("Missing expected group name")
@@ -492,7 +492,7 @@ object EdifactTablesConverter {
       */
     def convert(table: Int, depth: Int): List[StructureComponent] = {
     
-      def segmentPosition = SegmentPosition(table, position.toString.substring(1))
+      def segmentPosition = new DefinedPosition(table, position.toString.substring(1))
 
       /** Recursively convert input to a component definition, checking and handling loops. This needs to process all
         * input up to the end of the current loop (as indicated by a line which is blank, except for up to the depth

@@ -185,7 +185,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val ident = getRequiredString(groupIdKey, values)
         val items = getRequiredMapList(itemsKey, values)
         val postext = getAsString(positionKey, values)
-        val position = if (postext == null) None else Some(SegmentPosition(table, postext))
+        val position = if (postext == null) None else Some(new DefinedPosition(table, postext))
         val seq = StructureSequence(true, parseComponent(items.asScala.toList, Nil))
         val tagStart = getIntOption(tagStartKey, values)
         val tagLength = getIntOption(tagLengthKey, values)
@@ -196,14 +196,14 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         if (list.size != 1) throw new IllegalArgumentException(s"Single group definition required for loop with $wrapIdKey $wrapid")
         val group = convertComponent(list.iterator.next).asInstanceOf[GroupComponent]
         if (segments.contains(form.loopWrapperStart) && segments.contains(form.loopWrapperEnd)) {
-          val start = SegmentPosition(table, getRequiredString(positionKey, values))
-          val end = SegmentPosition(table, getRequiredString(endPositionKey, values))
+          val start = new DefinedPosition(table, getRequiredString(positionKey, values))
+          val end = new DefinedPosition(table, getRequiredString(endPositionKey, values))
           LoopWrapperComponent(segments(form.loopWrapperStart), segments(form.loopWrapperEnd), start, end, OptionalUsage, wrapid, group)
         } else throw new IllegalArgumentException(s"Missing loop wrapper segment definition (${form.loopWrapperStart} or ${form.loopWrapperEnd})")
       } else {
         val id = getRequiredString(idRefKey, values)
         val position = getRequiredString(positionKey, values)
-        if (segments.contains(id)) ReferenceComponent(segments(id), SegmentPosition(table, position), use, count)
+        if (segments.contains(id)) ReferenceComponent(segments(id), new DefinedPosition(table, position), use, count)
         else throw new IllegalArgumentException(s"No segment with id '$id'")
       }
     }
@@ -304,10 +304,12 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     getRequiredMapList(elementsKey, input).asScala.toList.foldLeft(basedefs)(
       (map, elmmap) => {
         val ident = getRequiredString(idKey, elmmap)
-        val name = getRequiredString(nameKey, elmmap)
+        val name = getAs(nameKey, "", elmmap)
         val typ = EdiConstants.toX12Type(getRequiredString(typeKey, elmmap))
-        val min = getRequiredInt(minLengthKey, elmmap)
-        val max = getRequiredInt(maxLengthKey, elmmap)
+        val (min, max) = if (elmmap.containsKey(lengthKey)) {
+          val length = getRequiredInt(lengthKey, elmmap)
+          (length, length)
+        } else (getRequiredInt(minLengthKey, elmmap), getRequiredInt(maxLengthKey, elmmap))
         val result = map + (ident -> Element(ident, name, typ, min, max))
         result
       })
@@ -333,7 +335,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
           if (h._2.forall { ident => done.contains(ident) || elements.contains(ident) }) {
             val compmap = h._1
             val ident = getRequiredString(idKey, compmap)
-            val name = getRequiredString(nameKey, compmap)
+            val name = getAs(nameKey, "", compmap)
             val list = getRequiredMapList(valuesKey, compmap)
             val comps = parseSegmentComponents(ident, list, elements, done, form)
             val rules = if (compmap.containsKey(rulesKey)) {
@@ -407,10 +409,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     }
     def dataSection(key: String, values: ValueMap, index: Int): Option[StructureSequence] =
       if (values.containsKey(key)) {
-        if (!version.ediForm.sectioned) throw new IllegalArgumentException(s"section $key is not allowed for schemas of type ${version.ediForm.text}")
+        if (!version.ediForm.layout.sectioned) throw new IllegalArgumentException(s"section $key is not allowed for schemas of type ${version.ediForm.text}")
         optSeq(parseStructurePart(key, values, version.ediForm, index, segments))
       } else None
-    val firstkey = if (version.ediForm.sectioned) headingKey else dataKey
+    val firstkey = if (version.ediForm.layout.sectioned) headingKey else dataKey
     getRequiredMapList(structuresKey, input).asScala.toList.
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)

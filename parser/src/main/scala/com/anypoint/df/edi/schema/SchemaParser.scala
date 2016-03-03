@@ -26,8 +26,6 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
 
   val logger = Logger.getLogger(getClass.getName)
 
-  val outsidePosition = SegmentPosition(0, "0000")
-
   /** Stack of loop nestings currently active in parse. */
   val loopStack = Stack[GroupComponent]()
   
