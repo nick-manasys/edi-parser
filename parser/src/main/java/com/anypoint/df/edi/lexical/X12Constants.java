@@ -5,10 +5,8 @@ import java.nio.charset.Charset;
 /**
  * Constants for X12 documents.
  */
-public final class X12Constants extends EdiConstants
+public final class X12Constants
 {
-    private X12Constants() {}
-    
     // standard character sets
     public static final Charset EBCDIC_CHARSET = Charset.forName("IBM1047");
     
@@ -39,13 +37,13 @@ public final class X12Constants extends EdiConstants
     
     static {
         basicCharacterSet = new boolean[128];
-        fillChars('A', 'Z', basicCharacterSet);
-        fillChars('0', '9', basicCharacterSet);
-        setChars(" !|&'()*+,-./:;?=\"".toCharArray(), basicCharacterSet);
+        EdiConstants.fillChars('A', 'Z', basicCharacterSet);
+        EdiConstants.fillChars('0', '9', basicCharacterSet);
+        EdiConstants.setChars(" !|&'()*+,-./:;?=\"".toCharArray(), basicCharacterSet);
         extendedCharacterSet = new boolean[8320];
         System.arraycopy(basicCharacterSet, 0, extendedCharacterSet, 0, basicCharacterSet.length);
-        fillChars('a', 'z', extendedCharacterSet);
-        setChars("%@[]_{}\\<>~^`#$“ÀÁÂÄàáâä“ÈÉÊèéêëÌÍÎìíîï“ÒÓÔÖòóôöÙÚÛÜ“ùúûüÇçÑñ¿¡".toCharArray(), extendedCharacterSet);
+        EdiConstants.fillChars('a', 'z', extendedCharacterSet);
+        EdiConstants.setChars("%@[]_{}\\<>~^`#$“ÀÁÂÄàáâä“ÈÉÊèéêëÌÍÎìíîï“ÒÓÔÖòóôöÙÚÛÜ“ùúûüÇçÑñ¿¡".toCharArray(), extendedCharacterSet);
     }
     
     /**
