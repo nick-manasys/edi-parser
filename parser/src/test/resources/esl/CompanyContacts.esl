@@ -9,35 +9,35 @@ structures:
     usage: O
     count: '>1'
     items:
-    - { idRef: 'COMPANY', position: '1', usage: M }
-    - { idRef: 'CONTACT', position: '2', usage: M, count: '>1' }
+    - { idRef: 'COMPANY', position: '1' }
+    - { idRef: 'CONTACT', position: '2', count: '>1' }
 segments:
 - id: 'COMPANY'
   tag: '0'
   name: Company Information Record
   values:
-  - { idRef: 'CompanyName', position: 1, usage: M }
-  - { idRef: 'IndustryCode', position: 2, usage: M }
-  - { idRef: 'Address', position: 3, usage: O }
-  - { idRef: 'City', position: 4, usage: O }
-  - { idRef: 'State', position: 5, usage: O }
-  - { idRef: 'Zip', position: 6, usage: O }
-  - { idRef: 'Phone', position: 7, usage: O }
+  - { idRef: 'CompanyName', position: 1 }
+  - { idRef: 'IndustryCode', position: 2 }
+  - { idRef: 'Address', position: 3 }
+  - { idRef: 'City', position: 4 }
+  - { idRef: 'State', position: 5 }
+  - { idRef: 'Zip', position: 6 }
+  - { idRef: 'Phone', position: 7 }
 - id: 'CONTACT'
   tag: '1'
   name: Contact Person Record
   values:
-  - { idRef: 'FirstName', position: 1, usage: M }
-  - { idRef: 'LastName', position: 2, usage: M }
-  - { idRef: 'Title', position: 3, usage: M }
-  - { idRef: 'Email', position: 4, usage: O }
-  - { idRef: 'Address', position: 5, usage: O }
-  - { idRef: 'City', position: 6, usage: O }
-  - { idRef: 'State', position: 7, usage: O }
-  - { idRef: 'Zip', position: 8, usage: O }
-  - { idRef: 'Phone', position: 9, usage: O }
-  - { idRef: 'Extension', position: 10, usage: O }
-  - { idRef: 'EffectiveDate', position: 11, usage: M }
+  - { idRef: 'FirstName', position: 1 }
+  - { idRef: 'LastName', position: 2 }
+  - { idRef: 'Title', position: 3 }
+  - { idRef: 'Email', position: 4 }
+  - { idRef: 'Address', position: 5 }
+  - { idRef: 'City', position: 6 }
+  - { idRef: 'State', position: 7 }
+  - { idRef: 'Zip', position: 8 }
+  - { idRef: 'Phone', position: 9 }
+  - { idRef: 'Extension', position: 10 }
+  - { idRef: 'EffectiveDate', position: 11 }
 elements:
   - { id: 'CompanyName', name: 'Company Name', type: AN, minLength: 0, maxLength: 20 }
   - { id: 'IndustryCode', name: 'Industry Classification Code', type: N0, minLength: 0, maxLength: 6 }

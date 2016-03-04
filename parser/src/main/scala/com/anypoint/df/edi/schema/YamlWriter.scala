@@ -136,7 +136,7 @@ object YamlWriter extends YamlDefs {
 
     def writeReferenceComponent(refer: ReferenceComponent): Unit = {
       val segment = refer.segment
-      formatter.openGrouping(true).keyValueOptionalQuote(idRefKey, segment.ident).
+      formatter.openGrouping(segment.ident.nonEmpty).keyValueOptionalQuote(idRefKey, segment.ident).
         keyPositionOptionalPair(positionKey, refer.position)
       if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, refer.usage.code)
       formatter.keyCountOptionalPair(countKey, refer.count)
@@ -173,15 +173,13 @@ object YamlWriter extends YamlDefs {
       })
     }
 
-    def writeElementDetails(elem: Element, named: Boolean) = {
-      if (named) formatter.keyValueOptionalQuote(nameKey, elem.name)
+    def writeElementDetails(elem: Element) = {
       formatter.keyValuePair(typeKey, elem.dataType.code)
       if (elem.minLength == elem.maxLength) formatter.keyValuePair(lengthKey, elem.minLength)
       else formatter.keyValuePair(minLengthKey, elem.minLength).keyValuePair(maxLengthKey, elem.maxLength)
     }
 
-    def writeCompositeDetails(comp: Composite, named: Boolean) = {
-      if (named) formatter.keyValueOptionalQuote(nameKey, comp.name)
+    def writeCompositeDetails(comp: Composite) = {
       formatter.keyNonzeroOptionalPair(maxLengthKey, comp.maxLength).keyLine(valuesKey)
       writeSegmentComponents(comp.components)
     }
@@ -189,34 +187,34 @@ object YamlWriter extends YamlDefs {
     def writeSegmentComponents(comps: List[SegmentComponent]): Unit = {
       def writeElement(ecomp: ElementComponent, dfltpos: Int) = {
         val elem = ecomp.element
-        formatter.keyValueOptionalQuote(idRefKey, elem.ident)
-        val anon = ecomp.name == elem.name
-        if (!anon) formatter.keyValueOptionalQuote(nameKey, ecomp.name)
+        formatter.openGrouping(true).keyValueOptionalQuote(idRefKey, elem.ident)
+        val named = ecomp.name != elem.name || elem.ident.isEmpty
+        if (named) formatter.keyValueOptionalQuote(nameKey, ecomp.name)
         if (ecomp.position != dfltpos) formatter.keyValuePair(positionKey, ecomp.position)
-        if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, ecomp.usage.code toString)
+        if (!schema.ediVersion.ediForm.fixed || ecomp.usage != MandatoryUsage) formatter.keyValuePair(usageKey, ecomp.usage.code toString)
         formatter.keyCountOptionalPair(countKey, ecomp.count)
-        if (elem.ident.isEmpty) writeElementDetails(elem, anon)
+        if (elem.ident.isEmpty) writeElementDetails(elem)
+        formatter.closeGrouping
       }
       def writeComposite(ccomp: CompositeComponent, dfltpos: Int) = {
         val comp = ccomp.composite
-        formatter.keyValueOptionalQuote(idRefKey, comp.ident)
-        val anon = ccomp.name == comp.name
-        if (!anon) formatter.keyValueOptionalQuote(nameKey, ccomp.name)
+        formatter.openGrouping(comp.ident.nonEmpty).keyValueOptionalQuote(idRefKey, comp.ident)
+        val named = ccomp.name != comp.name || comp.ident.isEmpty
+        if (named) formatter.keyValueOptionalQuote(nameKey, ccomp.name)
         if (ccomp.position != dfltpos) formatter.keyValuePair(positionKey, ccomp.position)
-        if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, ccomp.usage.code toString)
+        if (!schema.ediVersion.ediForm.fixed || ccomp.usage != MandatoryUsage) formatter.keyValuePair(usageKey, ccomp.usage.code toString)
         formatter.keyCountOptionalPair(countKey, ccomp.count)
-        if (comp.ident.isEmpty) writeCompositeDetails(comp, anon)
+        if (comp.ident.isEmpty) writeCompositeDetails(comp)
+        formatter.closeGrouping
       }
       @tailrec
       def writerr(remain: List[SegmentComponent], dfltpos: Int): Unit = {
         remain match {
           case comp :: t =>
-            formatter.openGrouping(true)
             comp match {
               case ec: ElementComponent => writeElement(ec, dfltpos)
               case cc: CompositeComponent => writeComposite(cc, dfltpos)
             }
-            formatter.closeGrouping
             writerr(t, dfltpos + 1)
           case _ =>
         }
@@ -290,8 +288,8 @@ object YamlWriter extends YamlDefs {
       // write composites details
       formatter.keyLine(compositesKey)
       schema.composites.values.toList.sortBy { _.ident }.foreach (comp => {
-        formatter.openGrouping.keyValueOptionalQuote(idKey, comp ident)
-        writeCompositeDetails(comp, true)
+        formatter.openGrouping.keyValueOptionalQuote(idKey, comp ident).keyValueOptionalQuote(nameKey, comp.name)
+        writeCompositeDetails(comp)
         formatter.closeGrouping
       })
     }
@@ -301,8 +299,8 @@ object YamlWriter extends YamlDefs {
       formatter.keyLine(elementsKey)
       formatter.indentCount += 1
       schema.elements.values.toList.sortBy { _.ident }.foreach (elem => {
-        formatter.openGrouping(true).keyValueOptionalQuote(idKey, elem ident)
-        writeElementDetails(elem, true)
+        formatter.openGrouping(true).keyValueOptionalQuote(idKey, elem ident).keyValueOptionalQuote(nameKey, elem.name)
+        writeElementDetails(elem)
         formatter.closeGrouping
       })
       formatter.indentCount -= 1

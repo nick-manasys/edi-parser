@@ -5,86 +5,86 @@ structures:
   tagStart: 0
   tagLength: 1
   data:
-  - { idRef: 'FCH', position: '1', usage: M }
+  - { idRef: 'FCH', position: '1' }
   - groupId: 'Batch'
     usage: O
     count: '>1'
     items:
-    - { idRef: 'BCH', position: '2', usage: M }
-    - { idRef: 'TDR', position: '3', usage: M, count: '>1' }
-    - { idRef: 'BCF', position: '4', usage: M }
-  - { idRef: 'FCF', position: '5', usage: M }
+    - { idRef: 'BCH', position: '2' }
+    - { idRef: 'TDR', position: '3', count: '>1' }
+    - { idRef: 'BCF', position: '4' }
+  - { idRef: 'FCF', position: '5' }
 - id: 'QBResponse'
   name: QuickBatch Response
   tagStart: 0
   tagLength: 1
   data:
-  - { idRef: 'FCH', position: '1', usage: M }
+  - { idRef: 'FCH', position: '1' }
   - groupId: 'Batch'
     usage: O
     count: '>1'
     items:
-    - { idRef: 'BCH', position: '2', usage: M }
-    - { idRef: 'TDR', position: '3', usage: M, count: '>1' }
-    - { idRef: 'BCF', position: '4', usage: M }
-  - { idRef: 'FCF', position: '5', usage: M }
+    - { idRef: 'BCH', position: '2' }
+    - { idRef: 'TDR', position: '3', count: '>1' }
+    - { idRef: 'BCF', position: '4' }
+  - { idRef: 'FCF', position: '5' }
 segments:
 - id: 'FCH'
   tag: '1'
   name: File Control Header Record
   values:
-  - { idRef: 'CommCode', position: 1, usage: M }
-  - { idRef: 'CreatDate', position: 2, usage: M }
-  - { idRef: 'CreatTime', position: 3, usage: M }
-  - { idRef: 'ClientName', position: 4, usage: M }
-  - { idRef: 'FileId', position: 5, usage: M }
+  - { idRef: 'CommCode', position: 1 }
+  - { idRef: 'CreatDate', position: 2 }
+  - { idRef: 'CreatTime', position: 3 }
+  - { idRef: 'ClientName', position: 4 }
+  - { idRef: 'FileId', position: 5 }
   - { idRef: 'Filler107', position: 6, usage: U }
 - id: 'BCH'
   tag: '3'
   name: Batch Control Header Record
   values:
-  - { idRef: 'CompName', position: 1, usage: M }
-  - { idRef: 'CompCode', position: 2, usage: M }
-  - { idRef: 'BatchType', position: 3, usage: M }
-  - { idRef: 'BatchDesc', position: 4, usage: O }
-  - { idRef: 'BatchId', position: 5, usage: M }
-  - { idRef: 'RefundFlag', position: 6, usage: O }
-  - { idRef: 'Currency', position: 7, usage: O }
+  - { idRef: 'CompName', position: 1 }
+  - { idRef: 'CompCode', position: 2 }
+  - { idRef: 'BatchType', position: 3 }
+  - { idRef: 'BatchDesc', position: 4 }
+  - { idRef: 'BatchId', position: 5 }
+  - { idRef: 'RefundFlag', position: 6 }
+  - { idRef: 'Currency', position: 7 }
   - { idRef: 'Filler309', position: 8, usage: U }
 - id: 'TDR'
   tag: '5'
   name: Transaction Detail Record
   values:
   - { idRef: 'Unused502', position: 1, usage: U }
-  - { idRef: 'BSBExpDate', position: 2, usage: M }
-  - { idRef: 'AcctNum', position: 3, usage: O }
-  - { idRef: 'Amount', position: 4, usage: M }
-  - { idRef: 'CustNum', position: 5, usage: O }
-  - { idRef: 'CustAcct', position: 6, usage: O }
-  - { idRef: 'TransNum', position: 7, usage: M }
-  - { idRef: 'CapTransNum', position: 8, usage: O }
-  - { idRef: 'AuthId', position: 9, usage: O }
-  - { idRef: 'ECI', position: 10, usage: O }
+  - { idRef: 'BSBExpDate', position: 2 }
+  - { idRef: 'AcctNum', position: 3 }
+  - { idRef: 'Amount', position: 4 }
+  - { idRef: 'CustNum', position: 5 }
+  - { idRef: 'CustAcct', position: 6 }
+  - { idRef: 'TransNum', position: 7 }
+  - { idRef: 'CapTransNum', position: 8 }
+  - { idRef: 'AuthId', position: 9 }
+  - { idRef: 'ECI', position: 10 }
   - { idRef: 'Filler512', position: 11, usage: U }
 - id: 'BCF'
   tag: '7'
   name: Batch Control Footer Record
   values:
-  - { idRef: 'BatchTransCount', position: 1, usage: M }
-  - { idRef: 'BatchTransAmount', position: 2, usage: M }
-  - { idRef: 'CompCode', position: 3, usage: M }
-  - { idRef: 'BatchId', position: 4, usage: M }
+  - { idRef: 'BatchTransCount', position: 1 }
+  - { idRef: 'BatchTransAmount', position: 2 }
+  - { idRef: 'CompCode', position: 3 }
+  - { idRef: 'BatchId', position: 4 }
   - { idRef: 'Filler706', position: 5, usage: U }
 - id: 'FCF'
   tag: '9'
   name: File Control Footer Record
   values:
-  - { idRef: 'FileBatchCount', position: 1, usage: M }
-  - { idRef: 'FileTransCount', position: 2, usage: M }
-  - { idRef: 'FileTransAmount', position: 3, usage: M }
-  - { idRef: 'CommCode', position: 4, usage: M }
-  - { idRef: 'ClientName', position: 5, usage: M }
-  - { idRef: 'FileId', position: 6, usage: M }
+  - { idRef: 'FileBatchCount', position: 1 }
+  - { idRef: 'FileTransCount', position: 2 }
+  - { idRef: 'FileTransAmount', position: 3 }
+  - { idRef: 'CommCode', position: 4 }
+  - { idRef: 'ClientName', position: 5 }
+  - { idRef: 'FileId', position: 6 }
   - { idRef: 'Filler908', position: 7, usage: U }
 elements:
   - { id: 'CommCode', name: 'Community Code', type: AN, minLength: 0, maxLength: 10 }

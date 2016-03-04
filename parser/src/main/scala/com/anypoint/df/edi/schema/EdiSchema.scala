@@ -424,6 +424,9 @@ object EdiSchema {
 
   /** Key for a structure component. */
   def componentKey(ident: String, pos: SegmentPosition) = pos.position + "_" + ident.replace(' ', '_')
+  
+  /** Identifier used in key for segment. */
+  def segmentId(segment: Segment) = if (segment.ident.nonEmpty) segment.ident else segment.name
 
   /** Segment reference.
     * @param segment
@@ -432,7 +435,7 @@ object EdiSchema {
     * @param cnt
     */
   case class ReferenceComponent(val segment: Segment, pos: SegmentPosition, use: Usage, cnt: Int)
-    extends StructureComponent(componentKey(segment.ident, pos), pos, use, cnt)
+    extends StructureComponent(componentKey(segmentId(segment), pos), pos, use, cnt)
 
   /** Any segment reference.
     * @param ident

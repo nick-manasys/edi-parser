@@ -286,13 +286,13 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
         if (map.containsKey(comp.key)) {
           val value = map.get(comp.key)
           if (value == null) throw new WriteException(s"Value cannot be null for key ${comp.key}")
-          if (comp.count > 1) {
+          if (comp.count != 1) {
             value match {
               case list: SimpleList =>
                 if (list.isEmpty) {
                   if (comp.usage == MandatoryUsage) logAndThrow(s"no values present for property ${comp.name}")
                 } else {
-                  if (list.size > comp.count) logAndThrow(s"too many values present for repeated component ${comp.key} (maximum ${comp.count})")
+                  if (comp.count > 0 && list.size > comp.count) logAndThrow(s"too many values present for repeated component ${comp.key} (maximum ${comp.count})")
                   val iter = list.iterator
                   writeComponent(iter.next, false)
                   while (iter.hasNext) writeComponent(iter.next, true)

@@ -12,8 +12,6 @@ class CopybookImport(in: InputStream, enc: String) {
 
   val input = new LineIterator(in, enc)
 
-  val elementDefs = new scm.HashMap[(DataType, Int), Element]
-  val compositeDefs = new scm.HashMap[List[SegmentComponent], Composite]
   val compositeNameCounts = new scm.HashMap[String, Int]
   val segmentNameCounts = new scm.HashMap[String, Int]
 
@@ -123,48 +121,33 @@ class CopybookImport(in: InputStream, enc: String) {
     if (position < 10) base + "0" + position
     else base + position
 
-  def defineElement(typ: DataType, length: Int): Element = {
-    elementDefs.getOrElseUpdate((typ, length), {
-      val number = elementDefs.size + 1
-      val ident = genKey("E", number)
-      Element(ident, "", typ, 0, length)
-    })
-  }
-
-  def convertImplicitDecimal(pic: Seq[Char], lead: Int): Element = {
+  def convertImplicitDecimal(name: String, pic: Seq[Char], lead: Int): Element = {
     val (fract, rem) = convertReps('9', pic, 0)
-    if (rem.isEmpty) defineElement(EdiConstants.toUnrestrictedType("N" + fract), lead + fract)
+    val length = lead + fract
+    if (rem.isEmpty) Element("", name, EdiConstants.toUnrestrictedType("N" + fract), length, length)
     else dataError("Invalid expression in PIC clause")
   }
 
-  def convertPic(pic: String): Element = pic.head match {
+  def convertPic(name: String, pic: String): Element = pic.head match {
     case 'X' =>
       val (lead, rem) = convertReps('X', pic.tail, 1)
-      defineElement(DataType.ALPHANUMERIC, lead)
+      Element("", name, DataType.ALPHANUMERIC, lead, lead)
     case '9' =>
       val (lead, rem) = convertReps('9', pic.tail, 1)
-      if (rem.isEmpty) defineElement(DataType.NUMERIC, lead)
-      else if (rem.head == 'V') convertImplicitDecimal(rem.tail, lead)
+      if (rem.isEmpty) Element("", name, DataType.NUMERIC, lead, lead)
+      else if (rem.head == 'V') convertImplicitDecimal(name, rem.tail, lead)
       else dataError("Invalid expression in PIC clause")
-    case 'V' => convertImplicitDecimal(pic.tail, 0)
+    case 'V' => convertImplicitDecimal(name, pic.tail, 0)
     case _   => dataError("Invalid expression in PIC clause")
   }
 
   def buildSegment: Segment = {
 
     def buildNested(name: String, rootKey: String, position: Int, count: Int, level: String) = {
-      var ident: Option[String] = None
-      def getIdent = ident match {
-        case Some(id) => id
-        case None =>
-          val id = generateIdent(abbreviateName(name), compositeNameCounts)
-          ident = Some(id)
-          id
-      }
       val nested =
         if (count == 1) buildr(level, rootKey, position + 1, Nil)
-        else buildr(level, getIdent, 1, Nil)
-      val comp = compositeDefs.getOrElseUpdate(nested, Composite(getIdent, name, nested, Nil, 0))
+        else buildr(level, name, 1, Nil)
+      val comp = Composite("", name, nested, Nil, 0)
       CompositeComponent(comp, Some(name), genKey(rootKey, position), position, MandatoryUsage, 1)
     }
 
@@ -188,7 +171,7 @@ class CopybookImport(in: InputStream, enc: String) {
                 buildr(level, key, position, Nil)
                 buildr(level, key, position, acc)
               case "PIC" | "PICTURE" =>
-                val element = convertPic(define(3))
+                val element = convertPic(define(1), define(3))
                 val comp = ElementComponent(element, Some(define(1)), genKey(key, position), position, MandatoryUsage, 1)
                 buildr(level, key, position + 1, comp :: acc)
             }
@@ -209,10 +192,8 @@ class CopybookImport(in: InputStream, enc: String) {
   def buildSchema: EdiSchema = {
     val buffer = scm.Buffer[Segment]()
     while (input.hasNext) buffer += buildSegment
-    val elems = elementDefs.values.map { e => (e.ident, e) }.toMap
-    val comps = compositeDefs.values.map { c => (c.ident, c) }.toMap
     val segs = buffer.map { s => (s.ident, s) }.toMap
-    new EdiSchema(EdiSchemaVersion(FlatFile, ""), elems, comps, segs, Map.empty)
+    new EdiSchema(EdiSchemaVersion(Copybook, ""), Map.empty, Map.empty, segs, Map.empty)
   }
 }
 

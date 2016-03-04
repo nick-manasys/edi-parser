@@ -42,7 +42,7 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
     comp match {
       case elemComp: ElementComponent =>
         val elem = elemComp.element
-        if (comp.count > 1) {
+        if (comp.count != 1) {
           val complist = storageContext.newValueSeq
           complist add parseElement(elem)
           while (baseLexer.currentType == REPETITION) complist add parseElement(elem)
@@ -50,7 +50,7 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
         } else storeValue(parseElement(elem))
       case compComp: CompositeComponent => {
         val composite = compComp.composite
-        if (comp.count > 1) {
+        if (comp.count != 1) {
           val complist = storageContext.newMapSeq
           // TODO: is this check necessary? should never get here if not
           if (baseLexer.currentType == first) {
@@ -63,7 +63,7 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
               parseCompList(composite.components, REPETITION, rest, repmap)
               complist add repmap
             }
-            if (complist.size > comp.count) {
+            if (comp.count > 0 && complist.size > comp.count) {
               repetitionError(compComp)
               while (complist.size > comp.count) complist.remove(comp.count)
             }

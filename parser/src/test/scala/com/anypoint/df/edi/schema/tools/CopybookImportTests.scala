@@ -6,6 +6,10 @@ import org.scalatest.Matchers
 import org.scalatest.FlatSpec
 import com.anypoint.df.edi.schema.EdiSchema._
 import com.anypoint.df.edi.lexical.EdiConstants.DataType
+import java.io.StringWriter
+import com.anypoint.df.edi.schema.YamlWriter
+import java.io.StringReader
+import com.anypoint.df.edi.schema.YamlReader
 
 class CopybookImportTests extends FlatSpec with Matchers {
 
@@ -37,18 +41,18 @@ class CopybookImportTests extends FlatSpec with Matchers {
   
   it should "handle simple patterns" in {
     val cbi = new CopybookImport(dummyInput, "UTF-8")
-    cbi.convertPic("XXX") should be (Element("E01", "", DataType.ALPHANUMERIC, 0, 3))
-    cbi.convertPic("XXXXX") should be (Element("E02", "", DataType.ALPHANUMERIC, 0, 5))
-    cbi.convertPic("X(3)") should be (Element("E01", "", DataType.ALPHANUMERIC, 0, 3))
-    cbi.convertPic("X(5)") should be (Element("E02", "", DataType.ALPHANUMERIC, 0, 5))
-    cbi.convertPic("999") should be (Element("E03", "", DataType.NUMERIC, 0, 3))
-    cbi.convertPic("99999") should be (Element("E04", "", DataType.NUMERIC, 0, 5))
-    cbi.convertPic("9(3)") should be (Element("E03", "", DataType.NUMERIC, 0, 3))
-    cbi.convertPic("9(5)") should be (Element("E04", "", DataType.NUMERIC, 0, 5))
-    cbi.convertPic("999V9") should be (Element("E05", "", DataType.DECIMAL1, 0, 4))
-    cbi.convertPic("99V9999") should be (Element("E06", "", DataType.DECIMAL4, 0, 6))
-    cbi.convertPic("9(3)V9") should be (Element("E05", "", DataType.DECIMAL1, 0, 4))
-    cbi.convertPic("9(2)V9(4)") should be (Element("E06", "", DataType.DECIMAL4, 0, 6))
+    cbi.convertPic("E0", "XXX") should be (Element("", "E0", DataType.ALPHANUMERIC, 3, 3))
+    cbi.convertPic("E0", "XXXXX") should be (Element("", "E0", DataType.ALPHANUMERIC, 5, 5))
+    cbi.convertPic("E0", "X(3)") should be (Element("", "E0", DataType.ALPHANUMERIC, 3, 3))
+    cbi.convertPic("E0", "X(5)") should be (Element("", "E0", DataType.ALPHANUMERIC, 5, 5))
+    cbi.convertPic("E0", "999") should be (Element("", "E0", DataType.NUMERIC, 3, 3))
+    cbi.convertPic("E0", "99999") should be (Element("", "E0", DataType.NUMERIC, 5, 5))
+    cbi.convertPic("E0", "9(3)") should be (Element("", "E0", DataType.NUMERIC, 3, 3))
+    cbi.convertPic("E0", "9(5)") should be (Element("", "E0", DataType.NUMERIC, 5, 5))
+    cbi.convertPic("E0", "999V9") should be (Element("", "E0", DataType.DECIMAL1, 4, 4))
+    cbi.convertPic("E0", "99V9999") should be (Element("", "E0", DataType.DECIMAL4, 6, 6))
+    cbi.convertPic("E0", "9(3)V9") should be (Element("", "E0", DataType.DECIMAL1, 4, 4))
+    cbi.convertPic("E0", "9(2)V9(4)") should be (Element("", "E0", DataType.DECIMAL4, 6, 6))
   }
   
   val baseDef = """       01  MAILING-RECORD.
@@ -87,9 +91,9 @@ class CopybookImportTests extends FlatSpec with Matchers {
     val comps = segment.components
     comps.length should be (2)
     val comp1 = comps(0)
-    comp1 should be (ElementComponent(Element("E01", "", DataType.ALPHANUMERIC, 0, 30), Some("COMPANY-NAME"), "MR01", 1, MandatoryUsage, 1, None))
+    comp1 should be (ElementComponent(Element("", "COMPANY-NAME", DataType.ALPHANUMERIC, 30, 30), Some("COMPANY-NAME"), "MR01", 1, MandatoryUsage, 1, None))
     val comp2 = comps(1)
-    comp2 should be (ElementComponent(Element("E02", "", DataType.ALPHANUMERIC, 0, 15), Some("ADDRESS"), "MR02", 2, MandatoryUsage, 1, None))
+    comp2 should be (ElementComponent(Element("", "ADDRESS", DataType.ALPHANUMERIC, 15, 15), Some("ADDRESS"), "MR02", 2, MandatoryUsage, 1, None))
   }
   
   it should "build a segment with nested composites" in {
@@ -100,22 +104,22 @@ class CopybookImportTests extends FlatSpec with Matchers {
     val comps = segment.components
     comps.length should be (3)
     val comp1 = comps(0)
-    comp1 should be (ElementComponent(Element("E01", "", DataType.ALPHANUMERIC, 0, 30), Some("COMPANY-NAME"), "MR01", 1, MandatoryUsage, 1, None))
+    comp1 should be (ElementComponent(Element("", "COMPANY-NAME", DataType.ALPHANUMERIC, 30, 30), Some("COMPANY-NAME"), "MR01", 1, MandatoryUsage, 1, None))
     val comp2 = comps(1)
-    comp2 should be (ElementComponent(Element("E02", "", DataType.ALPHANUMERIC, 0, 15), Some("ADDRESS"), "MR02", 2, MandatoryUsage, 1, None))
+    comp2 should be (ElementComponent(Element("", "ADDRESS", DataType.ALPHANUMERIC, 15, 15), Some("ADDRESS"), "MR02", 2, MandatoryUsage, 1, None))
     comps(2) shouldBe a [CompositeComponent]
     val comp3 = comps(2).asInstanceOf[CompositeComponent]
     comp3.name should be ("CONTACTS")
     comp3.key should be ("MR03")
     val compcomps = comp3.composite.components
     compcomps.length should be (3)
-    compcomps(0) should be (CompositeComponent(Composite("P0", "PRESIDENT",
-      List(ElementComponent(Element("E02", "", DataType.ALPHANUMERIC, 0, 15), Some("LAST-NAME"), "MR05", 5, MandatoryUsage, 1, None),
-        ElementComponent(Element("E03", "", DataType.ALPHANUMERIC, 0, 8), Some("FIRST-NAME"), "MR06", 6, MandatoryUsage, 1, None)), Nil, 0),
+    compcomps(0) should be (CompositeComponent(Composite("", "PRESIDENT",
+      List(ElementComponent(Element("", "LAST-NAME", DataType.ALPHANUMERIC, 15, 15), Some("LAST-NAME"), "MR05", 5, MandatoryUsage, 1, None),
+        ElementComponent(Element("", "FIRST-NAME", DataType.ALPHANUMERIC, 8, 8), Some("FIRST-NAME"), "MR06", 6, MandatoryUsage, 1, None)), Nil, 0),
       Some("PRESIDENT"), "MR04", 4, MandatoryUsage, 1))
-    compcomps(1) should be (CompositeComponent(Composite("VM0", "VP-MARKETING",
-      List(ElementComponent(Element("E02", "", DataType.ALPHANUMERIC, 0, 15), Some("LAST-NAME"), "MR06", 6, MandatoryUsage, 1, None),
-        ElementComponent(Element("E03", "", DataType.ALPHANUMERIC, 0, 8), Some("FIRST-NAME"), "MR07", 7, MandatoryUsage, 1, None)), Nil, 0),
+    compcomps(1) should be (CompositeComponent(Composite("", "VP-MARKETING",
+      List(ElementComponent(Element("", "LAST-NAME", DataType.ALPHANUMERIC, 15, 15), Some("LAST-NAME"), "MR06", 6, MandatoryUsage, 1, None),
+        ElementComponent(Element("", "FIRST-NAME", DataType.ALPHANUMERIC, 8, 8), Some("FIRST-NAME"), "MR07", 7, MandatoryUsage, 1, None)), Nil, 0),
       Some("VP-MARKETING"), "MR05", 5, MandatoryUsage, 1))
   }
   
@@ -131,5 +135,22 @@ class CopybookImportTests extends FlatSpec with Matchers {
     segment2.ident should be ("OR0")
     val comps2 = segment2.components
     comps2.length should be (2)
+  }
+  
+  it should "build a schema which can be written and read back in" in {
+    val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
+    val schema = cbi.buildSchema
+    val writer = new StringWriter
+    YamlWriter.write(schema, Array(), writer)
+    val text = writer.toString
+//    println(text)
+    val schemax = new YamlReader().loadYaml(new StringReader(text), Array())
+    schemax.composites should be (schema.composites)
+    schemax.elements should be (schema.elements)
+    val segments = schema.segments.values.toList.sortBy { _.name }
+    val segmentsx = schemax.segments.values.toList.sortBy { _.name }
+    schemax.segments.size should be (segments.size)
+    // disable until position numbering fixed
+//    segments.zip(segmentsx).foreach { case (s1, s2) => s2 should be (s1) }
   }
 }

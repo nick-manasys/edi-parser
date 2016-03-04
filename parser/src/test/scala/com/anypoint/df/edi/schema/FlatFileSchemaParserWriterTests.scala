@@ -31,9 +31,9 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
   val line1 = "1MISSION   201308020800MISSIONAUSTRALIA              2009110401                                                                                                                                                                                           \n"
   val line9 = "90100000001000000010000MISSION   MISSIONAUSTRALIA              2009110401                                                                                                                                                                                 \n"
 
-  /** Reads a copy of the test document into memory, standardizing line endings. */
-  val testDoc = {
-    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream("edi/QB-FFSampleRequest.txt")).getLines
+  /** Reads a copy of a test document into memory, standardizing line endings. */
+  def readDoc(path: String) = {
+    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(path)).getLines
     val builder = new StringBuilder
     lines.foreach(line => {
       if (!builder.isEmpty) builder.append('\n')
@@ -41,6 +41,8 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     })
     builder.toString
   }
+
+  val testDoc = readDoc("edi/QB-FFSampleRequest.txt")
 
   val testSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
     getClassLoader.getResourceAsStream("esl/QBRequest.esl"), "UTF-8"), Array())
@@ -85,17 +87,6 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   behavior of "FlatFileSchemaWriter"
 
-  /** Reads a copy of a test document into memory, standardizing line endings. */
-  def readDoc(path: String) = {
-    val lines = Source.fromInputStream(getClass.getClassLoader.getResourceAsStream(path)).getLines
-    val builder = new StringBuilder
-    lines.foreach(line => {
-      if (!builder.isEmpty) builder.append('\n')
-      builder.append(line)
-    })
-    builder.toString
-  }
-
   it should "roundtrip a complete document" in {
     val msg = readDoc("edi/QB-FFSampleRequest.txt")
     val in = new ByteArrayInputStream(msg.getBytes())
@@ -103,17 +94,17 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
-    val ywriter = new StringWriter
-    YamlSupport.writeMap(input, ywriter)
-    println(ywriter.toString)
+//    val ywriter = new StringWriter
+//    YamlSupport.writeMap(input, ywriter)
+//    println(ywriter.toString)
     val out = new ByteArrayOutputStream
     val writer = FlatFileSchemaWriter(out, testStructure, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    println(text)
-    val swriter = new StringWriter
-    YamlSupport.writeMap(input, swriter)
-    println(swriter.toString())
+//    println(text)
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+//    println(swriter.toString())
 //    println("original text:\n" + msg + "\n")
 //    println("returned text:\n" + text + "\n")
     text should be (msg)
@@ -126,29 +117,53 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 1Jane      Jones          CEO            janiejones@ardvark.co                                 0000000000000000000020140812
 """
 
-  val altSchema = new YamlReader().loadYaml(new InputStreamReader(getClass.
+  val altSchema1 = new YamlReader().loadYaml(new InputStreamReader(getClass.
     getClassLoader.getResourceAsStream("esl/CompanyContacts.esl"), "UTF-8"), Array())
   
-  val altStructure = altSchema.structures("CompanyContacts")
+  val altStructure1 = altSchema1.structures("CompanyContacts")
 
-  it should "roundtrip another document" in {
+  it should "roundtrip document with flatfile schema using references" in {
     val in = new ByteArrayInputStream(altMessage.getBytes())
-    val parser = FlatFileSchemaParser(in, altStructure)
+    val parser = FlatFileSchemaParser(in, altStructure1)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
-    val ywriter = new StringWriter
-    YamlSupport.writeMap(input, ywriter)
-    println(ywriter.toString)
+//    val ywriter = new StringWriter
+//    YamlSupport.writeMap(input, ywriter)
+//    println(ywriter.toString)
     val out = new ByteArrayOutputStream
-    val writer = FlatFileSchemaWriter(out, altStructure, FlatFileWriterConfig(true, ASCII_CHARSET))
+    val writer = FlatFileSchemaWriter(out, altStructure1, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    println(text)
     val swriter = new StringWriter
     YamlSupport.writeMap(input, swriter)
-    println(swriter.toString())
-    println("returned text:\n" + text + "\n")
+//    println(swriter.toString())
+//    println("returned text:\n" + text + "\n")
+    text should be (altMessage)
+  }
+
+  val altSchema2 = new YamlReader().loadYaml(new InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/CompanyContactsCompact.esl"), "UTF-8"), Array())
+  
+  val altStructure2 = altSchema2.structures("CompanyContacts")
+
+  it should "roundtrip document with flatfile schema using inlining" in {
+    val in = new ByteArrayInputStream(altMessage.getBytes())
+    val parser = FlatFileSchemaParser(in, altStructure2)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+//    val ywriter = new StringWriter
+//    YamlSupport.writeMap(input, ywriter)
+//    println(ywriter.toString)
+    val out = new ByteArrayOutputStream
+    val writer = FlatFileSchemaWriter(out, altStructure2, FlatFileWriterConfig(true, ASCII_CHARSET))
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray)
+    val swriter = new StringWriter
+    YamlSupport.writeMap(input, swriter)
+//    println(swriter.toString())
+//    println("returned text:\n" + text + "\n")
     text should be (altMessage)
   }
 }
