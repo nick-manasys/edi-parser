@@ -38,6 +38,20 @@
     </pluginManagement>
   </build>
 
+  <repositories>
+    <repository>
+      <id>mule-ee-releases</id>
+      <name>Mule EE Releases Repository</name>
+      <url>https://repository-master.mulesoft.org/nexus/content/repositories/ci-releases/</url>
+    </repository>
+    <repository>
+      <id>mule-ee-snapshots</id>
+      <name>Mule EE Snapshots Repository</name>
+      <layout>default</layout>
+      <url>https://repository-master.mulesoft.org/nexus/content/repositories/ci-snapshots/</url>
+    </repository>
+  </repositories>
+
   <distributionManagement>
     <repository>
       <id>mulesoft-releases</id>
