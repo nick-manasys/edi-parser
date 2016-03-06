@@ -458,44 +458,52 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         }
       } else throw new IllegalStateException(s"segment definition needs either $idKey or $idRefKey value"))
   }
+  def optSeq(items: List[StructureComponent]) = if (items.isEmpty) None else Some(StructureSequence(false, items))
+  def sectionItems(optseq: Option[StructureSequence]): List[StructureComponent] = optseq match {
+    case Some(seq) => seq.items
+    case None => Nil
+  }
+  def dataSection(key: String, values: ValueMap, index: Int): Option[StructureSequence] =
+    if (values.containsKey(key)) {
+      if (!ediForm.layout.sectioned) throw new IllegalArgumentException(s"section $key is not allowed for schemas of type ${ediForm.text}")
+      optSeq(parseStructurePart(key, values, index))
+    } else None
+
+  private def buildStructure(ident: String, transmap: ValueMap, version: EdiSchemaVersion) = {
+    val name = getRequiredString(nameKey, transmap)
+    val group = getStringOption(classKey, transmap)
+    val firstkey = if (ediForm.layout.sectioned) headingKey else dataKey
+    val heading = optSeq(parseStructurePart(firstkey, transmap, 0))
+    val detail = dataSection(detailKey, transmap, 1)
+    val summary = dataSection(summaryKey, transmap, 2)
+    val tagStart = getIntOption(tagStartKey, transmap)
+    val tagLength = getIntOption(tagLengthKey, transmap)
+    Structure(ident, name, group, heading, detail, summary, version, tagStart, tagLength)
+  }
+
+  private def overlayStructure(transmap: ValueMap, version: EdiSchemaVersion, basedef: Structure) = {
+    val name = getAs(nameKey, basedef.name, transmap)
+    val group = getStringOption(classKey, basedef.group, transmap)
+    val firstkey = if (ediForm.layout.sectioned) headingKey else dataKey
+    val heading = optSeq(parseStructureOverlayPart(firstkey, transmap, sectionItems(basedef.heading)))
+    val detail = optSeq(parseStructureOverlayPart(detailKey, transmap, sectionItems(basedef.detail)))
+    val summary = optSeq(parseStructureOverlayPart(summaryKey, transmap, sectionItems(basedef.summary)))
+    val tagStart = getIntOption(tagStartKey, basedef.tagStart, transmap)
+    val tagLength = getIntOption(tagLengthKey, basedef.tagLength, transmap)
+    Structure(basedef.ident, name, group, heading, detail, summary, version, tagStart, tagLength)
+  }
 
   /** Convert structure definitions. */
   private def convertStructures(input: ValueMap, version: EdiSchemaVersion, basedefs: EdiSchema.StructureMap) = {
-    def optSeq(items: List[StructureComponent]) = if (items.isEmpty) None else Some(StructureSequence(false, items))
-    def sectionItems(optseq: Option[StructureSequence]): List[StructureComponent] = optseq match {
-      case Some(seq) => seq.items
-      case None => Nil
-    }
-    def dataSection(key: String, values: ValueMap, index: Int): Option[StructureSequence] =
-      if (values.containsKey(key)) {
-        if (!ediForm.layout.sectioned) throw new IllegalArgumentException(s"section $key is not allowed for schemas of type ${ediForm.text}")
-        optSeq(parseStructurePart(key, values, index))
-      } else None
-    val firstkey = if (ediForm.layout.sectioned) headingKey else dataKey
     getRequiredMapList(structuresKey, input).asScala.toList.
       foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
-        val name = getRequiredString(nameKey, transmap)
-        val group = getStringOption(classKey, transmap)
-        val heading = optSeq(parseStructurePart(firstkey, transmap, 0))
-        val detail = dataSection(detailKey, transmap, 1)
-        val summary = dataSection(summaryKey, transmap, 2)
-        val tagStart = getIntOption(tagStartKey, transmap)
-        val tagLength = getIntOption(tagLengthKey, transmap)
-        val struct = Structure(ident, name, group, heading, detail, summary, version, tagStart, tagLength)
-        map + (ident -> struct)
+        map + (ident -> buildStructure(ident, transmap, version))
       } else if (transmap.containsKey(idRefKey)) {
         val idref = getRequiredString(idRefKey, transmap)
         if (!basedefs.contains(idref)) throw new IllegalStateException(s"referenced structure $idref is not defined")
         val basedef = basedefs(idref)
-        val name = getAs(nameKey, basedef.name, transmap)
-        val group = getStringOption(classKey, basedef.group, transmap)
-        val heading = optSeq(parseStructureOverlayPart(firstkey, transmap, sectionItems(basedef.heading)))
-        val detail = optSeq(parseStructureOverlayPart(detailKey, transmap, sectionItems(basedef.detail)))
-        val summary = optSeq(parseStructureOverlayPart(summaryKey, transmap, sectionItems(basedef.summary)))
-        val tagStart = getIntOption(tagStartKey, basedef.tagStart, transmap)
-        val tagLength = getIntOption(tagLengthKey, basedef.tagLength, transmap)
-        map + (idref -> Structure(idref, name, group, heading, detail, summary, version, tagStart, tagLength))
+        map + (idref -> overlayStructure(transmap, version, basedef))
       } else throw new IllegalStateException(s"structure definition needs either $idKey or $idRefKey value"))
   }
 
@@ -559,14 +567,43 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       identElements = baseSchema.elements
       identComposites = baseSchema.composites
       identSegments = baseSchema.segments
-      if (input.containsKey(elementsKey)) identElements = convertElements(getRequiredMapList(elementsKey, input))
-      if (input.containsKey(compositesKey)) identComposites = convertComposites(getRequiredMapList(compositesKey, input))
-      if (input.containsKey(segmentsKey)) identSegments = convertSegments(getRequiredMapList(segmentsKey, input))
-      val structures =
-        if (input.containsKey(structuresKey)) convertStructures(input, version, baseSchema.structures)
-        else baseSchema.structures
-      val count = structures.size
-      EdiSchema(version, identElements, identComposites, identSegments, structures)
+      if (!ediForm.layout.structures && input.containsKey(itemsKey)) {
+
+        // schema with a single segment definition
+        val ident = getAs(idKey, "", input)
+        identSegments = Map(ident -> buildSegment(ident, input))
+        EdiSchema(version, identElements, identComposites, identSegments, Map())
+
+      } else if ((!ediForm.layout.sectioned && input.containsKey(dataKey)) ||
+        (ediForm.layout.sectioned && (input.containsKey(headingKey) || input.containsKey(detailKey) ||
+          input.containsKey(summaryKey)))) {
+
+        // schema with a single structure definition or overlay definition
+        val struct = if (input.containsKey(idRefKey)) {
+          val idref = getRequiredString(idRefKey, input)
+          val basedefs = baseSchema.structures
+          if (!basedefs.contains(idref)) throw new IllegalStateException(s"referenced structure $idref is not defined")
+          val basedef = basedefs(idref)
+          overlayStructure(input, version, basedef)
+        } else {
+          val ident = getAs(idKey, "", input)
+          buildStructure(ident, input, version)
+        }
+        val identStructs = Map(struct.ident -> struct)
+        EdiSchema(version, identElements, identComposites, identSegments, identStructs)
+
+      } else {
+
+        // normal schema with all sections potentially present
+        if (input.containsKey(elementsKey)) identElements = convertElements(getRequiredMapList(elementsKey, input))
+        if (input.containsKey(compositesKey)) identComposites =
+          convertComposites(getRequiredMapList(compositesKey, input))
+        if (input.containsKey(segmentsKey)) identSegments = convertSegments(getRequiredMapList(segmentsKey, input))
+        val structures =
+          if (input.containsKey(structuresKey)) convertStructures(input, version, baseSchema.structures)
+          else baseSchema.structures
+        EdiSchema(version, identElements, identComposites, identSegments, structures)
+      }
     }
 
     loadFully(reader)

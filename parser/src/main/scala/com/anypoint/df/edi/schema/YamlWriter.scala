@@ -5,16 +5,16 @@ import scala.annotation.tailrec
 import java.io.{ StringWriter, Writer }
 
 class YamlFormatter(writer: Writer) {
-  
+
   import EdiSchema.SegmentPosition
 
   val indentText = "  "
   var indentCount = 0
   var formStack = List(false)
   var firstInner = true
-  
+
   private def indent = writer append (indentText * indentCount)
-  
+
   /** Write key with value to follow. */
   def writeKey(key: String): YamlFormatter = {
     if (formStack.head) {
@@ -27,7 +27,7 @@ class YamlFormatter(writer: Writer) {
     writer append key + ": "
     this
   }
-  
+
   /** Write key and end line. */
   def keyLine(key: String): YamlFormatter = {
     writeKey(key)
@@ -86,7 +86,7 @@ class YamlFormatter(writer: Writer) {
     if (value.nonEmpty) keyValueQuote(key, value)
     else this
   }
-  
+
   def keyPositionOptionalPair(key: String, pos: SegmentPosition): YamlFormatter = {
     if (pos.defined) keyValueQuote(key, pos.position) else this
   }
@@ -97,7 +97,7 @@ class YamlFormatter(writer: Writer) {
     writer append text
     writer append "\n"
   }
-  
+
   def openGrouping(compact: Boolean): YamlFormatter = {
     indent
     formStack = compact :: formStack
@@ -107,9 +107,9 @@ class YamlFormatter(writer: Writer) {
     firstInner = true
     this
   }
-  
+
   def openGrouping: YamlFormatter = openGrouping(formStack.head)
-  
+
   def closeGrouping = {
     val compact = formStack.head
     formStack = formStack.tail
@@ -131,7 +131,7 @@ object YamlWriter extends YamlDefs {
     * @param writer
     */
   def write(schema: EdiSchema, imports: Array[String], writer: Writer) = {
-    
+
     val formatter = new YamlFormatter(writer)
 
     def writeReferenceComponent(refer: ReferenceComponent): Unit = {
@@ -219,10 +219,10 @@ object YamlWriter extends YamlDefs {
           case _ =>
         }
       }
-      
+
       writerr(comps, 1)
     }
-    
+
     def writeSegmentDetails(segment: Segment) = {
       formatter.keyValueOptionalQuote(nameKey, segment.name)
       if (segment.ident != segment.tag) formatter.keyValueOptionalQuote(tagKey, segment tag)
@@ -241,6 +241,8 @@ object YamlWriter extends YamlDefs {
       }
     }
 
+    def countNonEmpty(map: Map[String, Any]) = if (map.isEmpty) 0 else 1
+
     // start with schema type and version
     formatter.keyValuePair(formKey, schema.ediVersion.ediForm.text)
     formatter.keyValueOptionalQuote(versionKey, schema.ediVersion.version)
@@ -253,12 +255,12 @@ object YamlWriter extends YamlDefs {
       builder ++= " ]"
       formatter.writeIndented(builder.toString)
     }
+    val groupCount = countNonEmpty(schema.structures) + countNonEmpty(schema.segments) +
+      countNonEmpty(schema.composites) + countNonEmpty(schema.elements)
     if (!schema.structures.isEmpty) {
 
-      // write structure details
-      formatter.keyLine(structuresKey)
-      schema.structures.values.toList.sortBy { _.ident } foreach (struct => {
-        formatter.openGrouping.keyValueOptionalQuote(idKey, struct.ident).keyValueOptionalQuote(nameKey, struct.name)
+      def writeStructure(struct: Structure) = {
+        formatter.keyValueOptionalQuote(idKey, struct.ident).keyValueOptionalQuote(nameKey, struct.name)
         struct.group match {
           case Some(g) => formatter.keyValuePair(classKey, g)
           case None =>
@@ -270,18 +272,36 @@ object YamlWriter extends YamlDefs {
           struct.detail.foreach { seq => writeStructureComps(detailKey, seq.items) }
           struct.summary.foreach { seq => writeStructureComps(summaryKey, seq.items) }
         } else struct.heading.foreach { seq => writeStructureComps(dataKey, seq.items) }
-        formatter.closeGrouping
-      })
+      }
+
+      // write structure details
+      if (groupCount == 1 && schema.structures.size == 1) {
+        schema.structures.values.foreach { writeStructure(_) }
+      } else {
+        formatter.keyLine(structuresKey)
+        schema.structures.values.toList.sortBy { _.ident } foreach (struct => {
+          formatter.openGrouping
+          writeStructure(struct)
+          formatter.closeGrouping
+        })
+      }
     }
     if (!schema.segments.isEmpty) {
 
       // write segment details
+      if (groupCount == 1 && schema.segments.size == 1) {
+        schema.segments.values.foreach { segment =>
+          formatter.keyValueOptionalQuote(idKey, segment ident)
+          writeSegmentDetails(_)
+        }
+      } else {
       formatter.keyLine(segmentsKey)
       schema.segments.values.toList.sortBy { _.ident } foreach (segment => {
         formatter.openGrouping.keyValueOptionalQuote(idKey, segment ident)
         writeSegmentDetails(segment)
         formatter.closeGrouping
       })
+      }
     }
     if (!schema.composites.isEmpty) {
 
