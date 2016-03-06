@@ -9,7 +9,6 @@ object HL7SchemaDefs {
   import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion
 
   val mshKey = "MSH"
-  val dataKey = "Data"
   val errsKey = "ERR"
 
   val elemDTM = Element("DTM", "Date/Time", DATETIME, 4, 64)

@@ -14,22 +14,16 @@ import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import EdiSchema._
+import SchemaJavaValues._
 
 /**
  * Configuration parameters for flat file schema writer.
  */
 case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset)
 
-/**
- * Writer for flat file documents.
- */
-case class FlatFileSchemaWriter(out: OutputStream, structure: Structure, config: FlatFileWriterConfig)
+/** Base writer for flat file documents. */
+abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfig)
   extends SchemaWriter(new FlatFileWriter(out, config.charSet), config.enforceRequires) with UtilityBase {
-
-  import EdiSchema._
-  import HL7Identity._
-  import HL7SchemaDefs._
-  import SchemaJavaValues._
 
   /** Typed writer, for access to format-specific conversions and support. */
   val writer = baseWriter.asInstanceOf[FlatFileWriter]
@@ -94,26 +88,34 @@ case class FlatFileSchemaWriter(out: OutputStream, structure: Structure, config:
   def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence) = writeSection(map, seq.items)
 
   /** Check if an envelope segment (handled directly, outside of structure). */
-  def isEnvelopeSegment(segment: Segment) = false
+  def isEnvelopeSegment(segment: Segment) = false  
+}
 
-  /** Stores list of string values matching the simple value components. */
-  def setStrings(values: List[String], comps: List[SegmentComponent], data: ValueMap) = {
-    @tailrec
-    def setr(vals: List[String], rem: List[SegmentComponent]): Unit = vals match {
-      case h :: t => if (rem.nonEmpty) {
-        if (h != null && h.size > 0) data put (rem.head.key, h)
-        setr(t, rem.tail)
-      }
-      case _ =>
-    }
-    setr(values, comps)
-  }
+/** Writer for structured flat file documents. */
+class FlatFileStructureWriter(out: OutputStream, structure: Structure, config: FlatFileWriterConfig)
+  extends FlatFileWriterBase(out, config) {
 
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
     writer.setTagField(structure.tagStart.get)
-    val datamap = getRequiredValueMap(structure.ident, map)
+    val datamap = getRequiredValueMap(dataKey, map)
     structure.heading.foreach { seq => writeTopSection(0, datamap, seq) }
+  } catch {
+    case e: WriteException => throw e
+    case e: Throwable => logAndThrow("Writer error ", e)
+  } finally {
+    try { close } catch { case e: Throwable => }
+  })
+}
+
+/** Writer for single repeated segment documents. */
+class FlatFileSegmentWriter(out: OutputStream, segment: Segment, config: FlatFileWriterConfig)
+  extends FlatFileWriterBase(out, config) {
+
+  /** Write the output message. */
+  def write(map: ValueMap) = Try(try {
+    val data = getRequiredMapList(dataKey, map)
+    foreachMapInList(data, { map => writeSegment(map, segment) })
   } catch {
     case e: WriteException => throw e
     case e: Throwable => logAndThrow("Writer error ", e)

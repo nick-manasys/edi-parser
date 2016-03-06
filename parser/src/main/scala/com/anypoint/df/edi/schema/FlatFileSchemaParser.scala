@@ -15,13 +15,11 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
 import EdiSchema._
-import HL7Identity._
-import HL7SchemaDefs._
 import SchemaJavaValues._
 import com.mulesoft.ltmdata.StorageContext
 
-/** Parser for flat file documents. */
-case class FlatFileSchemaParser(in: InputStream, struct: Structure)
+/** Base parser for flat file documents. */
+abstract class FlatFileParserBase(in: InputStream)
 extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
@@ -86,12 +84,12 @@ extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
-    if (logger.isTraceEnabled) logger.trace(s"parsing segment ${segment.ident} at position $position")
+    if (logger.isTraceEnabled && position.defined) logger.trace(s"parsing segment ${segment.ident} at position $position")
     val map = storageContext.newMap(segment.keys)
     currentSegment = segment
     parseCompList(segment.components, DATA_ELEMENT, DATA_ELEMENT, map)
     currentSegment = null
-    if (lexer.nextLine && logger.isDebugEnabled) logger.trace(s"now positioned at segment '${lexer.segmentTag}'")
+    if (lexer.nextLine && logger.isDebugEnabled && position.defined) logger.trace(s"now positioned at segment '${lexer.segmentTag}'")
     map
   }
 
@@ -115,7 +113,11 @@ extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
   def convertLoop = None
 
   /** Discard input past end of current message. */
-  def discardStructure = while (lexer.currentType != END) lexer.discardSegment
+  def discardStructure = while (lexer.currentType != END) lexer.discardSegment  
+}
+
+/** Parser for structured flat file documents. */
+class FlatFileStructureParser(in: InputStream, struct: Structure) extends FlatFileParserBase(in) {
 
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {
@@ -124,7 +126,27 @@ extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
     lexer.init
     map put (structureId, struct.ident)
     map put (structureName, struct.name)
-    map put (struct.ident, parseStructure(struct, true, new ValueMapImpl))
+    map put (dataKey, parseStructure(struct, true, new ValueMapImpl))
+    map
+  } catch {
+    case t: Throwable =>
+      t.printStackTrace
+      throw t
+  } finally {
+    try { lexer close } catch { case e: Throwable => }
+  })
+}
+
+/** Parser for single repeated segment documents. */
+class FlatFileSegmentParser(in: InputStream, segment: Segment) extends FlatFileParserBase(in) {
+
+  /** Parse the input message. */
+  def parse: Try[ValueMap] = Try(try {
+    val map = new ValueMapImpl
+    lexer.init
+    val data = new MapListImpl
+    map put (dataKey, data)
+    while (lexer.currentType != END) data.add(parseSegment(segment, StartPosition))
     map
   } catch {
     case t: Throwable =>

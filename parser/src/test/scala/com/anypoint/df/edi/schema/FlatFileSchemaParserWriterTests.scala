@@ -51,7 +51,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   def parseDoc(doc: String) = {
     val ins = new ByteArrayInputStream(doc.getBytes(ASCII_CHARSET))
-    val parser = FlatFileSchemaParser(ins, testSchema.structures.values.head)
+    val parser = new FlatFileStructureParser(ins, testSchema.structures.values.head)
     parser.parse.get
   }
 
@@ -59,12 +59,12 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   it should "parse a simple message" in {
     val in = new ByteArrayInputStream((line1 + line9).getBytes())
-    val parser = FlatFileSchemaParser(in, testSchema.structures.values.head)
+    val parser = new FlatFileStructureParser(in, testSchema.structures.values.head)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
     input get("Id") should be ("QBRequest")
-    val data = input.get("QBRequest").asInstanceOf[ValueMap]
+    val data = input.get("Data").asInstanceOf[ValueMap]
     val seg1 = data.get("1_FCH").asInstanceOf[ValueMap]
     seg1.size should be (5)
     seg1 get("FCH01") should be ("MISSION")
@@ -90,7 +90,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
   it should "roundtrip a complete document" in {
     val msg = readDoc("edi/QB-FFSampleRequest.txt")
     val in = new ByteArrayInputStream(msg.getBytes())
-    val parser = FlatFileSchemaParser(in, testStructure)
+    val parser = new FlatFileStructureParser(in, testStructure)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -98,7 +98,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 //    YamlSupport.writeMap(input, ywriter)
 //    println(ywriter.toString)
     val out = new ByteArrayOutputStream
-    val writer = FlatFileSchemaWriter(out, testStructure, FlatFileWriterConfig(true, ASCII_CHARSET))
+    val writer = new FlatFileStructureWriter(out, testStructure, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
 //    println(text)
@@ -124,7 +124,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   it should "roundtrip document with flatfile schema using references" in {
     val in = new ByteArrayInputStream(altMessage.getBytes())
-    val parser = FlatFileSchemaParser(in, altStructure1)
+    val parser = new FlatFileStructureParser(in, altStructure1)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -132,7 +132,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 //    YamlSupport.writeMap(input, ywriter)
 //    println(ywriter.toString)
     val out = new ByteArrayOutputStream
-    val writer = FlatFileSchemaWriter(out, altStructure1, FlatFileWriterConfig(true, ASCII_CHARSET))
+    val writer = new FlatFileStructureWriter(out, altStructure1, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     val swriter = new StringWriter
@@ -149,7 +149,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   it should "roundtrip document with flatfile schema using inlining" in {
     val in = new ByteArrayInputStream(altMessage.getBytes())
-    val parser = FlatFileSchemaParser(in, altStructure2)
+    val parser = new FlatFileStructureParser(in, altStructure2)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -157,7 +157,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 //    YamlSupport.writeMap(input, ywriter)
 //    println(ywriter.toString)
     val out = new ByteArrayOutputStream
-    val writer = FlatFileSchemaWriter(out, altStructure2, FlatFileWriterConfig(true, ASCII_CHARSET))
+    val writer = new FlatFileStructureWriter(out, altStructure2, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
     val swriter = new StringWriter

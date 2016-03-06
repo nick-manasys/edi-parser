@@ -158,4 +158,7 @@ object SchemaJavaValues {
 
   // value key used in multiple maps
   val errorListKey = "Errors"
+  
+  // value key used for simple structures
+  val dataKey = "Data"
 }

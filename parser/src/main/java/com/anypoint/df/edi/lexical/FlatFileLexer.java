@@ -260,27 +260,31 @@ public class FlatFileLexer extends LexerBase
          * @param chr initial character of line
          */
         protected void loadTag(int chr) throws IOException {
-            tokenBuilder.setLength(0);
-            if (tagStart > 0) {
-                leadBuffer[0] = (char)chr;
-                int offset = 1;
-                int remain = tagStart - 1;
-                int actual = 0;
-                while (remain > 0 && (actual = read(leadBuffer, offset, remain)) > 0) {
-                    offset += actual;
-                    remain -= actual;
+            if (tagLength > 0) {
+                tokenBuilder.setLength(0);
+                if (tagStart > 0) {
+                    leadBuffer[0] = (char)chr;
+                    int offset = 1;
+                    int remain = tagStart - 1;
+                    int actual = 0;
+                    while (remain > 0 && (actual = read(leadBuffer, offset, remain)) > 0) {
+                        offset += actual;
+                        remain -= actual;
+                    }
+                    if (actual < 0) {
+                        throw new EOFException("read only " + offset + " with " + tagStart + " expected");
+                    }
+                    leadOffset = 0;
+                } else {
+                    tokenBuilder.append((char)chr);
                 }
-                if (actual < 0) {
-                    throw new EOFException("read only " + offset + " with " + tagStart + " expected");
-                }
-                leadOffset = 0;
+                readToken(tagLength - tokenBuilder.length());
+                segmentTag = tokenBuilder.toString();
             } else {
-                tokenBuilder.append((char)chr);
+                segmentTag = "";
             }
             segmentNumber++;
             elementNumber = 0;
-            readToken(tagLength - tokenBuilder.length());
-            segmentTag = tokenBuilder.toString();
             currentType = ItemType.SEGMENT;
         }
         

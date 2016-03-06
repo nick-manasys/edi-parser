@@ -614,7 +614,7 @@ object EdiSchema {
   sealed abstract class SchemaLayout(val structures: Boolean, val sectioned: Boolean)
   case object MultiTableStructure extends SchemaLayout(true, true)
   case object SingleTableStructure extends SchemaLayout(true, false)
-  case object SingleSegment extends SchemaLayout(false, false)
+  case object SegmentsOnly extends SchemaLayout(false, false)
 
   sealed abstract class EdiForm(val text: String, val layout: SchemaLayout, val fixed: Boolean) {
     def isEnvelopeSegment(ident: String): Boolean
@@ -661,14 +661,14 @@ object EdiSchema {
     def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
     def versionKey(version: String) = version
   }
-  case object FixedWidth extends EdiForm("FIXEDWIDTH", SingleSegment, true) {
+  case object FixedWidth extends EdiForm("FIXEDWIDTH", SegmentsOnly, true) {
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
     def versionKey(version: String) = version
   }
-  case object Copybook extends EdiForm("COPYBOOK", SingleSegment, true) {
+  case object Copybook extends EdiForm("COPYBOOK", SegmentsOnly, true) {
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
