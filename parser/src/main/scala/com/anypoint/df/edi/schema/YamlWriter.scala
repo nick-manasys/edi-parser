@@ -45,7 +45,7 @@ class YamlFormatter(writer: Writer) {
 
   /** Write optional (only if value is non-empty) key-value pair. */
   def keyValueOptionalPair(key: String, value: String): YamlFormatter = {
-    if (value.nonEmpty) keyValuePair(key, value)
+    if (value != null && value.nonEmpty) keyValuePair(key, value)
     else this
   }
 
@@ -83,7 +83,7 @@ class YamlFormatter(writer: Writer) {
 
   /** Write optional (only if value is non-empty) key-quoted value pair. */
   def keyValueOptionalQuote(key: String, value: String): YamlFormatter = {
-    if (value.nonEmpty) keyValueQuote(key, value)
+    if (value != null && value.nonEmpty) keyValueQuote(key, value)
     else this
   }
 
@@ -292,7 +292,7 @@ object YamlWriter extends YamlDefs {
       if (groupCount == 1 && schema.segments.size == 1) {
         schema.segments.values.foreach { segment =>
           formatter.keyValueOptionalQuote(idKey, segment ident)
-          writeSegmentDetails(_)
+          writeSegmentDetails(segment)
         }
       } else {
       formatter.keyLine(segmentsKey)

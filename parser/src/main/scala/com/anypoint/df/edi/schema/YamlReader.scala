@@ -567,7 +567,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       identElements = baseSchema.elements
       identComposites = baseSchema.composites
       identSegments = baseSchema.segments
-      if (!ediForm.layout.structures && input.containsKey(itemsKey)) {
+      if (!ediForm.layout.structures && input.containsKey(valuesKey)) {
 
         // schema with a single segment definition
         val ident = getAs(idKey, "", input)

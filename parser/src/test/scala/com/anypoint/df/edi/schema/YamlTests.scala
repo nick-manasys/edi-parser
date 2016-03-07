@@ -10,16 +10,37 @@ import scala.io.Source
 class RoundtripTest extends FlatSpec with Matchers {
 
   import EdiSchema._
-
-  "YamlReader and YamlWriter" should "roundtrip an ordered (all parts by id) YAML schema file correctly" in {
-    val stream = getClass.getClassLoader.getResourceAsStream("esl/cdw850schema.esl")
-    val input = Source.fromInputStream(stream).mkString
-    val schema = new YamlReader().loadYaml(new StringReader(input), Array())
+  
+  behavior of "YamlReader and YamlWriter"
+  
+  def readFile(path: String) = {
+    val stream = getClass.getClassLoader.getResourceAsStream(path)
+    Source.fromInputStream(stream).mkString
+  }
+  
+  def parseSchema(text: String) = new YamlReader().loadYaml(new StringReader(text), Array())
+  
+  def writeSchema(schema: EdiSchema) = {
     val writer = new StringWriter
     YamlWriter.write(schema, Array(), writer)
-    val result = writer.toString()
-    println(input)
-    println(result)
+    writer.toString()
+  }
+
+  it should "roundtrip a simple single-segment YAML schema file correctly" in {
+    val input = readFile("esl/fixed.ffd")
+    val result = writeSchema(parseSchema(input))
+    result should be (input)
+  }
+
+  it should "roundtrip a multiple-segment YAML schema file correctly" in {
+    val input = readFile("esl/copybook.ffd")
+    val result = writeSchema(parseSchema(input))
+    result should be (input)
+  }
+
+  it should "roundtrip an ordered (all parts by id) YAML schema file correctly" in {
+    val input = readFile("esl/cdw850schema.esl")
+    val result = writeSchema(parseSchema(input))
     result should be (input)
   }
 }
