@@ -113,7 +113,10 @@ extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
   def convertLoop = None
 
   /** Discard input past end of current message. */
-  def discardStructure = while (lexer.currentType != END) lexer.discardSegment  
+  def discardStructure = while (lexer.currentType != END) lexer.discardSegment 
+  
+  /** Parse the input message. */
+  def parse: Try[ValueMap]
 }
 
 /** Parser for structured flat file documents. */

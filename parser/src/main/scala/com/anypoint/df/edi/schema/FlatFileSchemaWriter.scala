@@ -88,7 +88,10 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
   def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence) = writeSection(map, seq.items)
 
   /** Check if an envelope segment (handled directly, outside of structure). */
-  def isEnvelopeSegment(segment: Segment) = false  
+  def isEnvelopeSegment(segment: Segment) = false
+  
+  /** Write the output message. */
+  def write(map: ValueMap): Try[Unit]
 }
 
 /** Writer for structured flat file documents. */
