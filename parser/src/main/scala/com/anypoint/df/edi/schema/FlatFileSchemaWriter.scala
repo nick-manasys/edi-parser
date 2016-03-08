@@ -117,6 +117,7 @@ class FlatFileSegmentWriter(out: OutputStream, segment: Segment, config: FlatFil
 
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
+    writer.setTagField(-1)
     val data = getRequiredMapList(dataKey, map)
     foreachMapInList(data, { map => writeSegment(map, segment) })
   } catch {

@@ -17,6 +17,8 @@ import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
  */
 public class FlatFileLexer extends LexerBase
 {	
+    private final LineBasedReader typedReader;
+    
     /**
      * Constructor.
      *
@@ -24,7 +26,7 @@ public class FlatFileLexer extends LexerBase
      */
     public FlatFileLexer(InputStream is) {
         super(is);
-        reader = new LineBasedReader(stream);
+        reader = typedReader = new LineBasedReader(stream);
     }
     
     /**
@@ -49,7 +51,7 @@ public class FlatFileLexer extends LexerBase
      * @throws IOException 
      */
     public boolean nextLine() throws IOException {
-        return ((LineBasedReader)reader).nextLine();
+        return typedReader.nextLine();
     }
     
     /**
@@ -59,7 +61,7 @@ public class FlatFileLexer extends LexerBase
      * @param length
      */
     public void setTagField(int start, int length) {
-        ((LineBasedReader)reader).setTagField(start, length);
+        typedReader.setTagField(start, length);
     }
     
     /**
@@ -70,7 +72,7 @@ public class FlatFileLexer extends LexerBase
     public void init() throws IOException {
         int chr = reader.read();
         if (chr >= 0) {
-            ((LineBasedReader)reader).loadTag(chr);
+            ((LineBasedReader)reader).loadTag((char)chr);
         } else {
             currentType = ItemType.END;
         }
@@ -84,7 +86,7 @@ public class FlatFileLexer extends LexerBase
      */
     public void load(int width) throws IOException {
         tokenBuilder.setLength(0);
-        ((LineBasedReader)reader).readToken(width);
+        typedReader.readToken(width);
         currentType = ItemType.DATA_ELEMENT;
     }
     
@@ -226,7 +228,7 @@ public class FlatFileLexer extends LexerBase
      */
     private class LineBasedReader extends FilterReader
     {
-        /** Segment tag start position in line. */
+        /** Segment tag start position in line. If no tag used, this must be 1 to buffer first character of line. */
         private int tagStart;
         
         /** Length of segment tag. */
@@ -240,6 +242,9 @@ public class FlatFileLexer extends LexerBase
 
         protected LineBasedReader(InputStream in) {
             super(new BufferedReader(new InputStreamReader(stream, EdiConstants.ASCII_CHARSET)));
+            leadBuffer = new char[1];
+            leadOffset = 1;
+            tagStart = 1;
         }
         
         /**
@@ -249,9 +254,10 @@ public class FlatFileLexer extends LexerBase
          * @param length
          */
         protected void setTagField(int start, int length) {
-            tagStart = start;
+            tagStart = length > 0 ? start : 1;
             tagLength = length;
-            leadBuffer = new char[start];
+            leadBuffer = new char[tagStart];
+            leadOffset = tagStart;
         }
         
         /**
@@ -259,11 +265,11 @@ public class FlatFileLexer extends LexerBase
          * 
          * @param chr initial character of line
          */
-        protected void loadTag(int chr) throws IOException {
+        protected void loadTag(char chr) throws IOException {
             if (tagLength > 0) {
                 tokenBuilder.setLength(0);
                 if (tagStart > 0) {
-                    leadBuffer[0] = (char)chr;
+                    leadBuffer[0] = chr;
                     int offset = 1;
                     int remain = tagStart - 1;
                     int actual = 0;
@@ -281,6 +287,8 @@ public class FlatFileLexer extends LexerBase
                 readToken(tagLength - tokenBuilder.length());
                 segmentTag = tokenBuilder.toString();
             } else {
+                leadBuffer[0] = (char)chr;
+                leadOffset = 0;
                 segmentTag = "";
             }
             segmentNumber++;
@@ -309,7 +317,7 @@ public class FlatFileLexer extends LexerBase
                 currentType = ItemType.END;
                 return false;
             }
-            loadTag(chr);
+            loadTag((char)chr);
             return true;
         }
 

@@ -164,13 +164,14 @@ public class FlatFileWriter extends WriterBase
 
         protected LineBasedWriter(OutputStream os, Charset encoding) {
             super(new BufferedWriter(new OutputStreamWriter(os, encoding)));
+            tagStart = -1;
         }
         
         /**
          * Define segment tag position in line. This must be called before the {@link #segmentStart(String)} method is
          * called for the first segment using the specified position.
          * 
-         * @param start
+         * @param start (no tag if < 0)
          */
         protected void setTagField(int start) {
             tagStart = start;
@@ -187,7 +188,7 @@ public class FlatFileWriter extends WriterBase
             if (tagStart == 0) {
                 write(tag);
                 remainLead = 0;
-            } else {
+            } else if (tagStart > 0) {
                 segmentTag = tag;
                 remainLead = tagStart;
             }

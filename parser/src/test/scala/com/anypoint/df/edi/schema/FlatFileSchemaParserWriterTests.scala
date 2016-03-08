@@ -135,8 +135,8 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     val writer = new FlatFileStructureWriter(out, altStructure1, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    val swriter = new StringWriter
-    YamlSupport.writeMap(input, swriter)
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
 //    println(swriter.toString())
 //    println("returned text:\n" + text + "\n")
     text should be (altMessage)
@@ -160,10 +160,55 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     val writer = new FlatFileStructureWriter(out, altStructure2, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    val swriter = new StringWriter
-    YamlSupport.writeMap(input, swriter)
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
 //    println(swriter.toString())
 //    println("returned text:\n" + text + "\n")
     text should be (altMessage)
+  }
+  
+  val fixedSchemaText = """form: FIXEDWIDTH
+values: 
+- { name: 'field_0', type: AN, length: 10 }
+- { name: 'field_1', type: AN, length: 10 }
+- { name: 'field_2', type: AN, length: 10 }"""
+  val fixedDataText = "1234567891QAZWSXEDCR0987654321"
+  
+  val fixedSchema = new YamlReader().loadYaml(new StringReader(fixedSchemaText), Array())
+  val fixedSegment = fixedSchema.segments.values.head
+  
+  it should "roundtrip single-segment flatfile document" in {
+    val in = new ByteArrayInputStream(fixedDataText.getBytes())
+    val parser = new FlatFileSegmentParser(in, fixedSegment)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+    val out = new ByteArrayOutputStream
+    val writer = new FlatFileSegmentWriter(out, fixedSegment, FlatFileWriterConfig(true, ASCII_CHARSET))
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray).trim
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+    text should be (fixedDataText)
+  }
+  
+  val fixedMultiText = """1234567891QAZWSXEDCR0987654321
+1234567891xzyWSXEDCR0987654321
+1234567891eeeWSXEDCR0987654321
+1234567891QadfadffCR0987654321"""
+  
+  it should "roundtrip multiple-segment flatfile document" in {
+    val in = new ByteArrayInputStream(fixedMultiText.getBytes())
+    val parser = new FlatFileSegmentParser(in, fixedSegment)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+    val out = new ByteArrayOutputStream
+    val writer = new FlatFileSegmentWriter(out, fixedSegment, FlatFileWriterConfig(true, ASCII_CHARSET))
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray).trim
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+    text should be (fixedMultiText)
   }
 }
