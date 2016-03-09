@@ -177,7 +177,7 @@ object EdiSchema {
     def rewrite(prefix: String, form: EdiForm): Composite =
       Composite(ident, name,
         components.map { scomp =>
-          val rekey = form.keyName(prefix, scomp.position)
+          val rekey = form.keyName(prefix, "", scomp.position)
           scomp match {
             case ec: ElementComponent =>
               ElementComponent(ec.element, Some(ec.name), rekey, ec.position, ec.usage, ec.count)
@@ -615,14 +615,16 @@ object EdiSchema {
   case object MultiTableStructure extends SchemaLayout(true, true)
   case object SingleTableStructure extends SchemaLayout(true, false)
   case object SegmentsOnly extends SchemaLayout(false, false)
+  
+  private def defaultKey(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
 
   sealed abstract class EdiForm(val text: String, val layout: SchemaLayout, val fixed: Boolean) {
     def isEnvelopeSegment(ident: String): Boolean
     val loopWrapperStart: String
     val loopWrapperEnd: String
 
-    /** Construct data value key name from parent identifier and position value. */
-    def keyName(parentId: String, position: Int): String
+    /** Construct data value key name from parent identifier, name, position value. */
+    def keyName(parentId: String, name: String, position: Int): String
 
     /** Create key for version in data maps. */
     def versionKey(version: String): String
@@ -632,7 +634,7 @@ object EdiSchema {
     def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "UGH"
     val loopWrapperEnd = "UGT"
-    def keyName(parentId: String, position: Int) = {
+    def keyName(parentId: String, name: String, position: Int) = {
       val scaled = if (position % 10 == 0) position / 10 else position
       if (position < 100) parentId + "0" + scaled.toString
       else parentId + scaled.toString
@@ -644,35 +646,38 @@ object EdiSchema {
     def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "LS"
     val loopWrapperEnd = "LE"
-    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId, position)
     def versionKey(version: String) = "v" + version
   }
   case object HL7 extends EdiForm("HL7", SingleTableStructure, false) {
     def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
-    def keyName(parentId: String, position: Int) = parentId + "-" + (if (position < 10) "0" + position else position)
+    def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId + "-", position)
     def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
   }
   case object FlatFile extends EdiForm("FLATFILE", SingleTableStructure, true) {
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
-    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def keyName(parentId: String, name: String, position: Int) =
+      if (name.nonEmpty) name else defaultKey(parentId, position)
     def versionKey(version: String) = version
   }
   case object FixedWidth extends EdiForm("FIXEDWIDTH", SegmentsOnly, true) {
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
-    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def keyName(parentId: String, name: String, position: Int) =
+      if (name.nonEmpty) name else defaultKey(parentId, position)
     def versionKey(version: String) = version
   }
   case object Copybook extends EdiForm("COPYBOOK", SegmentsOnly, true) {
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
-    def keyName(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
+    def keyName(parentId: String, name: String, position: Int) =
+      if (name.nonEmpty) name else defaultKey(parentId, position)
     def versionKey(version: String) = version
   }
   def convertEdiForm(value: String) = value match {

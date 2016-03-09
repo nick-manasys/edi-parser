@@ -88,7 +88,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     def convertComponent(values: ValueMap, dfltpos: Int) = {
       val name = if (values.containsKey(nameKey)) Some(getRequiredString(nameKey, values)) else None
       val position = if (values.containsKey(positionKey)) getRequiredInt(positionKey, values) else dfltpos
-      val key = ediForm.keyName(parentId, position)
+      val key = ediForm.keyName(parentId, name.getOrElse(""), position)
       val use = getUsage(values)
       val count = convertCount(values)
       if (values.containsKey(idRefKey)) {
