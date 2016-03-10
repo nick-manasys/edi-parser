@@ -144,7 +144,7 @@ public class FlatFileWriter extends WriterBase
      */
     @Override
     public void writeSegmentTerminator() throws IOException {
-        writer.write('\n');
+        ((LineBasedWriter)writer).setSegmentEnd();
         segmentCount++;
     }
     
@@ -159,12 +159,34 @@ public class FlatFileWriter extends WriterBase
         /** Tag for current segment. */
         private String segmentTag;
         
+        /** Positioned at end of segment flag. */
+        private boolean atEnd;
+        
         /** Remaining characters before writing segment tag (ignored if not >0). */
         private int remainLead;
 
         protected LineBasedWriter(OutputStream os, Charset encoding) {
             super(new BufferedWriter(new OutputStreamWriter(os, encoding)));
             tagStart = -1;
+        }
+        
+        /**
+         * Set end of segment state. A line break will be written before any more data is output following this call.
+         */
+        protected void setSegmentEnd() {
+            atEnd = true;
+        }
+        
+        /**
+         * Check for end of segment state, writing a line break if set.
+         * 
+         * @throws IOException
+         */
+        private void checkEnd() throws IOException {
+            if (atEnd) {
+                atEnd = false;
+                super.write('\n');
+            }
         }
         
         /**
@@ -196,6 +218,7 @@ public class FlatFileWriter extends WriterBase
 
         @Override
         public void write(int c) throws IOException {
+            checkEnd();
             super.write(c);
             if (remainLead > 0) {
                 remainLead--;
@@ -207,6 +230,7 @@ public class FlatFileWriter extends WriterBase
 
         @Override
         public void write(char[] cbuf, int off, int len) throws IOException {
+            checkEnd();
             super.write(cbuf, off, len);
             if (remainLead > 0) {
                 remainLead -= len;
@@ -220,6 +244,7 @@ public class FlatFileWriter extends WriterBase
 
         @Override
         public void write(String str, int off, int len) throws IOException {
+            checkEnd();
             super.write(str, off, len);
             if (remainLead > 0) {
                 remainLead -= len;

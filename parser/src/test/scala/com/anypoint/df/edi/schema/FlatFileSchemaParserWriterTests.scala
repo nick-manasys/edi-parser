@@ -17,15 +17,13 @@ import java.io.FileInputStream
 import java.io.File
 import com.anypoint.df.edi.lexical.EdiConstants
 import com.anypoint.df.edi.lexical.EdiConstants._
-import com.anypoint.df.edi.lexical.WriteException
+import com.anypoint.df.edi.lexical.LexicalException
 import com.anypoint.df.edi.schema.tools.YamlSupport
 import javax.xml.datatype.XMLGregorianCalendar
 
 class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
   
   import EdiSchema._
-  import HL7Identity._
-  import HL7SchemaDefs._
   import SchemaJavaValues._
   
   val line1 = "1MISSION   201308020800MISSIONAUSTRALIA              2009110401                                                                                                                                                                                           \n"
@@ -84,6 +82,27 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     seg2 get("FCF05") should be ("MISSIONAUSTRALIA")
     seg2 get("FCF06") should be ("2009110401")
   }
+  
+  val fixedSchemaText = """form: FIXEDWIDTH
+values: 
+- { name: 'field_0', type: N0, length: 10 }
+- { name: 'field_1', type: AN, length: 10 }
+- { name: 'field_2', type: AN, length: 10 }"""
+  val fixedDataText = "0004567891QAZWSX    0987654   "
+  val fixedShort1Text = "1234567891QAZWSXEDCR098765432"
+  val fixedShort2Text = "1234567891QAZWSXEDCR09876543"
+  
+  val fixedSchema = new YamlReader().loadYaml(new StringReader(fixedSchemaText), Array())
+  val fixedSegment = fixedSchema.segments.values.head
+  
+  it should "report an error on input too short" in {
+    val in1 = new ByteArrayInputStream(fixedShort1Text.getBytes())
+    val parser1 = new FlatFileSegmentParser(in1, fixedSegment)
+    intercept[LexicalException] { parser1.parse.get }
+    val in2 = new ByteArrayInputStream(fixedShort2Text.getBytes())
+    val parser2 = new FlatFileSegmentParser(in2, fixedSegment)
+    intercept[LexicalException] { parser2.parse.get }
+  }
 
   behavior of "FlatFileSchemaWriter"
 
@@ -114,8 +133,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 1George    Sam            President      president@acme.corp                                   0000000000000000000020151130
 1Sally     Smith          V.P. Sales     sallys@acme.corp                                      0000000000000000000020151210
 0Ardvark Enterprises 1341335 Pikes Place       Seattle     WA980262065552341
-1Jane      Jones          CEO            janiejones@ardvark.co                                 0000000000000000000020140812
-"""
+1Jane      Jones          CEO            janiejones@ardvark.co                                 0000000000000000000020140812"""
 
   val altSchema1 = new YamlReader().loadYaml(new InputStreamReader(getClass.
     getClassLoader.getResourceAsStream("esl/CompanyContacts.esl"), "UTF-8"), Array())
@@ -167,16 +185,6 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     text should be (altMessage)
   }
   
-  val fixedSchemaText = """form: FIXEDWIDTH
-values: 
-- { name: 'field_0', type: AN, length: 10 }
-- { name: 'field_1', type: AN, length: 10 }
-- { name: 'field_2', type: AN, length: 10 }"""
-  val fixedDataText = "1234567891QAZWSXEDCR0987654321"
-  
-  val fixedSchema = new YamlReader().loadYaml(new StringReader(fixedSchemaText), Array())
-  val fixedSegment = fixedSchema.segments.values.head
-  
   it should "roundtrip single-segment flatfile document" in {
     val in = new ByteArrayInputStream(fixedDataText.getBytes())
     val parser = new FlatFileSegmentParser(in, fixedSegment)
@@ -186,7 +194,7 @@ values:
     val out = new ByteArrayOutputStream
     val writer = new FlatFileSegmentWriter(out, fixedSegment, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
-    val text = new String(out.toByteArray).trim
+    val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
 //    YamlSupport.writeMap(input, swriter)
     text should be (fixedDataText)
@@ -206,7 +214,7 @@ values:
     val out = new ByteArrayOutputStream
     val writer = new FlatFileSegmentWriter(out, fixedSegment, FlatFileWriterConfig(true, ASCII_CHARSET))
     writer.write(input).get //isSuccess should be (true)
-    val text = new String(out.toByteArray).trim
+    val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
 //    YamlSupport.writeMap(input, swriter)
     text should be (fixedMultiText)
