@@ -66,25 +66,6 @@ public class X12Lexer extends DelimiterLexer
     }
     
     /**
-     * Get current token as an X12 number value.
-     *
-     * @param scale inverse power of ten multiplier
-     * @param minl minimum length (excluding sign and/or decimal)
-     * @param maxl maximum length (excluding sign and/or decimal)
-     * @return
-     * @throws IOException
-     */
-    public BigDecimal parseImpliedDecimalNumber(int scale, int minl, int maxl) throws IOException {
-        checkInteger();
-        int length = tokenBuilder.length();
-        if (length > 0 && tokenBuilder.charAt(0) == '-') {
-            length--;
-        }
-        checkLength(DataType.INTEGER, length, minl, maxl);
-        return new BigDecimal(new BigInteger(tokenBuilder.toString()), scale);
-    }
-    
-    /**
      * Replace current status only if current status is {@link InterchangeStartStatus.VALID}. This is used so that if
      * multiple errors are found in the interchange header the first error be preserved and returned.
      *

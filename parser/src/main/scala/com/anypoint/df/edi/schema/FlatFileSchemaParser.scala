@@ -63,6 +63,8 @@ extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
       case INTEGER => lexer.parseInteger(0, elem.maxLength)
       case NUMERIC => lexer.parseUnscaledNumber(0, elem.maxLength)
       case TIME => Integer.valueOf(lexer.parseTime(0, elem.maxLength))
+      case typ: DataType if (typ.isDecimal) =>
+          lexer.parseImpliedDecimalNumber(typ.decimalPlaces, elem.minLength, elem.maxLength)
       case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in flat files")
     }
     result

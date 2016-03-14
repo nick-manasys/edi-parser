@@ -406,6 +406,25 @@ public abstract class LexerBase
     }
     
     /**
+     * Get current token as a number value with implied decimal point.
+     *
+     * @param scale inverse power of ten multiplier
+     * @param minl minimum length (excluding sign and/or decimal)
+     * @param maxl maximum length (excluding sign and/or decimal)
+     * @return
+     * @throws IOException
+     */
+    public BigDecimal parseImpliedDecimalNumber(int scale, int minl, int maxl) throws IOException {
+        checkInteger();
+        int length = tokenBuilder.length();
+        if (length > 0 && tokenBuilder.charAt(0) == '-') {
+            length--;
+        }
+        checkLength(DataType.INTEGER, length, minl, maxl);
+        return new BigDecimal(new BigInteger(tokenBuilder.toString()), scale);
+    }
+    
+    /**
      * Get current token as a date value. Note that this avoids the use of the Java DateFormat class, which has high
      * time and memory overhead.
      *

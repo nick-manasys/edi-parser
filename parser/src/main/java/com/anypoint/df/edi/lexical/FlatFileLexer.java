@@ -6,6 +6,7 @@ import java.io.FilterReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.util.Calendar;
 
 import com.anypoint.df.edi.lexical.EdiConstants.DataType;
@@ -194,6 +195,20 @@ public class FlatFileLexer extends LexerBase
     public Object parseUnscaledNumber(int minl, int maxl) throws IOException {
         load(maxl);
         return super.parseUnscaledNumber(minl, maxl);
+    }
+    
+    /**
+     * Get current token as a number value with implied decimal point.
+     *
+     * @param scale inverse power of ten multiplier
+     * @param minl minimum length (excluding sign and/or decimal)
+     * @param maxl maximum length (excluding sign and/or decimal)
+     * @return
+     * @throws IOException
+     */
+    public BigDecimal parseImpliedDecimalNumber(int scale, int minl, int maxl) throws IOException {
+        load(maxl);
+        return super.parseImpliedDecimalNumber(scale, minl, maxl);
     }
 
     /**
