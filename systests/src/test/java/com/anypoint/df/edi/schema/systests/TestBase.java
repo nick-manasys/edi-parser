@@ -87,6 +87,18 @@ public abstract class TestBase {
     }
     
     /**
+     * Delete substring.
+     * 
+     * @param start
+     * @param limit
+     * @param str
+     * @return
+     */
+    protected static String deleteRange(int from, int to, String text) {
+        return text.substring(0, from) + text.substring(to);
+    }
+    
+    /**
      * Read a file as a string.
      * 
      * @param path file or resource path

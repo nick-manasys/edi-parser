@@ -25,18 +25,15 @@ public class HL7Lexer extends DelimiterLexer
     public enum InterchangeEndStatus {
         VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR
     }
-
+    
     /** Factory for creating XMLGregorianCalendars. */
     private final DatatypeFactory typeFactory;
-
+    
     /**
      * Constructor.
      *
-     * @param is
-     *            input
-     * @param subst
-     *            substitution character for invalid character in string (-1 if
-     *            unused)
+     * @param is input
+     * @param subst substitution character for invalid character in string (-1 if unused)
      */
     public HL7Lexer(InputStream is, int subst) {
         super(is);
@@ -48,7 +45,7 @@ public class HL7Lexer extends DelimiterLexer
             throw new RuntimeException(e);
         }
     }
-
+    
     /**
      * Process escape character in input.
      * 
@@ -71,35 +68,35 @@ public class HL7Lexer extends DelimiterLexer
         char rls = (char)releaseIndicator;
         if (builder.length() == 0) {
             switch (code) {
-            case 'E':
-                peekToken.append(rls);
-                break;
-            case 'F':
-                peekToken.append(dataSeparator);
-                break;
-            case 'R':
-                peekToken.append((char)repetitionSeparator);
-                break;
-            case 'S':
-                peekToken.append(componentSeparator);
-                break;
-            case 'T':
-                peekToken.append((char)subCompSeparator);
-                break;
-            case 'H':
-            case 'N':
-                peekToken.append(rls);
-                peekToken.append((char)code);
-                peekToken.append(rls);
-                break;
-            default:
-                throw new LexicalException("unsupported escape sequence code " + (char)code);
+                case 'E':
+                    peekToken.append(rls);
+                    break;
+                case 'F':
+                    peekToken.append(dataSeparator);
+                    break;
+                case 'R':
+                    peekToken.append((char)repetitionSeparator);
+                    break;
+                case 'S':
+                    peekToken.append(componentSeparator);
+                    break;
+                case 'T':
+                    peekToken.append((char)subCompSeparator);
+                    break;
+                case 'H':
+                case 'N':
+                    peekToken.append(rls);
+                    peekToken.append((char)code);
+                    peekToken.append(rls);
+                    break;
+                default:
+                    throw new LexicalException("unsupported escape sequence code " + (char)code);
             }
         } else {
             throw new LexicalException("unsupported escape sequence code " + (char)code);
         }
     }
-
+    
     /**
      * Get current token as an HL7 sequence ID value and advance to next token.
      *
@@ -116,27 +113,25 @@ public class HL7Lexer extends DelimiterLexer
         checkLength(DataType.INTEGER, 1, 4);
         return Integer.valueOf(tokenBuilder.toString());
     }
-
+    
     /**
-     * Initialize document parse. This checks the start of the document to find
-     * the separator characters used in parsing. Returns with the lexer
-     * positioned at the MSH-3 value.
+     * Initialize document parse. This checks the start of the document to find the separator characters used in
+     * parsing. Returns with the lexer positioned at the MSH-3 value.
      *
-     * @param props
-     *            store for property values from interchange
+     * @param props store for property values from interchange
      * @return delimiter characters
      * @throws LexicalException
      */
     public String init(Map<String, Object> props) throws LexicalException {
         try {
-
+            
             // check the segment tag for optional UNA
             byte[] byts = readBytes(3);
             String tag = new String(byts, ASCII_CHARSET);
             if (!"MSH".equals(tag)) {
                 throw new RuntimeException("Message does not start with 'MSH'");
             }
-
+            
             // get separator and encoding characters
             byts = readBytes(5);
             dataSeparator = (char)byts[0];
@@ -147,18 +142,18 @@ public class HL7Lexer extends DelimiterLexer
             if (stream.read() != dataSeparator) {
                 throw new RuntimeException("Field separator not present following MSH-01");
             }
-
+            
             // initialize reader and set lexer to MSH-3 field
             reader = new ByteReader();
             advance(ItemType.DATA_ELEMENT);
             elementNumber = 2;
             return new String(byts, ASCII_CHARSET);
-
+            
         } catch (IOException e) {
             throw new LexicalException("Message aborted due to error reading header", e);
         }
     }
-
+    
     /**
      * Finish document parse.
      * 
@@ -167,7 +162,7 @@ public class HL7Lexer extends DelimiterLexer
      */
     public void term(Map<String, Object> props) throws IOException {
     }
-
+    
     private int parseComponent(int start, int end) throws IOException {
         int value = 0;
         for (int i = start; i < end; i++) {
@@ -179,20 +174,15 @@ public class HL7Lexer extends DelimiterLexer
         }
         return value;
     }
-
+    
     /**
-     * Get current token as a date/time value. The returned XMLGregorianCalendar
-     * instance includes all component values from the input, but is generally
-     * not a valid XML date/time since XML requires all components to be
-     * populated for each format variation while HL7 allows any number of
-     * components to be included following the four-digit year.
+     * Get current token as a date/time value. The returned XMLGregorianCalendar instance includes all component values
+     * from the input, but is generally not a valid XML date/time since XML requires all components to be populated for
+     * each format variation while HL7 allows any number of components to be included following the four-digit year.
      *
-     * @param minl
-     *            minimum length
-     * @param maxl
-     *            maximum length
-     * @param zone
-     *            allow time zone
+     * @param minl minimum length
+     * @param maxl maximum length
+     * @param zone allow time zone
      * @return
      * @throws IOException
      */
@@ -245,7 +235,7 @@ public class HL7Lexer extends DelimiterLexer
                                     }
                                 }
                             }
-
+                            
                         }
                     }
                 }
@@ -253,11 +243,10 @@ public class HL7Lexer extends DelimiterLexer
         }
         return dt;
     }
-
+    
     /**
-     * Reader that just uses each input byte as a character. This is used for
-     * reading the MSH segment, since we don't know the actual character
-     * encoding for the message body until it's been read.
+     * Reader that just uses each input byte as a character. This is used for reading the MSH segment, since we don't
+     * know the actual character encoding for the message body until it's been read.
      */
     private class ByteReader extends Reader
     {
@@ -273,7 +262,7 @@ public class HL7Lexer extends DelimiterLexer
             }
             return actual;
         }
-
+        
         @Override
         public void close() throws IOException {
             stream.close();
