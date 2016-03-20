@@ -24,9 +24,9 @@ import com.mulesoft.ltmdata.StorageContext
   * is verified in processed messages.
   */
 case class HL7ParserConfig(val lengthFail: Boolean, val charFail: Boolean, val countFail: Boolean,
-  val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
-  val substitutionChar: Int, val receiverIds: Array[HL7IdentityInformation],
-  val senderIds: Array[HL7IdentityInformation]) {
+    val unknownFail: Boolean, val orderFail: Boolean, val unusedFail: Boolean, val occursFail: Boolean,
+    val substitutionChar: Int, val receiverIds: Array[HL7IdentityInformation],
+    val senderIds: Array[HL7IdentityInformation]) {
   if (receiverIds == null || senderIds == null) throw new IllegalArgumentException("receiver and sender id arrays cannot be null")
 }
 
@@ -42,7 +42,7 @@ trait HL7EnvelopeHandler {
 
 /** Parser for HL7 EDI documents. */
 case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config: HL7ParserConfig)
-  extends SchemaParser(new HL7Lexer(in, config.substitutionChar), StorageContext.workingContext) {
+    extends SchemaParser(new HL7Lexer(in, config.substitutionChar), StorageContext.workingContext) {
 
   import HL7SchemaDefs._
   import HL7Acknowledgment._
@@ -145,8 +145,13 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
           checkParse(h, rest)
           parseRest(t)
         case _ =>
-          logErrorInMessage(false, true, "too many values present")
+          logger.warn(s"${describeError(false)} message error: too many values present${describeComponent(true)} at $positionInMessage")
           while (rest == lexer.currentType) lexer.advance
+      } else remain match {
+        case h :: t =>
+          if (h.usage == MandatoryUsage) addElementError(ErrorRequiredFieldMissing, false, "missing required field")
+          else parseRest(t)
+        case _ =>
       }
     }
 
@@ -232,14 +237,16 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
     val delims = init(mshmap)
     map put (delimiterCharacters, delims)
     lexer.setHandler(HL7ErrorHandler)
+    messageControl = getAs(mshControlKey, "", mshmap)
     val struct = evnhand.handleMsh(mshmap)
     map put (structureId, struct.ident)
     map put (structureName, struct.name)
     map put (dataKey, parseStructure(struct, true, storageContext.newMap(struct.headingKeys)))
     map
   } catch {
-    case t: Throwable => t.printStackTrace
-    new ValueMapImpl
+    case t: Throwable =>
+      t.printStackTrace
+      new ValueMapImpl
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
