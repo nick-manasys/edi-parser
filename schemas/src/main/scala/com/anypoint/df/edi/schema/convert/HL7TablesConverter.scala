@@ -31,9 +31,9 @@ object HL7TablesConverter {
 
   /** Specialized usage code conversion for HL7. */
   def convertUsage(code: String) = code match {
-    case "B" | "(B) R" | "RE" => OptionalUsage
+    case "B" | "(B) R" | "RE" | "" => OptionalUsage
     case "W" | "X" => UnusedUsage
-    case "R" | "" => MandatoryUsage
+    case "R" => MandatoryUsage
     case _ => EdiSchema.convertUsage(code)
   }
 
