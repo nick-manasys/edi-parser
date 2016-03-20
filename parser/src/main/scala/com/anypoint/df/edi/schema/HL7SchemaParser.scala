@@ -139,12 +139,15 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
       }
     }
     @tailrec
-    def parseRest(remain: List[SegmentComponent]): Unit = remain match {
-      case h :: t if (rest == lexer.currentType) => {
-        checkParse(h, rest)
-        parseRest(t)
+    def parseRest(remain: List[SegmentComponent]): Unit = {
+      if (rest == lexer.currentType) remain match {
+        case h :: t =>
+          checkParse(h, rest)
+          parseRest(t)
+        case _ =>
+          logErrorInMessage(false, true, "too many values present")
+          while (rest == lexer.currentType) lexer.advance
       }
-      case _ =>
     }
 
     comps match {
