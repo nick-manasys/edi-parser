@@ -6,7 +6,6 @@ import scala.annotation.tailrec
 import scala.io.Source
 
 import com.anypoint.df.edi.lexical.EdiConstants
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 
@@ -255,9 +254,6 @@ object X12TablesConverter {
     }
   }
 
-  /** Convert element data type, extending base conversion to allow empty type. */
-  def convertType(text: String) = if (text.length > 0) EdiConstants.toX12Type(text) else DataType.ALPHANUMERIC
-
   /** Write schema to file. */
   def writeSchema(schema: EdiSchema, name: String, imports: Array[String], outdir: File) = {
     println(s"writing schema $name")
@@ -298,7 +294,8 @@ object X12TablesConverter {
       val elemDefs = foldInput(fileInput(version, elementDetailsName), Map.empty[String, Element])((map, list) =>
         list match {
           case number :: typ :: min :: max :: Nil =>
-            map + (number -> Element(number, elemNames(number), convertType(typ), convertLength(min), convertLength(max)))
+            val usetyp = if (typ.isEmpty()) "AN" else typ
+            map + (number -> Element(number, elemNames(number), X12.convertType(usetyp, convertLength(min), convertLength(max))))
           case _ => throw new IllegalArgumentException("wrong number of values in file")
         })
       val compNames = nameMap(fileInput(version, compositeHeadersName))

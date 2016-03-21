@@ -53,11 +53,7 @@ public class X12Writer extends DelimiterWriter
      * @throws IOException
      */
     private void writeInterchangeControlNumber(Map<String, Object> props) throws IOException {
-        Object version = getRequired(INTER_CONTROL, props);
-        if (!(version instanceof Integer)) {
-            throw new WriteException("expected Integer for property value '" + INTER_CONTROL + "'");
-        }
-        writeInt(((Integer)version).intValue(), 9, 9);
+        X12Constants.VALN9.write(getRequired(INTER_CONTROL, props), this);
     }
 
     /**
@@ -72,19 +68,19 @@ public class X12Writer extends DelimiterWriter
         writeDataSeparator();
         
         // write interchange properties
-        writeProperty(AUTHORIZATION_QUALIFIER, props, "00", 2, 2);
-        writeProperty(AUTHORIZATION_INFO, props, "", 10, 10);
-        writeProperty(SECURITY_QUALIFIER, props, "00", 2, 2);
-        writeProperty(SECURITY_INFO, props, "", 10, 10);
-        writeProperty(SENDER_ID_QUALIFIER, props, "00", 2, 2);
-        writeProperty(SENDER_ID, props, null, 15, 15);
-        writeProperty(RECEIVER_ID_QUALIFIER, props, "00", 2, 2);
-        writeProperty(RECEIVER_ID, props, null, 15, 15);
+        writeProperty(AUTHORIZATION_QUALIFIER, props, "00", X12Constants.VALID2);
+        writeProperty(AUTHORIZATION_INFO, props, "", X12Constants.VALAN10);
+        writeProperty(SECURITY_QUALIFIER, props, "00", X12Constants.VALID2);
+        writeProperty(SECURITY_INFO, props, "", X12Constants.VALAN10);
+        writeProperty(SENDER_ID_QUALIFIER, props, "00", X12Constants.VALID2);
+        writeProperty(SENDER_ID, props, null, X12Constants.VALAN15);
+        writeProperty(RECEIVER_ID_QUALIFIER, props, "00", X12Constants.VALID2);
+        writeProperty(RECEIVER_ID, props, null, X12Constants.VALAN15);
         Calendar calendar = (Calendar)props.get(INTERCHANGE_DATE);
         if (calendar == null) {
             calendar = new GregorianCalendar();
         }
-        writeDate(calendar, 6, 6);
+        X12Constants.VALDT6.write(calendar, this);
         writeDataSeparator();
         Integer time = (Integer)props.get(INTERCHANGE_TIME);
         int millis;
@@ -93,7 +89,7 @@ public class X12Writer extends DelimiterWriter
         } else {
             millis = time.intValue();
         }
-        writeTime(millis, 4, 4);
+        X12Constants.VALTM4.write(Integer.valueOf(millis), this);
         writeDataSeparator();
         Object version = getRequired(VERSION_ID, props);
         if (!(version instanceof String)) {
@@ -105,12 +101,12 @@ public class X12Writer extends DelimiterWriter
             writer.write('U');
         }
         writeDataSeparator();
-        writeAlphaNumeric(version.toString(), 5, 5);
+        X12Constants.VALID5.write(version.toString(), this);
         writeDataSeparator();
         writeInterchangeControlNumber(props);
         writeDataSeparator();
-        writeProperty(ACK_REQUESTED, props, "1", 1, 1);
-        writeProperty(TEST_INDICATOR, props, "P", 1, 1);
+        writeProperty(ACK_REQUESTED, props, "1", X12Constants.VALID1);
+        writeProperty(TEST_INDICATOR, props, "P", X12Constants.VALID1);
         writeComponentSeparator();
         writeSegmentTerminator();
         groupCount = 0;
@@ -124,7 +120,7 @@ public class X12Writer extends DelimiterWriter
     public void term(Map<String, Object> props) throws IOException {
         writeToken("IEA");
         writeDataSeparator();
-        writeInt(groupCount, 1, 5);
+        X12Constants.VALN1_5.write(Integer.valueOf(groupCount), this);
         writeDataSeparator();
         writeInterchangeControlNumber(props);
         writeSegmentTerminator();

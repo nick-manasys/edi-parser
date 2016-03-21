@@ -13,6 +13,10 @@ import scala.util.Try
 import com.anypoint.df.edi.lexical.{ HL7Writer, WriteException, WriterBase }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import EdiSchema.Structure
+import com.anypoint.df.edi.lexical.ErrorHandler
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
+import com.anypoint.df.edi.lexical.ValueType
 
 /** Configuration parameters for HL7 schema writer.
   */
@@ -40,6 +44,17 @@ case class HL7SchemaWriter(out: OutputStream, struct: Structure, numprov: HL7Num
   import HL7Identity._
   import HL7SchemaDefs._
   import SchemaJavaValues._
+
+  /** Lexical error handler. */
+  case object HL7WriterErrorHandler extends ErrorHandler {
+    // replace this with actual error accumlation
+    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = {
+      error match {
+        case WRONG_TYPE => throw new WriteException(explain)
+        case _ =>
+      }
+    }
+  }
 
   /** Typed writer, for access to format-specific conversions and support. */
   val writer = baseWriter.asInstanceOf[HL7Writer]
@@ -83,6 +98,7 @@ case class HL7SchemaWriter(out: OutputStream, struct: Structure, numprov: HL7Num
 
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
+    writer.setHandler(HL7WriterErrorHandler)
     val mshmap = getRequiredValueMap(mshKey, map)
     val msgType = getRequiredString(structureId, map)
     val datamap = getRequiredValueMap(dataKey, map)

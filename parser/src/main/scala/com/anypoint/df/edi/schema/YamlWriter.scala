@@ -174,9 +174,10 @@ object YamlWriter extends YamlDefs {
     }
 
     def writeElementDetails(elem: Element) = {
-      formatter.keyValuePair(typeKey, elem.dataType.code)
-      if (elem.minLength == elem.maxLength) formatter.keyValuePair(lengthKey, elem.minLength)
-      else formatter.keyValuePair(minLengthKey, elem.minLength).keyValuePair(maxLengthKey, elem.maxLength)
+      val typ = elem.valueType
+      formatter.keyValuePair(typeKey, typ.typeCode)
+      if (typ.minLength == typ.maxLength) formatter.keyValuePair(lengthKey, typ.minLength)
+      else formatter.keyValuePair(minLengthKey, typ.minLength).keyValuePair(maxLengthKey, typ.maxLength)
     }
 
     def writeCompositeDetails(comp: Composite) = {

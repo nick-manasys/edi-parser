@@ -55,7 +55,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   behavior of "FlatFileSchemaParser"
 
-  it should "parse a simple message" in {
+/*  it should "parse a simple message" in {
     val in = new ByteArrayInputStream((line1 + line9).getBytes())
     val parser = new FlatFileStructureParser(in, testSchema.structures.values.head)
     val result = parser.parse
@@ -82,7 +82,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     seg2 get("FCF05") should be ("MISSIONAUSTRALIA")
     seg2 get("FCF06") should be ("2009110401")
   }
-  
+*/  
   val fixedSchemaText = """form: FIXEDWIDTH
 values: 
 - { name: 'field_0', type: N0, length: 10 }
@@ -106,7 +106,7 @@ values:
 
   behavior of "FlatFileSchemaWriter"
 
-  it should "roundtrip a complete document" in {
+/*  it should "roundtrip a complete document" in {
     val msg = readDoc("edi/QB-FFSampleRequest.txt")
     val in = new ByteArrayInputStream(msg.getBytes())
     val parser = new FlatFileStructureParser(in, testStructure)
@@ -218,5 +218,5 @@ values:
 //    val swriter = new StringWriter
 //    YamlSupport.writeMap(input, swriter)
     text should be (fixedMultiText)
-  }
+  }*/
 }

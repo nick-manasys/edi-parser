@@ -9,8 +9,7 @@ import java.nio.charset.Charset
 import java.util.{ Calendar, GregorianCalendar }
 
 import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, FlatFileLexer }
-import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
-import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
@@ -56,17 +55,7 @@ extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
   def isEnvelopeSegment(ident: String) = false
 
   /** Parse data element value. */
-  def parseElement(elem: Element) = {
-    val result = elem.dataType match {
-      case ALPHANUMERIC => lexer.parseAlphaNumeric(0, elem.maxLength)
-      case DATE => lexer.parseDate(0, elem.maxLength)
-      case INTEGER => lexer.parseInteger(0, elem.maxLength)
-      case NUMERIC => lexer.parseUnscaledNumber(0, elem.maxLength)
-      case TIME => Integer.valueOf(lexer.parseTime(0, elem.maxLength))
-      case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in flat files")
-    }
-    result
-  }
+  def parseElement(elem: Element) = elem.valueType.parse(lexer)
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {

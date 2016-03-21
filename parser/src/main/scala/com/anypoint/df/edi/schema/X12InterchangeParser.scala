@@ -9,9 +9,8 @@ import scala.collection.mutable.Buffer
 import scala.beans.BeanProperty
 import scala.util.{ Try, Success }
 import org.apache.log4j.Logger
-import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, X12Lexer }
-import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
-import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, ValueType, X12Lexer }
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
@@ -162,7 +161,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** Lexical error handler. */
     case object X12ErrorHandler extends ErrorHandler {
-      def error(lexer: LexerBase, typ: DataType, error: ErrorCondition, explain: java.lang.String): Unit = {
+      def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = {
         addElementError(error match {
           case TOO_SHORT => DataTooShort
           case TOO_LONG => DataTooLong
@@ -250,20 +249,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** Parse data element value. */
     def parseElement(elem: Element) = {
-      val result = elem.dataType match {
-        case ALPHA => lexer.parseAlpha(elem.minLength, elem.maxLength)
-        case ALPHANUMERIC => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
-        case BINARY => throw new IOException("Handling not implemented for binary values")
-        case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
-        case ID => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
-        case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
-        case NUMBER => lexer.parseBigInteger(elem.minLength, elem.maxLength)
-        case REAL => lexer.parseBigDecimal(elem.minLength, elem.maxLength)
-        case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
-        case typ: DataType if (typ.isDecimal) =>
-          lexer.parseImpliedDecimalNumber(typ.decimalPlaces, elem.minLength, elem.maxLength)
-        case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in X12")
-      }
+      val result = elem.valueType.parse(lexer)
       lexer.advance
       result
     }

@@ -6,7 +6,6 @@ import scala.collection.{ mutable => scm }
 import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 import com.anypoint.df.edi.lexical.EdiConstants
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
 
 class CopybookImport(in: InputStream, enc: String) {
 
@@ -124,18 +123,23 @@ class CopybookImport(in: InputStream, enc: String) {
   def convertImplicitDecimal(name: String, pic: Seq[Char], lead: Int): Element = {
     val (fract, rem) = convertReps('9', pic, 0)
     val length = lead + fract
-    if (rem.isEmpty) Element("", name, EdiConstants.toUnrestrictedType("N" + fract), length, length)
-    else dataError("Invalid expression in PIC clause")
+    if (rem.isEmpty) {
+      val typ = EdiSchema.Copybook.convertType("N" + fract, length, length)
+      Element("", name, typ)
+    } else dataError("Invalid expression in PIC clause")
   }
 
   def convertPic(name: String, pic: String): Element = pic.head match {
     case 'X' =>
       val (lead, rem) = convertReps('X', pic.tail, 1)
-      Element("", name, DataType.ALPHANUMERIC, lead, lead)
+      val typ = EdiSchema.Copybook.convertType("AN", lead, lead)
+      Element("", name, typ)
     case '9' =>
       val (lead, rem) = convertReps('9', pic.tail, 1)
-      if (rem.isEmpty) Element("", name, DataType.NUMERIC, lead, lead)
-      else if (rem.head == 'V') convertImplicitDecimal(name, rem.tail, lead)
+      if (rem.isEmpty) {
+        val typ = EdiSchema.Copybook.convertType("N", lead, lead)
+        Element("", name, typ)
+      } else if (rem.head == 'V') convertImplicitDecimal(name, rem.tail, lead)
       else dataError("Invalid expression in PIC clause")
     case 'V' => convertImplicitDecimal(name, pic.tail, 0)
     case _   => dataError("Invalid expression in PIC clause")

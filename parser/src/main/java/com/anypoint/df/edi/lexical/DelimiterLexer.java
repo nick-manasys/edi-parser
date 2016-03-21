@@ -5,9 +5,7 @@ import java.io.InputStream;
 
 import org.apache.log4j.Logger;
 
-import com.anypoint.df.edi.lexical.EdiConstants.DataType;
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
-import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 
 /**
  * Base EDI token scanner. The scanner supplies input tokens to consumers along with token delimiter types, with three
@@ -40,9 +38,6 @@ public abstract class DelimiterLexer extends LexerBase
     /** Segment terminator. */
     char segmentTerminator;
     
-    /** Substitution character for invalid character in string (-1 if unused). */
-    int substitutionChar;
-    
     /** Next token (empty if not yet scanned). */
     StringBuilder peekToken;
     
@@ -65,13 +60,13 @@ public abstract class DelimiterLexer extends LexerBase
      * Constructor.
      *
      * @param is input
+     * @param altmark alternative decimal mark (-1 if unused)
      */
-    public DelimiterLexer(InputStream is) {
-    	super(is);
+    public DelimiterLexer(InputStream is, int altmark) {
+    	super(is, altmark);
         repetitionSeparator = -1;
         subCompSeparator = -1;
         releaseIndicator = -1;
-        substitutionChar = -1;
         peekToken = new StringBuilder();
     }
     
@@ -174,7 +169,7 @@ public abstract class DelimiterLexer extends LexerBase
      * @param explain optional supplemental explanation text (<code>null</code> if none)
      * @throws LexicalException
      */
-    void handleError(DataType typ, ErrorCondition err, String explain) throws LexicalException {
+    public void error(ValueType typ, ErrorCondition err, String explain) throws LexicalException {
         boolean abort = false;
         String position = "element " + Integer.toString(elementNumber + 1);
         if (repetitionNumber > 0) {
@@ -190,7 +185,7 @@ public abstract class DelimiterLexer extends LexerBase
             default:
                 break;
         }
-        String text = err.text() + " for data type " + typ.code() + " at " + position  + ": '" + tokenBuilder + "'";
+        String text = err.text() + " for data type " + typ.typeCode() + " at " + position  + ": '" + tokenBuilder + "'";
         if (explain != null) {
             text += " (" + explain + ")";
         }
@@ -198,7 +193,7 @@ public abstract class DelimiterLexer extends LexerBase
             if (errorHandler == null) {
                 throw new LexicalDataException(typ, err, text);
             } else {
-                errorHandler.error(this, typ, err, explain);
+                errorHandler.error(typ, err, explain);
             }
         } catch (LexicalException e) {
             abort = true;
@@ -365,74 +360,5 @@ public abstract class DelimiterLexer extends LexerBase
         while (currentType != typ && currentType != ItemType.END) {
             advance();
         }
-    }
-
-    /**
-     * Get current token as unrestricted text.
-     *
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @return
-     * @throws LexicalException
-     */
-    public String parseAny(int minl, int maxl) throws IOException {
-    	checkLength(DataType.ALPHA, minl, maxl);
-    	return tokenBuilder.toString();
-    }
-    
-    /**
-     * Get current token as a plain alphanumeric value with space padding.
-     *
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @return
-     * @throws IOException
-     */
-    public String parseAlphaNumeric(int minl, int maxl) throws IOException {
-        int length = tokenBuilder.length();
-        checkLength(DataType.ALPHA, length, minl, maxl);
-        int lastns = -1;
-        for (int i = 0; i < length; i++) {
-            char chr = tokenBuilder.charAt(i);
-            if (allowedChars != null && (chr > allowedChars.length || !allowedChars[chr])) {
-                handleError(DataType.ALPHANUMERIC, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
-                if (substitutionChar >= 0) {
-                    tokenBuilder.setCharAt(i, (char)substitutionChar);
-                }
-            }
-            if (chr != ' ') {
-                lastns = i;
-            }
-        }
-        return tokenBuilder.substring(0, lastns + 1);
-    }
-    
-    /**
-     * Get current token as an id value (no embedded spaces).
-     *
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @return
-     * @throws IOException
-     */
-    public String parseId(int minl, int maxl) throws IOException {
-        int length = tokenBuilder.length();
-        checkLength(DataType.ID, length, minl, maxl);
-        int lastns = -1;
-        boolean space = false;
-        for (int i = 0; i < length; i++) {
-            char chr = tokenBuilder.charAt(i);
-            if (Character.isAlphabetic(chr) || (chr >= '0' && chr <= '9')) {
-                if (space) {
-                    handleError(DataType.ID, ErrorCondition.INVALID_CHARACTER, "embedded space not allowed");
-                }
-                lastns = i;
-            } else if (chr == ' ') {
-                space = true;
-            } else {
-                handleError(DataType.ID, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
-            }
-        }
-        return tokenBuilder.substring(0, lastns + 1);
     }
 }

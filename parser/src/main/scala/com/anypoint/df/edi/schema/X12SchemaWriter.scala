@@ -11,6 +11,10 @@ import scala.util.Try
 import com.anypoint.df.edi.lexical.WriteException
 import com.anypoint.df.edi.lexical.X12Constants._
 import com.anypoint.df.edi.lexical.X12Writer
+import com.anypoint.df.edi.lexical.ErrorHandler
+import com.anypoint.df.edi.lexical.ValueType
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
 
 /** Configuration parameters for X12 schema writer.
   */
@@ -44,6 +48,17 @@ case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
+
+  /** Lexical error handler. */
+  case object X12WriterErrorHandler extends ErrorHandler {
+    // replace this with actual error accumlation
+    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = {
+      error match {
+        case WRONG_TYPE => throw new WriteException(explain)
+        case _ =>
+      }
+    }
+  }
 
   /** Output interchange trailer segment(s) and finish with stream. */
   def term(props: ValueMap) = {
@@ -95,6 +110,7 @@ case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config
 
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
+    writer.setHandler(X12WriterErrorHandler)
     val interchanges = getRequiredValueMap(transactionsMap, map).asScala.foldLeft(EmptySendMap) {
       case (acc, (version, vmap)) => {
         vmap.asInstanceOf[ValueMap].asScala.foldLeft(acc) {

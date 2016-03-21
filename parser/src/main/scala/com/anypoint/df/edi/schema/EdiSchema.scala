@@ -5,8 +5,8 @@ import collection.{ mutable => sm }
 
 import java.{ util => ju }
 
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
+import com.anypoint.df.edi.lexical.ValueType
 import com.mulesoft.ltmdata.MemoryResident
 
 /** EDI schema representation.
@@ -51,11 +51,9 @@ object EdiSchema {
   /** Element definition.
     * @param id unique identifier (empty string if inlined)
     * @param nm readable name
-    * @param dataType type
-    * @param minLength minimum value length
-    * @param maxLength maximum value length
+    * @param valueType type
     */
-  case class Element(id: String, nm: String, val dataType: DataType, val minLength: Int, val maxLength: Int)
+  case class Element(id: String, nm: String, val valueType: ValueType)
     extends ComponentBase(id, nm)
 
   /** Segment (or composite) component, either an element or a composite reference.
@@ -80,7 +78,7 @@ object EdiSchema {
     */
   case class ElementComponent(val element: Element, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int,
     val value: Option[String] = None)
-    extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt)
+      extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt)
 
   /** Composite segment component.
     * @param composite
@@ -91,7 +89,7 @@ object EdiSchema {
     * @param cnt maximum repetition count
     */
   case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage,
-    cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
+      cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
     val itemType = if (composite.isSimple) ItemType.DATA_ELEMENT else ItemType.SUB_COMPONENT
   }
 
@@ -171,7 +169,7 @@ object EdiSchema {
     * @param maxLength maximum length for entire value (0 if no limit)
     */
   case class Composite(id: String, nm: String, val components: List[SegmentComponent], val rules: List[OccurrenceRule],
-    val maxLength: Int) extends ComponentBase(id, nm) {
+      val maxLength: Int) extends ComponentBase(id, nm) {
     def this(id: String, nm: String, comps: List[SegmentComponent], rules: List[OccurrenceRule]) =
       this(id, nm, comps, rules, 0)
     def rewrite(prefix: String, form: EdiForm): Composite =
@@ -201,7 +199,7 @@ object EdiSchema {
     * @param rules
     */
   case class Segment(val ident: String, val tag: String, val name: String,
-    val components: List[SegmentComponent], val rules: List[OccurrenceRule]) {
+      val components: List[SegmentComponent], val rules: List[OccurrenceRule]) {
     def this(id: String, nm: String, comps: List[SegmentComponent], rls: List[OccurrenceRule]) =
       this (id, id, nm, comps, rls)
     val keys = collectKeys(components, Nil)
@@ -243,7 +241,7 @@ object EdiSchema {
     * any order.
     */
   case class StructureSubsequence(val startPos: String, val comps: Map[String, StructureComponent],
-    val terms: Terminations, val groupTerms: Map[GroupComponent, Terminations]) {
+      val terms: Terminations, val groupTerms: Map[GroupComponent, Terminations]) {
     //    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms [${terms.required} required]: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
   }
 
@@ -424,7 +422,7 @@ object EdiSchema {
 
   /** Key for a structure component. */
   def componentKey(ident: String, pos: SegmentPosition) = pos.position + "_" + ident.replace(' ', '_')
-  
+
   /** Identifier used in key for segment. */
   def segmentId(segment: Segment) = if (segment.ident.nonEmpty) segment.ident else segment.name
 
@@ -458,7 +456,7 @@ object EdiSchema {
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
     val endPosition: SegmentPosition, use: Usage, val groupId: String, val wrapped: GroupComponent)
-    extends StructureComponent(wrapped.key, start, use, 1) {
+      extends StructureComponent(wrapped.key, start, use, 1) {
     val startCode = open.ident + groupId
     val endCode = close.ident + groupId
     val groupTerms = Terminations(1, Set(endCode, wrapped.leadSegmentRef.segment.ident))
@@ -482,7 +480,7 @@ object EdiSchema {
     * @param seq
     */
   sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int, val choice: Boolean,
-    val seq: StructureSequence) extends StructureComponent(ky, pos, use, cnt) {
+      val seq: StructureSequence) extends StructureComponent(ky, pos, use, cnt) {
     val leadSegmentRef: ReferenceComponent = seq.items match {
       case (r: ReferenceComponent) :: t => r
       case (g: GroupBase) :: t => g.leadSegmentRef
@@ -499,7 +497,7 @@ object EdiSchema {
     */
   case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
     ssq: StructureSequence)
-    extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, ssq)
+      extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, ssq)
 
   /** Group component consisting of one or more nested components.
     * @param ident group identifier
@@ -516,8 +514,8 @@ object EdiSchema {
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, ssq: StructureSequence, val varkey: Option[String],
     val variants: List[VariantGroup], ky: Option[String] = None, pos: Option[SegmentPosition] = None,
     ch: Boolean = false, val tagStart: Option[Int] = None, val tagLength: Option[Int] = None)
-    extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(ssq.startPos))),
-      pos.getOrElse(ssq.startPos), use, cnt, ch, ssq) {
+      extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(ssq.startPos))),
+        pos.getOrElse(ssq.startPos), use, cnt, ch, ssq) {
 
     /** Group variants by key value. */
     val varbyval = Map(variants map { v => (v.elemval, v) }: _*)
@@ -535,10 +533,10 @@ object EdiSchema {
     * @param tagLength length of tag field (ignored unless flat file)
     */
   case class Structure(val ident: String, val name: String, val group: Option[String],
-    val heading: Option[StructureSequence], val detail: Option[StructureSequence],
-    val summary: Option[StructureSequence], val version: EdiSchemaVersion, val tagStart: Option[Int] = None,
-    val tagLength: Option[Int] = None) extends MemoryResident {
-    
+      val heading: Option[StructureSequence], val detail: Option[StructureSequence],
+      val summary: Option[StructureSequence], val version: EdiSchemaVersion, val tagStart: Option[Int] = None,
+      val tagLength: Option[Int] = None) extends MemoryResident {
+
     def memoryId = ident
 
     /** Segments used in structure. */
@@ -610,12 +608,12 @@ object EdiSchema {
   }
 
   type StructureMap = Map[String, Structure]
-  
+
   sealed abstract class SchemaLayout(val structures: Boolean, val sectioned: Boolean)
   case object MultiTableStructure extends SchemaLayout(true, true)
   case object SingleTableStructure extends SchemaLayout(true, false)
   case object SegmentsOnly extends SchemaLayout(false, false)
-  
+
   private def defaultKey(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
 
   sealed abstract class EdiForm(val text: String, val layout: SchemaLayout, val fixed: Boolean) {
@@ -628,8 +626,13 @@ object EdiSchema {
 
     /** Create key for version in data maps. */
     def versionKey(version: String): String
+
+    /** Create new type definition. */
+    def convertType(code: String, minLength: Int, maxLength: Int): ValueType
   }
   case object EdiFact extends EdiForm("EDIFACT", MultiTableStructure, false) {
+    import com.anypoint.df.edi.lexical.EdifactConstants
+
     val envelopeSegs = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS")
     def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "UGH"
@@ -640,45 +643,73 @@ object EdiSchema {
       else parentId + scaled.toString
     }
     def versionKey(version: String) = version.toUpperCase
+    def convertType(code: String, minLength: Int, maxLength: Int) = {
+      EdifactConstants.buildType(code, minLength, maxLength)
+    }
   }
   case object X12 extends EdiForm("X12", MultiTableStructure, false) {
+    import com.anypoint.df.edi.lexical.X12Constants
+
     val envelopeSegs = Set("ISA", "IEA", "GS", "GE", "ST", "SE")
     def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     val loopWrapperStart = "LS"
     val loopWrapperEnd = "LE"
     def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId, position)
     def versionKey(version: String) = "v" + version
+    def convertType(code: String, minLength: Int, maxLength: Int) = {
+      X12Constants.buildType(code, minLength, maxLength)
+    }
   }
   case object HL7 extends EdiForm("HL7", SingleTableStructure, false) {
+    import com.anypoint.df.edi.lexical.HL7Support
+
     def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId + "-", position)
     def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
+    def convertType(code: String, minLength: Int, maxLength: Int) = {
+      HL7Support.buildType(code, minLength, maxLength)
+    }
   }
   case object FlatFile extends EdiForm("FLATFILE", SingleTableStructure, true) {
+    import com.anypoint.df.edi.lexical.X12Constants
+
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, name: String, position: Int) =
       if (name.nonEmpty) name else defaultKey(parentId, position)
     def versionKey(version: String) = version
+    def convertType(code: String, minLength: Int, maxLength: Int) = {
+      X12Constants.buildType(code, minLength, maxLength)
+    }
   }
   case object FixedWidth extends EdiForm("FIXEDWIDTH", SegmentsOnly, true) {
+    import com.anypoint.df.edi.lexical.X12Constants
+
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, name: String, position: Int) =
       if (name.nonEmpty) name else defaultKey(parentId, position)
     def versionKey(version: String) = version
+    def convertType(code: String, minLength: Int, maxLength: Int) = {
+      X12Constants.buildType(code, minLength, maxLength)
+    }
   }
   case object Copybook extends EdiForm("COPYBOOK", SegmentsOnly, true) {
+    import com.anypoint.df.edi.lexical.X12Constants
+
     def isEnvelopeSegment(ident: String) = false
     val loopWrapperStart = ""
     val loopWrapperEnd = ""
     def keyName(parentId: String, name: String, position: Int) =
       if (name.nonEmpty) name else defaultKey(parentId, position)
     def versionKey(version: String) = version
+    def convertType(code: String, minLength: Int, maxLength: Int) = {
+      X12Constants.buildType(code, minLength, maxLength)
+    }
   }
   def convertEdiForm(value: String) = value match {
     case EdiFact.text => EdiFact
@@ -696,8 +727,8 @@ case class EdiSchemaVersion(val ediForm: EdiSchema.EdiForm, val version: String)
 }
 
 case class EdiSchema(val ediVersion: EdiSchemaVersion, val elements: Map[String, EdiSchema.Element],
-  val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
-  val structures: EdiSchema.StructureMap) {
+    val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
+    val structures: EdiSchema.StructureMap) {
   def this(ver: EdiSchemaVersion) = this(ver, Map[String, EdiSchema.Element](),
     Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Structure]())
   def merge(other: EdiSchema) = EdiSchema(ediVersion, elements ++ other.elements, composites ++ other.composites,

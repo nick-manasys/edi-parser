@@ -54,8 +54,9 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
   def optionText(option: Option[String]) = if (option.isDefined) s"""Some("${option.get}")""" else "None"
 
   /** Build element inline definition. */
-  def inlineElement(elem: Element) =
-    s"""Element("${elem.ident}", "${elem.name}", ${elem.dataType}, ${elem.minLength}, ${elem.maxLength})"""
+  def inlineElement(elem: Element) = ""
+    // TODO: fix this when it's needed again!
+//    s"""Element("${elem.ident}", "${elem.name}", ${elem.dataType}, ${elem.minLength}, ${elem.maxLength})"""
 
   /** Build inline segment component definition.
    *  @param scomp
@@ -95,7 +96,8 @@ class SchemaDump(schema: EdiSchema, writer: PrintWriter) {
 
   /** Build element definition code. */
   def defineElement(element: Element) = {
-    builder.append(s"""val ${genName(element)} = Element("${element.ident}", "${element.name}", ${element.dataType}, ${element.minLength}, ${element.maxLength})""")
+    // TODO: fix this when it's needed again!
+//    builder.append(s"""val ${genName(element)} = Element("${element.ident}", "${element.name}", ${element.dataType}, ${element.minLength}, ${element.maxLength})""")
     builder.break
   }
 

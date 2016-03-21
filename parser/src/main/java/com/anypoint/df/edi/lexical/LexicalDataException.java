@@ -1,7 +1,6 @@
 
 package com.anypoint.df.edi.lexical;
 
-import com.anypoint.df.edi.lexical.EdiConstants.DataType;
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 
 /**
@@ -9,17 +8,17 @@ import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
  */
 public class LexicalDataException extends LexicalException
 {
-    private final DataType dataType;
+    private final ValueType dataType;
     private final ErrorCondition errorCondition;
     
     /**
      * Constructor.
      * 
-     * @param typ expected data type
+     * @param typ expected value type
      * @param err error condition
      * @param msg description
      */
-    public LexicalDataException(DataType typ, ErrorCondition err, String msg) {
+    public LexicalDataException(ValueType typ, ErrorCondition err, String msg) {
         super(msg);
         dataType = typ;
         errorCondition = err;
@@ -30,7 +29,7 @@ public class LexicalDataException extends LexicalException
      * 
      * @return data type, or <code>null</code> if not a data error
      */
-    public DataType getDataType() {
+    public ValueType getValueType() {
         return dataType;
     }
 

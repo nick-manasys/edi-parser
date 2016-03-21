@@ -17,7 +17,7 @@ public class TestWriter extends DelimiterWriter
      * @param os output
      */
     public TestWriter(OutputStream os) {
-        super(os, EdiConstants.ASCII_CHARSET, '*', '-', -1, -1, '~', null, -1, -1, '.', null);
+        super(os, EdiConstants.ASCII_CHARSET, '*', '|', -1, -1, '~', null, -1, -1, '.', null);
     }
 
     @Override

@@ -25,7 +25,7 @@ class ParserErrorTests extends FlatSpec with Matchers with SchemaJavaDefs {
 
   implicit val mapEq = new Equality[ValueMap] {
     def areEqual(jmap: ValueMap, b: Any) = b match {
-      case smap: Map[String, Any] =>
+      case smap: Map[Any, Any] =>
         if (jmap.size == smap.size) smap.forall {
           case (key, sval) => jmap.containsKey(key) && (jmap.get(key) match {
             case cmap: ValueMap => areEqual(cmap, sval)

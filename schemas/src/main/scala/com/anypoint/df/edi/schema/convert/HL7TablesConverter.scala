@@ -4,7 +4,6 @@ import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStrea
 import scala.annotation.tailrec
 import scala.io.Source
 import com.anypoint.df.edi.lexical.EdiConstants
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
 import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 import scala.collection.{ mutable => cm }
@@ -128,9 +127,11 @@ object HL7TablesConverter {
     println(s"building composite $ident")
     val compList = lines.map { line =>
       comps(elems(line(2))(2)) match {
-        case Element(id, nm, typ, mn, mx) => {
-          val max = if (line(5).length > 0) line(5).toInt else mx
-          val elem = Element(id, nm, typ, mn, max)
+        case Element(id, nm, typ) => {
+          val ntype =
+            if (line(5).length > 0) HL7.convertType(typ.typeCode, typ.minLength, line(5).toInt)
+            else typ
+          val elem = Element(id, nm, ntype)
           ElementComponent(elem, None, "", line(1).toInt, convertUsage(line(6)), 1)
         }
         case c: Composite => CompositeComponent(c, None, "", line(1).toInt, convertUsage(line(6)), 1)
@@ -159,9 +160,13 @@ object HL7TablesConverter {
         val compdet = compDetail(line(2))
         val name = Some(compdet(0))
         comps(compdet(3)) match {
-          case Element(id, nm, typ, mn, mx) => {
-            val max = if (line(5).length > 0) line(5).toInt else mx
-            val elem = Element(id, nm, typ, mn, max)
+          case Element(id, nm, typ) => {
+            val ntype = if (line(5).length > 0) {
+              val max = line(5).toInt
+              val min = Math.min(typ.minLength, max)
+              HL7.convertType(typ.typeCode, min, max)
+            } else typ
+            val elem = Element(id, nm, ntype)
             ElementComponent(elem, name, "", line(1).toInt, convertUsage(line(6)), 1)
           }
           case c: Composite => CompositeComponent(c, name, "", line(1).toInt, convertUsage(line(6)), 1)
@@ -317,10 +322,10 @@ object HL7TablesConverter {
             val minlen = if (mintext.length > 0) mintext.toInt else 1
             val maxtext = compline(5)
             val maxlen = if (maxtext.length > 0) maxtext.toInt else 0
-            map + (ident -> Element(line(0), line(1), EdiConstants.toHL7Type(line(2)), minlen, if (maxlen == 0) 9999 else maxlen))
+            map + (ident -> Element(line(0), line(1), HL7.convertType(line(2), minlen, if (maxlen == 0) 9999 else maxlen)))
           case None =>
             missingComps += ident
-            map + (ident -> Element(ident, "", EdiConstants.toHL7Type(ident), 1, 9999))
+            map + (ident -> Element(ident, "", HL7.convertType(ident, 1, 9999)))
         }
       })
       if (missingComps.nonEmpty) println(s"WARNING: Missing components for data structures: $missingComps")

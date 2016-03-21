@@ -8,16 +8,17 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 /**
  * Base EDI token writer. The writer outputs tokens of various types, with specified delimiter types.
  */
 public abstract class DelimiterWriter extends WriterBase
 {
+    protected final Logger logger = Logger.getLogger(getClass());
+    
     /** Allowed character set for string data (<code>null</code> if unrestricted). */
     private final boolean[] allowedChars;
-    
-    /** Substitution character for invalid character in string (-1 if unused). */
-    final int substitutionChar;
     
     /** Sub-component delimiter (-1 if unused). */
     final int subCompSeparator;
@@ -269,15 +270,19 @@ public abstract class DelimiterWriter extends WriterBase
         skippedCompCount = 0;
         skippedSubCompCount = 0;
     }
+    
+    @Override
+    public void writeUnchecked(char[] chars, int offset, int length) throws IOException {
+        writer.write(chars, offset, length);
+    }
 
-    /**
-     * Write text with character checks.
-     * 
-     * @param text
-     * @throws IOException
-     * @throws WriteException
-     */
-    private void writeText(String text) throws IOException, WriteException {
+    @Override
+    public void writeUnchecked(String text) throws IOException {
+        writer.write(text);
+    }
+
+    @Override
+    public void writeEscaped(String text) throws IOException {
         StringBuilder builder = new StringBuilder(text);
         for (int i = 0; i < builder.length(); i++) {
             char chr = builder.charAt(i);
@@ -297,66 +302,61 @@ public abstract class DelimiterWriter extends WriterBase
         }
         writer.write(builder.toString());
     }
-    
+
+    @Override
+    public void startToken() throws IOException {
+        checkSegmentStart();
+    }
+
     /* (non-Javadoc)
      * @see com.anypoint.df.edi.lexical.WriterBase#writeToken(java.lang.String)
      */
     @Override
     public void writeToken(String text) throws IOException {
-        checkSegmentStart();
-        writeText(text);
+        startToken();
+        writeEscaped(text);
     }
     
-    /* (non-Javadoc)
-     * @see com.anypoint.df.edi.lexical.WriterBase#writeSpacePadded(java.lang.String, int, int)
-     */
     @Override
-    public void writeSpacePadded(String text, int minl, int maxl) throws IOException {
-        String token = text;
-        int length = token.length();
-        if (length > maxl) {
-            throw new WriteException("length outside of allowed range");
-        }
-        writeText(token);
-        while (length < minl) {
-            int pad = Math.min(minl - length, SPACES.length());
-            writer.write(SPACES, 0, pad);
-            length += pad;
+    public void error(ValueType typ, ErrorCondition err, String text) throws LexicalException {
+        boolean abort = false;
+        // TODO: add more tracking of position, as with the lexer equivalent
+//        String position = "element " + Integer.toString(elementNumber + 1);
+//        if (repetitionNumber > 0) {
+//            position = "repetition " + Integer.toString(repetitionNumber + 1) + " of " + position;
+//        }
+//        switch (currentType) {
+//            case SUB_COMPONENT:
+//            case COMPONENT:
+//                position = "component " + Integer.toString(componentNumber + 1) + " of " + position;
+//                if (currentType == ItemType.SUB_COMPONENT) {
+//                    position = "subcomponent " + Integer.toString(subCompNumber + 1) + " of " + position;
+//                }
+//            default:
+//                break;
+//        }
+//        String text = err.text() + " for data type " + typ.typeCode() + " at " + position  + ": '" + tokenBuilder + "'";
+//        if (explain != null) {
+//            text += " (" + explain + ")";
+//        }
+        try {
+            if (errorHandler == null) {
+                throw new LexicalDataException(typ, err, text);
+            } else {
+                errorHandler.error(typ, err, text);
+            }
+        } catch (LexicalException e) {
+            abort = true;
+            throw e;
+        } finally {
+            if (abort) {
+                logger.error("Unrecoverable lexer error " + text);
+            } else {
+                logger.info("Recoverable lexer error " + text);
+            }
         }
     }
-    
-    /**
-     * Write a numeric value padded to a minimum length with leading zeroes. This recognizes a leading minus sign and
-     * doesn't include it in the length, but if any other non-counted characters are present (such as a decimal point)
-     * the passed-in lengths need to be adjusted to compensate.
-     *
-     * @param value
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @param adj extra character count include (decimal point, exponent, etc.)
-     * @throws IOException 
-     */
-    @Override
-    public void writeZeroPadded(String value, int minl, int maxl, int adj) throws IOException {
-        String text = value;
-        int length = text.length() - adj;
-        if (text.startsWith("-")) {
-            writeToken("-");
-            text = text.substring(1);
-        } else  {
-            writeToken("");
-        }
-        while (length < minl) {
-            int pad = Math.min(minl - length, ZEROES.length());
-            writer.write(ZEROES, 0, pad);
-            length += pad;
-        }
-        if (length > maxl) {
-            throw new WriteException("value too long");
-        }
-        writer.write(text);
-    }
-    
+
     /**
      * Get required property value, throwing an exception if the value is not defined.
      *
@@ -383,66 +383,17 @@ public abstract class DelimiterWriter extends WriterBase
      * @param maxl maximum length
      * @throws IOException 
      */
-    protected void writeProperty(String key, Map<String, Object> props, String dflt, int minl, int maxl)
+    protected void writeProperty(String key, Map<String, Object> props, Object dflt, ValueType vtype)
         throws IOException {
-        String text;
         if (dflt == null) {
-            writeAlphaNumeric(getRequired(key, props).toString(), minl, maxl);
+            vtype.write(getRequired(key, props), this);
         } else {
-            text = (String)props.get(key);
-            if (text == null) {
-                text = dflt;
+            Object value = props.get(key);
+            if (value == null) {
+                value = dflt;
             }
-            writeAlphaNumeric(text, minl, maxl);
+            vtype.write(value, this);
         }
         writeDataSeparator();
-    }
-    
-    /**
-     * Write HL7 sequence ID value.
-     *
-     * @param value
-     * @throws IOException
-     */
-    public void writeSeqId(int value) throws IOException {
-        if (value < 0) {
-            throw new WriteException("value cannot be negative");
-        }
-        String text = Integer.toString(value);
-        if (text.length() > 4) {
-            throw new WriteException("value too long");
-        }
-        writeToken(text);
-    }
-    
-    /**
-     * Write text as an alphanumeric value.
-     *
-     * @param text
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @throws IOException
-     */
-    public void writeAlphaNumeric(String text, int minl, int maxl) throws IOException {
-        writeSpacePadded(text, minl, maxl);
-    }
-    
-    /**
-     * Write text as an id value. This is the same as alphanumeric, except that at least one character must be present
-     * and the first character cannot be a space.
-     *
-     * @param text
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @throws IOException
-     */
-    public void writeId(String text, int minl, int maxl) throws IOException {
-        if (minl > 0 && text.length() == 0) {
-            throw new WriteException("at least one character must be present in id");
-        }
-        if (text.charAt(0) == ' ') {
-            throw new WriteException("first character of an id cannot be a space");
-        }
-        writeAlphaNumeric(text, minl, maxl);
     }
 }

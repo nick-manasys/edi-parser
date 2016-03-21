@@ -16,7 +16,7 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
 /**
  * Test for basic parser functionality.
  */
-public class LexerBaseTest
+public class LexerBaseTest extends ValueTypesBase
 {
     public TestLexer initializeLexer(String text) throws IOException {
         InputStream is = new ByteArrayInputStream(text.getBytes(EdiConstants.ASCII_CHARSET));
@@ -30,109 +30,109 @@ public class LexerBaseTest
         TestLexer lexer = initializeLexer("A~B~");
         assertEquals("A", lexer.token());
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("A", lexer.parseId(1, 1));
+        assertEquals("A", VALa1.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("B", lexer.parseId(1, 1));
+        assertEquals("B", VALa1.parse(lexer));
         lexer.advance();
         lexer = initializeLexer("A~   B~");
         assertEquals("A", lexer.token());
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("A", lexer.parseId(1, 1));
+        assertEquals("A", VALa1.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("B", lexer.parseId(1, 1));
+        assertEquals("B", VALa1.parse(lexer));
         lexer.advance();
         lexer = initializeLexer("A~\n   \nB~");
         assertEquals("A", lexer.token());
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("A", lexer.parseId(1, 1));
+        assertEquals("A", VALa1.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("B", lexer.parseId(1, 1));
+        assertEquals("B", VALa1.parse(lexer));
         lexer.advance();
     }
     
     @Test
     public void testTokenTypes() throws Exception {
-        TestLexer lexer = initializeLexer("ID*ALPHA*1ALPHANUM*12345*123.456*123.456*1234567890*20090604*1205~");
+        TestLexer lexer = initializeLexer("ID*ALPHA*1ALPHANUMX*12345*123.456*123.456*12345671090*20090604*1205~");
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("ID", lexer.parseId(2, 2));
+        assertEquals("ID", VALa1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals("ALPHA", lexer.parseAlpha(5, 5));
+        assertEquals("ALPHA", VALa1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals("1ALPHANUM", lexer.parseAlphaNumeric(9, 9));
+        assertEquals("1ALPHANUMX", VALAN10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(Integer.valueOf(12345), lexer.parseInteger(5, 5));
+        assertEquals(Integer.valueOf(12345), VALN1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(new BigDecimal("123.456"), lexer.parseBigDecimal(6, 6));
+        assertEquals(new BigDecimal("123.456"), VALR1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(new BigDecimal("123.456"), lexer.parseUnscaledNumber(6, 6));
+        assertEquals(new BigDecimal("123.456"), VALNM1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(new Long("1234567890"), lexer.parseBigDecimal(6, 10));
+        assertEquals(new Long("12345671090"), VALNM1_12.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        Calendar date = lexer.parseDate(8, 8);
+        Calendar date = (Calendar)VALDT8.parse(lexer);
         lexer.advance();
         assertEquals(2009, date.get(Calendar.YEAR));
         assertEquals(5, date.get(Calendar.MONTH));
         assertEquals(4, date.get(Calendar.DAY_OF_MONTH));
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals((12 * 60 + 5) * 60000, lexer.parseTime(4, 4));
+        assertEquals((12 * 60 + 5) * 60000, VALTM4.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.SEGMENT, lexer.currentType());
     }
     
     @Test
     public void testTrimmingPadded() throws Exception {
-        TestLexer lexer = initializeLexer("ID *ALPHA   *1ALPHANUM  *00012345*00123.456*000123.456~");
+        TestLexer lexer = initializeLexer("ID *ALPHA   *1ALPHANUM *00012345*00123.456*000123.456~");
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("ID", lexer.parseId(3, 3));
+        assertEquals("ID", VALAN3.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals("ALPHA", lexer.parseAlpha(8, 8));
+        assertEquals("ALPHA", VALAN8.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals("1ALPHANUM", lexer.parseAlphaNumeric(11, 11));
+        assertEquals("1ALPHANUM", VALAN10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(Integer.valueOf(12345), lexer.parseInteger(8, 8));
+        assertEquals(Integer.valueOf(12345), VALN1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(new BigDecimal("123.456"), lexer.parseBigDecimal(8, 8));
+        assertEquals(new BigDecimal("123.456"), VALNM1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(new BigDecimal("123.456"), lexer.parseUnscaledNumber(9, 9));
+        assertEquals(new BigDecimal("123.456"), VALNM1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.SEGMENT, lexer.currentType());
     }
     
     @Test
     public void testTrimmingGeneral() throws Exception {
-        TestLexer lexer = initializeLexer("ID *ALPHA   *1ALPHANUM  *00012345*00123.456*000123.456~");
+        TestLexer lexer = initializeLexer("ID *ALPHA   *1ALPHANUM *00012345*00123.456*000123.456~");
         assertEquals(ItemType.SEGMENT, lexer.currentType());
-        assertEquals("ID", lexer.parseId(1, 3));
+        assertEquals("ID", VALa1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals("ALPHA", lexer.parseAlpha(1, 8));
+        assertEquals("ALPHA", VALa1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals("1ALPHANUM", lexer.parseAlphaNumeric(1, 11));
+        assertEquals("1ALPHANUM", VALAN1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(Integer.valueOf(12345), lexer.parseInteger(1, 8));
+        assertEquals(Integer.valueOf(12345), VALN1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(new BigDecimal("123.456"), lexer.parseBigDecimal(1, 9));
+        assertEquals(new BigDecimal("123.456"), VALR1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.DATA_ELEMENT, lexer.currentType());
-        assertEquals(new BigDecimal("123.456"), lexer.parseUnscaledNumber(6, 9));
+        assertEquals(new BigDecimal("123.456"), VALR1_10.parse(lexer));
         lexer.advance();
         assertEquals(ItemType.SEGMENT, lexer.currentType());
     }
@@ -141,150 +141,147 @@ public class LexerBaseTest
     public void testTooShortErrors() throws Exception {
         TestLexer lexer = initializeLexer("ID*ALPH*1ALPHANU*1234*123.45*12345*090604*205~");
         try {
-        	lexer.parseId(3, 3);
+            VALa10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseAlpha(5, 5);
+            VALAN10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseAlphaNumeric(9, 9);
+            VALAN10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseInteger(5, 5);
+            VALN10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseBigDecimal(6, 6);
+            VALNM10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseUnscaledNumber(6, 6);
+            VALNM10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseDate(8, 8);
+            VALDT8.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseTime(4, 4);
+            VALTM4.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
     }
     
     @Test
     public void testTooLongErrors() throws Exception {
-        TestLexer lexer = initializeLexer("IDAB*ALPHAA*1ALPHANUNN*123456*123.4567*1234567*2009060412*120506~");
+        TestLexer lexer = initializeLexer("IDAB*ALPHAA*1ALPHANUNNN*123456*123.4567*1234567*2009060412*120506~");
         try {
-        	lexer.parseId(3, 3);
+            VALa1.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseAlpha(5, 5);
+            VALa1.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseAlphaNumeric(9, 9);
+            VALAN10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseInteger(5, 5);
+            VALN5.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseBigDecimal(6, 6);
+            VALNM5.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseUnscaledNumber(6, 6);
+            VALNM5.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseDate(8, 8);
+            VALDT8.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseTime(4, 4);
+            VALTM4.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
     }
     
     @Test
     public void testCharacterErrors() throws Exception {
-        TestLexer lexer = initializeLexer("I D*AL0PH*12345A*+123.45*12-345*09 604* 205~");
+        TestLexer lexer = initializeLexer("I.D*AL0PH*12345A*+123.45*12-345*09 604* 205~");
         try {
-        	lexer.parseId(3, 3);
+            VALa1_10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseAlpha(5, 5);
+            VALa1_10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseInteger(5, 5);
+            VALN10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseBigDecimal(6, 6);
+            VALNM10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseUnscaledNumber(6, 6);
+            VALNM10.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseDate(8, 8);
+            VALDT8.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
         lexer.advance();
         try {
-        	lexer.parseTime(4, 4);
+            VALTM4.parse(lexer);
         	fail();
 		} catch (LexicalException e) { }
     }
     
     @Test
     public void testExponentialNotation() throws Exception {
-        TestLexer lexer = initializeLexer("12.34*.1234E2*1234E-2*12.345*.1234E20*1234E-20~");
-        assertEquals(new BigDecimal("12.34"), lexer.parseBigDecimal(4, 4));
+        TestLexer lexer = initializeLexer("12.340*.1234E2*1234E-2*12.345*.1234E20*1234E-20~");
+        assertEquals(new BigDecimal("12.340"), VALR5.parse(lexer));
         lexer.advance();
-        assertEquals(new BigDecimal("12.34"), lexer.parseBigDecimal(5, 5));
+        assertEquals(new BigDecimal("12.34"), VALR5.parse(lexer));
         lexer.advance();
-        assertEquals(new BigDecimal("12.34"), lexer.parseBigDecimal(5, 5));
+        assertEquals(new BigDecimal("12.34"), VALR5.parse(lexer));
+        lexer.advance();
+        assertEquals(new BigDecimal("12.345"), VALR5.parse(lexer));
         lexer.advance();
         try {
-            lexer.parseBigDecimal(4, 4);
+            VALR5.parse(lexer);
             fail();
         } catch (LexicalException e) { }
         lexer.advance();
         try {
-            lexer.parseBigDecimal(5, 5);
-            fail();
-        } catch (LexicalException e) { }
-        lexer.advance();
-        try {
-            lexer.parseBigDecimal(5, 5);
+            VALR5.parse(lexer);
             fail();
         } catch (LexicalException e) { }
     }

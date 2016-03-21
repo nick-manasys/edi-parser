@@ -21,7 +21,7 @@ public class TestLexer extends DelimiterLexer
      * @param is input
      */
     public TestLexer(InputStream is) {
-        super(is);
+        super(is, -1);
         dataSeparator = '*';
         componentSeparator = '\\';
         repetitionSeparator = '^';

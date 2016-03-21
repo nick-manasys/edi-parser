@@ -1,22 +1,17 @@
 
 package com.anypoint.df.edi.lexical;
 
+import static com.anypoint.df.edi.lexical.X12Constants.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.nio.charset.Charset;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.Map;
 
-import com.anypoint.df.edi.lexical.EdiConstants.DataType;
-import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
-
-import static com.anypoint.df.edi.lexical.EdiConstants.*;
-import static com.anypoint.df.edi.lexical.X12Constants.*;
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
+import com.anypoint.df.edi.lexical.X12Constants.CharacterRestriction;
 
 /**
  * Lexer variation for X12.
@@ -41,7 +36,7 @@ public class X12Lexer extends DelimiterLexer
      * @param chset character set selection
      */
     public X12Lexer(InputStream is, Charset charset) {
-        super(is);
+        super(is, -1);
         reader = new BufferedReader(new InputStreamReader(stream, charset));
     }
     
@@ -63,25 +58,6 @@ public class X12Lexer extends DelimiterLexer
     @Override
     void handleEscape()  {
         throw new RuntimeException("Not used for X12");
-    }
-    
-    /**
-     * Get current token as an X12 number value.
-     *
-     * @param scale inverse power of ten multiplier
-     * @param minl minimum length (excluding sign and/or decimal)
-     * @param maxl maximum length (excluding sign and/or decimal)
-     * @return
-     * @throws IOException
-     */
-    public BigDecimal parseImpliedDecimalNumber(int scale, int minl, int maxl) throws IOException {
-        checkInteger();
-        int length = tokenBuilder.length();
-        if (length > 0 && tokenBuilder.charAt(0) == '-') {
-            length--;
-        }
-        checkLength(DataType.INTEGER, length, minl, maxl);
-        return new BigDecimal(new BigInteger(tokenBuilder.toString()), scale);
     }
     
     /**
@@ -136,87 +112,87 @@ public class X12Lexer extends DelimiterLexer
             advance(ItemType.DATA_ELEMENT);
             InterchangeStartStatus result = InterchangeStartStatus.VALID;
             try {
-                props.put(AUTHORIZATION_QUALIFIER, parseId(2, 2));
+                props.put(AUTHORIZATION_QUALIFIER, X12Constants.VALID2.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.AUTHORIZATION_QUALIFIER_ERROR);
             }
             advance();
             try {
-                props.put(AUTHORIZATION_INFO, parseAlphaNumeric(10, 10));
+                props.put(AUTHORIZATION_INFO, X12Constants.VALAN10.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.AUTHORIZATION_INFO_ERROR);
             }
             advance();
             try {
-                props.put(SECURITY_QUALIFIER, parseId(2, 2));
+                props.put(SECURITY_QUALIFIER, X12Constants.VALID2.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.SECURITY_QUALIFIER_ERROR);
             }
             advance();
             try {
-                props.put(SECURITY_INFO, parseAlphaNumeric(10, 10));
+                props.put(SECURITY_INFO, X12Constants.VALAN10.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.SECURITY_INFO_ERROR);
             }
             advance();
             try {
-                props.put(SENDER_ID_QUALIFIER, parseId(2, 2));
+                props.put(SENDER_ID_QUALIFIER, X12Constants.VALID2.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.SENDER_ID_QUALIFIER_ERROR);
             }
             advance();
             try {
-                props.put(SENDER_ID, parseAlphaNumeric(15, 15));
+                props.put(SENDER_ID, X12Constants.VALAN15.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.SENDER_ID_ERROR);
             }
             advance();
             try {
-                props.put(RECEIVER_ID_QUALIFIER, parseId(2, 2));
+                props.put(RECEIVER_ID_QUALIFIER, X12Constants.VALID2.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.RECEIVER_ID_QUALIFIER_ERROR);
             }
             advance();
             try {
-                props.put(RECEIVER_ID, parseAlphaNumeric(15, 15));
+                props.put(RECEIVER_ID, X12Constants.VALAN15.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.RECEIVER_ID_ERROR);
             }
             advance();
             try {
-                props.put(INTERCHANGE_DATE, parseDate(6, 6));
+                props.put(INTERCHANGE_DATE, X12Constants.VALDT6.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.INTERCHANGE_DATE_ERROR);
             }
             advance();
             try {
-                props.put(INTERCHANGE_TIME, Integer.valueOf(parseTime(4, 4)));
+                props.put(INTERCHANGE_TIME, Integer.valueOf((Integer)X12Constants.VALTM4.parse(this)));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.INTERCHANGE_TIME_ERROR);
             }
             advance();
-            String sep = parseAny(1, 1);
+            String sep = X12Constants.VALAN1.parse(this).toString();
             repetitionSeparator = "U".equals(sep) ? -1 : sep.charAt(0);
             advance();
             try {
-                props.put(VERSION_ID, parseId(5, 5));
+                props.put(VERSION_ID, X12Constants.VALID5.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.VERSION_ID_ERROR);
             }
             advance();
             try {
-                props.put(INTER_CONTROL, parseInteger(9, 9));
+                props.put(INTER_CONTROL, X12Constants.VALN9.parse(this));
             } catch (LexicalException e) {
                 throw new LexicalException("Interchange aborted due to Interchange Control Number error", e);
             }
             advance();
             try {
-                props.put(ACK_REQUESTED, parseId(1, 1));
+                props.put(ACK_REQUESTED, X12Constants.VALID1.parse(this));
             } catch (LexicalException e) {
                 result = replaceValidStatus(result, InterchangeStartStatus.ACK_REQUESTED_ERROR);
             }
             advance();
-            String indicator = parseAlpha(1, 1);
+            String indicator = X12Constants.VALAN1.parse(this).toString();
             if (indicator.length() != 1 || !("I".equals(indicator) || "P".equals(indicator) || "T".equals(indicator))) {
                 result = replaceValidStatus(result, InterchangeStartStatus.TEST_INDICATOR_ERROR);
             }
@@ -244,12 +220,12 @@ public class X12Lexer extends DelimiterLexer
             throw new IllegalStateException("not at trailer");
         }
         advance();
-        int count = parseInteger(1, 5).intValue();
+        int count = ((Integer)X12Constants.VALN1_5.parse(this)).intValue();
         if (count != groupCount) {
             return InterchangeEndStatus.GROUP_COUNT_ERROR;
         }
         advance();
-        int number = parseInteger(9, 9).intValue();
+        int number = ((Integer)X12Constants.VALN9.parse(this)).intValue();
         Object expected = props.get(INTER_CONTROL);
         if (!(expected instanceof Integer)) {
             throw new IllegalStateException(INTER_CONTROL + " value must be an Integer");

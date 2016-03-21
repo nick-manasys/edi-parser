@@ -10,8 +10,6 @@ import scala.util.Try
 import org.apache.log4j.Logger
 
 import com.anypoint.df.edi.lexical.{ DelimiterWriter, WriteException, WriterBase }
-import com.anypoint.df.edi.lexical.EdiConstants.DataType
-import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.schema.EdiSchema._
@@ -205,38 +203,13 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
 /** Writer for delimited EDI formats using schemas. */
 abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRequireds: Boolean)
   extends SchemaWriter(delimWriter, enforceRequireds) {
-  import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
-  import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+  import com.anypoint.df.edi.lexical.EdiConstants.ItemType
   import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 
   /** Write a value from map. */
   def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
-    def writeSimple(value: Any, dtype: DataType, min: Int, max: Int) = dtype match {
-      case ALPHA => delimWriter.writeAlpha(value.asInstanceOf[String], min, max)
-      case ALPHANUMERIC | STRINGDATA | VARIES => delimWriter.writeAlphaNumeric(value.asInstanceOf[String], min, max)
-      case ID => delimWriter.writeId(value.asInstanceOf[String], min, max)
-      case DATE => value match {
-        case calendar: Calendar => delimWriter.writeDate(calendar, min, max)
-        case date: Date => delimWriter.writeDate(date, min, max)
-        case xmlc: XMLGregorianCalendar => delimWriter.writeDateTime(xmlc, min, max, false)
-        case _ => throw new WriteException(s"Date value must be Date or Calendar instance, not ${value.getClass.getName}")
-      }
-      case DATETIME => delimWriter.writeDateTime(value.asInstanceOf[XMLGregorianCalendar], min, max, true)
-      case INTEGER => delimWriter.writeInt(value.asInstanceOf[Integer].intValue, min, max)
-      case NUMBER | NUMERIC | REAL => value match {
-        case bigdec: BigDecimal => delimWriter.writeDecimal(bigdec, min, max)
-        case integer: Integer => delimWriter.writeInt(integer, min, max)
-        case long: Long => delimWriter.writeLong(long, min, max)
-        case bigint: BigInteger => delimWriter.writeBigInteger(bigint, min, max)
-        case _ => throw new WriteException(s"Value type ${value.getClass.getName} is not compatible with expected type BigDecimal")
-      }
-      case SEQID => delimWriter.writeSeqId(value.asInstanceOf[Integer].intValue)
-      case TIME => delimWriter.writeTime(value.asInstanceOf[Integer], min, max)
-      case BINARY => throw new WriteException("Handling not implemented for binary values")
-      case typ: DataType if (typ.isDecimal) =>
-        delimWriter.writeImplicitDecimal(value.asInstanceOf[BigDecimal], typ.decimalPlaces, min, max)
-    }
+    def writeSimple(value: Any, element: Element) = element.valueType.write(value, delimWriter)
     
     def writeSeparator(repeat: Boolean) =
       if (repeat) delimWriter.writeRepetitionSeparator
@@ -251,7 +224,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
       writeSeparator(repeat)
       comp match {
         case ElementComponent(elem, _, _, _, _, _, _) =>
-          writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
+          writeSimple(value, elem)
         case CompositeComponent(composite, _, _, _, _, _) =>
           writeCompList(value.asInstanceOf[ValueMap], typ.nextLevel, true, composite.components)
       }
@@ -307,20 +280,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
             case ec: ElementComponent =>
               if (ec.value.isDefined) {
                 writeSeparator(false)
-                val elem = ec.element
-                val value = ec.value.get
-                elem.dataType match {
-                  case ALPHA | ALPHANUMERIC | ID | STRINGDATA | VARIES =>
-                    delimWriter.writeSpacePadded(value, elem.minLength, elem.maxLength)
-                  case INTEGER | NUMBER | NUMERIC | REAL | SEQID =>
-                    val adj = (if (value.charAt(0) == '-') 1 else 0) + (if (value.indexOf('-', 1) > 0) 1 else 0) +
-                      (if (value.indexOf(delimWriter.decimalMark, 1) >= 0) 1 else 0) +
-                      (if (value.indexOf('E') >= 0) 1 else 0)
-                    delimWriter.writeZeroPadded(value, elem.minLength, elem.maxLength, adj)
-                  case _ =>
-                    if (value.length < elem.minLength || value.length > elem.maxLength) logAndThrow(s"length ${value.length} of value for '${ec.name}' is outside limits")
-                    else delimWriter.writeToken(value)
-                }
+                writeSimple(ec.value.get, ec.element)
               } else skipAtLevel
           }
         }

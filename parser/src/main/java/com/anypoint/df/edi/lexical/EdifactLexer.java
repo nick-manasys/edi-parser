@@ -24,6 +24,9 @@ public class EdifactLexer extends DelimiterLexer
         VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR
     }
     
+    private static final ValueType INTER_CONTROL_COUNT_FIELD = EdifactConstants.buildType("n", 0, 6);
+    private static final ValueType INTER_CONTROL_REF_FIELD = EdifactConstants.buildType("an", 0, 14);
+    
     private final String delimiterDefaults;
     
     private boolean enforceCharacterSet;
@@ -36,7 +39,7 @@ public class EdifactLexer extends DelimiterLexer
      * <code>null</code> if using standard defaults)
      */
     public EdifactLexer(InputStream is, String delims) {
-        super(is);
+        super(is, ',');
         componentSeparator = ':';
         dataSeparator = '+';
         releaseIndicator = '?';
@@ -44,7 +47,6 @@ public class EdifactLexer extends DelimiterLexer
         repetitionSeparator = '*';
         subCompSeparator = -1;
         delimiterDefaults = delims;
-        altDecimalMark = ',';
     }
     
     /**
@@ -306,10 +308,10 @@ public class EdifactLexer extends DelimiterLexer
         }
         if (nextType() == ItemType.DATA_ELEMENT) {
             advance();
-            props.put(INTER_CONTROL_COUNT, parseInteger(1, 6));
+            props.put(INTER_CONTROL_COUNT, INTER_CONTROL_COUNT_FIELD.parse(this));
             if (nextType() == ItemType.DATA_ELEMENT) {
                 advance();
-                props.put(INTER_CONTROL_REF, parseAlphaNumeric(0, 14));
+                props.put(INTER_CONTROL_REF, INTER_CONTROL_REF_FIELD.parse(this));
             }
         }
     }

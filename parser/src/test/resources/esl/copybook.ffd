@@ -16,7 +16,7 @@ segments:
     - { name: 'ITEM-DESCRIPTION', type: AN, length: 30 }
     - name: 'MONTHLY-SALES'
       values: 
-      - { name: 'QUANTITY-SOLD', type: NM, length: 3 }
+      - { name: 'QUANTITY-SOLD', type: N, length: 3 }
       - { name: 'UNIT-PRICE', type: N2, length: 7 }
 - id: 'MR0'
   name: 'MAILING-RECORD'
@@ -43,4 +43,4 @@ segments:
   - { name: 'ADDRESS', type: AN, length: 15 }
   - { name: 'CITY', type: AN, length: 15 }
   - { name: 'STATE', type: AN, length: 2 }
-  - { name: 'ZIP', type: NM, length: 5 }
+  - { name: 'ZIP', type: N, length: 5 }

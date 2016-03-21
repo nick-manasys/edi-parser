@@ -172,7 +172,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val input = parseDoc(modDoc)
     val errors = input.get(errorListKey).asInstanceOf[ju.List[EdifactError]]
     errors.size should be (1)
-    errors.get(0) should be (EdifactError(1, true, "18", "more than maximum length for data type N0 at element 4: '06082015' (effective length 8 is greater than 6)"))
+    errors.get(0) should be (EdifactError(1, true, "18", "more than maximum length for data type n at element 4: '06082015' (effective length 8 is greater than 6)"))
   }
 
   val writerConfig = EdifactWriterConfig(LEVELB, SyntaxVersion.VERSION4, false, true, -1, '.', ASCII_CHARSET, "+:*'?", "\n", false)

@@ -4,19 +4,19 @@ package com.anypoint.df.edi.schema
 object HL7SchemaDefs {
   import EdiSchema._
 
-  import com.anypoint.df.edi.lexical.EdiConstants.DataType
-  import com.anypoint.df.edi.lexical.EdiConstants.DataType._
   import com.anypoint.df.edi.lexical.EdifactConstants.SyntaxVersion
+  import com.anypoint.df.edi.lexical.HL7Support
 
   val mshKey = "MSH"
   val errsKey = "ERR"
 
-  val elemDTM = Element("DTM", "Date/Time", DATETIME, 4, 64)
-  val elemID = Element("ID", "Coded Value for HL7 Defined Tables", STRINGDATA, 1, 199)
-  val elemIS = Element("IS", "Coded Value for User-Defined Tables", STRINGDATA, 1, 20)
-  val elemNM = Element("NM", "Numeric", NUMERIC, 1, 16)
-  val elemST = Element("ST", "String Data", STRINGDATA, 1, 199)
-  val elemTX = Element("TX", "Text Data", STRINGDATA, 1, 2000)
+  val elemDTM = Element("DTM", "Date/Time", HL7Support.buildType("DTM", 4, 64))
+  val elemID = Element("ST", "Coded Value for HL7 Defined Tables", HL7Support.buildType("ST", 1, 199))
+  val elemIS = Element("ST", "Coded Value for User-Defined Tables", HL7Support.buildType("ST", 1, 20))
+  val elemNM = Element("NM", "Numeric", HL7Support.buildType("NM", 1, 16))
+  val elemST = Element("ST", "String Data", HL7Support.buildType("ST", 1, 199))
+  val elemTX = Element("TX", "Text Data", HL7Support.buildType("ST", 1, 2000))
+  val elemVaries = Element("varies", "varies", HL7Support.buildType("ST", 0, 0))
   val compCE = Composite("CE", "Coded Element", List[SegmentComponent](
     ElementComponent(elemST, None, "CE-01", 1, OptionalUsage, 1),
     ElementComponent(elemST, None, "CE-02", 2, OptionalUsage, 1),
@@ -111,7 +111,7 @@ object HL7SchemaDefs {
     ElementComponent(elemST, None, "MSA-02", 2, MandatoryUsage, 1),
     ElementComponent(elemST, None, "MSA-03", 3, OptionalUsage, 1),
     ElementComponent(elemNM, None, "MSA-04", 4, OptionalUsage, 1),
-    ElementComponent(Element("varies", "varies", VARIES, 0, 0), None, "MSA-05", 5, UnusedUsage, 1),
+    ElementComponent(elemVaries, None, "MSA-05", 5, UnusedUsage, 1),
     CompositeComponent(compCE.rewrite("MSA-06", convertEdiForm("HL7")), Some("Coded Element"), "MSA-06", 6, OptionalUsage, 1)), Nil)
   val segMSH = new Segment("MSH", "Message Header", List[SegmentComponent](
     //    ElementComponent(elemST, None, "MSH-01", 1, MandatoryUsage, 1), (removed since not really a field)

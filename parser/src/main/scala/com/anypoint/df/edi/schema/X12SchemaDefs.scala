@@ -4,9 +4,8 @@ package com.anypoint.df.edi.schema
 object X12SchemaDefs {
 
   import EdiSchema._
+  import com.anypoint.df.edi.lexical.X12Constants
   import com.anypoint.df.edi.lexical.X12Constants._
-  import com.anypoint.df.edi.lexical.EdiConstants.DataType
-  import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 
   /** Key for map of transaction version maps in root map of send or receive. */
   val transactionsMap = "TransactionSets"
@@ -14,29 +13,58 @@ object X12SchemaDefs {
   /** Key for transaction set header information in transaction data map. */
   val setKey = "SetHeader"
 
-  val elemI05 = Element("I05", "Interchange ID Qualifier", ID, 2, 2)
-  val elemI12 = Element("I12", "Interchange Control Number", INTEGER, 9, 9)
+  val valID1 = X12Constants.buildType("ID", 1, 1)
+  val valID1_2 = X12Constants.buildType("ID", 1, 2)
+  val valID1_3 = X12Constants.buildType("ID", 1, 3)
+  val valID2 = X12Constants.buildType("ID", 2, 2)
+  val valID2_3 = X12Constants.buildType("ID", 2, 3)
+  val valID3 = X12Constants.buildType("ID", 3, 3)
+  val valID5 = X12Constants.buildType("ID", 5, 5)
+  val valN1_2 = X12Constants.buildType("N", 1, 2)
+  val valN1_4 = X12Constants.buildType("N", 1, 4)
+  val valN1_5 = X12Constants.buildType("N", 1, 5)
+  val valN1_6 = X12Constants.buildType("N", 1, 6)
+  val valN1_9 = X12Constants.buildType("N", 1, 9)
+  val valN1_10 = X12Constants.buildType("N", 1, 10)
+  val valN2 = X12Constants.buildType("N", 2, 2)
+  val valN9 = X12Constants.buildType("N", 9, 9)
+  val valAN1 = X12Constants.buildType("AN", 1, 1)
+  val valAN1_4 = X12Constants.buildType("AN", 1, 4)
+  val valAN1_12 = X12Constants.buildType("AN", 1, 12)
+  val valAN1_35 = X12Constants.buildType("AN", 1, 35)
+  val valAN1_99 = X12Constants.buildType("AN", 1, 99)
+  val valAN10 = X12Constants.buildType("AN", 10, 10)
+  val valAN15 = X12Constants.buildType("AN", 15, 15)
+  val valAN2_15 = X12Constants.buildType("AN", 2, 15)
+  val valAN4_9 = X12Constants.buildType("AN", 4, 9)
+  val valDT6 = X12Constants.buildType("DT", 6, 6)
+  val valDT8 = X12Constants.buildType("DT", 8, 8)
+  val valTM4 = X12Constants.buildType("TM", 4, 4)
+  val valTM4_8 = X12Constants.buildType("TM", 4, 8)
+  
+  val elemI05 = Element("I05", "Interchange ID Qualifier", valN2)
+  val elemI12 = Element("I12", "Interchange Control Number", valN9)
 
   val ISASegment = new Segment("ISA", "Interchange Control Header", List[SegmentComponent](
-    ElementComponent(Element("I01", "Authorization Information Qualifier", ID, 2, 2), None, "ISA01", 1, MandatoryUsage, 1),
-    ElementComponent(Element("I02", "Authorization Information", ALPHANUMERIC, 10, 10), None, "ISA02", 2, MandatoryUsage, 1),
-    ElementComponent(Element("I03", "Security Information Qualifier", ID, 2, 2), None, "ISA03", 3, MandatoryUsage, 1),
-    ElementComponent(Element("I04", "Security Information", ALPHANUMERIC, 10, 10), None, "ISA04", 4, MandatoryUsage, 1),
+    ElementComponent(Element("I01", "Authorization Information Qualifier", valID2), None, "ISA01", 1, MandatoryUsage, 1),
+    ElementComponent(Element("I02", "Authorization Information", valAN10), None, "ISA02", 2, MandatoryUsage, 1),
+    ElementComponent(Element("I03", "Security Information Qualifier", valID2), None, "ISA03", 3, MandatoryUsage, 1),
+    ElementComponent(Element("I04", "Security Information", valAN10), None, "ISA04", 4, MandatoryUsage, 1),
     ElementComponent(elemI05, None, "ISA05", 5, MandatoryUsage, 1),
-    ElementComponent(Element("I06", "Interchange Sender ID", ALPHANUMERIC, 15, 15), None, "ISA06", 6, MandatoryUsage, 1),
+    ElementComponent(Element("I06", "Interchange Sender ID", valAN15), None, "ISA06", 6, MandatoryUsage, 1),
     ElementComponent(elemI05, None, "ISA07", 7, MandatoryUsage, 1),
-    ElementComponent(Element("I07", "Interchange Receiver ID", ALPHANUMERIC, 15, 15), None, "ISA08", 8, MandatoryUsage, 1),
-    ElementComponent(Element("I08", "Interchange Date", DATE, 6, 6), None, "ISA09", 9, MandatoryUsage, 1),
-    ElementComponent(Element("I09", "Interchange Time", TIME, 4, 4), None, "ISA10", 10, MandatoryUsage, 1),
-    ElementComponent(Element("I65", "Repetition Separator", ALPHANUMERIC, 1, 1), None, "ISA11", 11, MandatoryUsage, 1),
-    ElementComponent(Element("I11", "Interchange Control Version Number", ID, 5, 5), None, "ISA12", 12, MandatoryUsage, 1),
+    ElementComponent(Element("I07", "Interchange Receiver ID", valAN15), None, "ISA08", 8, MandatoryUsage, 1),
+    ElementComponent(Element("I08", "Interchange Date", valDT6), None, "ISA09", 9, MandatoryUsage, 1),
+    ElementComponent(Element("I09", "Interchange Time", valTM4), None, "ISA10", 10, MandatoryUsage, 1),
+    ElementComponent(Element("I65", "Repetition Separator", valAN1), None, "ISA11", 11, MandatoryUsage, 1),
+    ElementComponent(Element("I11", "Interchange Control Version Number", valID5), None, "ISA12", 12, MandatoryUsage, 1),
     ElementComponent(elemI12, None, "ISA13", 13, MandatoryUsage, 1),
-    ElementComponent(Element("I13", "Acknowledgment Requested", ID, 1, 1), None, "ISA14", 14, MandatoryUsage, 1),
-    ElementComponent(Element("I14", "Interchange Usage Indicator", ID, 1, 1), None, "ISA15", 15, MandatoryUsage, 1),
-    ElementComponent(Element("I15", "Component Element Separator", ALPHANUMERIC, 1, 1), None, "ISA16", 16, MandatoryUsage, 1)), Nil)
+    ElementComponent(Element("I13", "Acknowledgment Requested", valID1), None, "ISA14", 14, MandatoryUsage, 1),
+    ElementComponent(Element("I14", "Interchange Usage Indicator", valID1), None, "ISA15", 15, MandatoryUsage, 1),
+    ElementComponent(Element("I15", "Component Element Separator", valAN1), None, "ISA16", 16, MandatoryUsage, 1)), Nil)
 
   val IEASegment = new Segment("IEA", "Interchange Control Trailer", List[SegmentComponent](
-    ElementComponent(Element("I16", "Number of Included Functional Groups", INTEGER, 1, 5), None, "IEA01", 1, MandatoryUsage, 1),
+    ElementComponent(Element("I16", "Number of Included Functional Groups", valN1_5), None, "IEA01", 1, MandatoryUsage, 1),
     ElementComponent(elemI12, None, "IEA02", 2, MandatoryUsage, 1)), Nil)
 
   // group properties from GS segment
@@ -53,18 +81,18 @@ object X12SchemaDefs {
   val numberOfSetsName = "Number of transaction sets included"
 
   val GSSegment = new Segment("GS", "Functional group header", List[SegmentComponent](
-    ElementComponent(Element("479", "", ID, 2, 2), Some(functionalIdentifierName), "GS01", 1, MandatoryUsage, 1),
-    ElementComponent(Element("142", "", ALPHANUMERIC, 2, 15), Some(applicationSendersName), "GS02", 2, MandatoryUsage, 1),
-    ElementComponent(Element("124", "", ALPHANUMERIC, 2, 15), Some(applicationReceiversName), "GS03", 3, MandatoryUsage, 1),
-    ElementComponent(Element("373", "", DATE, 8, 8), Some(groupDateName), "GS04", 4, MandatoryUsage, 1),
-    ElementComponent(Element("337", "", TIME, 4, 8), Some(groupTimeName), "GS05", 5, MandatoryUsage, 1),
-    ElementComponent(Element("28", "", INTEGER, 1, 9), Some(groupControlName), "GS06", 6, MandatoryUsage, 1),
-    ElementComponent(Element("455", "", ID, 1, 2), Some(responsibleAgencyName), "GS07", 7, MandatoryUsage, 1),
-    ElementComponent(Element("480", "", ALPHANUMERIC, 1, 12), Some(versionIdentifierName), "GS08", 8, MandatoryUsage, 1)), Nil)
+    ElementComponent(Element("479", "", valID2), Some(functionalIdentifierName), "GS01", 1, MandatoryUsage, 1),
+    ElementComponent(Element("142", "", valAN2_15), Some(applicationSendersName), "GS02", 2, MandatoryUsage, 1),
+    ElementComponent(Element("124", "", valAN2_15), Some(applicationReceiversName), "GS03", 3, MandatoryUsage, 1),
+    ElementComponent(Element("373", "", valDT8), Some(groupDateName), "GS04", 4, MandatoryUsage, 1),
+    ElementComponent(Element("337", "", valTM4_8), Some(groupTimeName), "GS05", 5, MandatoryUsage, 1),
+    ElementComponent(Element("28", "", valN1_9), Some(groupControlName), "GS06", 6, MandatoryUsage, 1),
+    ElementComponent(Element("455", "", valID1_2), Some(responsibleAgencyName), "GS07", 7, MandatoryUsage, 1),
+    ElementComponent(Element("480", "", valAN1_12), Some(versionIdentifierName), "GS08", 8, MandatoryUsage, 1)), Nil)
 
   val GESegment = new Segment("GE", "Functional group trailer", List[SegmentComponent](
-    ElementComponent(Element("97", "", INTEGER, 1, 6), Some(numberOfSetsName), "GE01", 1, MandatoryUsage, 1),
-    ElementComponent(Element("28", "", INTEGER, 1, 9), Some(groupControlName), "GE02", 2, MandatoryUsage, 1)), Nil)
+    ElementComponent(Element("97", "", valN1_6), Some(numberOfSetsName), "GE01", 1, MandatoryUsage, 1),
+    ElementComponent(Element("28", "", valN1_9), Some(groupControlName), "GE02", 2, MandatoryUsage, 1)), Nil)
 
   // transaction set properties from ST segment
   val transactionSetIdentifierName = "Transaction set identifier code"
@@ -75,13 +103,13 @@ object X12SchemaDefs {
   val numberOfSegmentsName = "Number of included segments"
 
   val STSegment = new Segment("ST", "Transaction set header", List[SegmentComponent](
-    ElementComponent(Element("143", "", ID, 3, 3), Some(transactionSetIdentifierName), "ST01", 1, MandatoryUsage, 1),
-    ElementComponent(Element("329", "", ALPHANUMERIC, 4, 9), Some(transactionSetControlName), "ST02", 2, MandatoryUsage, 1),
-    ElementComponent(Element("1705", "", ALPHANUMERIC, 1, 35), Some(implementationConventionName), "ST03", 3, OptionalUsage, 1)), Nil)
+    ElementComponent(Element("143", "", valID3), Some(transactionSetIdentifierName), "ST01", 1, MandatoryUsage, 1),
+    ElementComponent(Element("329", "", valAN4_9), Some(transactionSetControlName), "ST02", 2, MandatoryUsage, 1),
+    ElementComponent(Element("1705", "", valAN1_35), Some(implementationConventionName), "ST03", 3, OptionalUsage, 1)), Nil)
 
   val SESegment = new Segment("SE", "Transaction set trailer", List[SegmentComponent](
-    ElementComponent(Element("96", "", INTEGER, 1, 10), Some(numberOfSegmentsName), "SE01", 1, MandatoryUsage, 1),
-    ElementComponent(Element("329", "", ALPHANUMERIC, 4, 9), Some(transactionSetControlName), "SE02", 2, MandatoryUsage, 1)), Nil)
+    ElementComponent(Element("96", "", valN1_10), Some(numberOfSegmentsName), "SE01", 1, MandatoryUsage, 1),
+    ElementComponent(Element("329", "", valAN4_9), Some(transactionSetControlName), "SE02", 2, MandatoryUsage, 1)), Nil)
 
   val InterchangeStartSegment = ISASegment.ident
   val InterchangeEndSegment = IEASegment.ident
@@ -135,9 +163,8 @@ object X12SchemaDefs {
 object X12Acknowledgment {
 
   import EdiSchema._
+  import X12SchemaDefs._
   import com.anypoint.df.edi.lexical.X12Constants._
-  import com.anypoint.df.edi.lexical.EdiConstants.DataType
-  import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 
   trait Coded[K] {
     val code: K
@@ -302,55 +329,55 @@ object X12Acknowledgment {
     ExclusionConditionViolated, TooManyRepititions, TooManyComponents)
 
   // 997 acknowledgment schema (generated code)
-  val elem143 = Element("143", "Transaction Set Identifier Code", ID, 3, 3)
-  val elem329 = Element("329", "Transaction Set Control Number", ALPHANUMERIC, 4, 9)
-  val elem716 = Element("716", "Functional Group Syntax Error Code", ID, 1, 3)
-  val elem718 = Element("718", "Transaction Set Syntax Error Code", ID, 1, 3)
-  val elem1705 = Element("1705", "Implementation Convention Reference", ALPHANUMERIC, 1, 35)
+  val elem143 = Element("143", "Transaction Set Identifier Code", valID3)
+  val elem329 = Element("329", "Transaction Set Control Number", valAN4_9)
+  val elem716 = Element("716", "Functional Group Syntax Error Code", valID1_3)
+  val elem718 = Element("718", "Transaction Set Syntax Error Code", valID1_3)
+  val elem1705 = Element("1705", "Implementation Convention Reference", valAN1_35)
   val segAK1 = new Segment("AK1", "Functional Group Response Header", List[SegmentComponent](
-    ElementComponent(Element("479", "Functional Identifier Code", ID, 2, 2), None, "AK101", 1, MandatoryUsage, 1),
-    ElementComponent(Element("28", "Group Control Number", INTEGER, 1, 9), None, "AK102", 2, MandatoryUsage, 1),
-    ElementComponent(Element("480", "Version / Release / Industry Identifier Code", ALPHANUMERIC, 1, 12), None, "AK103", 3, OptionalUsage, 1)), Nil)
+    ElementComponent(Element("479", "Functional Identifier Code", valID2), None, "AK101", 1, MandatoryUsage, 1),
+    ElementComponent(Element("28", "Group Control Number", valN1_9), None, "AK102", 2, MandatoryUsage, 1),
+    ElementComponent(Element("480", "Version / Release / Industry Identifier Code", valAN1_12), None, "AK103", 3, OptionalUsage, 1)), Nil)
   val segAK2 = new Segment("AK2", "Transaction Set Response Header", List[SegmentComponent](
     ElementComponent(elem143, None, "AK201", 1, MandatoryUsage, 1),
     ElementComponent(elem329, None, "AK202", 2, MandatoryUsage, 1),
     ElementComponent(elem1705, None, "AK203", 3, OptionalUsage, 1)), Nil)
   val segAK3 = new Segment("AK3", "Data Segment Note", List[SegmentComponent](
-    ElementComponent(Element("721", "Segment ID Code", ID, 2, 3), None, "AK301", 1, MandatoryUsage, 1),
-    ElementComponent(Element("719", "Segment Position in Transaction Set", INTEGER, 1, 10), None, "AK302", 2, MandatoryUsage, 1),
-    ElementComponent(Element("447", "Loop Identifier Code", ALPHANUMERIC, 1, 4), None, "AK303", 3, OptionalUsage, 1),
-    ElementComponent(Element("720", "Segment Syntax Error Code", ID, 1, 3), None, "AK304", 4, OptionalUsage, 1)), Nil)
+    ElementComponent(Element("721", "Segment ID Code", valID2_3), None, "AK301", 1, MandatoryUsage, 1),
+    ElementComponent(Element("719", "Segment Position in Transaction Set", valN1_10), None, "AK302", 2, MandatoryUsage, 1),
+    ElementComponent(Element("447", "Loop Identifier Code", valAN1_4), None, "AK303", 3, OptionalUsage, 1),
+    ElementComponent(Element("720", "Segment Syntax Error Code", valID1_3), None, "AK304", 4, OptionalUsage, 1)), Nil)
   val segAK4 = new Segment("AK4", "Data Element Note", List[SegmentComponent](
     CompositeComponent(Composite("C030", "Position in Segment", List[SegmentComponent](
-      ElementComponent(Element("722", "Element Position in Segment", INTEGER, 1, 2), None, "AK40101", 1, MandatoryUsage, 1),
-      ElementComponent(Element("1528", "Component Data Element Position in Composite", INTEGER, 1, 2), None, "AK40102", 2, OptionalUsage, 1),
-      ElementComponent(Element("1686", "Repeating Data Element Position", INTEGER, 1, 4), None, "AK40103", 3, OptionalUsage, 1)), Nil, 0), None, "AK401", 1, MandatoryUsage, 1),
-    ElementComponent(Element("725", "Data Element Reference Number", INTEGER, 1, 4), None, "AK402", 2, OptionalUsage, 1),
-    ElementComponent(Element("723", "Data Element Syntax Error Code", ID, 1, 3), None, "AK403", 3, MandatoryUsage, 1),
-    ElementComponent(Element("724", "Copy of Bad Data Element", ALPHANUMERIC, 1, 99), None, "AK404", 4, OptionalUsage, 1)), Nil)
+      ElementComponent(Element("722", "Element Position in Segment", valN1_2), None, "AK40101", 1, MandatoryUsage, 1),
+      ElementComponent(Element("1528", "Component Data Element Position in Composite", valN1_2), None, "AK40102", 2, OptionalUsage, 1),
+      ElementComponent(Element("1686", "Repeating Data Element Position", valN1_4), None, "AK40103", 3, OptionalUsage, 1)), Nil, 0), None, "AK401", 1, MandatoryUsage, 1),
+    ElementComponent(Element("725", "Data Element Reference Number", valN1_4), None, "AK402", 2, OptionalUsage, 1),
+    ElementComponent(Element("723", "Data Element Syntax Error Code", valID1_3), None, "AK403", 3, MandatoryUsage, 1),
+    ElementComponent(Element("724", "Copy of Bad Data Element", valAN1_99), None, "AK404", 4, OptionalUsage, 1)), Nil)
   val segAK4compC030 = segAK4.components.head match {
     case comp: CompositeComponent => comp.composite
     case _ => throw new IllegalStateException("first component of segment AK4 must be a composite")
   }
   val segAK5 = new Segment("AK5", "Transaction Set Response Trailer", List[SegmentComponent](
-    ElementComponent(Element("717", "Transaction Set Acknowledgment Code", ID, 1, 1), None, "AK501", 1, MandatoryUsage, 1),
+    ElementComponent(Element("717", "Transaction Set Acknowledgment Code", valID1), None, "AK501", 1, MandatoryUsage, 1),
     ElementComponent(elem718, None, "AK502", 2, OptionalUsage, 1),
     ElementComponent(elem718, None, "AK503", 3, OptionalUsage, 1),
     ElementComponent(elem718, None, "AK504", 4, OptionalUsage, 1),
     ElementComponent(elem718, None, "AK505", 5, OptionalUsage, 1),
     ElementComponent(elem718, None, "AK506", 6, OptionalUsage, 1)), Nil)
   val segAK9 = new Segment("AK9", "Functional Group Response Trailer", List[SegmentComponent](
-    ElementComponent(Element("715", "Functional Group Acknowledge Code", ID, 1, 1), None, "AK901", 1, MandatoryUsage, 1),
-    ElementComponent(Element("97", "Number of Transaction Sets Included", INTEGER, 1, 6), None, "AK902", 2, MandatoryUsage, 1),
-    ElementComponent(Element("123", "Number of Received Transaction Sets", INTEGER, 1, 6), None, "AK903", 3, MandatoryUsage, 1),
-    ElementComponent(Element("2", "Number of Accepted Transaction Sets", INTEGER, 1, 6), None, "AK904", 4, MandatoryUsage, 1),
+    ElementComponent(Element("715", "Functional Group Acknowledge Code", valID1), None, "AK901", 1, MandatoryUsage, 1),
+    ElementComponent(Element("97", "Number of Transaction Sets Included", valN1_6), None, "AK902", 2, MandatoryUsage, 1),
+    ElementComponent(Element("123", "Number of Received Transaction Sets", valN1_6), None, "AK903", 3, MandatoryUsage, 1),
+    ElementComponent(Element("2", "Number of Accepted Transaction Sets", valN1_6), None, "AK904", 4, MandatoryUsage, 1),
     ElementComponent(elem716, None, "AK905", 5, OptionalUsage, 1),
     ElementComponent(elem716, None, "AK906", 6, OptionalUsage, 1),
     ElementComponent(elem716, None, "AK907", 7, OptionalUsage, 1),
     ElementComponent(elem716, None, "AK908", 8, OptionalUsage, 1),
     ElementComponent(elem716, None, "AK909", 9, OptionalUsage, 1)), Nil)
   val segSE = new Segment("SE", "Transaction Set Trailer", List[SegmentComponent](
-    ElementComponent(Element("96", "Number of Included Segments", INTEGER, 1, 10), None, "SE01", 1, MandatoryUsage, 1),
+    ElementComponent(Element("96", "Number of Included Segments", valN1_10), None, "SE01", 1, MandatoryUsage, 1),
     ElementComponent(elem329, None, "SE02", 2, MandatoryUsage, 1)), Nil)
   val segST = new Segment("ST", "Transaction Set Header", List[SegmentComponent](
     ElementComponent(elem143, None, "ST01", 1, MandatoryUsage, 1),
@@ -374,20 +401,20 @@ object X12Acknowledgment {
     None, None, funcAckVersion)
 
   // 999 acknowledgment schema (generated code, eliminated duplicates from 997)
-  val elem447 = Element("447", "Loop Identifier Code", ALPHANUMERIC, 1, 4)
-  val elem618 = Element("618", "Implementation Transaction Set Syntax Error Code", ID, 1, 3)
-  val elem719 = Element("719", "Segment Position in Transaction Set", INTEGER, 1, 10)
-  val elem721 = Element("721", "Segment ID Code", ID, 2, 3)
+  val elem447 = Element("447", "Loop Identifier Code", valAN1_4)
+  val elem618 = Element("618", "Implementation Transaction Set Syntax Error Code", valID1_3)
+  val elem719 = Element("719", "Segment Position in Transaction Set", valN1_10)
+  val elem721 = Element("721", "Segment ID Code", valID2_3)
   val compC030 = Composite("C030", "Position in Segment", List[SegmentComponent](
-    ElementComponent(Element("722", "Element Position in Segment", INTEGER, 1, 2), None, "IK40101", 1, MandatoryUsage, 1),
-    ElementComponent(Element("1528", "Component Data Element Position in Composite", INTEGER, 1, 2), None, "IK40102", 2, OptionalUsage, 1),
-    ElementComponent(Element("1686", "Repeating Data Element Position", INTEGER, 1, 4), None, "IK40103", 3, OptionalUsage, 1)), Nil, 0)
+    ElementComponent(Element("722", "Element Position in Segment", valN1_2), None, "IK40101", 1, MandatoryUsage, 1),
+    ElementComponent(Element("1528", "Component Data Element Position in Composite", valN1_2), None, "IK40102", 2, OptionalUsage, 1),
+    ElementComponent(Element("1686", "Repeating Data Element Position", valN1_4), None, "IK40103", 3, OptionalUsage, 1)), Nil, 0)
   val compC998 = Composite("C998", "Context Identification", List[SegmentComponent](
-    ElementComponent(Element("9999", "Context Name", ALPHANUMERIC, 1, 35), None, "C99801", 1, MandatoryUsage, 1),
-    ElementComponent(Element("9998", "Context Reference", ALPHANUMERIC, 1, 35), None, "C99802", 2, OptionalUsage, 1)), Nil, 0)
+    ElementComponent(Element("9999", "Context Name", valAN1_35), None, "C99801", 1, MandatoryUsage, 1),
+    ElementComponent(Element("9998", "Context Reference", valAN1_35), None, "C99802", 2, OptionalUsage, 1)), Nil, 0)
   val compC999 = Composite("C999", "Reference in Segment", List[SegmentComponent](
-    ElementComponent(Element("725", "Data Element Reference Number", INTEGER, 1, 4), None, "CTX0601", 1, MandatoryUsage, 1),
-    ElementComponent(Element("725", "Data Element Reference Number", INTEGER, 1, 4), None, "CTX0602", 2, OptionalUsage, 1)), Nil, 0)
+    ElementComponent(Element("725", "Data Element Reference Number", valN1_4), None, "CTX0601", 1, MandatoryUsage, 1),
+    ElementComponent(Element("725", "Data Element Reference Number", valN1_4), None, "CTX0602", 2, OptionalUsage, 1)), Nil, 0)
   val segCTX = new Segment("CTX", "Context", List[SegmentComponent](
     CompositeComponent(compC998, Some("Context Identification"), "CTX01", 1, MandatoryUsage, 10),
     ElementComponent(elem721, None, "CTX02", 2, OptionalUsage, 1),
@@ -399,14 +426,14 @@ object X12Acknowledgment {
     ElementComponent(elem721, None, "IK301", 1, MandatoryUsage, 1),
     ElementComponent(elem719, None, "IK302", 2, MandatoryUsage, 1),
     ElementComponent(elem447, None, "IK303", 3, OptionalUsage, 1),
-    ElementComponent(Element("620", "Implementation Segment Syntax Error Code", ID, 1, 3), None, "IK304", 4, OptionalUsage, 1)), Nil)
+    ElementComponent(Element("620", "Implementation Segment Syntax Error Code", valID1_3), None, "IK304", 4, OptionalUsage, 1)), Nil)
   val segIK4 = new Segment("IK4", "Implementation Data Element Note", List[SegmentComponent](
     CompositeComponent(compC030.rewrite("IK401", convertEdiForm("X12")), Some("Position in Segment"), "IK401", 1, MandatoryUsage, 1),
-    ElementComponent(Element("725", "Data Element Reference Number", INTEGER, 1, 4), None, "IK402", 2, OptionalUsage, 1),
-    ElementComponent(Element("621", "Implementation Data Element Syntax Error Code", ID, 1, 3), None, "IK403", 3, MandatoryUsage, 1),
-    ElementComponent(Element("724", "Copy of Bad Data Element", ALPHANUMERIC, 1, 99), None, "IK404", 4, OptionalUsage, 1)), Nil)
+    ElementComponent(Element("725", "Data Element Reference Number", valN1_4), None, "IK402", 2, OptionalUsage, 1),
+    ElementComponent(Element("621", "Implementation Data Element Syntax Error Code", valID1_3), None, "IK403", 3, MandatoryUsage, 1),
+    ElementComponent(Element("724", "Copy of Bad Data Element", valAN1_99), None, "IK404", 4, OptionalUsage, 1)), Nil)
   val segIK5 = new Segment("IK5", "Implementation Transaction Set Response Trailer", List[SegmentComponent](
-    ElementComponent(Element("717", "Transaction Set Acknowledgment Code", ID, 1, 1), None, "IK501", 1, MandatoryUsage, 1),
+    ElementComponent(Element("717", "Transaction Set Acknowledgment Code", valID1), None, "IK501", 1, MandatoryUsage, 1),
     ElementComponent(elem618, None, "IK502", 2, OptionalUsage, 1),
     ElementComponent(elem618, None, "IK503", 3, OptionalUsage, 1),
     ElementComponent(elem618, None, "IK504", 4, OptionalUsage, 1),
@@ -457,9 +484,9 @@ object X12Acknowledgment {
 
   // TA1 acknowledgment data (generated code)
   val segTA1 = new Segment("TA1", "Interchange Acknowledgment", List[SegmentComponent](
-    ElementComponent(Element("I12", "Interchange Control Number", INTEGER, 9, 9), None, "TA101", 1, MandatoryUsage, 1),
-    ElementComponent(Element("I08", "Interchange Date", DATE, 6, 6), None, "TA102", 2, MandatoryUsage, 1),
-    ElementComponent(Element("I09", "Interchange Time", TIME, 4, 4), None, "TA103", 3, MandatoryUsage, 1),
-    ElementComponent(Element("I17", "Interchange Acknowledgment Code", ID, 1, 1), None, "TA104", 4, MandatoryUsage, 1),
-    ElementComponent(Element("I18", "Interchange Note Code", ID, 3, 3), None, "TA105", 5, MandatoryUsage, 1)), Nil)
+    ElementComponent(Element("I12", "Interchange Control Number", valN9), None, "TA101", 1, MandatoryUsage, 1),
+    ElementComponent(Element("I08", "Interchange Date", valDT6), None, "TA102", 2, MandatoryUsage, 1),
+    ElementComponent(Element("I09", "Interchange Time", valTM4), None, "TA103", 3, MandatoryUsage, 1),
+    ElementComponent(Element("I17", "Interchange Acknowledgment Code", valID1), None, "TA104", 4, MandatoryUsage, 1),
+    ElementComponent(Element("I18", "Interchange Note Code", valID3), None, "TA105", 5, MandatoryUsage, 1)), Nil)
 }

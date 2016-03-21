@@ -6,11 +6,8 @@ import java.io.FilterReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Calendar;
 
-import com.anypoint.df.edi.lexical.EdiConstants.DataType;
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
-import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 
 /**
  * Lexer variation for flat files.
@@ -25,7 +22,7 @@ public class FlatFileLexer extends LexerBase
      * @param is input
      */
     public FlatFileLexer(InputStream is) {
-        super(is);
+        super(is, -1);
         reader = typedReader = new LineBasedReader(stream);
     }
     
@@ -94,15 +91,15 @@ public class FlatFileLexer extends LexerBase
      * Handle lexical error. This passes off to the configured handler, but logs the error appropriately based on the
      * result.
      *
-     * @param typ data type
+     * @param typ value type
      * @param err error condition
      * @param explain optional supplemental explanation text (<code>null</code> if none)
      * @throws LexicalException
      */
-    void handleError(DataType typ, ErrorCondition err, String explain) throws LexicalException {
+    public void error(ValueType typ, ErrorCondition err, String explain) throws LexicalException {
         boolean abort = false;
         String position = "element " + Integer.toString(elementNumber + 1);
-        String text = err.text() + " for data type " + typ.code() + " at " + position  + ": '" + tokenBuilder + "'";
+        String text = err.text() + " for data type " + typ.typeCode() + " at " + position  + ": '" + tokenBuilder + "'";
         if (explain != null) {
             text += " (" + explain + ")";
         }
@@ -110,7 +107,7 @@ public class FlatFileLexer extends LexerBase
             if (errorHandler == null) {
                 throw new LexicalDataException(typ, err, text);
             } else {
-                errorHandler.error(this, typ, err, explain);
+                errorHandler.error(typ, err, explain);
             }
         } catch (LexicalException e) {
             abort = true;
@@ -122,105 +119,6 @@ public class FlatFileLexer extends LexerBase
                 logger.info("Recoverable lexer error " + text);
             }
         }
-    }
-    
-    /**
-     * Get token as a plain alphanumeric value with space padding.
-     *
-     * @param minl minimum length (excluding trailing spaces)
-     * @param maxl maximum length (actual width of field)
-     * @return
-     * @throws IOException
-     */
-    public String parseAlphaNumeric(int minl, int maxl) throws IOException {
-        load(maxl);
-        int lastns = -1;
-        for (int i = 0; i < maxl; i++) {
-            if (tokenBuilder.charAt(i) != ' ') {
-                lastns = i;
-            }
-        }
-        checkLength(DataType.ALPHANUMERIC, lastns + 1, minl, maxl);
-        return tokenBuilder.substring(0, lastns + 1);
-    }
-    
-    /**
-     * Get token as a normal integer value.
-     *
-     * @param minl minimum length (excluding sign and/or decimal)
-     * @param maxl maximum length (actual width of field)
-     * @return
-     * @throws IOException
-     */
-    public Integer parseInteger(int minl, int maxl) throws IOException {
-        load(maxl);
-        return super.parseInteger(minl, maxl);
-    }
-
-    /**
-     * Get token as an integer value of varying size.
-     *
-     * @param minl minimum length (excluding sign and/or decimal)
-     * @param maxl maximum length (excluding sign and/or decimal)
-     * @return
-     * @throws IOException
-     */
-    public Object parseBigInteger(int minl, int maxl) throws IOException {
-        load(maxl);
-        return super.parseBigInteger(minl, maxl);
-    }
-
-    /**
-     * Get token as a real number value of varying size.
-     *
-     * @param minl minimum length (excluding sign and/or decimal)
-     * @param maxl maximum length (excluding sign and/or decimal)
-     * @return
-     * @throws IOException
-     */
-    public Object parseBigDecimal(int minl, int maxl) throws IOException {
-        load(maxl);
-        return super.parseBigDecimal(minl, maxl);
-    }
-    
-    /**
-     * Get token as a general numeric value without exponents.
-     *
-     * @param minl minimum length (excluding sign and/or decimal)
-     * @param maxl maximum length (excluding sign and/or decimal)
-     * @return
-     * @throws IOException
-     */
-    public Object parseUnscaledNumber(int minl, int maxl) throws IOException {
-        load(maxl);
-        return super.parseUnscaledNumber(minl, maxl);
-    }
-
-    /**
-     * Get token as a date value. Note that this avoids the use of the Java DateFormat class, which has high
-     * time and memory overhead.
-     *
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @return
-     * @throws IOException
-     */
-    public Calendar parseDate(int minl, int maxl) throws IOException {
-        load(maxl);
-        return super.parseDate(minl, maxl);
-    }
-
-    /**
-     * Get token as ax time value.
-     *
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @return
-     * @throws IOException
-     */
-    public int parseTime(int minl, int maxl) throws IOException {
-        load(maxl);
-        return super.parseTime(minl, maxl);
     }
     
     /**

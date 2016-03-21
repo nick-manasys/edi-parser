@@ -13,9 +13,8 @@ import scala.util.{ Try, Success }
 
 import org.apache.log4j.Logger
 
-import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, EdifactLexer }
-import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
-import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+import com.anypoint.df.edi.lexical.{ EdifactLexer, ErrorHandler, LexerBase, LexicalException, ValueType }
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
@@ -178,7 +177,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   /** Lexical error handler. */
   case object EdifactErrorHandler extends ErrorHandler {
-    def error(lexer: LexerBase, typ: DataType, error: ErrorCondition, explain: java.lang.String): Unit = {
+    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = {
       // TODO: expand errors reported by lexer to match EDIFACT list
       addElementError(error match {
         case TOO_SHORT => ElementTooShort
@@ -267,16 +266,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   /** Parse data element value. */
   def parseElement(elem: Element) = {
-    val result = elem.dataType match {
-      case ALPHA => lexer.parseAlpha(elem.minLength, elem.maxLength)
-      case ALPHANUMERIC => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
-      case BINARY => throw new IOException("Handling not implemented for binary values")
-      case DATE => lexer.parseDate(elem.minLength, elem.maxLength)
-      case ID => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
-      case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
-      case NUMBER => lexer.parseBigDecimal(elem.minLength, elem.maxLength)
-      case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in EDIFACT")
-    }
+    val result = elem.valueType.parse(lexer)
     lexer.advance
     result
   }

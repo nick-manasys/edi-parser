@@ -5,6 +5,12 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.anypoint.df.edi.lexical.ValueTypeConstants.NumberPadType;
+import com.anypoint.df.edi.lexical.ValueTypeConstants.NumberSignType;
+import com.anypoint.df.edi.lexical.ValueTypeConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.types.NumberValue;
+import com.anypoint.df.edi.lexical.types.RestrictedCharacterStringValue;
+
 /**
  * Constants for EDIFACT documents.
  */
@@ -28,6 +34,12 @@ public final class EdifactConstants
     /** EDIFACT Level B character set. */
     public static final boolean[] levelBCharacterSet;
     
+    /** Alphanumeric characters (everything outside control character range). */
+    public static final boolean[] alphaNumerics;
+    
+    /** Alpha characters (letters and space only). */
+    public static final boolean[] plainAlphas;
+    
     static {
         levelACharacterSet = new boolean[128];
         EdiConstants.fillChars('A', 'Z', levelACharacterSet);
@@ -37,6 +49,12 @@ public final class EdifactConstants
         System.arraycopy(levelACharacterSet, 0, levelBCharacterSet, 0, levelACharacterSet.length);
         EdiConstants.fillChars('a', 'z', levelBCharacterSet);
         EdiConstants.setChars(" .,-()/'+:=?!\"%&*;<>\014\015\017".toCharArray(), levelBCharacterSet);
+        alphaNumerics = new boolean[128];
+        EdiConstants.fillChars((char)0x20, (char)0x7F, alphaNumerics);
+        plainAlphas = new boolean[128];
+        plainAlphas[' '] = true;
+        EdiConstants.fillChars('a', 'z', plainAlphas);
+        EdiConstants.fillChars('A', 'Z', plainAlphas);
     }
     
     // standard character sets
@@ -147,5 +165,46 @@ public final class EdifactConstants
      */
     public static int charNonBlank(char chr) {
         return chr == ' ' ? -1 : chr;
+    }
+    
+    /**
+     * Construct name for type.
+     * 
+     * @param type
+     * @param minLength
+     * @param maxLength
+     * @return name
+     */
+    public static String typeName(String type, int minLength, int maxLength) {
+        if (minLength == maxLength) {
+            return type + maxLength;
+        }
+        if (minLength != 0) {
+            throw new IllegalArgumentException("No support for non-zero based size range");
+        }
+        return type + ".." + maxLength;
+    }
+    
+    /**
+     * Build type instance.
+     * 
+     * @param type
+     * @param minLength
+     * @param maxLength
+     * @return
+     */
+    public static ValueType buildType(String type, int minLength, int maxLength) {
+        String norm = type.toLowerCase();
+        if ("an".equals(norm)) {
+            return new RestrictedCharacterStringValue(type, minLength, maxLength, StringSpaceFill.RIGHT,
+                alphaNumerics, true);
+        } if ("n".equals(norm)) {
+            return new NumberValue(type, minLength, maxLength, NumberSignType.NEGATIVE_ONLY, false,
+                NumberPadType.ZEROES, false, true, false, false);
+        } else if ("a".equals(norm)) {
+            return new RestrictedCharacterStringValue(type, minLength, maxLength, StringSpaceFill.RIGHT,
+                plainAlphas, true);
+        }
+        throw new IllegalArgumentException("Unknown EDIFACT type code " + type);
     }
 }

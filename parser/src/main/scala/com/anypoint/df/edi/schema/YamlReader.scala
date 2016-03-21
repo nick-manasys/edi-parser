@@ -103,9 +103,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val component = convertComposite("", parentId, values, composites)
         CompositeComponent(component, name, key, position, use, count)
       } else {
-        val typ = EdiConstants.toX12Type(getRequiredString(typeKey, values))
+        val code = getRequiredString(typeKey, values)
         val (min, max) = convertMinMaxLength(values)
-        val element = Element("", name.getOrElse(""), typ, min, max)
+        val typ = ediForm.convertType(code, min, max)
+        val element = Element("", name.getOrElse(""), typ)
         ElementComponent(element, name, key, position, use, count)
       }
     }
@@ -127,9 +128,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       (map, elmmap) => {
         val ident = getRequiredString(idKey, elmmap)
         val name = getAs(nameKey, "", elmmap)
-        val typ = EdiConstants.toX12Type(getRequiredString(typeKey, elmmap))
+        val code = getRequiredString(typeKey, elmmap)
         val (min, max) = convertMinMaxLength(elmmap)
-        val result = map + (ident -> Element(ident, name, typ, min, max))
+        val typ = ediForm.convertType(code, min, max)
+        val result = map + (ident -> Element(ident, name, typ))
         result
       })
 

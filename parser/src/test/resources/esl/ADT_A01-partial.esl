@@ -802,7 +802,7 @@ elements:
   - { id: 'DT', name: 'Date', type: DT, minLength: 4, maxLength: 8 }
   - { id: 'DTM', name: 'Date/Time', type: DTM, minLength: 4, maxLength: 64 }
   - { id: 'FT', name: 'Formatted Text Data', type: ST, minLength: 1, maxLength: 65536 }
-  - { id: 'GTS', name: 'General Timing Specification', type: AN, minLength: 1, maxLength: 199 }
+  - { id: 'GTS', name: 'General Timing Specification', type: ST, minLength: 1, maxLength: 199 }
   - { id: 'ID', name: 'Coded Value for HL7 Defined Tables', type: ST, minLength: 1, maxLength: 199 }
   - { id: 'IS', name: 'Coded Value for User-Defined Tables', type: ST, minLength: 1, maxLength: 20 }
   - { id: 'NM', name: 'Numeric', type: NM, minLength: 1, maxLength: 16 }

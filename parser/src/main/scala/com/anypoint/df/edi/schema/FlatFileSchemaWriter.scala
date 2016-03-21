@@ -10,9 +10,8 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.util.Try
 import com.anypoint.df.edi.lexical.{ FlatFileWriter, WriteException }
-import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
-import com.anypoint.df.edi.lexical.EdiConstants.DataType._
 import EdiSchema._
 import SchemaJavaValues._
 
@@ -36,34 +35,14 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
   /** Write a value from map. */
   def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
-    def writeSimple(value: Any, dtype: DataType, min: Int, max: Int) =
-      if (value == null) writer.writeBlank(max)
-      else dtype match {
-        case ALPHA => writer.writeAlpha(value.asInstanceOf[String], max, max)
-        case ALPHANUMERIC => writer.writeSpacePadded(value.asInstanceOf[String], max, max)
-        case DATE => value match {
-          case calendar: Calendar => writer.writeDate(calendar, max, max)
-          case date: Date => writer.writeDate(date, min, max)
-          case _ => throw new WriteException(s"Date value must be Date or Calendar instance, not ${value.getClass.getName}")
-        }
-        case INTEGER => writer.writeInt(value.asInstanceOf[Integer].intValue, min, max)
-        case NUMBER | REAL | NUMERIC => value match {
-          case bigdec: BigDecimal => writer.writeDecimal(bigdec, min, max)
-          case integer: Integer => writer.writeInt(integer, min, max)
-          case long: Long => writer.writeLong(long, min, max)
-          case bigint: BigInteger => writer.writeBigInteger(bigint, min, max)
-          case _ => throw new WriteException(s"Value type ${value.getClass.getName} is not compatible with expected type BigDecimal")
-        }
-        case TIME => writer.writeTime(value.asInstanceOf[Integer], min, max)
-        case typ: DataType if (typ.isDecimal) =>
-          writer.writeImplicitDecimal(value.asInstanceOf[BigDecimal], typ.decimalPlaces, min, max)
-        case _ => throw new WriteException(s"Flat files do not support $dtype data type")
-      }
+    def writeSimple(value: Any, element: Element) =
+      if (value == null) writer.writeBlank(element.valueType.maxLength)
+      else element.valueType.write(value, writer)
 
     def skipComponentList(comps: List[SegmentComponent]): Unit = comps match {
       case h :: t => h match {
         case cc: CompositeComponent => skipComponentList(cc.composite.components)
-        case ec: ElementComponent => writer.writeBlank(ec.element.maxLength)
+        case ec: ElementComponent => writer.writeBlank(ec.element.valueType.maxLength)
       }
       case _ =>
     }
@@ -80,7 +59,7 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
       case ec: ElementComponent =>
         val elem = ec.element
         val value = if (userValue(ec.usage)) map.get(ec.key) else null
-        writeSimple(value, elem.dataType, elem.minLength, elem.maxLength)
+        writeSimple(value, elem)
     }
   }
 

@@ -8,8 +8,11 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.util.Try
-import com.anypoint.df.edi.lexical.{ EdifactWriter, WriteException }
+import com.anypoint.df.edi.lexical.{ EdifactWriter, ErrorHandler, WriteException }
 import com.anypoint.df.edi.lexical.EdifactConstants._
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
+import com.anypoint.df.edi.lexical.ValueType
 
 /** Configuration parameters for EDIFACT schema writer.
   */
@@ -43,6 +46,17 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
   var setCount = 0
   var setSegmentBase = 0
   var inGroup = false
+
+  /** Lexical error handler. */
+  case object EdifactWriterErrorHandler extends ErrorHandler {
+    // replace this with actual error accumlation
+    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = {
+      error match {
+        case WRONG_TYPE => throw new WriteException(explain)
+        case _ =>
+      }
+    }
+  }
 
   /** Write top-level section of structure. */
   def writeTopSection(index: Int, map: ValueMap, seq: StructureSequence) = seq.items match {
@@ -143,7 +157,7 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
         val basedate = calendar.get(Calendar.DAY_OF_MONTH) * 100 + calendar.get(Calendar.MONTH) + 1
         val datetime = unbSegment(config.version).components(3).asInstanceOf[CompositeComponent]
         val dateelem = datetime.composite.components(0).asInstanceOf[ElementComponent].element
-        val date = if (dateelem.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
+        val date = if (dateelem.valueType.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
         interProps put (interHeadDateKey, Integer.valueOf(date))
       }
       if (!interProps.containsKey(interHeadTimeKey)) {
@@ -205,6 +219,7 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
         }
       }
     }
+    writer.setHandler(EdifactWriterErrorHandler)
     val sendAcks = getAs(functionalAcksToSend,  new MapListImpl, map)
     if (interchanges.isEmpty && sendAcks.isEmpty) throw new WriteException("no messages to be sent")
     val interRoot = if (map.containsKey(interchangeKey)) getRequiredValueMap(interchangeKey, map) else  new ValueMapImpl

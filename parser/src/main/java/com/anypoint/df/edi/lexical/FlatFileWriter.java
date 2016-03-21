@@ -9,11 +9,18 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
 /**
  * Writer variation for flat files.
  */
 public class FlatFileWriter extends WriterBase
 {
+    protected final Logger logger = Logger.getLogger(getClass());
+    
+    private static final char[] SPACES =
+        "                                                                                               ".toCharArray();
+    
     /**
      * Constructor.
      *
@@ -58,6 +65,51 @@ public class FlatFileWriter extends WriterBase
         writer.write(text);
     }
     
+    @Override
+    public void error(ValueType typ, ErrorCondition err, String text) throws LexicalException {
+        boolean abort = false;
+        // TODO: add better tracking of output position, as with input
+//        String position = "element " + Integer.toString(elementNumber + 1);
+//        String text = err.text() + " for data type " + typ.typeCode() + " at " + position  + ": '" + tokenBuilder + "'";
+//        if (explain != null) {
+//            text += " (" + explain + ")";
+//        }
+        try {
+            if (errorHandler == null) {
+                throw new LexicalDataException(typ, err, text);
+            } else {
+                errorHandler.error(typ, err, text);
+            }
+        } catch (LexicalException e) {
+            abort = true;
+            throw e;
+        } finally {
+            if (abort) {
+                logger.error("Unrecoverable lexer error " + text);
+            } else {
+                logger.info("Recoverable lexer error " + text);
+            }
+        }
+    }
+
+    @Override
+    public void startToken() throws IOException {}
+
+    @Override
+    public void writeUnchecked(char[] chars, int offset, int length) throws IOException {
+        writer.write(chars, offset, length);
+    }
+
+    @Override
+    public void writeUnchecked(String text) throws IOException {
+        writer.write(text);
+    }
+
+    @Override
+    public void writeEscaped(String text) throws IOException {
+        writer.write(text);
+    }
+
     /**
      * Define segment tag position in line. This must be called before the {@link #writeSegmentTag(String)} method is
      * called for the first segment using the specified position. If any values being written span the segment tag
@@ -77,66 +129,13 @@ public class FlatFileWriter extends WriterBase
      */
     public void writeBlank(int size) throws IOException {
         int rem = size;
-        while (rem >= SPACES.length()) {
+        while (rem >= SPACES.length) {
             writer.write(SPACES);
-            rem -= SPACES.length();
+            rem -= SPACES.length;
         }
         if (rem > 0) {
             writer.write(SPACES, 0, rem);
         }
-    }
-    
-    /**
-     * Write text with space characters appended to maximum length. If the text is longer than the maximum length this
-     * throws an exception.
-     *
-     * @param text
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @return value, <code>null</code> if empty
-     * @throws IOException 
-     */
-    @Override
-    public void writeSpacePadded(String text, int minl, int maxl) throws IOException {
-        String token = text;
-        int length = token.length();
-        if (length > maxl) {
-            throw new WriteException("length outside of allowed range");
-        }
-        writeToken(token);
-        if (length < maxl) {
-            writeBlank(maxl - length);
-        }
-    }
-    
-    /**
-     * Write a numeric value padded to a maximum length with leading zeroes.
-     *
-     * @param value
-     * @param minl minimum length
-     * @param maxl maximum length
-     * @param adj extra character count include (decimal point, exponent, etc.)
-     * @throws IOException 
-     */
-    @Override
-    public void writeZeroPadded(String value, int minl, int maxl, int adj) throws IOException {
-        String text = value;
-        int length = text.length();
-        if (length > maxl) {
-            throw new WriteException("value too long");
-        }
-        if (text.startsWith("-")) {
-            writeToken("-");
-            text = text.substring(1);
-        } else  {
-            writeToken("");
-        }
-        while (length < maxl) {
-            int pad = Math.min(maxl - length, ZEROES.length());
-            writer.write(ZEROES, 0, pad);
-            length += pad;
-        }
-        writer.write(text);
     }
     
     /* (non-Javadoc)

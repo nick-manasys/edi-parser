@@ -8,9 +8,8 @@ import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.util.{ Calendar, GregorianCalendar }
 
-import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, HL7Lexer }
-import com.anypoint.df.edi.lexical.EdiConstants.{ DataType, ItemType }
-import com.anypoint.df.edi.lexical.EdiConstants.DataType._
+import com.anypoint.df.edi.lexical.{ ErrorHandler, HL7Lexer, LexerBase, LexicalException, ValueType }
+import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
@@ -67,7 +66,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
 
   /** Lexical error handler. */
   case object HL7ErrorHandler extends ErrorHandler {
-    def error(lexer: LexerBase, typ: DataType, error: ErrorCondition, explain: java.lang.String): Unit = error match {
+    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = error match {
       case TOO_SHORT => addElementError(ErrorDataType, false, "element too short")
       case TOO_LONG => addElementError(ErrorDataType, false, "element too long")
       case INVALID_CHARACTER => addElementError(ErrorDataType, false, "invalid character")
@@ -112,16 +111,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
 
   /** Parse data element value. */
   def parseElement(elem: Element) = {
-    val result = elem.dataType match {
-      case DATETIME => lexer.parseDateTime(elem.minLength, elem.maxLength, true)
-      case DATE => lexer.parseDateTime(elem.minLength, elem.maxLength, false)
-      case INTEGER => lexer.parseInteger(elem.minLength, elem.maxLength)
-      case NUMERIC => lexer.parseUnscaledNumber(elem.minLength, elem.maxLength)
-      case SEQID => lexer.parseSeqId
-      case STRINGDATA | VARIES => lexer.parseAlphaNumeric(elem.minLength, elem.maxLength)
-      case TIME => Integer.valueOf(lexer.parseTime(elem.minLength, elem.maxLength))
-      case typ: DataType => throw new IllegalArgumentException(s"Data type $typ is not supported in EDIFACT")
-    }
+    val result = elem.valueType.parse(lexer)
     lexer.advance
     result
   }
