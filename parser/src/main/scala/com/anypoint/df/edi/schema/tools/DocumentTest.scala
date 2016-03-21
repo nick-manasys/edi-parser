@@ -2,12 +2,11 @@ package com.anypoint.df.edi.schema.tools
 
 import java.io.{ ByteArrayOutputStream, File, FileInputStream, InputStream, InputStreamReader }
 import java.{ util => ju }
-
 import scala.collection.mutable.Set
 import scala.util.{ Failure, Success }
-
 import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.schema._
+import java.io.StringWriter
 
 class DefaultX12NumberProvider extends X12NumberProvider {
   var interNum = 0
@@ -152,6 +151,10 @@ class DefaultHL7NumberProvider extends HL7NumberProvider {
     msgNum += 1
     msgNum.toString
   }
+}
+
+class DefaultHL7EnvelopeHandler(structure: EdiSchema.Structure) extends HL7EnvelopeHandler {
+  def handleMsh(map: ju.Map[String, Object]) = structure
 }
 
 sealed abstract class DocumentTest(val schema: EdiSchema) extends SchemaJavaDefs {
@@ -339,6 +342,47 @@ case class DocumentTestEdifact(es: EdiSchema, config: EdifactParserConfig) exten
   }
 }
 
+class DocumentTestHL7(es: EdiSchema, structId: String, config: HL7ParserConfig) extends DocumentTest(es) {
+  
+  def this(sch: EdiSchema, sid: String) = this(sch, sid, HL7ParserConfig(true, true, true, true, true, true, true, -1,
+    Array[HL7Identity.HL7IdentityInformation](), Array[HL7Identity.HL7IdentityInformation]()))
+  
+  def this(sch: EdiSchema) = this(sch, sch.structures.head._1, HL7ParserConfig(true, true, true, true, true, true, true,
+    -1, Array[HL7Identity.HL7IdentityInformation](), Array[HL7Identity.HL7IdentityInformation]()))
+  
+  lazy val structSchema = schema.structures(structId)
+
+  /** Reads a schema and parses one or more documents using that schema, reporting if any errors are found. */
+  override def parse(is: InputStream): ValueMap = {
+    val parser = HL7SchemaParser(is, new DefaultHL7EnvelopeHandler(structSchema), config)
+    parser.parse match {
+      case Success(x) => x
+      case Failure(e) => throw e
+    }
+  }
+
+  /** Prepare input message for output, reversing the sender and receiver values. */
+  override def prepareOutput(map: ValueMap) = {}
+
+  /** Regenerate parsed document by writing map to output. This should give a document identical to the input, except
+    * for date/times and line endings following segment terminators.
+    */
+  override def printDoc(map: ValueMap) = {
+    val swriter = new StringWriter
+    YamlSupport.writeMap(map, swriter)
+    println(swriter.toString())
+    val out = new ByteArrayOutputStream
+    val writer = HL7SchemaWriter(out, structSchema, new DefaultHL7NumberProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
+    writer.write(map).get //isSuccess should be (true)
+    out.toString
+  }
+
+  /** Write acknowledgement information from parse as output document. */
+  override def printAck(map: ValueMap) = {
+    throw new UnsupportedOperationException("HL7 acknowledgments not used")
+  }
+}
+
 object DocumentTest {
 
   /** Reads a schema and base schema path, then parses one or more documents using that schema, reporting if any errors
@@ -350,6 +394,8 @@ object DocumentTest {
     val parse = schema.ediVersion.ediForm match {
       case EdiSchema.X12 => new DocumentTestX12(schema, false)
       case EdiSchema.EdiFact => new DocumentTestEdifact(schema)
+      case EdiSchema.HL7 => new DocumentTestHL7(schema, schema.structures.keys.head)
+      case _ => throw new IllegalArgumentException("Schema type not supported by test")
     }
     val examples = args.toList.tail.tail
     examples.map (path => {

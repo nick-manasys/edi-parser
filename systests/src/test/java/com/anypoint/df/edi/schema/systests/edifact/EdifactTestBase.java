@@ -22,10 +22,6 @@ import com.anypoint.df.edi.schema.tools.DocumentTest;
 import com.anypoint.df.edi.schema.tools.DocumentTestEdifact;
 
 public abstract class EdifactTestBase extends TestBase {
-
-    private static String deleteRange(int from, int to, String text) {
-        return text.substring(0, from) + text.substring(to);
-    }
     
     /**
      * Mask date/time variable values in a UNB segment by replacing them with 'X' characters, and delete the control
