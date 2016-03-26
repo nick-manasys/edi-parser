@@ -16,7 +16,7 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
 /**
  * Test for basic parser functionality.
  */
-public class LexerBaseTest extends ValueTypesBase
+public class LexerBaseTest extends TypeFormatsBase
 {
     public TestLexer initializeLexer(String text) throws IOException {
         InputStream is = new ByteArrayInputStream(text.getBytes(EdiConstants.ASCII_CHARSET));

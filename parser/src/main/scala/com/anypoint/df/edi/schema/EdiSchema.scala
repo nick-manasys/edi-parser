@@ -6,7 +6,7 @@ import collection.{ mutable => sm }
 import java.{ util => ju }
 
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
-import com.anypoint.df.edi.lexical.ValueType
+import com.anypoint.df.edi.lexical.TypeFormat
 import com.mulesoft.ltmdata.MemoryResident
 
 /** EDI schema representation.
@@ -53,7 +53,7 @@ object EdiSchema {
     * @param nm readable name
     * @param valueType type
     */
-  case class Element(id: String, nm: String, val valueType: ValueType)
+  case class Element(id: String, nm: String, val valueType: TypeFormat)
     extends ComponentBase(id, nm)
 
   /** Segment (or composite) component, either an element or a composite reference.
@@ -628,7 +628,7 @@ object EdiSchema {
     def versionKey(version: String): String
 
     /** Create new type definition. */
-    def convertType(code: String, minLength: Int, maxLength: Int): ValueType
+    def convertType(code: String, minLength: Int, maxLength: Int): TypeFormat
   }
   case object EdiFact extends EdiForm("EDIFACT", MultiTableStructure, false) {
     import com.anypoint.df.edi.lexical.EdifactConstants

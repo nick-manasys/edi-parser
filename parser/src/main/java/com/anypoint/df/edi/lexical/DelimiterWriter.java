@@ -318,7 +318,7 @@ public abstract class DelimiterWriter extends WriterBase
     }
     
     @Override
-    public void error(ValueType typ, ErrorCondition err, String text) throws LexicalException {
+    public void error(TypeFormat typ, ErrorCondition err, String text) throws LexicalException {
         boolean abort = false;
         // TODO: add more tracking of position, as with the lexer equivalent
 //        String position = "element " + Integer.toString(elementNumber + 1);
@@ -383,7 +383,7 @@ public abstract class DelimiterWriter extends WriterBase
      * @param maxl maximum length
      * @throws IOException 
      */
-    protected void writeProperty(String key, Map<String, Object> props, Object dflt, ValueType vtype)
+    protected void writeProperty(String key, Map<String, Object> props, Object dflt, TypeFormat vtype)
         throws IOException {
         if (dflt == null) {
             vtype.write(getRequired(key, props), this);

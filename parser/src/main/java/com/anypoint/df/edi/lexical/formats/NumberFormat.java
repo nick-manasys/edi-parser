@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.lexical.types;
+package com.anypoint.df.edi.lexical.formats;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -7,7 +7,7 @@ import java.math.MathContext;
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
-import com.anypoint.df.edi.lexical.ValueTypeConstants;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.*;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
@@ -16,7 +16,7 @@ import com.anypoint.df.edi.lexical.WriterBase;
  * decimal point, and optional exponent are allowed. For output, leading zeroes or trailing spaces are optionally
  * used to pad the value to the minimum length.
  */
-public class NumberValue extends NumberValueBase
+public class NumberFormat extends NumberFormatBase
 {
     private final boolean countDecimal;
     private final boolean zeroBeforeDecimal;
@@ -35,9 +35,8 @@ public class NumberValue extends NumberValueBase
      * @param allowexp allow exponent flag
      * @param countexp count exponent marker 'E' in effective length flag
      */
-    public NumberValue(String code, int min, int max, ValueTypeConstants.NumberSignType sign, boolean countsign,
-        ValueTypeConstants.NumberPadType pad, boolean countdec, boolean zerobefore, boolean allowexp,
-        boolean countexp) {
+    public NumberFormat(String code, int min, int max, NumberSign sign, boolean countsign, NumberPad pad,
+        boolean countdec, boolean zerobefore, boolean allowexp, boolean countexp) {
         super(code, min, max, sign, countsign, pad);
         countDecimal = countdec;
         zeroBeforeDecimal = zerobefore;
@@ -49,7 +48,7 @@ public class NumberValue extends NumberValueBase
     public Object parse(LexerBase lexer) throws LexicalException {
         StringBuilder builder = lexer.tokenBuilder();
         int spaces = stripPadding(lexer);
-        boolean signed = validateSigned(0, lexer);
+        boolean signed = signToNormalForm(lexer);
         int index = signed ? 1 : 0;
         int digits = 0;
         boolean number = false;

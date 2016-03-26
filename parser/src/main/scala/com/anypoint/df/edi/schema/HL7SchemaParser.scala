@@ -8,7 +8,7 @@ import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.util.{ Calendar, GregorianCalendar }
 
-import com.anypoint.df.edi.lexical.{ ErrorHandler, HL7Lexer, LexerBase, LexicalException, ValueType }
+import com.anypoint.df.edi.lexical.{ ErrorHandler, HL7Lexer, LexerBase, LexicalException, TypeFormat }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
@@ -66,7 +66,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
 
   /** Lexical error handler. */
   case object HL7ErrorHandler extends ErrorHandler {
-    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = error match {
+    def error(typ: TypeFormat, error: ErrorCondition, explain: java.lang.String): Unit = error match {
       case TOO_SHORT => addElementError(ErrorDataType, false, "element too short")
       case TOO_LONG => addElementError(ErrorDataType, false, "element too long")
       case INVALID_CHARACTER => addElementError(ErrorDataType, false, "invalid character")

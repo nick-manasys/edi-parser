@@ -13,7 +13,7 @@ import scala.util.{ Try, Success }
 
 import org.apache.log4j.Logger
 
-import com.anypoint.df.edi.lexical.{ EdifactLexer, ErrorHandler, LexerBase, LexicalException, ValueType }
+import com.anypoint.df.edi.lexical.{ EdifactLexer, ErrorHandler, LexerBase, LexicalException, TypeFormat }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
@@ -177,7 +177,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   /** Lexical error handler. */
   case object EdifactErrorHandler extends ErrorHandler {
-    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = {
+    def error(typ: TypeFormat, error: ErrorCondition, explain: java.lang.String): Unit = {
       // TODO: expand errors reported by lexer to match EDIFACT list
       addElementError(error match {
         case TOO_SHORT => ElementTooShort

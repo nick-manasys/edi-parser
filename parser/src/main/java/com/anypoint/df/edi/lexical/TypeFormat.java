@@ -5,7 +5,7 @@ import java.io.IOException;
 /**
  * Data type definition. Each data type defines the handling of a value of that type
  */
-public interface ValueType
+public interface TypeFormat
 {
     /**
      * Type code used in schemas.

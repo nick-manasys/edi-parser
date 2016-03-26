@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.lexical.types;
+package com.anypoint.df.edi.lexical.formats;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -6,18 +6,18 @@ import java.math.BigInteger;
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
-import com.anypoint.df.edi.lexical.ValueTypeConstants;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.*;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
  * Base class for numeric values, with optional space or right padding, or zero left padding, to minimum length, and
  * with sign options.
  */
-public abstract class NumberValueBase extends ValueTypeBase
+public abstract class NumberFormatBase extends TypeFormatBase
 {
-    protected final ValueTypeConstants.NumberSignType signType;
+    protected final NumberSign signType;
     protected final boolean countSign;
-    protected final ValueTypeConstants.NumberPadType padType;
+    protected final NumberPad padType;
     
     /**
      * @param code
@@ -27,7 +27,7 @@ public abstract class NumberValueBase extends ValueTypeBase
      * @param count sign counted in length flag
      * @param pad pad option
      */
-    public NumberValueBase(String code, int min, int max, ValueTypeConstants.NumberSignType sign, boolean count, ValueTypeConstants.NumberPadType pad) {
+    public NumberFormatBase(String code, int min, int max, NumberSign sign, boolean count, NumberPad pad) {
         super(code, min, max);
         signType = sign;
         countSign = count;
@@ -82,34 +82,39 @@ public abstract class NumberValueBase extends ValueTypeBase
     }
     
     /**
-     * Check and validate sign usage.
+     * Check and validate sign usage, converting to conventional leading-sign form if necessary.
      * 
-     * @param index
      * @param lexer
      * @return <code>true</code> if sign present, <code>false</code> if not (or invalid and deleted)
      * @throws LexicalException
      */
-    protected boolean validateSigned(int index, LexerBase lexer) throws LexicalException {
+    protected boolean signToNormalForm(LexerBase lexer) throws LexicalException {
         StringBuilder builder = lexer.tokenBuilder();
-        if (signType.acceptLeadMinus() || signType.acceptLeadPlus()) {
-            int chr = builder.charAt(index);
-            if (chr == '-') {
-                if (signType.acceptLeadMinus()) {
-                    return true;
-                } else {
-                    minusNotAllowed(lexer);
-                }
-            } else if (chr == '+') {
-                if (signType.acceptLeadPlus()) {
-                    return true;
-                } else {
-                    plusNotAllowed(lexer);
-                }
-            } else if (signType == ValueTypeConstants.NumberSignType.FORCED) {
-                missingRequiredSign(lexer);
+        boolean signed = false;
+        int index = signType.trailingSign() ? builder.length() - 1 : 0;
+        int chr = builder.charAt(index);
+        if (chr == '-') {
+            if (signType.useMinus()) {
+                signed = true;
+            } else {
+                minusNotAllowed(lexer);
+                builder.deleteCharAt(index);
             }
+        } else if (chr == '+') {
+            if (signType.acceptPlus()) {
+                signed = true;
+            } else {
+                plusNotAllowed(lexer);
+                builder.deleteCharAt(index);
+            }
+        } else if (signType.forceSign()) {
+            missingRequiredSign(lexer);
         }
-        return false;
+        if (signed && signType.trailingSign()) {
+            builder.deleteCharAt(index);
+            builder.insert(0, chr);
+        }
+        return signed;
     }
     
     /**
@@ -130,8 +135,8 @@ public abstract class NumberValueBase extends ValueTypeBase
     }
 
     /**
-     * Check that the current token is a valid integer number (contains only decimal digits and optional leading minus
-     * sign) and of valid length.
+     * Check that the current token is a valid integer number (contains only decimal digits and optional sign) and of
+     * valid length. If using a trailing sign the number text is converted to leading sign form.
      *
      * @param lexer 
      * @return number of digits
@@ -140,7 +145,7 @@ public abstract class NumberValueBase extends ValueTypeBase
     protected int checkIntegerFormat(LexerBase lexer) throws LexicalException {
         StringBuilder builder = lexer.tokenBuilder();
         int spaces = stripPadding(lexer);
-        boolean signed = validateSigned(0, lexer);
+        boolean signed = signToNormalForm(lexer);
         int index = signed ? 1 : 0;
         int digits = 0;
         boolean number = false;
@@ -193,8 +198,14 @@ public abstract class NumberValueBase extends ValueTypeBase
     protected void writePadded(String text, int length, boolean negate, WriterBase writer) throws IOException {
         int effect = length;
         switch (signType) {
-            case FORCED:
+            case ALWAYS_LEFT:
                 writer.writeEscaped(negate ? "-" : "+");
+                if (countSign) {
+                    effect++;
+                }
+                break;
+            case ALWAYS_RIGHT:
+                text = text + (negate ? '-' : '+');
                 if (countSign) {
                     effect++;
                 }
@@ -238,6 +249,9 @@ public abstract class NumberValueBase extends ValueTypeBase
                 writePadding(pad, ZEROES, writer);
                 writer.writeEscaped(text);
                 break;
+        }
+        if (signType == NumberSign.ALWAYS_RIGHT) {
+            writer.writeEscaped(negate ? "-" : "+");
         }
     }
     

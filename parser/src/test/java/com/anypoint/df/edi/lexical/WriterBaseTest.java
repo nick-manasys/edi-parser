@@ -14,7 +14,7 @@ import org.junit.Test;
 /**
  * Test for writer base handling of data types.
  */
-public class WriterBaseTest extends ValueTypesBase
+public class WriterBaseTest extends TypeFormatsBase
 {
     @Test
     public void decimalFormatsTest() throws Exception {

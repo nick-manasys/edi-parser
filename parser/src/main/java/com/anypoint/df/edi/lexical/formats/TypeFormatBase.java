@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.lexical.types;
+package com.anypoint.df.edi.lexical.formats;
 
 import java.io.IOException;
 
@@ -6,13 +6,13 @@ import com.anypoint.df.edi.lexical.ErrorHandler;
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
-import com.anypoint.df.edi.lexical.ValueType;
+import com.anypoint.df.edi.lexical.TypeFormat;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
  * Base class for standard value types. This supplies useful supporting methods for validations and conversions.
  */
-public abstract class ValueTypeBase implements ValueType
+public abstract class TypeFormatBase implements TypeFormat
 {
     protected static final char[] SPACES = "                   ".toCharArray();
     protected static final char[] ZEROES = "0000000000000000000".toCharArray();
@@ -21,7 +21,7 @@ public abstract class ValueTypeBase implements ValueType
     protected final int minLength;
     protected final int maxLength;
     
-    public ValueTypeBase(String code, int min, int max) {
+    public TypeFormatBase(String code, int min, int max) {
         if (max < min) {
             throw new IllegalArgumentException("Maximum length cannot be less than minimum length");
         } else if (min < 0) {

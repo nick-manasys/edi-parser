@@ -8,7 +8,7 @@ import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
  */
 public class LexicalDataException extends LexicalException
 {
-    private final ValueType dataType;
+    private final TypeFormat dataType;
     private final ErrorCondition errorCondition;
     
     /**
@@ -18,7 +18,7 @@ public class LexicalDataException extends LexicalException
      * @param err error condition
      * @param msg description
      */
-    public LexicalDataException(ValueType typ, ErrorCondition err, String msg) {
+    public LexicalDataException(TypeFormat typ, ErrorCondition err, String msg) {
         super(msg);
         dataType = typ;
         errorCondition = err;
@@ -29,7 +29,7 @@ public class LexicalDataException extends LexicalException
      * 
      * @return data type, or <code>null</code> if not a data error
      */
-    public ValueType getValueType() {
+    public TypeFormat getValueType() {
         return dataType;
     }
 

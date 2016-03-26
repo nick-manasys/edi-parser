@@ -10,13 +10,11 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.util.Try
-import com.anypoint.df.edi.lexical.{ HL7Writer, WriteException, WriterBase }
+import com.anypoint.df.edi.lexical.{ ErrorHandler, HL7Writer, TypeFormat, WriteException, WriterBase }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
-import EdiSchema.Structure
-import com.anypoint.df.edi.lexical.ErrorHandler
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
-import com.anypoint.df.edi.lexical.ValueType
+import EdiSchema.Structure
 
 /** Configuration parameters for HL7 schema writer.
   */
@@ -48,7 +46,7 @@ case class HL7SchemaWriter(out: OutputStream, struct: Structure, numprov: HL7Num
   /** Lexical error handler. */
   case object HL7WriterErrorHandler extends ErrorHandler {
     // replace this with actual error accumlation
-    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = {
+    def error(typ: TypeFormat, error: ErrorCondition, explain: java.lang.String): Unit = {
       error match {
         case WRONG_TYPE => throw new WriteException(explain)
         case _ =>

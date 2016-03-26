@@ -96,7 +96,7 @@ public class FlatFileLexer extends LexerBase
      * @param explain optional supplemental explanation text (<code>null</code> if none)
      * @throws LexicalException
      */
-    public void error(ValueType typ, ErrorCondition err, String explain) throws LexicalException {
+    public void error(TypeFormat typ, ErrorCondition err, String explain) throws LexicalException {
         boolean abort = false;
         String position = "element " + Integer.toString(elementNumber + 1);
         String text = err.text() + " for data type " + typ.typeCode() + " at " + position  + ": '" + tokenBuilder + "'";

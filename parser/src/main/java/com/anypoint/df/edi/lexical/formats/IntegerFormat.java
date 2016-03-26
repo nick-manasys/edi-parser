@@ -1,13 +1,10 @@
-package com.anypoint.df.edi.lexical.types;
+package com.anypoint.df.edi.lexical.formats;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.math.RoundingMode;
 
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
-import com.anypoint.df.edi.lexical.ValueTypeConstants.*;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.*;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
@@ -17,10 +14,8 @@ import com.anypoint.df.edi.lexical.WriterBase;
  * is configurable to count or not count as part of the effective length of the value. The result value object is
  * approximately sized to match the value, one of <code>Integer</code>, <code>Long</code>, or <code>BigInteger</code>.
  */
-public class ImpliedDecimalValue extends NumberValueBase
+public class IntegerFormat extends NumberFormatBase
 {
-    private final int decimalPosition;
-    
     /**
      * @param code
      * @param min
@@ -28,30 +23,21 @@ public class ImpliedDecimalValue extends NumberValueBase
      * @param sign sign option
      * @param count sign counted in length flag
      * @param pad pad option
-     * @param pos number of decimal places
      */
-    public ImpliedDecimalValue(String code, int min, int max, NumberSignType sign, boolean count, NumberPadType pad,
-        int pos) {
+    public IntegerFormat(String code, int min, int max, NumberSign sign, boolean count, NumberPad pad) {
         super(code, min, max, sign, count, pad);
-        decimalPosition = pos;
     }
 
 
     @Override
     public Object parse(LexerBase lexer) throws LexicalException {
-        checkIntegerFormat(lexer);
-        return new BigDecimal(new BigInteger(lexer.token()), decimalPosition);
+        int digits = checkIntegerFormat(lexer);
+        return convertSizedInteger(lexer, digits);
     }
     
     @Override
     public void write(Object value, WriterBase writer) throws IOException {
         writer.startToken();
-        if (value instanceof BigDecimal) {
-            BigDecimal decimal = (BigDecimal)value;
-            decimal = decimal.movePointRight(decimalPosition).setScale(decimalPosition, RoundingMode.HALF_UP);
-            writeBigInteger(decimal.toBigIntegerExact(), writer);
-        } else {
-            wrongType(value, writer);
-        }
+        writeIntegerValue(value, writer);
     }
 }

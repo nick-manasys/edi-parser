@@ -1,8 +1,9 @@
-package com.anypoint.df.edi.lexical.types;
+package com.anypoint.df.edi.lexical.formats;
 
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
-import com.anypoint.df.edi.lexical.ValueTypeConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
@@ -13,12 +14,12 @@ import com.anypoint.df.edi.lexical.WriterBase;
  * open-ended character codes beyond the range of values in the table will be accepted; otherwise, characters beyond
  * the end of hte table will be rejected.
  */
-public class RestrictedCharacterStringValue extends StringValueBase {
+public class RestrictedCharacterStringFormat extends StringFormatBase {
     
     private final boolean[] allowedChars;
     private final boolean openEnded;
     
-    public RestrictedCharacterStringValue(String code, int min, int max, StringSpaceFill fill, boolean[] allowed,
+    public RestrictedCharacterStringFormat(String code, int min, int max, StringSpaceFill fill, boolean[] allowed,
         boolean open) {
         super(code, min, max, fill);
         allowedChars = allowed;
@@ -26,7 +27,7 @@ public class RestrictedCharacterStringValue extends StringValueBase {
     }
 
     @Override
-    public void validate(LexerBase lexer) throws LexicalException {
+    public Object parseToken(LexerBase lexer) throws LexicalException {
         if (allowedChars != null) {
             StringBuilder builder = lexer.tokenBuilder();
             for (int i = 0; i < builder.length(); i++) {
@@ -48,12 +49,17 @@ public class RestrictedCharacterStringValue extends StringValueBase {
                 }
             }
         }
+        return lexer.token();
     }
 
     @Override
-    public String validate(String token, WriterBase writer) throws LexicalException {
-        String text = token;
+    public String buildToken(Object value, WriterBase writer) throws LexicalException {
+        if (!(value instanceof String)) {
+            writer.error(this, ErrorCondition.WRONG_TYPE, "wrong value type " + value.getClass().getName());
+        }
+        String text = value.toString();
         if (allowedChars != null) {
+            
             for (int i = 0; i < text.length(); i++) {
                 char chr = text.charAt(i);
                 boolean invalid = false;

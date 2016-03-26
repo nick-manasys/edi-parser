@@ -8,11 +8,8 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.util.Try
-import com.anypoint.df.edi.lexical.WriteException
+import com.anypoint.df.edi.lexical.{ ErrorHandler, TypeFormat, WriteException, X12Writer }
 import com.anypoint.df.edi.lexical.X12Constants._
-import com.anypoint.df.edi.lexical.X12Writer
-import com.anypoint.df.edi.lexical.ErrorHandler
-import com.anypoint.df.edi.lexical.ValueType
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition._
 
@@ -52,7 +49,7 @@ case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config
   /** Lexical error handler. */
   case object X12WriterErrorHandler extends ErrorHandler {
     // replace this with actual error accumlation
-    def error(typ: ValueType, error: ErrorCondition, explain: java.lang.String): Unit = {
+    def error(typ: TypeFormat, error: ErrorCondition, explain: java.lang.String): Unit = {
       error match {
         case WRONG_TYPE => throw new WriteException(explain)
         case _ =>

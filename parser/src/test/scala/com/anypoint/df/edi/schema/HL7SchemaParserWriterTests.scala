@@ -226,9 +226,9 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
-    val swriter = new StringWriter
-    YamlSupport.writeMap(input, swriter)
-    println(swriter.toString())
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+//    println(swriter.toString())
     val out = new ByteArrayOutputStream
     val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
     writer.write(input).get //isSuccess should be (true)

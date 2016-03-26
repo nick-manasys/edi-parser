@@ -13,6 +13,8 @@
     <jdk.version>1.7</jdk.version>
     <base.scala.version>2.11</base.scala.version>
     <scala.version>${base.scala.version}.5</scala.version>
+    <spire.version>0.9.0</spire.version>
+    <threeten.version>1.2</threeten.version>
     <snakeyaml.version>1.15</snakeyaml.version>
   </properties>
 

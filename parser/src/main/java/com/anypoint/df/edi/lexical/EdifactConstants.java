@@ -5,11 +5,11 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.anypoint.df.edi.lexical.ValueTypeConstants.NumberPadType;
-import com.anypoint.df.edi.lexical.ValueTypeConstants.NumberSignType;
-import com.anypoint.df.edi.lexical.ValueTypeConstants.StringSpaceFill;
-import com.anypoint.df.edi.lexical.types.NumberValue;
-import com.anypoint.df.edi.lexical.types.RestrictedCharacterStringValue;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberPad;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberSign;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.formats.NumberFormat;
+import com.anypoint.df.edi.lexical.formats.RestrictedCharacterStringFormat;
 
 /**
  * Constants for EDIFACT documents.
@@ -193,16 +193,16 @@ public final class EdifactConstants
      * @param maxLength
      * @return
      */
-    public static ValueType buildType(String type, int minLength, int maxLength) {
+    public static TypeFormat buildType(String type, int minLength, int maxLength) {
         String norm = type.toLowerCase();
         if ("an".equals(norm)) {
-            return new RestrictedCharacterStringValue(type, minLength, maxLength, StringSpaceFill.RIGHT,
+            return new RestrictedCharacterStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT,
                 alphaNumerics, true);
         } if ("n".equals(norm)) {
-            return new NumberValue(type, minLength, maxLength, NumberSignType.NEGATIVE_ONLY, false,
-                NumberPadType.ZEROES, false, true, false, false);
+            return new NumberFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
+                NumberPad.ZEROES, false, true, false, false);
         } else if ("a".equals(norm)) {
-            return new RestrictedCharacterStringValue(type, minLength, maxLength, StringSpaceFill.RIGHT,
+            return new RestrictedCharacterStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT,
                 plainAlphas, true);
         }
         throw new IllegalArgumentException("Unknown EDIFACT type code " + type);

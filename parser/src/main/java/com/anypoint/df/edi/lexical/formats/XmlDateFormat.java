@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.lexical.types;
+package com.anypoint.df.edi.lexical.formats;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -21,7 +21,7 @@ import com.anypoint.df.edi.lexical.WriterBase;
  * all components to be populated for each format variation while HL7 allows any number of components to be included
  * following the four-digit year (or two-digit hour, in the case of a time value).
  */
-public class XmlDateValue extends ValueTypeBase {
+public class XmlDateFormat extends TypeFormatBase {
     
     public enum Variation { DATE, TIME, DATETIME }
     
@@ -30,7 +30,7 @@ public class XmlDateValue extends ValueTypeBase {
     
     private final Variation formatVariation;
     
-    public XmlDateValue(String code, int min, int max, Variation var) {
+    public XmlDateFormat(String code, int min, int max, Variation var) {
         super(code, min, max);
         formatVariation = var;
         try {

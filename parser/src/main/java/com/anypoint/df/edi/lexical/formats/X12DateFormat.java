@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.lexical.types;
+package com.anypoint.df.edi.lexical.formats;
 
 import static com.anypoint.df.edi.lexical.EdiConstants.maximumYear;
 
@@ -16,9 +16,9 @@ import com.anypoint.df.edi.lexical.WriterBase;
 /**
  * Date value in X12 style. This format is either YYMMDD (6 character width) or CCYYMMDD (8 character width).
  */
-public class X12DateValue extends ValueTypeBase {
+public class X12DateFormat extends TypeFormatBase {
     
-    public X12DateValue(String code, int min, int max) {
+    public X12DateFormat(String code, int min, int max) {
         super(code, min, max);
     }
 

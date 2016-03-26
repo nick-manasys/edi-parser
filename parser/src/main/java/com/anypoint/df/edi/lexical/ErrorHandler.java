@@ -40,5 +40,5 @@ public interface ErrorHandler
      * @param text error explanation
      * @throws LexicalException
      */
-    void error(ValueType typ, ErrorCondition err, String text) throws LexicalException;
+    void error(TypeFormat typ, ErrorCondition err, String text) throws LexicalException;
 }

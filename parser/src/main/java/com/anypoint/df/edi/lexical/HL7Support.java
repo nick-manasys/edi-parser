@@ -1,13 +1,13 @@
 package com.anypoint.df.edi.lexical;
 
-import com.anypoint.df.edi.lexical.ValueTypeConstants.NumberPadType;
-import com.anypoint.df.edi.lexical.ValueTypeConstants.NumberSignType;
-import com.anypoint.df.edi.lexical.ValueTypeConstants.StringSpaceFill;
-import com.anypoint.df.edi.lexical.types.GeneralStringValue;
-import com.anypoint.df.edi.lexical.types.IntegerValue;
-import com.anypoint.df.edi.lexical.types.NumberValue;
-import com.anypoint.df.edi.lexical.types.XmlDateValue;
-import com.anypoint.df.edi.lexical.types.XmlDateValue.Variation;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberPad;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberSign;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.formats.GeneralStringFormat;
+import com.anypoint.df.edi.lexical.formats.IntegerFormat;
+import com.anypoint.df.edi.lexical.formats.NumberFormat;
+import com.anypoint.df.edi.lexical.formats.XmlDateFormat;
+import com.anypoint.df.edi.lexical.formats.XmlDateFormat.Variation;
 
 public final class HL7Support
 {
@@ -36,23 +36,23 @@ public final class HL7Support
      * @param maxLength
      * @return
      */
-    public static ValueType buildType(String type, int minLength, int maxLength) {
+    public static TypeFormat buildType(String type, int minLength, int maxLength) {
         String norm = type.toUpperCase();
         if ("ST".equals(norm) || "VARIES".equals(norm) || "VAR".equals(norm)) {
-            return new GeneralStringValue(type, minLength, maxLength, StringSpaceFill.RIGHT);
+            return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT);
         } if ("NM".equals(norm)) {
-            return new NumberValue(type, minLength, maxLength, NumberSignType.OPTIONAL, true,
-                NumberPadType.ZEROES, true, false, false, false);
+            return new NumberFormat(type, minLength, maxLength, NumberSign.OPTIONAL, true,
+                NumberPad.ZEROES, true, false, false, false);
         } else if ("SI".equals(norm)) {
-            return new IntegerValue(type, minLength, maxLength, NumberSignType.UNSIGNED, false, NumberPadType.ZEROES);
+            return new IntegerFormat(type, minLength, maxLength, NumberSign.UNSIGNED, false, NumberPad.ZEROES);
         } else if ("DT".equals(norm)) {
-            return new XmlDateValue(type, minLength, maxLength, Variation.DATE);
+            return new XmlDateFormat(type, minLength, maxLength, Variation.DATE);
         } else if ("DTM".equals(norm)) {
-            return new XmlDateValue(type, minLength, maxLength, Variation.DATETIME);
+            return new XmlDateFormat(type, minLength, maxLength, Variation.DATETIME);
         } else if ("TM".equals(norm)) {
-            return new XmlDateValue(type, minLength, maxLength, Variation.TIME);
+            return new XmlDateFormat(type, minLength, maxLength, Variation.TIME);
         } else if ("FT".equals(norm) || "GTS".equals(norm) || "ID".equals(norm) || "IS".equals(norm) || "SNM".equals(norm) || "TN".equals(norm) || "TX".equals(norm)) {
-            return new GeneralStringValue(type, minLength, maxLength, StringSpaceFill.RIGHT);
+            return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT);
         }
         throw new IllegalArgumentException("Unknown HL7 type code " + type);
     }

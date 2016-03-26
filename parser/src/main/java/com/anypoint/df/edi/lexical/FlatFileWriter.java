@@ -66,7 +66,7 @@ public class FlatFileWriter extends WriterBase
     }
     
     @Override
-    public void error(ValueType typ, ErrorCondition err, String text) throws LexicalException {
+    public void error(TypeFormat typ, ErrorCondition err, String text) throws LexicalException {
         boolean abort = false;
         // TODO: add better tracking of output position, as with input
 //        String position = "element " + Integer.toString(elementNumber + 1);

@@ -2,15 +2,15 @@ package com.anypoint.df.edi.lexical;
 
 import java.nio.charset.Charset;
 
-import com.anypoint.df.edi.lexical.ValueTypeConstants.NumberPadType;
-import com.anypoint.df.edi.lexical.ValueTypeConstants.NumberSignType;
-import com.anypoint.df.edi.lexical.ValueTypeConstants.StringSpaceFill;
-import com.anypoint.df.edi.lexical.types.X12DateValue;
-import com.anypoint.df.edi.lexical.types.GeneralStringValue;
-import com.anypoint.df.edi.lexical.types.ImpliedDecimalValue;
-import com.anypoint.df.edi.lexical.types.IntegerValue;
-import com.anypoint.df.edi.lexical.types.NumberValue;
-import com.anypoint.df.edi.lexical.types.TimeValue;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberPad;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberSign;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.formats.GeneralStringFormat;
+import com.anypoint.df.edi.lexical.formats.ImpliedDecimalFormat;
+import com.anypoint.df.edi.lexical.formats.IntegerFormat;
+import com.anypoint.df.edi.lexical.formats.NumberFormat;
+import com.anypoint.df.edi.lexical.formats.MillisecondTimeFormat;
+import com.anypoint.df.edi.lexical.formats.X12DateFormat;
 
 /**
  * Constants for X12 documents.
@@ -107,46 +107,46 @@ public final class X12Constants
      * @param maxLength
      * @return
      */
-    public static ValueType buildType(String type, int minLength, int maxLength) {
+    public static TypeFormat buildType(String type, int minLength, int maxLength) {
         String norm = type.toUpperCase();
         if ("AN".equals(norm)) {
-            return new GeneralStringValue(type, minLength, maxLength, StringSpaceFill.RIGHT);
+            return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT);
         } if ("R".equals(norm)) {
-            return new NumberValue(type, minLength, maxLength, NumberSignType.NEGATIVE_ONLY, false,
-                NumberPadType.ZEROES, false, false, true, false);
+            return new NumberFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
+                NumberPad.ZEROES, false, false, true, false);
         } if (norm.startsWith("N")) {
             if (norm.length() == 1 || "N0".equals(norm)) {
-                return new IntegerValue(type, minLength, maxLength, NumberSignType.NEGATIVE_ONLY, false,
-                    NumberPadType.ZEROES);
+                return new IntegerFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
+                    NumberPad.ZEROES);
             } else if (norm.length() == 2) {
                 char chr = norm.charAt(1);
                 if (chr > 0 && chr <= '9') {
-                    return new ImpliedDecimalValue(type, minLength, maxLength, NumberSignType.NEGATIVE_ONLY, false,
-                        NumberPadType.ZEROES, chr - '0');
+                    return new ImpliedDecimalFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
+                        NumberPad.ZEROES, chr - '0');
                 }
             }
         } else if ("ID".equals(norm)) {
-            return new GeneralStringValue(type, minLength, maxLength, StringSpaceFill.NONE);
+            return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.NONE);
         } else if ("DT".equals(norm)) {
-            return new X12DateValue(type, minLength, maxLength);
+            return new X12DateFormat(type, minLength, maxLength);
         } else if ("TM".equals(norm)) {
-            return new TimeValue(type, minLength, maxLength);
+            return new MillisecondTimeFormat(type, minLength, maxLength);
         } else if ("B".equals(norm)) {
             // special X12 kludges for now
-            return new GeneralStringValue(type, minLength, maxLength, StringSpaceFill.RIGHT);
+            return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT);
         }
         throw new IllegalArgumentException("Unknown X12 type code " + type);
     }
 
     // value type definitions used for envelope segments
-    public static final ValueType VALID1 = buildType("ID", 1, 1);
-    public static final ValueType VALID2 = buildType("ID", 2, 2);
-    public static final ValueType VALID5 = buildType("ID", 5, 5);
-    public static final ValueType VALAN1 = buildType("AN", 1, 1);
-    public static final ValueType VALAN10 = buildType("AN", 10, 10);
-    public static final ValueType VALAN15 = buildType("AN", 15, 15);
-    public static final ValueType VALDT6 = buildType("DT", 6, 6);
-    public static final ValueType VALTM4 = buildType("TM", 4, 4);
-    public static final ValueType VALN9 = buildType("N", 9, 9);
-    public static final ValueType VALN1_5 = buildType("N", 1, 5);
+    public static final TypeFormat VALID1 = buildType("ID", 1, 1);
+    public static final TypeFormat VALID2 = buildType("ID", 2, 2);
+    public static final TypeFormat VALID5 = buildType("ID", 5, 5);
+    public static final TypeFormat VALAN1 = buildType("AN", 1, 1);
+    public static final TypeFormat VALAN10 = buildType("AN", 10, 10);
+    public static final TypeFormat VALAN15 = buildType("AN", 15, 15);
+    public static final TypeFormat VALDT6 = buildType("DT", 6, 6);
+    public static final TypeFormat VALTM4 = buildType("TM", 4, 4);
+    public static final TypeFormat VALN9 = buildType("N", 9, 9);
+    public static final TypeFormat VALN1_5 = buildType("N", 1, 5);
 }

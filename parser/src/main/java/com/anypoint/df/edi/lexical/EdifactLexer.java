@@ -24,8 +24,8 @@ public class EdifactLexer extends DelimiterLexer
         VALID, GROUP_COUNT_ERROR, CONTROL_NUMBER_ERROR
     }
     
-    private static final ValueType INTER_CONTROL_COUNT_FIELD = EdifactConstants.buildType("n", 0, 6);
-    private static final ValueType INTER_CONTROL_REF_FIELD = EdifactConstants.buildType("an", 0, 14);
+    private static final TypeFormat INTER_CONTROL_COUNT_FIELD = EdifactConstants.buildType("n", 0, 6);
+    private static final TypeFormat INTER_CONTROL_REF_FIELD = EdifactConstants.buildType("an", 0, 14);
     
     private final String delimiterDefaults;
     

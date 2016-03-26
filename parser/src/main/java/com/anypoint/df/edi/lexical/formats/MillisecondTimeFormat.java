@@ -1,4 +1,4 @@
-package com.anypoint.df.edi.lexical.types;
+package com.anypoint.df.edi.lexical.formats;
 
 import java.io.IOException;
 
@@ -13,7 +13,7 @@ import com.anypoint.df.edi.lexical.WriterBase;
  * restrictions. The implementation avoids the use of the Java DateFormat class, which has high time and memory
  * overhead.
  */
-public class TimeValue extends ValueTypeBase {
+public class MillisecondTimeFormat extends TypeFormatBase {
     
     /** Milliseconds per second. */
     private static final int MILLIS_PER_SECOND = 1000;
@@ -24,7 +24,7 @@ public class TimeValue extends ValueTypeBase {
     /** Milliseconds per hour. */
     private static final int MILLIS_PER_HOUR = MILLIS_PER_MINUTE * 60;
     
-    public TimeValue(String code, int min, int max) {
+    public MillisecondTimeFormat(String code, int min, int max) {
         super(code, min, max);
         if (min < 4) {
             throw new IllegalArgumentException("Time value representation requires at least 4 characters");
