@@ -156,7 +156,7 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
         val basedate = calendar.get(Calendar.DAY_OF_MONTH) * 100 + calendar.get(Calendar.MONTH) + 1
         val datetime = unbSegment(config.version).components(3).asInstanceOf[CompositeComponent]
         val dateelem = datetime.composite.components(0).asInstanceOf[ElementComponent].element
-        val date = if (dateelem.valueType.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
+        val date = if (dateelem.typeFormat.maxLength == 8) basedate * 10000 + yearnum else basedate * 100 + yearnum % 100
         interProps put (interHeadDateKey, Integer.valueOf(date))
       }
       if (!interProps.containsKey(interHeadTimeKey)) {

@@ -209,7 +209,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
   /** Write a value from map. */
   def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
-    def writeSimple(value: Any, element: Element) = element.valueType.write(value, delimWriter)
+    def writeSimple(value: Any, element: Element) = element.typeFormat.write(value, delimWriter)
     
     def writeSeparator(repeat: Boolean) =
       if (repeat) delimWriter.writeRepetitionSeparator

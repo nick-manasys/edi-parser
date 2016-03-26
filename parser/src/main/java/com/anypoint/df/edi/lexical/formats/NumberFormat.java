@@ -83,6 +83,7 @@ public class NumberFormat extends NumberFormatBase
         }
         if (!number) {
             noValuePresent(lexer);
+            lexer.tokenBuilder().append('0');
         } else {
             int adj = spaces + (!countDecimal && decimal ? 1 : 0) + ((!countSign && signed) ? 1 : 0);
             if (exponent > 0) {

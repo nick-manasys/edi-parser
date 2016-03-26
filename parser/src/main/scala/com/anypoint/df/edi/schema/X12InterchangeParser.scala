@@ -249,7 +249,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** Parse data element value. */
     def parseElement(elem: Element) = {
-      val result = elem.valueType.parse(lexer)
+      val result = elem.typeFormat.parse(lexer)
       lexer.advance
       result
     }

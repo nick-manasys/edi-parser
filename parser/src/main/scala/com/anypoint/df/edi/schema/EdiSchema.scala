@@ -51,9 +51,9 @@ object EdiSchema {
   /** Element definition.
     * @param id unique identifier (empty string if inlined)
     * @param nm readable name
-    * @param valueType type
+    * @param typeFormat format
     */
-  case class Element(id: String, nm: String, val valueType: TypeFormat)
+  case class Element(id: String, nm: String, val typeFormat: TypeFormat)
     extends ComponentBase(id, nm)
 
   /** Segment (or composite) component, either an element or a composite reference.

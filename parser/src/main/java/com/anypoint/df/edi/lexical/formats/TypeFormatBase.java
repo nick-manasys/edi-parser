@@ -48,7 +48,7 @@ public abstract class TypeFormatBase implements TypeFormat
     }
     
     protected void wrongType(Object obj, ErrorHandler handler) throws LexicalException {
-        handler.error(this, ErrorCondition.WRONG_TYPE, "Incompatible type for supplied value object: " + obj.getClass().getName());
+        handler.error(this, ErrorCondition.WRONG_TYPE, "incompatible type for supplied value object: " + obj.getClass().getName());
     }
     
     protected void tooShort(int length, ErrorHandler handler) throws LexicalException {
@@ -61,6 +61,10 @@ public abstract class TypeFormatBase implements TypeFormat
     
     protected void invalidCharacter(char chr, ErrorHandler handler) throws LexicalException {
         handler.error(this, ErrorCondition.INVALID_CHARACTER, "character '" + chr + "' not allowed");
+    }
+
+    protected void noValuePresent(LexerBase lexer) throws LexicalException {
+        lexer.error(this, ErrorCondition.INVALID_FORMAT, "no value present");
     }
 
     /**

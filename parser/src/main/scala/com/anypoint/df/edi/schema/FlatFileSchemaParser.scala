@@ -55,7 +55,7 @@ extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
   def isEnvelopeSegment(ident: String) = false
 
   /** Parse data element value. */
-  def parseElement(elem: Element) = elem.valueType.parse(lexer)
+  def parseElement(elem: Element) = elem.typeFormat.parse(lexer)
 
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {

@@ -62,11 +62,6 @@ public abstract class NumberFormatBase extends TypeFormatBase
         return spaces;
     }
 
-    protected void noValuePresent(LexerBase lexer) throws LexicalException {
-        lexer.error(this, ErrorCondition.INVALID_FORMAT, "no value present");
-        lexer.tokenBuilder().append('0');
-    }
-
     protected void missingRequiredSign(LexerBase lexer) throws LexicalException {
         lexer.error(this, ErrorCondition.INVALID_FORMAT, "missing required sign");
     }
@@ -163,6 +158,7 @@ public abstract class NumberFormatBase extends TypeFormatBase
         }
         if (!number) {
             noValuePresent(lexer);
+            lexer.tokenBuilder().append('0');
         } else {
             int length = builder.length() - ((!countSign && signed) ? 1 : 0) + spaces;
             validateLength(length, lexer);

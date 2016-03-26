@@ -111,7 +111,7 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
 
   /** Parse data element value. */
   def parseElement(elem: Element) = {
-    val result = elem.valueType.parse(lexer)
+    val result = elem.typeFormat.parse(lexer)
     lexer.advance
     result
   }

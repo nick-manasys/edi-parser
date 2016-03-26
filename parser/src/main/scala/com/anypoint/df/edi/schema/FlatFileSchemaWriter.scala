@@ -36,13 +36,13 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
   def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
     def writeSimple(value: Any, element: Element) =
-      if (value == null) writer.writeBlank(element.valueType.maxLength)
-      else element.valueType.write(value, writer)
+      if (value == null) writer.writeBlank(element.typeFormat.maxLength)
+      else element.typeFormat.write(value, writer)
 
     def skipComponentList(comps: List[SegmentComponent]): Unit = comps match {
       case h :: t => h match {
         case cc: CompositeComponent => skipComponentList(cc.composite.components)
-        case ec: ElementComponent => writer.writeBlank(ec.element.valueType.maxLength)
+        case ec: ElementComponent => writer.writeBlank(ec.element.typeFormat.maxLength)
       }
       case _ =>
     }

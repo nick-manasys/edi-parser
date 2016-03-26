@@ -266,7 +266,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   /** Parse data element value. */
   def parseElement(elem: Element) = {
-    val result = elem.valueType.parse(lexer)
+    val result = elem.typeFormat.parse(lexer)
     lexer.advance
     result
   }
