@@ -10,7 +10,7 @@ object IntegerFormat extends FlatFileFormat {
   
   def code = "Integer"
   
-  case class IntegerFormatImpl(width: Int, sign: NumberSign, pad: NumberPad, format: String)
+  case class IntegerFormatImpl(width: Int, sign: NumberSign, pad: NumberPad, pattern: String)
       extends NumberFormatBase(code, width, width, sign, true, pad) {
     override def parse(lexer: LexerBase) = null
     override def write(value: Object, writer: WriterBase) = {
@@ -22,5 +22,5 @@ object IntegerFormat extends FlatFileFormat {
   }
   
   def apply(width: Int, sign: NumberSign, pad: NumberPad): TypeFormat = IntegerFormatImpl(width, sign, pad, null)
-  def apply(width: Int, format: String): TypeFormat = IntegerFormatImpl(width, null, null, format)
+  def apply(width: Int, pattern: String): TypeFormat = IntegerFormatImpl(width, null, null, pattern)
 }

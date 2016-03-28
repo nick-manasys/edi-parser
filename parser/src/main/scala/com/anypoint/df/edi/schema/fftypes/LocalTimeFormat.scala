@@ -10,7 +10,7 @@ object LocalTimeFormat extends FlatFileFormat {
   
   def code = "Time"
 
-  case class LocalTimeFormatImpl(width: Int, fill: StringSpaceFill, format: String)
+  case class LocalTimeFormatImpl(width: Int, fill: StringSpaceFill, pattern: String)
       extends StringFormatBase(code, width, width, fill) {
     override def parseToken(lexer: LexerBase): Object = null
     override def buildToken(value: Object, writer: WriterBase): String = {
@@ -23,5 +23,5 @@ object LocalTimeFormat extends FlatFileFormat {
   }
 
   def apply(width: Int, fill: StringSpaceFill): TypeFormat = LocalTimeFormatImpl(width, fill, null)
-  def apply(width: Int, fill: StringSpaceFill, format: String): TypeFormat = LocalTimeFormatImpl(width, fill, format)
+  def apply(width: Int, fill: StringSpaceFill, pattern: String): TypeFormat = LocalTimeFormatImpl(width, fill, pattern)
 }

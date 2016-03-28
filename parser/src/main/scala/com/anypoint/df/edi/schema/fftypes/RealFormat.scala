@@ -10,7 +10,7 @@ object RealFormat extends FlatFileFormat {
   
   def code = "Real"
   
-  case class RealFormatImpl(width: Int, impl: Int, sign: NumberSign, pad: NumberPad, format: String)
+  case class RealFormatImpl(width: Int, impl: Int, sign: NumberSign, pad: NumberPad, pattern: String)
       extends NumberFormatBase(code, width, width, sign, true, pad) {
     override def parse(lexer: LexerBase) = null
     override def write(value: Object, writer: WriterBase) = {
@@ -22,5 +22,5 @@ object RealFormat extends FlatFileFormat {
   }
   def apply(width: Int, sign: NumberSign, pad: NumberPad): TypeFormat = RealFormatImpl(width, -1, sign, pad, null)
   def apply(width: Int, sign: NumberSign, impl: Int, pad: NumberPad): TypeFormat = RealFormatImpl(width, impl, sign, pad, null)
-  def apply(width: Int, format: String): TypeFormat = RealFormatImpl(width, -1, null, null, format)
+  def apply(width: Int, pattern: String): TypeFormat = RealFormatImpl(width, -1, null, null, pattern)
 }
