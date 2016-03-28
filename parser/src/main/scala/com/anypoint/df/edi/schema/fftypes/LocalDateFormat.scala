@@ -6,9 +6,11 @@ import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.StringFormatBase
 
-object LocalDateFormat {
+object LocalDateFormat extends FlatFileFormat {
+  
+  def code = "Date"
 
-  case class LocalDateFormatImpl(code: String, width: Int, fill: StringSpaceFill, format: String)
+  case class LocalDateFormatImpl(width: Int, fill: StringSpaceFill, format: String)
       extends StringFormatBase(code, width, width, fill) {
     override def parseToken(lexer: LexerBase): Object = null
     override def buildToken(value: Object, writer: WriterBase): String = {
@@ -20,6 +22,6 @@ object LocalDateFormat {
     }
   }
 
-  def apply(width: Int, fill: StringSpaceFill): TypeFormat = LocalDateFormatImpl("Date", width, fill, null)
-  def apply(width: Int, fill: StringSpaceFill, format: String): TypeFormat = LocalDateFormatImpl("Date", width, fill, format)
+  def apply(width: Int, fill: StringSpaceFill): TypeFormat = LocalDateFormatImpl(width, fill, null)
+  def apply(width: Int, fill: StringSpaceFill, format: String): TypeFormat = LocalDateFormatImpl(width, fill, format)
 }

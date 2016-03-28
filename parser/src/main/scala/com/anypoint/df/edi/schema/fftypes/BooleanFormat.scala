@@ -6,9 +6,11 @@ import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.StringFormatBase
 
-object BooleanFormat {
+object BooleanFormat extends FlatFileFormat {
+  
+  def code = "Boolean"
 
-  case class BooleanFormatImpl(code: String, width: Int, repr: BooleanRepresentation, fill: StringSpaceFill)
+  case class BooleanFormatImpl(width: Int, repr: BooleanRepresentation, fill: StringSpaceFill)
       extends StringFormatBase(code, width, width, fill) {
     override def parseToken(lexer: LexerBase): Object = {
       val token = lexer.token
@@ -53,5 +55,5 @@ object BooleanFormat {
     }
   }
 
-  def apply(width: Int, repr: BooleanRepresentation, fill: StringSpaceFill): TypeFormat = BooleanFormatImpl("Boolean", width, repr, fill)
+  def apply(width: Int, repr: BooleanRepresentation, fill: StringSpaceFill): TypeFormat = BooleanFormatImpl(width, repr, fill)
 }

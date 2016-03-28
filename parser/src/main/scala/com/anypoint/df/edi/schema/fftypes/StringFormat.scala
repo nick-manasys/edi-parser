@@ -4,9 +4,11 @@ import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.StringFormatBase
 
-object StringFormat {
+object StringFormat extends FlatFileFormat {
   
-  case class StringFormatImpl(code: String, width: Int, fill: StringSpaceFill)
+  def code = "String"
+  
+  case class StringFormatImpl(width: Int, fill: StringSpaceFill)
       extends StringFormatBase(code, width, width, fill) {
     override def parseToken(lexer: LexerBase): Object = null
     override def buildToken(value: Object, writer: WriterBase): String = {
@@ -18,5 +20,5 @@ object StringFormat {
     }
   }
   
-  def apply(width: Int, fill: StringSpaceFill): TypeFormat = StringFormatImpl("String", width, fill)
+  def apply(width: Int, fill: StringSpaceFill): TypeFormat = StringFormatImpl(width, fill)
 }

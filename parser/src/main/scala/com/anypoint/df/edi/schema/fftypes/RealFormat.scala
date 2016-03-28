@@ -6,8 +6,11 @@ import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.NumberFormatBase
 
-object RealFormat {
-  case class RealFormatImpl(code: String, width: Int, impl: Int, sign: NumberSign, pad: NumberPad, format: String)
+object RealFormat extends FlatFileFormat {
+  
+  def code = "Real"
+  
+  case class RealFormatImpl(width: Int, impl: Int, sign: NumberSign, pad: NumberPad, format: String)
       extends NumberFormatBase(code, width, width, sign, true, pad) {
     override def parse(lexer: LexerBase) = null
     override def write(value: Object, writer: WriterBase) = {
@@ -17,7 +20,7 @@ object RealFormat {
       }
     }
   }
-  def apply(width: Int, sign: NumberSign, pad: NumberPad): TypeFormat = RealFormatImpl("Real", width, -1, sign, pad, null)
-  def apply(width: Int, sign: NumberSign, impl: Int, pad: NumberPad): TypeFormat = RealFormatImpl("Real", width, impl, sign, pad, null)
-  def apply(width: Int, format: String): TypeFormat = RealFormatImpl("Real", width, -1, null, null, format)
+  def apply(width: Int, sign: NumberSign, pad: NumberPad): TypeFormat = RealFormatImpl(width, -1, sign, pad, null)
+  def apply(width: Int, sign: NumberSign, impl: Int, pad: NumberPad): TypeFormat = RealFormatImpl(width, impl, sign, pad, null)
+  def apply(width: Int, format: String): TypeFormat = RealFormatImpl(width, -1, null, null, format)
 }
