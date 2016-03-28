@@ -76,13 +76,13 @@ public final class TypeFormatConstants
         }
     }
     
-    public enum BooleanFormat
+    public enum BooleanRepresentation
     {
         ALPHA_LOWER("Lowercase alpha"), ALPHA_UPPER("Uppercase alpha"), NUMBER("Number (0/1)");
         
         private final String textName;
         
-        private BooleanFormat(String text) {
+        private BooleanRepresentation(String text) {
             textName = text;
         }
         

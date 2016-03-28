@@ -1,30 +1,57 @@
 package com.anypoint.df.edi.schema.fftypes
 
 import java.{ lang => jl }
-import com.anypoint.df.edi.lexical.{ LexerBase, WriterBase }
+
+import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.StringFormatBase
 
-case class BooleanValue(code: String, width: Int, format: BooleanFormat, fill: StringSpaceFill) extends StringFormatBase(code, width, width, fill) {
-  override def parseToken(lexer: LexerBase): Object = {
-    format match {
-      case BooleanFormat.NUMBER =>
-        verifyDigits(lexer)
-        val token = lexer.token
-        if (token == "0") false
-        else if (token == "1") true
-        else {
-          
-        }
-      case _ =>
+object BooleanFormat {
+
+  case class BooleanFormatImpl(code: String, width: Int, repr: BooleanRepresentation, fill: StringSpaceFill)
+      extends StringFormatBase(code, width, width, fill) {
+    override def parseToken(lexer: LexerBase): Object = {
+      val token = lexer.token
+      repr match {
+        case BooleanRepresentation.NUMBER =>
+          verifyDigits(lexer)
+          if (token == "0") jl.Boolean.FALSE
+          else if (token == "1") jl.Boolean.TRUE
+          else {
+            invalidInput(lexer)
+            jl.Boolean.FALSE
+          }
+        case _ =>
+          val upper = token.toUpperCase
+          if (upper == "T" || upper == "TRUE") jl.Boolean.TRUE
+          else if (upper == "F" || upper == "FALSE") jl.Boolean.FALSE
+          else {
+            invalidInput(lexer)
+            jl.Boolean.FALSE
+          }
+      }
+      null
     }
-    null
-  }
-  override def buildToken(value: Object, writer: WriterBase): String = {
-    value match {
-      case b: jl.Boolean =>
-      case _ => wrongType(value, writer)
+
+    private def trimSize(full: String) = {
+      if (width < 5) full.substring(0, 1)
+      else full
     }
-    ""
+
+    override def buildToken(value: Object, writer: WriterBase): String = {
+      value match {
+        case b: jl.Boolean =>
+          repr match {
+            case BooleanRepresentation.NUMBER => if (b.booleanValue) "1" else "0"
+            case BooleanRepresentation.ALPHA_LOWER => trimSize(b.toString)
+            case BooleanRepresentation.ALPHA_UPPER => trimSize(b.toString.toUpperCase)
+          }
+        case _ =>
+          wrongType(value, writer)
+          ""
+      }
+    }
   }
+
+  def apply(width: Int, repr: BooleanRepresentation, fill: StringSpaceFill): TypeFormat = BooleanFormatImpl("Boolean", width, repr, fill)
 }

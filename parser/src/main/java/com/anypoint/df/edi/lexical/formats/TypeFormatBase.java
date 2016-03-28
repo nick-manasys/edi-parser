@@ -67,6 +67,10 @@ public abstract class TypeFormatBase implements TypeFormat
         lexer.error(this, ErrorCondition.INVALID_FORMAT, "no value present");
     }
 
+    protected void invalidInput(LexerBase lexer) throws LexicalException {
+        lexer.error(this, ErrorCondition.INVALID_FORMAT, "input does not match format");
+    }
+
     /**
      * Verify current lexer token length. If the token is too long but the error is not fatal the token is truncated to
      * the maximum allowed length.
