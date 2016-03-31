@@ -3,6 +3,7 @@ package com.anypoint.df.edi.schema
 import scala.annotation.tailrec
 
 import java.io.{ StringWriter, Writer }
+import java.{ util => ju }
 
 class YamlFormatter(writer: Writer) {
 
@@ -123,7 +124,7 @@ class YamlFormatter(writer: Writer) {
 object YamlWriter extends YamlDefs {
 
   import EdiSchema._
-
+  
   /** Write schema in YAML form.
     *
     * @param schema
@@ -172,12 +173,32 @@ object YamlWriter extends YamlDefs {
         case group: GroupComponent => writeGroupComponent(group)
       })
     }
+    
+    def writePair(key: String, value: Object): Unit = {
+      value match {
+        case i: Integer => formatter.keyValuePair(key, i.intValue)
+        case s: String =>
+          if (s.length > 0) {
+            if (s.head.isLetter && s.forall { x => x.isLetterOrDigit }) formatter.keyValuePair(key, s)
+            else formatter.keyValueQuote(key, s)
+          }
+        case m: ju.Map[String, Object] =>
+          formatter.openGrouping(true)
+          val iter = m.keySet.iterator
+          while (iter.hasNext) {
+            val key = iter.next.asInstanceOf[String]
+            writePair(key, m.get(key))
+          }
+          formatter.closeGrouping
+        case null =>
+        case _ => throw new IllegalArgumentException(s"No support for type ${value.getClass}")
+      }
+    }
 
     def writeElementDetails(elem: Element) = {
       val typ = elem.typeFormat
       formatter.keyValuePair(typeKey, typ.typeCode)
-      if (typ.minLength == typ.maxLength) formatter.keyValuePair(lengthKey, typ.minLength)
-      else formatter.keyValuePair(minLengthKey, typ.minLength).keyValuePair(maxLengthKey, typ.maxLength)
+      schema.ediVersion.ediForm.writeFormat(typ, writePair)
     }
 
     def writeCompositeDetails(comp: Composite) = {

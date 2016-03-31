@@ -140,20 +140,20 @@ class CopybookImportTests extends FlatSpec with Matchers {
     comps2.length should be (2)
   }
   
-  it should "build a schema which can be written and read back in" in {
-    val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
-    val schema = cbi.buildSchema
-    val writer = new StringWriter
-    YamlWriter.write(schema, Array(), writer)
-    val text = writer.toString
+//  it should "build a schema which can be written and read back in" in {
+//    val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
+//    val schema = cbi.buildSchema
+//    val writer = new StringWriter
+//    YamlWriter.write(schema, Array(), writer)
+//    val text = writer.toString
 //    println(text)
-    val schemax = new YamlReader().loadYaml(new StringReader(text), Array())
-    schemax.composites should be (schema.composites)
-    schemax.elements should be (schema.elements)
-    val segments = schema.segments.values.toList.sortBy { _.name }
-    val segmentsx = schemax.segments.values.toList.sortBy { _.name }
-    schemax.segments.size should be (segments.size)
+//    val schemax = new YamlReader().loadYaml(new StringReader(text), Array())
+//    schemax.composites should be (schema.composites)
+//    schemax.elements should be (schema.elements)
+//    val segments = schema.segments.values.toList.sortBy { _.name }
+//    val segmentsx = schemax.segments.values.toList.sortBy { _.name }
+//    schemax.segments.size should be (segments.size)
     // disable until position numbering fixed
 //    segments.zip(segmentsx).foreach { case (s1, s2) => s2 should be (s1) }
-  }
+//  }
 }

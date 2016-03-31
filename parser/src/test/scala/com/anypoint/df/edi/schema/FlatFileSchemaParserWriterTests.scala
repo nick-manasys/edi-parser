@@ -85,9 +85,9 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 */  
   val fixedSchemaText = """form: FIXEDWIDTH
 values: 
-- { name: 'field_0', type: N0, length: 10 }
-- { name: 'field_1', type: AN, length: 10 }
-- { name: 'field_2', type: AN, length: 10 }"""
+- { name: 'field_0', type: Integer, length: 10 }
+- { name: 'field_1', type: String, length: 10 }
+- { name: 'field_2', type: String, length: 10 }"""
   val fixedDataText = "0004567891QAZWSX    0987654   "
   val fixedShort1Text = "1234567891QAZWSXEDCR098765432"
   val fixedShort2Text = "1234567891QAZWSXEDCR09876543"

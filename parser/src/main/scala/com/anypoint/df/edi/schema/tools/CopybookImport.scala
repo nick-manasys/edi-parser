@@ -6,6 +6,7 @@ import scala.collection.{ mutable => scm }
 import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 import com.anypoint.df.edi.lexical.EdiConstants
+import com.anypoint.df.edi.lexical.HL7Support
 
 class CopybookImport(in: InputStream, enc: String) {
 
@@ -124,7 +125,7 @@ class CopybookImport(in: InputStream, enc: String) {
     val (fract, rem) = convertReps('9', pic, 0)
     val length = lead + fract
     if (rem.isEmpty) {
-      val typ = EdiSchema.Copybook.convertType("N" + fract, length, length)
+      val typ = HL7Support.buildType("N" + fract, length, length)
       Element("", name, typ)
     } else dataError("Invalid expression in PIC clause")
   }
@@ -132,12 +133,12 @@ class CopybookImport(in: InputStream, enc: String) {
   def convertPic(name: String, pic: String): Element = pic.head match {
     case 'X' =>
       val (lead, rem) = convertReps('X', pic.tail, 1)
-      val typ = EdiSchema.Copybook.convertType("AN", lead, lead)
+      val typ = HL7Support.buildType("ST", lead, lead)
       Element("", name, typ)
     case '9' =>
       val (lead, rem) = convertReps('9', pic.tail, 1)
       if (rem.isEmpty) {
-        val typ = EdiSchema.Copybook.convertType("N", lead, lead)
+        val typ = HL7Support.buildType("NM", lead, lead)
         Element("", name, typ)
       } else if (rem.head == 'V') convertImplicitDecimal(name, rem.tail, lead)
       else dataError("Invalid expression in PIC clause")

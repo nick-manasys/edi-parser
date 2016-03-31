@@ -87,36 +87,36 @@ segments:
   - { idRef: 'FileId', position: 6 }
   - { idRef: 'Filler908', position: 7, usage: U }
 elements:
-  - { id: 'CommCode', name: 'Community Code', type: AN, minLength: 0, maxLength: 10 }
-  - { id: 'CreatDate', name: 'File Creation Date', type: DT, minLength: 8, maxLength: 8 }
-  - { id: 'CreatTime', name: 'File Creation Time', type: TM, minLength: 4, maxLength: 4 }
-  - { id: 'ClientName', name: 'Client Name', type: AN, minLength: 0, maxLength: 30 }
-  - { id: 'FileId', name: 'Unique File Identifier', type: AN, minLength: 0, maxLength: 20 }
-  - { id: 'Filler107', name: 'Filler', type: AN, minLength: 0, maxLength: 177 }
-  - { id: 'CompName', name: 'Company Name', type: AN, minLength: 0, maxLength: 30 }
-  - { id: 'CompCode', name: 'Company Code', type: AN, minLength: 0, maxLength: 10 }
-  - { id: 'BatchType', name: 'Batch Type', type: AN, minLength: 0, maxLength: 2 }
-  - { id: 'BatchDesc', name: 'Batch Description', type: AN, minLength: 0, maxLength: 18 }
-  - { id: 'BatchId', name: 'Unique Batch Identifier', type: AN, minLength: 0, maxLength: 15 }
-  - { id: 'RefundFlag', name: 'Refund Flag', type: AN, minLength: 0, maxLength: 1 }
-  - { id: 'Currency', name: 'Currency', type: AN, minLength: 0, maxLength: 3 }
-  - { id: 'Filler309', name: 'Filler', type: AN, minLength: 0, maxLength: 170 }
-  - { id: 'Unused502', name: 'Filler', type: AN, minLength: 0, maxLength: 2 }
-  - { id: 'BSBExpDate', name: 'BSB / Expiry Date', type: AN, minLength: 0, maxLength: 8 }
-  - { id: 'AcctNum', name: 'Account Number', type: AN, minLength: 0, maxLength: 17 }
-  - { id: 'Amount', name: 'Amount', type: N0, minLength: 0, maxLength: 10 }
-  - { id: 'CustNum', name: 'Customer Number', type: AN, minLength: 0, maxLength: 15 }
-  - { id: 'CustAcct', name: 'Customer Account Name', type: AN, minLength: 0, maxLength: 22 }
-  - { id: 'TransNum', name: 'Transaction Number', type: AN, minLength: 0, maxLength: 15 }
-  - { id: 'CapTransNum', name: 'Capture Transaction Number', type: AN, minLength: 0, maxLength: 15 }
-  - { id: 'AuthId', name: 'Authorization ID', type: AN, minLength: 0, maxLength: 6 }
-  - { id: 'ECI', name: 'Electronic Commerence Indicator', type: AN, minLength: 0, maxLength: 3 }
-  - { id: 'Filler512', name: 'Filler', type: AN, minLength: 0, maxLength: 136 }
-  - { id: 'BatchTransCount', name: 'Batch Transaction Count', type: N0, minLength: 0, maxLength: 6 }
-  - { id: 'BatchTransAmount', name: 'Batch Transaction Amount', type: N0, minLength: 0, maxLength: 10 }
-  - { id: 'Filler706', name: 'Filler', type: AN, minLength: 0, maxLength: 208 }
-  - { id: 'FileBatchCount', name: 'File Batch Count', type: N0, minLength: 0, maxLength: 2 }
-  - { id: 'FileTransCount', name: 'File Transaction Count', type: N0, minLength: 0, maxLength: 8 }
-  - { id: 'FileTransAmount', name: 'File Transaction Amount', type: N0, minLength: 0, maxLength: 12 }
-  - { id: 'Filler908', name: 'Filler', type: AN, minLength: 0, maxLength: 167 }
+  - { id: 'CommCode', name: 'Community Code', type: String, length: 10 }
+  - { id: 'CreatDate', name: 'File Creation Date', type: Date, length: 8 }
+  - { id: 'CreatTime', name: 'File Creation Time', type: Time, length: 4 }
+  - { id: 'ClientName', name: 'Client Name', type: String, length: 30 }
+  - { id: 'FileId', name: 'Unique File Identifier', type: String, length: 20 }
+  - { id: 'Filler107', name: 'Filler', type: String, length: 177 }
+  - { id: 'CompName', name: 'Company Name', type: String, length: 30 }
+  - { id: 'CompCode', name: 'Company Code', type: String, length: 10 }
+  - { id: 'BatchType', name: 'Batch Type', type: String, length: 2 }
+  - { id: 'BatchDesc', name: 'Batch Description', type: String, length: 18 }
+  - { id: 'BatchId', name: 'Unique Batch Identifier', type: String, length: 15 }
+  - { id: 'RefundFlag', name: 'Refund Flag', type: String, length: 1 }
+  - { id: 'Currency', name: 'Currency', type: String, length: 3 }
+  - { id: 'Filler309', name: 'Filler', type: String, length: 170 }
+  - { id: 'Unused502', name: 'Filler', type: String, length: 2 }
+  - { id: 'BSBExpDate', name: 'BSB / Expiry Date', type: String, length: 8 }
+  - { id: 'AcctNum', name: 'Account Number', type: String, length: 17 }
+  - { id: 'Amount', name: 'Amount', type: Integer, length: 10 }
+  - { id: 'CustNum', name: 'Customer Number', type: String, length: 15 }
+  - { id: 'CustAcct', name: 'Customer Account Name', type: String, length: 22 }
+  - { id: 'TransNum', name: 'Transaction Number', type: String, length: 15 }
+  - { id: 'CapTransNum', name: 'Capture Transaction Number', type: String, length: 15 }
+  - { id: 'AuthId', name: 'Authorization ID', type: String, length: 6 }
+  - { id: 'ECI', name: 'Electronic Commerence Indicator', type: String, length: 3 }
+  - { id: 'Filler512', name: 'Filler', type: String, length: 136 }
+  - { id: 'BatchTransCount', name: 'Batch Transaction Count', type: Integer, length: 6 }
+  - { id: 'BatchTransAmount', name: 'Batch Transaction Amount', type: Integer, length: 10 }
+  - { id: 'Filler706', name: 'Filler', type: String, length: 208 }
+  - { id: 'FileBatchCount', name: 'File Batch Count', type: Integer, length: 2 }
+  - { id: 'FileTransCount', name: 'File Transaction Count', type: Integer, length: 8 }
+  - { id: 'FileTransAmount', name: 'File Transaction Amount', type: Integer, length: 12 }
+  - { id: 'Filler908', name: 'Filler', type: String, length: 167 }
 

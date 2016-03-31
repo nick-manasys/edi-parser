@@ -20,7 +20,7 @@ public final class TypeFormatConstants
     public enum NumberSign
     {
         UNSIGNED("Unsigned", false, false, false, false),
-        NEGATIVE_ONLY("Leading minus if negative", true, false, false, false),
+        NEGATIVE_ONLY("Only if negative", true, false, false, false),
         OPTIONAL("Optional leading size", true, true, false, false),
         ALWAYS_LEFT("Always leading sign", true, true, true, false),
         ALWAYS_RIGHT("Always trailing sign", true, true, true, true);

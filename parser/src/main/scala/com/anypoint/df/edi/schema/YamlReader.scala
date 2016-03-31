@@ -56,13 +56,6 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     }
   }
 
-  def convertMinMaxLength(elmmap: ValueMap) = {
-    if (elmmap.containsKey(lengthKey)) {
-      val length = getRequiredInt(lengthKey, elmmap)
-      (length, length)
-    } else (getRequiredInt(minLengthKey, elmmap), getRequiredInt(maxLengthKey, elmmap))
-  }
-
   def getUsage(values: ValueMap) = {
     if (ediForm.fixed) {
       if (values.containsKey(usageKey)) {
@@ -104,8 +97,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         CompositeComponent(component, name, key, position, use, count)
       } else {
         val code = getRequiredString(typeKey, values)
-        val (min, max) = convertMinMaxLength(values)
-        val typ = ediForm.convertType(code, min, max)
+        val typ = ediForm.readFormat(code, values)
         val element = Element("", name.getOrElse(""), typ)
         ElementComponent(element, name, key, position, use, count)
       }
@@ -129,8 +121,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val ident = getRequiredString(idKey, elmmap)
         val name = getAs(nameKey, "", elmmap)
         val code = getRequiredString(typeKey, elmmap)
-        val (min, max) = convertMinMaxLength(elmmap)
-        val typ = ediForm.convertType(code, min, max)
+        val typ = ediForm.readFormat(code, elmmap)
         val result = map + (ident -> Element(ident, name, typ))
         result
       })

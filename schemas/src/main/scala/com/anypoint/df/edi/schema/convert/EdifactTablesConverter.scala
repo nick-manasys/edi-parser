@@ -5,7 +5,7 @@ import java.io.{ BufferedReader, File, FileInputStream, FileOutputStream, FileWr
 import scala.annotation.tailrec
 import scala.io.Source
 
-import com.anypoint.df.edi.lexical.EdiConstants
+import com.anypoint.df.edi.lexical.EdifactConstants
 import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, EdifactSchemaDefs, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 
@@ -122,7 +122,7 @@ object EdifactTablesConverter {
           val sizesplit = typsplit._2 span (c => c == '.')
           val maxsize = sizesplit._2.toString.toInt
           val minsize = if (sizesplit._1.isEmpty) maxsize else 0
-          val typ = EdiFact.convertType(typsplit._1.toString, minsize, maxsize)
+          val typ = EdifactConstants.buildType(typsplit._1.toString, minsize, maxsize)
           val rawname = nametext._2
           val splitat = rawname.indexOf('[')
           if (splitat > 0 && !rawname.endsWith("]")) throw new IllegalStateException("Invalid element name format, expected type in [X] form")

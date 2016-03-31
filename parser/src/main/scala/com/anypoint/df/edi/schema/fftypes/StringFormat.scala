@@ -4,21 +4,30 @@ import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.StringFormatBase
 
-object StringFormat extends FlatFileFormat {
-  
+object StringFormat extends FormatFactory {
+
   def code = "String"
-  
+
   case class StringFormatImpl(width: Int, fill: StringSpaceFill)
-      extends StringFormatBase(code, width, width, fill) {
-    override def parseToken(lexer: LexerBase): Object = null
+      extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
+
+    override def parseToken(lexer: LexerBase): Object = {
+      lexer.token
+    }
+
     override def buildToken(value: Object, writer: WriterBase): String = {
-      value match {
-        case n: Number =>
-        case _ => wrongType(value, writer)
-      }
-      ""
+      value.toString
+    }
+
+    override def writeOptions(writer: pairWriter): Unit = {
+      writeFill(fill, writer)
     }
   }
-  
+
   def apply(width: Int, fill: StringSpaceFill): TypeFormat = StringFormatImpl(width, fill)
+
+  override def readFormat(width: Int, map: ValueMap): TypeFormat = {
+    val fill = getFill(map)
+    apply(width, fill)
+  }
 }

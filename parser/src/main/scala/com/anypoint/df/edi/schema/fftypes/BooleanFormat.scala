@@ -1,17 +1,17 @@
 package com.anypoint.df.edi.schema.fftypes
 
-import java.{ lang => jl }
-
+import java.{ lang => jl, util => ju }
 import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.StringFormatBase
 
-object BooleanFormat extends FlatFileFormat {
-  
+object BooleanFormat extends FormatFactory {
+
   def code = "Boolean"
 
   case class BooleanFormatImpl(width: Int, repr: BooleanRepresentation, fill: StringSpaceFill)
-      extends StringFormatBase(code, width, width, fill) {
+      extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
+
     override def parseToken(lexer: LexerBase): Object = {
       val token = lexer.token
       repr match {
@@ -53,7 +53,18 @@ object BooleanFormat extends FlatFileFormat {
           ""
       }
     }
+
+    override def writeOptions(writer: pairWriter): Unit = {
+      writeFill(fill, writer)
+      writeBooleanRepresentation(repr, writer)
+    }
   }
 
   def apply(width: Int, repr: BooleanRepresentation, fill: StringSpaceFill): TypeFormat = BooleanFormatImpl(width, repr, fill)
+
+  override def readFormat(width: Int, map: ValueMap): TypeFormat = {
+    val repr = getBooleanRepresentation(map)
+    val fill = getFill(map)
+    apply(width, repr, fill)
+  }
 }

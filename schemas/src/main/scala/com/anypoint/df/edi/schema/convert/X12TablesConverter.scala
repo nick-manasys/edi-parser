@@ -5,7 +5,7 @@ import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStrea
 import scala.annotation.tailrec
 import scala.io.Source
 
-import com.anypoint.df.edi.lexical.EdiConstants
+import com.anypoint.df.edi.lexical.X12Constants
 import com.anypoint.df.edi.schema.{ EdiSchema, EdiSchemaVersion, YamlReader, YamlWriter }
 import com.anypoint.df.edi.schema.EdiSchema._
 
@@ -295,7 +295,7 @@ object X12TablesConverter {
         list match {
           case number :: typ :: min :: max :: Nil =>
             val usetyp = if (typ.isEmpty()) "AN" else typ
-            map + (number -> Element(number, elemNames(number), X12.convertType(usetyp, convertLength(min), convertLength(max))))
+            map + (number -> Element(number, elemNames(number), X12Constants.buildType(usetyp, convertLength(min), convertLength(max))))
           case _ => throw new IllegalArgumentException("wrong number of values in file")
         })
       val compNames = nameMap(fileInput(version, compositeHeadersName))

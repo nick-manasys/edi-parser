@@ -616,7 +616,7 @@ object EdiSchema {
 
   private def defaultKey(parentId: String, position: Int) = parentId + (if (position < 10) "0" + position else position)
 
-  sealed abstract class EdiForm(val text: String, val layout: SchemaLayout, val fixed: Boolean) {
+  sealed abstract class EdiForm(val text: String, val layout: SchemaLayout, val fixed: Boolean) extends SchemaJavaDefs {
     def isEnvelopeSegment(ident: String): Boolean
     val loopWrapperStart: String
     val loopWrapperEnd: String
@@ -627,88 +627,136 @@ object EdiSchema {
     /** Create key for version in data maps. */
     def versionKey(version: String): String
 
-    /** Create new type definition. */
-    def convertType(code: String, minLength: Int, maxLength: Int): TypeFormat
+    // keys used in YAML
+    val lengthKey = "length"
+    val minLengthKey = "minLength"
+    val maxLengthKey = "maxLength"
+    val formatKey = "format"
+
+    /** Build type format definition from YAML map data. */
+    def readFormat(code: String, map: ValueMap): TypeFormat
+
+    type PairWriter = (String, Object) => Unit
+
+    /** Persist type format definition as YAML map data. */
+    def writeFormat(format: TypeFormat, writer: PairWriter): Unit
   }
-  case object EdiFact extends EdiForm("EDIFACT", MultiTableStructure, false) {
+  sealed abstract class DelimitedEdiBase(text: String, layout: SchemaLayout) extends EdiForm(text, layout, false) {
+    def formatBuilder: (String, Int, Int) => TypeFormat
+    def convertMinMaxLength(map: ValueMap) = {
+      if (map.containsKey(lengthKey)) {
+        val length = getRequiredInt(lengthKey, map)
+        (length, length)
+      } else (getRequiredInt(minLengthKey, map), getRequiredInt(maxLengthKey, map))
+    }
+    override def readFormat(code: String, map: ValueMap): TypeFormat = {
+      val (min, max) = convertMinMaxLength(map)
+      formatBuilder(code, min, max)
+    }
+    override def writeFormat(format: TypeFormat, writer: PairWriter): Unit = {
+      if (format.minLength == format.maxLength) writer(lengthKey, Integer.valueOf(format.minLength))
+      else {
+        writer(minLengthKey, Integer.valueOf(format.minLength))
+        writer(maxLengthKey, Integer.valueOf(format.maxLength))
+      }
+    }
+  }
+  case object EdiFact extends DelimitedEdiBase("EDIFACT", MultiTableStructure) {
     import com.anypoint.df.edi.lexical.EdifactConstants
 
-    val envelopeSegs = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS")
-    def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
-    val loopWrapperStart = "UGH"
-    val loopWrapperEnd = "UGT"
-    def keyName(parentId: String, name: String, position: Int) = {
+    private val envelopeSegs = Set("UNB", "UNZ", "UNG", "UNE", "UNH", "UNT", "UNS")
+    override def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
+    override val loopWrapperStart = "UGH"
+    override val loopWrapperEnd = "UGT"
+    override def keyName(parentId: String, name: String, position: Int) = {
       val scaled = if (position % 10 == 0) position / 10 else position
       if (position < 100) parentId + "0" + scaled.toString
       else parentId + scaled.toString
     }
-    def versionKey(version: String) = version.toUpperCase
-    def convertType(code: String, minLength: Int, maxLength: Int) = {
-      EdifactConstants.buildType(code, minLength, maxLength)
-    }
+    override def versionKey(version: String) = version.toUpperCase
+    override def formatBuilder = EdifactConstants.buildType
   }
-  case object X12 extends EdiForm("X12", MultiTableStructure, false) {
+  case object X12 extends DelimitedEdiBase("X12", MultiTableStructure) {
     import com.anypoint.df.edi.lexical.X12Constants
 
-    val envelopeSegs = Set("ISA", "IEA", "GS", "GE", "ST", "SE")
-    def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
-    val loopWrapperStart = "LS"
-    val loopWrapperEnd = "LE"
-    def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId, position)
-    def versionKey(version: String) = "v" + version
-    def convertType(code: String, minLength: Int, maxLength: Int) = {
-      X12Constants.buildType(code, minLength, maxLength)
-    }
+    private val envelopeSegs = Set("ISA", "IEA", "GS", "GE", "ST", "SE")
+    override def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
+    override val loopWrapperStart = "LS"
+    override val loopWrapperEnd = "LE"
+    override def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId, position)
+    override def versionKey(version: String) = "v" + version
+    override def formatBuilder = X12Constants.buildType
   }
-  case object HL7 extends EdiForm("HL7", SingleTableStructure, false) {
+  case object HL7 extends DelimitedEdiBase("HL7", SingleTableStructure) {
     import com.anypoint.df.edi.lexical.HL7Support
 
-    def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
-    val loopWrapperStart = ""
-    val loopWrapperEnd = ""
-    def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId + "-", position)
-    def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
-    def convertType(code: String, minLength: Int, maxLength: Int) = {
-      HL7Support.buildType(code, minLength, maxLength)
+    override def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
+    override val loopWrapperStart = ""
+    override val loopWrapperEnd = ""
+    override def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId + "-", position)
+    override def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
+    override def formatBuilder = HL7Support.buildType
+  }
+  sealed abstract class FixedEdiBase(text: String, layout: SchemaLayout) extends EdiForm(text, layout, true) {
+    import com.anypoint.df.edi.schema.fftypes.FlatFileFormat
+
+    override def isEnvelopeSegment(ident: String) = false
+    override val loopWrapperStart = ""
+    override val loopWrapperEnd = ""
+    override def versionKey(version: String) = version
+    override def keyName(parentId: String, name: String, position: Int) =
+      if (name.nonEmpty) name else defaultKey(parentId, position)
+
+    def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat
+
+    override def readFormat(code: String, map: ValueMap): TypeFormat = {
+      val length = getRequiredInt(lengthKey, map)
+      val format = getAsMap(formatKey, map)
+      loadFormat(code, length, format)
+    }
+    override def writeFormat(format: TypeFormat, writer: PairWriter): Unit = {
+      writer(lengthKey, Integer.valueOf(format.maxLength))
+      format match {
+        case f: FlatFileFormat => {
+          val map = new ValueMapImpl
+          f.writeOptions((key: String, value: Object) => map.put(key, value))
+          if (!map.isEmpty) writer(formatKey, map)
+        }
+        case _ => throw new IllegalArgumentException(s"Invalid flat file format '${format.typeCode}'")
+      }
     }
   }
-  case object FlatFile extends EdiForm("FLATFILE", SingleTableStructure, true) {
-    import com.anypoint.df.edi.lexical.X12Constants
+  case object FlatFile extends FixedEdiBase("FLATFILE", SingleTableStructure) {
+    import com.anypoint.df.edi.schema.fftypes.{ CopybookFormats, FixedWidthFormats }
 
-    def isEnvelopeSegment(ident: String) = false
-    val loopWrapperStart = ""
-    val loopWrapperEnd = ""
-    def keyName(parentId: String, name: String, position: Int) =
-      if (name.nonEmpty) name else defaultKey(parentId, position)
-    def versionKey(version: String) = version
-    def convertType(code: String, minLength: Int, maxLength: Int) = {
-      X12Constants.buildType(code, minLength, maxLength)
+    override def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat = {
+      FixedWidthFormats.fixedFactories.get(code) match {
+        case Some(f) => f.readFormat(length, map)
+        case _ => CopybookFormats.copybookFactories.get(code) match {
+          case Some(f) => f.readFormat(length, map)
+          case _ => throw new IllegalArgumentException(s"Unknown format '$code'")
+        }
+      }
     }
   }
-  case object FixedWidth extends EdiForm("FIXEDWIDTH", SegmentsOnly, true) {
-    import com.anypoint.df.edi.lexical.X12Constants
+  case object FixedWidth extends FixedEdiBase("FIXEDWIDTH", SegmentsOnly) {
+    import com.anypoint.df.edi.schema.fftypes.FixedWidthFormats
 
-    def isEnvelopeSegment(ident: String) = false
-    val loopWrapperStart = ""
-    val loopWrapperEnd = ""
-    def keyName(parentId: String, name: String, position: Int) =
-      if (name.nonEmpty) name else defaultKey(parentId, position)
-    def versionKey(version: String) = version
-    def convertType(code: String, minLength: Int, maxLength: Int) = {
-      X12Constants.buildType(code, minLength, maxLength)
+    override def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat = {
+      FixedWidthFormats.fixedFactories.get(code) match {
+        case Some(f) => f.readFormat(length, map)
+        case _ => throw new IllegalArgumentException(s"Unknown format '$code'")
+      }
     }
   }
-  case object Copybook extends EdiForm("COPYBOOK", SegmentsOnly, true) {
-    import com.anypoint.df.edi.lexical.X12Constants
+  case object Copybook extends FixedEdiBase("COPYBOOK", SegmentsOnly) {
+    import com.anypoint.df.edi.schema.fftypes.CopybookFormats
 
-    def isEnvelopeSegment(ident: String) = false
-    val loopWrapperStart = ""
-    val loopWrapperEnd = ""
-    def keyName(parentId: String, name: String, position: Int) =
-      if (name.nonEmpty) name else defaultKey(parentId, position)
-    def versionKey(version: String) = version
-    def convertType(code: String, minLength: Int, maxLength: Int) = {
-      X12Constants.buildType(code, minLength, maxLength)
+    override def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat = {
+      CopybookFormats.copybookFactories.get(code) match {
+        case Some(f) => f.readFormat(length, map)
+        case _ => throw new IllegalArgumentException(s"Unknown format '$code'")
+      }
     }
   }
   def convertEdiForm(value: String) = value match {
