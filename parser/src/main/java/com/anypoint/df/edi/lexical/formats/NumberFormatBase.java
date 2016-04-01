@@ -17,7 +17,7 @@ public abstract class NumberFormatBase extends TypeFormatBase
 {
     protected final NumberSign signType;
     protected final boolean countSign;
-    protected final NumberPad padType;
+    protected final FillMode fillMode;
     
     /**
      * @param code
@@ -27,11 +27,11 @@ public abstract class NumberFormatBase extends TypeFormatBase
      * @param count sign counted in length flag
      * @param pad pad option
      */
-    public NumberFormatBase(String code, int min, int max, NumberSign sign, boolean count, NumberPad pad) {
+    public NumberFormatBase(String code, int min, int max, NumberSign sign, boolean count, FillMode pad) {
         super(code, min, max);
         signType = sign;
         countSign = count;
-        padType = pad;
+        fillMode = pad;
     }
 
     /**
@@ -44,11 +44,11 @@ public abstract class NumberFormatBase extends TypeFormatBase
     protected int stripPadding(LexerBase lexer) throws LexicalException {
         StringBuilder builder = lexer.tokenBuilder();
         int start = builder.length();
-        switch (padType) {
-            case SPACE_LEFT:
+        switch (fillMode) {
+            case RIGHT:
                 stripSpaceLeft(builder);
                 break;
-            case SPACE_RIGHT:
+            case LEFT:
                 stripSpaceRight(builder);
                 break;
             default:
@@ -226,16 +226,16 @@ public abstract class NumberFormatBase extends TypeFormatBase
             tooLong(effect, writer);
         }
         int pad = minLength - effect;
-        switch (padType) {
-            case SPACE_LEFT:
+        switch (fillMode) {
+            case RIGHT:
                 writePadding(pad, SPACES, writer);
                 writer.writeEscaped(text);
                 break;
-            case SPACE_RIGHT:
+            case LEFT:
                 writer.writeEscaped(text);
                 writePadding(pad, SPACES, writer);
                 break;
-            case UNPADDED:
+            case NONE:
                 if (effect < minLength) {
                     tooShort(effect, writer);
                 }

@@ -13,8 +13,8 @@ object DecimalFormat extends FormatFactory {
   
   def code = "Decimal"
   
-  case class DecimalFormatImpl(width: Int, sign: NumberSign, pad: NumberPad)
-      extends DecimalFormatBase(code, width, width, sign, true, pad, true, false, false, false) with FlatFileFormat {
+  case class DecimalFormatImpl(width: Int, sign: NumberSign, fill: FillMode)
+      extends DecimalFormatBase(code, width, width, sign, true, fill, true, false, false, false) with FlatFileFormat {
     
     override def parse(lexer: LexerBase) = convertDecimalValue(lexer)
     
@@ -31,12 +31,12 @@ object DecimalFormat extends FormatFactory {
 
     override def writeOptions(writer: pairWriter): Unit = {
       writeSign(sign, writer)
-      writeNumberPad(pad, writer)
+      writeNumberFill(fill, writer)
     }
   }
   
-  case class DecimalImplicitImpl(width: Int, impl: Int, sign: NumberSign, pad: NumberPad)
-      extends NumberFormatBase(code, width, width, sign, true, pad) with FlatFileFormat {
+  case class DecimalImplicitImpl(width: Int, impl: Int, sign: NumberSign, fill: FillMode)
+      extends NumberFormatBase(code, width, width, sign, true, fill) with FlatFileFormat {
     
     override def parse(lexer: LexerBase) = {
         checkIntegerFormat(lexer);
@@ -62,7 +62,7 @@ object DecimalFormat extends FormatFactory {
     override def writeOptions(writer: pairWriter): Unit = {
       writer(implicitKey, Integer.valueOf(impl))
       writeSign(sign, writer)
-      writeNumberPad(pad, writer)
+      writeNumberFill(fill, writer)
     }
   }
   
@@ -93,8 +93,8 @@ object DecimalFormat extends FormatFactory {
     }
   }
   
-  def apply(width: Int, sign: NumberSign, pad: NumberPad): TypeFormat = DecimalFormatImpl(width, sign, pad)
-  def apply(width: Int, sign: NumberSign, impl: Int, pad: NumberPad): TypeFormat = DecimalImplicitImpl(width, impl, sign, pad)
+  def apply(width: Int, sign: NumberSign, fill: FillMode): TypeFormat = DecimalFormatImpl(width, sign, fill)
+  def apply(width: Int, sign: NumberSign, impl: Int, fill: FillMode): TypeFormat = DecimalImplicitImpl(width, impl, sign, fill)
   def apply(width: Int, pattern: String, locale: Locale): TypeFormat = DecimalPatternImpl(width, pattern, locale)
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
@@ -105,12 +105,12 @@ object DecimalFormat extends FormatFactory {
     } else if (map != null && map.containsKey(implicitKey)) {
       val impl = getRequiredInt(implicitKey, map)
       val sign = getSign(map)
-      val pad = getNumberPad(map)
-      apply(width, sign, impl, pad)
+      val fill = getNumberFill(map)
+      apply(width, sign, impl, fill)
     } else {
       val sign = getSign(map)
-      val pad = getNumberPad(map)
-      apply(width, sign, pad)
+      val fill = getNumberFill(map)
+      apply(width, sign, fill)
     }
   }
 }

@@ -1,10 +1,7 @@
 package com.anypoint.df.edi.lexical.formats;
 
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.math.MathContext;
 
-import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
 import com.anypoint.df.edi.lexical.TypeFormatConstants.*;
@@ -24,15 +21,15 @@ public class ExplicitDecimalFormat extends DecimalFormatBase
      * @param max
      * @param sign sign option
      * @param countsign sign counted in length flag
-     * @param pad pad option
+     * @param fill pad option
      * @param countdec count decimal point in length flag
      * @param zerobefore write zero before decimal point flag
      * @param allowexp allow exponent flag
      * @param countexp count exponent marker 'E' in effective length flag
      */
-    public ExplicitDecimalFormat(String code, int min, int max, NumberSign sign, boolean countsign, NumberPad pad,
+    public ExplicitDecimalFormat(String code, int min, int max, NumberSign sign, boolean countsign, FillMode fill,
         boolean countdec, boolean zerobefore, boolean allowexp, boolean countexp) {
-        super(code, min, max, sign, countsign, pad, countdec, zerobefore, allowexp, countexp);
+        super(code, min, max, sign, countsign, fill, countdec, zerobefore, allowexp, countexp);
     }
 
     @Override

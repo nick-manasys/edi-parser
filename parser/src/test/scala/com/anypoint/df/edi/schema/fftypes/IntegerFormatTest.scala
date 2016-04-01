@@ -11,10 +11,10 @@ import com.anypoint.df.edi.lexical.TypeFormatConstants._
 
 class IntegerFormatTest extends FlatSpec with Matchers {
   
-  val unsigned1 = IntegerFormat(1, NumberSign.UNSIGNED, NumberPad.UNPADDED)
-  val unsigned2 = IntegerFormat(2, NumberSign.UNSIGNED, NumberPad.SPACE_LEFT)
-  val unsigned4 = IntegerFormat(4, NumberSign.UNSIGNED, NumberPad.SPACE_RIGHT)
-  val unsigned8 = IntegerFormat(8, NumberSign.UNSIGNED, NumberPad.ZEROES)
+  val unsigned1 = IntegerFormat(1, NumberSign.UNSIGNED, FillMode.NONE)
+  val unsigned2 = IntegerFormat(2, NumberSign.UNSIGNED, FillMode.RIGHT)
+  val unsigned4 = IntegerFormat(4, NumberSign.UNSIGNED, FillMode.LEFT)
+  val unsigned8 = IntegerFormat(8, NumberSign.UNSIGNED, FillMode.ZEROES)
   
   behavior of "Integer unsigned form"
   

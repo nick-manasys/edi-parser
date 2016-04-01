@@ -9,7 +9,7 @@ object BooleanFormat extends FormatFactory {
 
   def code = "Boolean"
 
-  case class BooleanFormatImpl(width: Int, repr: BooleanRepresentation, fill: StringSpaceFill)
+  case class BooleanFormatImpl(width: Int, repr: BooleanRepresentation, fill: FillMode)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
     override def parseToken(lexer: LexerBase): Object = {
@@ -65,7 +65,7 @@ object BooleanFormat extends FormatFactory {
     }
   }
 
-  def apply(width: Int, repr: BooleanRepresentation, fill: StringSpaceFill): TypeFormat = BooleanFormatImpl(width, repr, fill)
+  def apply(width: Int, repr: BooleanRepresentation, fill: FillMode): TypeFormat = BooleanFormatImpl(width, repr, fill)
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
     val repr = getBooleanRepresentation(map)

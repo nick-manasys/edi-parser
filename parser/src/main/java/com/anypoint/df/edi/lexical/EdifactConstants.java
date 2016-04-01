@@ -5,9 +5,7 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberPad;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberSign;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.*;
 import com.anypoint.df.edi.lexical.formats.ExplicitDecimalFormat;
 import com.anypoint.df.edi.lexical.formats.RestrictedCharacterStringFormat;
 
@@ -196,13 +194,13 @@ public final class EdifactConstants
     public static TypeFormat buildType(String type, int minLength, int maxLength) {
         String norm = type.toLowerCase();
         if ("an".equals(norm)) {
-            return new RestrictedCharacterStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT,
+            return new RestrictedCharacterStringFormat(type, minLength, maxLength, FillMode.LEFT,
                 alphaNumerics, true);
         } if ("n".equals(norm)) {
             return new ExplicitDecimalFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
-                NumberPad.ZEROES, false, true, false, false);
+                FillMode.ZEROES, false, true, false, false);
         } else if ("a".equals(norm)) {
-            return new RestrictedCharacterStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT,
+            return new RestrictedCharacterStringFormat(type, minLength, maxLength, FillMode.LEFT,
                 plainAlphas, true);
         }
         throw new IllegalArgumentException("Unknown EDIFACT type code " + type);

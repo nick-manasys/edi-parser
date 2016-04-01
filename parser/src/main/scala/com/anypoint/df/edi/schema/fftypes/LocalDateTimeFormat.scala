@@ -12,7 +12,7 @@ object LocalDateTimeFormat extends FormatFactory {
 
   def code = "DateTime"
   
-  abstract class LocalDateTimeBase(width: Int, fill: StringSpaceFill)
+  abstract class LocalDateTimeBase(width: Int, fill: FillMode)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
     val formatter: DateTimeFormatter
@@ -29,7 +29,7 @@ object LocalDateTimeFormat extends FormatFactory {
     }
   }
 
-  case class LocalDateTimeFormatImpl(width: Int, fill: StringSpaceFill)
+  case class LocalDateTimeFormatImpl(width: Int, fill: FillMode)
       extends LocalDateTimeBase(width, fill) with FlatFileFormat {
 
     val formatter =
@@ -47,7 +47,7 @@ object LocalDateTimeFormat extends FormatFactory {
     }
   }
 
-  case class LocalDateTimePatternImpl(width: Int, fill: StringSpaceFill, pattern: String)
+  case class LocalDateTimePatternImpl(width: Int, fill: FillMode, pattern: String)
       extends LocalDateTimeBase(width, fill) with FlatFileFormat {
 
     val formatter = DateTimeFormatter.ofPattern(pattern)
@@ -58,8 +58,8 @@ object LocalDateTimeFormat extends FormatFactory {
     }
   }
 
-  def apply(width: Int, fill: StringSpaceFill): TypeFormat = LocalDateTimeFormatImpl(width, fill)
-  def apply(width: Int, fill: StringSpaceFill, pattern: String): TypeFormat = LocalDateTimePatternImpl(width, fill, pattern)
+  def apply(width: Int, fill: FillMode): TypeFormat = LocalDateTimeFormatImpl(width, fill)
+  def apply(width: Int, fill: FillMode, pattern: String): TypeFormat = LocalDateTimePatternImpl(width, fill, pattern)
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
     val fill = getFill(map)

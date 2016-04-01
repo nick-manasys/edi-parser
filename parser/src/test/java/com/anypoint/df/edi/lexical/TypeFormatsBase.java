@@ -1,16 +1,7 @@
 package com.anypoint.df.edi.lexical;
 
-import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberPad;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberSign;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
-import com.anypoint.df.edi.lexical.formats.GeneralStringFormat;
-import com.anypoint.df.edi.lexical.formats.ImpliedDecimalFormat;
-import com.anypoint.df.edi.lexical.formats.IntegerFormat;
-import com.anypoint.df.edi.lexical.formats.ExplicitDecimalFormat;
-import com.anypoint.df.edi.lexical.formats.RestrictedCharacterStringFormat;
-import com.anypoint.df.edi.lexical.formats.MillisecondTimeFormat;
-import com.anypoint.df.edi.lexical.formats.X12DateFormat;
-import com.anypoint.df.edi.lexical.formats.XmlDateFormat;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.*;
+import com.anypoint.df.edi.lexical.formats.*;
 import com.anypoint.df.edi.lexical.formats.XmlDateFormat.Variation;
 
 /**
@@ -45,22 +36,21 @@ public abstract class TypeFormatsBase
      */
     private static TypeFormat buildType(String code, int minLength, int maxLength, String name) {
         if ("AN".equals(code)) {
-            return new GeneralStringFormat(name, minLength, maxLength, StringSpaceFill.LEFT);
+            return new GeneralStringFormat(name, minLength, maxLength, FillMode.LEFT);
         } else if ("R".equals(code)) {
             return new ExplicitDecimalFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
-                NumberPad.ZEROES, false, false, true, false);
+                FillMode.ZEROES, false, false, true, false);
         } else if ("NM".equals(code)) {
             return new ExplicitDecimalFormat(name, minLength, maxLength, NumberSign.OPTIONAL, true,
-                NumberPad.ZEROES, true, false, false, false);
+                FillMode.ZEROES, true, false, false, false);
         } else if (code.startsWith("N")) {
             if (code.length() == 1 || "N0".equals(code)) {
-                return new IntegerFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
-                    NumberPad.ZEROES);
+                return new IntegerFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false, FillMode.ZEROES);
             } else if (code.length() == 2) {
                 char chr = code.charAt(1);
                 if (chr > 0 && chr <= '9') {
                     return new ImpliedDecimalFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
-                        NumberPad.ZEROES, chr - '0');
+                        FillMode.ZEROES, chr - '0');
                 }
             }
         } else if ("DT".equals(code)) {
@@ -68,7 +58,7 @@ public abstract class TypeFormatsBase
         } else if ("TM".equals(code)) {
             return new MillisecondTimeFormat(name, minLength, maxLength);
         } else if ("SI".equals(code)) {
-            return new IntegerFormat(name, minLength, maxLength, NumberSign.UNSIGNED, false, NumberPad.ZEROES);
+            return new IntegerFormat(name, minLength, maxLength, NumberSign.UNSIGNED, false, FillMode.ZEROES);
         } else if ("DT7".equals(code)) {
             return new XmlDateFormat(name, minLength, maxLength, Variation.DATE);
         } else if ("DTM".equals(code)) {
@@ -77,9 +67,9 @@ public abstract class TypeFormatsBase
             return new XmlDateFormat(name, minLength, maxLength, Variation.TIME);
         } else if ("n".equals(code)) {
             return new ExplicitDecimalFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
-                NumberPad.ZEROES, false, true, false, false);
+                FillMode.ZEROES, false, true, false, false);
         } else if ("a".equals(code)) {
-            return new RestrictedCharacterStringFormat(name, minLength, maxLength, StringSpaceFill.LEFT,
+            return new RestrictedCharacterStringFormat(name, minLength, maxLength, FillMode.LEFT,
                 EdifactConstants.plainAlphas, true);
         }
         throw new IllegalArgumentException("Unknown type code " + code);

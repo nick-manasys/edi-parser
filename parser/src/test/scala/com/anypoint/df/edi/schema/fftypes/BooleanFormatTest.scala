@@ -11,9 +11,9 @@ import com.anypoint.df.edi.lexical.TypeFormatConstants._
 
 class BooleanFormatTest extends FlatSpec with Matchers {
   
-  val digit1 = BooleanFormat(1, BooleanRepresentation.NUMBER, StringSpaceFill.NONE)
-  val digit2 = BooleanFormat(2, BooleanRepresentation.NUMBER, StringSpaceFill.LEFT)
-  val digit5 = BooleanFormat(5, BooleanRepresentation.NUMBER, StringSpaceFill.RIGHT)
+  val digit1 = BooleanFormat(1, BooleanRepresentation.NUMBER, FillMode.NONE)
+  val digit2 = BooleanFormat(2, BooleanRepresentation.NUMBER, FillMode.LEFT)
+  val digit5 = BooleanFormat(5, BooleanRepresentation.NUMBER, FillMode.RIGHT)
   
   behavior of "BooleanFormat digit form"
   
@@ -50,10 +50,10 @@ class BooleanFormatTest extends FlatSpec with Matchers {
     intercept[IOException] { DemoSupport.writeString(null, digit5) }
   }
   
-  val upper1 = BooleanFormat(1, BooleanRepresentation.ALPHA_UPPER, StringSpaceFill.NONE)
-  val upper2 = BooleanFormat(2, BooleanRepresentation.ALPHA_UPPER, StringSpaceFill.LEFT)
-  val upper5 = BooleanFormat(5, BooleanRepresentation.ALPHA_UPPER, StringSpaceFill.LEFT)
-  val upper7 = BooleanFormat(7, BooleanRepresentation.ALPHA_UPPER, StringSpaceFill.RIGHT)
+  val upper1 = BooleanFormat(1, BooleanRepresentation.ALPHA_UPPER, FillMode.NONE)
+  val upper2 = BooleanFormat(2, BooleanRepresentation.ALPHA_UPPER, FillMode.LEFT)
+  val upper5 = BooleanFormat(5, BooleanRepresentation.ALPHA_UPPER, FillMode.LEFT)
+  val upper7 = BooleanFormat(7, BooleanRepresentation.ALPHA_UPPER, FillMode.RIGHT)
   
   behavior of "BooleanFormat upper form"
   
@@ -88,10 +88,10 @@ class BooleanFormatTest extends FlatSpec with Matchers {
     DemoSupport.writeString(jl.Boolean.TRUE, upper7) should be ("   TRUE")
   }
   
-  val lower1 = BooleanFormat(1, BooleanRepresentation.ALPHA_LOWER, StringSpaceFill.NONE)
-  val lower2 = BooleanFormat(2, BooleanRepresentation.ALPHA_LOWER, StringSpaceFill.LEFT)
-  val lower5 = BooleanFormat(5, BooleanRepresentation.ALPHA_LOWER, StringSpaceFill.LEFT)
-  val lower7 = BooleanFormat(7, BooleanRepresentation.ALPHA_LOWER, StringSpaceFill.RIGHT)
+  val lower1 = BooleanFormat(1, BooleanRepresentation.ALPHA_LOWER, FillMode.NONE)
+  val lower2 = BooleanFormat(2, BooleanRepresentation.ALPHA_LOWER, FillMode.LEFT)
+  val lower5 = BooleanFormat(5, BooleanRepresentation.ALPHA_LOWER, FillMode.LEFT)
+  val lower7 = BooleanFormat(7, BooleanRepresentation.ALPHA_LOWER, FillMode.RIGHT)
   
   behavior of "BooleanFormat lower form"
   

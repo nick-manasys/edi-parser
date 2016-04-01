@@ -22,10 +22,10 @@ public class IntegerFormat extends NumberFormatBase
      * @param max
      * @param sign sign option
      * @param count sign counted in length flag
-     * @param pad pad option
+     * @param fill pad option
      */
-    public IntegerFormat(String code, int min, int max, NumberSign sign, boolean count, NumberPad pad) {
-        super(code, min, max, sign, count, pad);
+    public IntegerFormat(String code, int min, int max, NumberSign sign, boolean count, FillMode fill) {
+        super(code, min, max, sign, count, fill);
     }
 
 

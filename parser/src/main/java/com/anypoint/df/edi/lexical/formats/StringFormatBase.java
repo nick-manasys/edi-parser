@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.FillMode;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
@@ -13,9 +13,9 @@ import com.anypoint.df.edi.lexical.WriterBase;
  */
 public abstract class StringFormatBase extends TypeFormatBase {
     
-    protected final StringSpaceFill spaceFill;
+    protected final FillMode spaceFill;
     
-    public StringFormatBase(String code, int min, int max, StringSpaceFill fill) {
+    public StringFormatBase(String code, int min, int max, FillMode fill) {
         super(code, min, max);
         spaceFill = fill;
     }

@@ -8,7 +8,7 @@ object StringFormat extends FormatFactory {
 
   def code = "String"
 
-  case class StringFormatImpl(width: Int, fill: StringSpaceFill)
+  case class StringFormatImpl(width: Int, fill: FillMode)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
     override def parseToken(lexer: LexerBase): Object = {
@@ -24,7 +24,7 @@ object StringFormat extends FormatFactory {
     }
   }
 
-  def apply(width: Int, fill: StringSpaceFill): TypeFormat = StringFormatImpl(width, fill)
+  def apply(width: Int, fill: FillMode): TypeFormat = StringFormatImpl(width, fill)
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
     val fill = getFill(map)

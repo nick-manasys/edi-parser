@@ -29,15 +29,15 @@ public abstract class DecimalFormatBase extends NumberFormatBase
      * @param max
      * @param sign sign option
      * @param countsign sign counted in length flag
-     * @param pad pad option
+     * @param fill pad option
      * @param countdec count decimal point in length flag
      * @param zerobefore write zero before decimal point flag
      * @param allowexp allow exponent flag
      * @param countexp count exponent marker 'E' in effective length flag
      */
-    public DecimalFormatBase(String code, int min, int max, NumberSign sign, boolean countsign, NumberPad pad,
+    public DecimalFormatBase(String code, int min, int max, NumberSign sign, boolean countsign, FillMode fill,
         boolean countdec, boolean zerobefore, boolean allowexp, boolean countexp) {
-        super(code, min, max, sign, countsign, pad);
+        super(code, min, max, sign, countsign, fill);
         countDecimal = countdec;
         zeroBeforeDecimal = zerobefore;
         allowExponent = allowexp;

@@ -3,7 +3,7 @@ package com.anypoint.df.edi.lexical.formats;
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.FillMode;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
@@ -11,7 +11,7 @@ import com.anypoint.df.edi.lexical.WriterBase;
  */
 public class GeneralStringFormat extends StringFormatBase {
     
-    public GeneralStringFormat(String code, int min, int max, StringSpaceFill fill) {
+    public GeneralStringFormat(String code, int min, int max, FillMode fill) {
         super(code, min, max, fill);
     }
 

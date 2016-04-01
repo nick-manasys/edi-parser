@@ -27,11 +27,11 @@ public class ImpliedDecimalFormat extends NumberFormatBase
      * @param max
      * @param sign sign option
      * @param count sign counted in length flag
-     * @param pad pad option
+     * @param fill pad option
      * @param pos number of decimal places
      */
-    public ImpliedDecimalFormat(String code, int min, int max, NumberSign sign, boolean count, NumberPad pad, int pos) {
-        super(code, min, max, sign, count, pad);
+    public ImpliedDecimalFormat(String code, int min, int max, NumberSign sign, boolean count, FillMode fill, int pos) {
+        super(code, min, max, sign, count, fill);
         decimalPosition = pos;
     }
 

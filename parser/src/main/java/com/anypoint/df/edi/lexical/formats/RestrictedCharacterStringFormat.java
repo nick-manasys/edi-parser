@@ -3,7 +3,7 @@ package com.anypoint.df.edi.lexical.formats;
 import com.anypoint.df.edi.lexical.LexerBase;
 import com.anypoint.df.edi.lexical.LexicalException;
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.FillMode;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
@@ -19,7 +19,7 @@ public class RestrictedCharacterStringFormat extends StringFormatBase {
     private final boolean[] allowedChars;
     private final boolean openEnded;
     
-    public RestrictedCharacterStringFormat(String code, int min, int max, StringSpaceFill fill, boolean[] allowed,
+    public RestrictedCharacterStringFormat(String code, int min, int max, FillMode fill, boolean[] allowed,
         boolean open) {
         super(code, min, max, fill);
         allowedChars = allowed;

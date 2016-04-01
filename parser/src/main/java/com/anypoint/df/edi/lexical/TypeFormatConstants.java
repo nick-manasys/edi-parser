@@ -2,13 +2,13 @@ package com.anypoint.df.edi.lexical;
 
 public final class TypeFormatConstants
 {
-    public enum StringSpaceFill
+    public enum FillMode
     {
-        LEFT("Left justify"), RIGHT("Right justify"), NONE("None");
+        LEFT("Left justify"), RIGHT("Right justify"), NONE("None"), ZEROES("Zero filled");
         
         private final String textName;
         
-        private StringSpaceFill(String text) {
+        private FillMode(String text) {
             textName = text;
         }
         
@@ -53,22 +53,6 @@ public final class TypeFormatConstants
         
         public boolean acceptPlus() {
             return acceptPlus;
-        }
-        
-        public String toString() {
-            return textName;
-        }
-    }
-
-    public enum NumberPad
-    {
-        UNPADDED("Exact"), SPACE_LEFT("Right justify space fill"), SPACE_RIGHT("Left justify space fill"),
-        ZEROES("Right justify zero fill");
-        
-        private final String textName;
-        
-        private NumberPad(String text) {
-            textName = text;
         }
         
         public String toString() {

@@ -8,16 +8,16 @@ import com.anypoint.df.edi.schema.SchemaJavaDefs
 trait FlatFileYaml {
   val fillKey = "justify"
   val numberSignKey = "sign"
-  val numberPadKey = "justify"
+  val numberFillKey = "justify"
   val implicitKey = "implicit"
   val boolReprKey = "represent"
   val formatKey = "format"
   val patternKey = "pattern"
   val localeKey = "locale"
 
-  val defaultFill = StringSpaceFill.LEFT
+  val defaultFill = FillMode.LEFT
   val defaultSign = NumberSign.OPTIONAL
-  val defaultNumberPad = NumberPad.SPACE_LEFT
+  val defaultNumberFill = FillMode.RIGHT
   val defaultBoolRepr = BooleanRepresentation.ALPHA_LOWER
 }
 
@@ -25,14 +25,14 @@ trait FlatFileFormat extends SchemaJavaDefs with FlatFileYaml {
   type pairWriter = (String, Object) => Unit
   
   // utility methods for writing format parameters
-  protected def writeFill(fill: StringSpaceFill, writer: pairWriter) = {
+  protected def writeFill(fill: FillMode, writer: pairWriter) = {
     if (fill != defaultFill) writer(fillKey, fill.name)
   }
   protected def writeSign(sign: NumberSign, writer: pairWriter) = {
     if (sign != defaultSign) writer(numberSignKey, sign.name)
   }
-  protected def writeNumberPad(pad: NumberPad, writer: pairWriter) = {
-    if (pad != defaultNumberPad) writer(numberPadKey, pad.name)
+  protected def writeNumberFill(pad: FillMode, writer: pairWriter) = {
+    if (pad != defaultNumberFill) writer(numberFillKey, pad.name)
   }
   protected def writeBooleanRepresentation(repr: BooleanRepresentation, writer: pairWriter) = {
     if (repr != defaultBoolRepr) writer(boolReprKey, repr.name)
@@ -50,10 +50,10 @@ trait FlatFileFormat extends SchemaJavaDefs with FlatFileYaml {
 trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
 
   // utility methods for retrieving format parameters
-  protected def getFill(map: ValueMap): StringSpaceFill = {
+  protected def getFill(map: ValueMap): FillMode = {
     if (map != null && map.containsKey(fillKey)) {
       val code = getAsString(fillKey, map)
-      StringSpaceFill.valueOf(code.toUpperCase)
+      FillMode.valueOf(code.toUpperCase)
     } else defaultFill
   }
   protected def getSign(map: ValueMap): NumberSign = {
@@ -62,11 +62,11 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
       NumberSign.valueOf(code.toUpperCase)
     } else defaultSign
   }
-  protected def getNumberPad(map: ValueMap): NumberPad = {
-    if (map != null && map.containsKey(numberPadKey)) {
-      val code = getAsString(numberPadKey, map)
-      NumberPad.valueOf(code.toUpperCase)
-    } else defaultNumberPad
+  protected def getNumberFill(map: ValueMap): FillMode = {
+    if (map != null && map.containsKey(fillKey)) {
+      val code = getAsString(fillKey, map)
+      FillMode.valueOf(code.toUpperCase)
+    } else defaultNumberFill
   }
   protected def getBooleanRepresentation(map: ValueMap): BooleanRepresentation = {
     if (map != null && map.containsKey(boolReprKey)) {

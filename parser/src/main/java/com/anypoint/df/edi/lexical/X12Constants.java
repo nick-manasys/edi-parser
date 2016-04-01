@@ -2,15 +2,8 @@ package com.anypoint.df.edi.lexical;
 
 import java.nio.charset.Charset;
 
-import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberPad;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberSign;
-import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
-import com.anypoint.df.edi.lexical.formats.GeneralStringFormat;
-import com.anypoint.df.edi.lexical.formats.ImpliedDecimalFormat;
-import com.anypoint.df.edi.lexical.formats.IntegerFormat;
-import com.anypoint.df.edi.lexical.formats.ExplicitDecimalFormat;
-import com.anypoint.df.edi.lexical.formats.MillisecondTimeFormat;
-import com.anypoint.df.edi.lexical.formats.X12DateFormat;
+import com.anypoint.df.edi.lexical.TypeFormatConstants.*;
+import com.anypoint.df.edi.lexical.formats.*;
 
 /**
  * Constants for X12 documents.
@@ -110,30 +103,29 @@ public final class X12Constants
     public static TypeFormat buildType(String type, int minLength, int maxLength) {
         String norm = type.toUpperCase();
         if ("AN".equals(norm)) {
-            return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT);
+            return new GeneralStringFormat(type, minLength, maxLength, FillMode.LEFT);
         } if ("R".equals(norm)) {
             return new ExplicitDecimalFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
-                NumberPad.ZEROES, false, false, true, false);
+                FillMode.ZEROES, false, false, true, false);
         } if (norm.startsWith("N")) {
             if (norm.length() == 1 || "N0".equals(norm)) {
-                return new IntegerFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
-                    NumberPad.ZEROES);
+                return new IntegerFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false, FillMode.ZEROES);
             } else if (norm.length() == 2) {
                 char chr = norm.charAt(1);
                 if (chr > 0 && chr <= '9') {
                     return new ImpliedDecimalFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
-                        NumberPad.ZEROES, chr - '0');
+                        FillMode.ZEROES, chr - '0');
                 }
             }
         } else if ("ID".equals(norm)) {
-            return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.NONE);
+            return new GeneralStringFormat(type, minLength, maxLength, FillMode.NONE);
         } else if ("DT".equals(norm)) {
             return new X12DateFormat(type, minLength, maxLength);
         } else if ("TM".equals(norm)) {
             return new MillisecondTimeFormat(type, minLength, maxLength);
         } else if ("B".equals(norm)) {
             // special X12 kludges for now
-            return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT);
+            return new GeneralStringFormat(type, minLength, maxLength, FillMode.LEFT);
         }
         throw new IllegalArgumentException("Unknown X12 type code " + type);
     }
