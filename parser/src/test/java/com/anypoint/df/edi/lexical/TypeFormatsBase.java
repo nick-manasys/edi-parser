@@ -6,7 +6,7 @@ import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
 import com.anypoint.df.edi.lexical.formats.GeneralStringFormat;
 import com.anypoint.df.edi.lexical.formats.ImpliedDecimalFormat;
 import com.anypoint.df.edi.lexical.formats.IntegerFormat;
-import com.anypoint.df.edi.lexical.formats.NumberFormat;
+import com.anypoint.df.edi.lexical.formats.ExplicitDecimalFormat;
 import com.anypoint.df.edi.lexical.formats.RestrictedCharacterStringFormat;
 import com.anypoint.df.edi.lexical.formats.MillisecondTimeFormat;
 import com.anypoint.df.edi.lexical.formats.X12DateFormat;
@@ -47,10 +47,10 @@ public abstract class TypeFormatsBase
         if ("AN".equals(code)) {
             return new GeneralStringFormat(name, minLength, maxLength, StringSpaceFill.LEFT);
         } else if ("R".equals(code)) {
-            return new NumberFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
+            return new ExplicitDecimalFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
                 NumberPad.ZEROES, false, false, true, false);
         } else if ("NM".equals(code)) {
-            return new NumberFormat(name, minLength, maxLength, NumberSign.OPTIONAL, true,
+            return new ExplicitDecimalFormat(name, minLength, maxLength, NumberSign.OPTIONAL, true,
                 NumberPad.ZEROES, true, false, false, false);
         } else if (code.startsWith("N")) {
             if (code.length() == 1 || "N0".equals(code)) {
@@ -76,7 +76,7 @@ public abstract class TypeFormatsBase
         } else if ("TM7".equals(code)) {
             return new XmlDateFormat(name, minLength, maxLength, Variation.TIME);
         } else if ("n".equals(code)) {
-            return new NumberFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
+            return new ExplicitDecimalFormat(name, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
                 NumberPad.ZEROES, false, true, false, false);
         } else if ("a".equals(code)) {
             return new RestrictedCharacterStringFormat(name, minLength, maxLength, StringSpaceFill.LEFT,

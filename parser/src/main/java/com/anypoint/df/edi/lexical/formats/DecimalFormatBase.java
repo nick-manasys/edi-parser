@@ -11,12 +11,12 @@ import com.anypoint.df.edi.lexical.TypeFormatConstants.*;
 import com.anypoint.df.edi.lexical.WriterBase;
 
 /**
- * Numeric value with optional leading sign, optional decimal point, and optional leading zero or trailing space
- * padding. For input, only digit characters and (depending on configuration) an optional leading sign, optional
- * decimal point, and optional exponent are allowed. For output, leading zeroes or trailing spaces are optionally
- * used to pad the value to the minimum length.
+ * Base class for numeric value with optional leading sign, optional decimal point, and optional leading zero or leading
+ * or trailing space padding. For input, only digit characters and (depending on configuration) an optional leading
+ * sign, optional decimal point, and optional exponent are allowed. For output, leading zeroes or trailing spaces are
+ * optionally used to pad the value to the minimum length.
  */
-public class NumberFormat extends NumberFormatBase
+public abstract class DecimalFormatBase extends NumberFormatBase
 {
     private final boolean countDecimal;
     private final boolean zeroBeforeDecimal;
@@ -35,7 +35,7 @@ public class NumberFormat extends NumberFormatBase
      * @param allowexp allow exponent flag
      * @param countexp count exponent marker 'E' in effective length flag
      */
-    public NumberFormat(String code, int min, int max, NumberSign sign, boolean countsign, NumberPad pad,
+    public DecimalFormatBase(String code, int min, int max, NumberSign sign, boolean countsign, NumberPad pad,
         boolean countdec, boolean zerobefore, boolean allowexp, boolean countexp) {
         super(code, min, max, sign, countsign, pad);
         countDecimal = countdec;
@@ -44,8 +44,14 @@ public class NumberFormat extends NumberFormatBase
         countExponent = countexp;
     }
 
-    @Override
-    public Object parse(LexerBase lexer) throws LexicalException {
+    /**
+     * Convert a decimal input value to appropriate numeric form.
+     * 
+     * @param lexer
+     * @return value
+     * @throws LexicalException
+     */
+    protected Object convertDecimalValue(LexerBase lexer) throws LexicalException {
         StringBuilder builder = lexer.tokenBuilder();
         int spaces = stripPadding(lexer);
         boolean signed = signToNormalForm(lexer);
@@ -103,7 +109,7 @@ public class NumberFormat extends NumberFormatBase
         return convertSizedInteger(lexer, digits);
     }
     
-    private void writeDecimal(String text, boolean negate, WriterBase writer) throws IOException {
+    private void writeDecimalText(String text, boolean negate, WriterBase writer) throws IOException {
         if (!zeroBeforeDecimal && text.startsWith("0")) {
             text = text.substring(1);
         }
@@ -114,8 +120,14 @@ public class NumberFormat extends NumberFormatBase
         writePadded(text, length, negate, writer);
     }
     
-    @Override
-    public void write(Object value, WriterBase writer) throws IOException {
+    /**
+     * Write an decimal value of any supported type.
+     * 
+     * @param value
+     * @param writer
+     * @throws IOException
+     */
+    protected void writeDecimalValue(Object value, WriterBase writer) throws IOException {
         writer.startToken();
         if (value instanceof BigDecimal) {
             BigDecimal big = (BigDecimal)value;
@@ -131,7 +143,7 @@ public class NumberFormat extends NumberFormatBase
                 if (scale >= 0 && Math.max(precision, scale) <= maxLength) {
                     
                     // write as simple decimal
-                    writeDecimal(big.toPlainString(), negate, writer);
+                    writeDecimalText(big.toPlainString(), negate, writer);
                     
                 } else if (allowExponent) {
                     
@@ -155,7 +167,7 @@ public class NumberFormat extends NumberFormatBase
                     } else {
                         MathContext mc = new MathContext(allowed);
                         big.round(mc);
-                        writeDecimal(big.toPlainString(), negate, writer);
+                        writeDecimalText(big.toPlainString(), negate, writer);
                     }
                 }
             }

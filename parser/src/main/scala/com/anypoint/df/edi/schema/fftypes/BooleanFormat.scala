@@ -23,16 +23,21 @@ object BooleanFormat extends FormatFactory {
             invalidInput(lexer)
             jl.Boolean.FALSE
           }
-        case _ =>
-          val upper = token.toUpperCase
-          if (upper == "T" || upper == "TRUE") jl.Boolean.TRUE
-          else if (upper == "F" || upper == "FALSE") jl.Boolean.FALSE
+        case BooleanRepresentation.ALPHA_LOWER =>
+          if (token == "t" || token == "true") jl.Boolean.TRUE
+          else if (token == "f" || token == "false") jl.Boolean.FALSE
+          else {
+            invalidInput(lexer)
+            jl.Boolean.FALSE
+          }
+        case BooleanRepresentation.ALPHA_UPPER =>
+          if (token == "T" || token == "TRUE") jl.Boolean.TRUE
+          else if (token == "F" || token == "FALSE") jl.Boolean.FALSE
           else {
             invalidInput(lexer)
             jl.Boolean.FALSE
           }
       }
-      null
     }
 
     private def trimSize(full: String) = {

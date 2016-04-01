@@ -48,7 +48,11 @@ public abstract class TypeFormatBase implements TypeFormat
     }
     
     protected void wrongType(Object obj, ErrorHandler handler) throws LexicalException {
-        handler.error(this, ErrorCondition.WRONG_TYPE, "incompatible type for supplied value object: " + obj.getClass().getName());
+        if (obj == null) {
+            handler.error(this, ErrorCondition.WRONG_TYPE, "null value not allowed");
+        } else {
+            handler.error(this, ErrorCondition.WRONG_TYPE, "incompatible type for supplied value object: " + obj.getClass().getName());
+        }
     }
     
     protected void tooShort(int length, ErrorHandler handler) throws LexicalException {

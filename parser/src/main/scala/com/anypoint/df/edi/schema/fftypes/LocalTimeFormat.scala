@@ -1,6 +1,7 @@
 package com.anypoint.df.edi.schema.fftypes
 
 import org.threeten.bp.LocalTime
+import org.threeten.bp.format.DateTimeFormatter
 
 import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
@@ -9,28 +10,56 @@ import com.anypoint.df.edi.lexical.formats.StringFormatBase
 object LocalTimeFormat extends FormatFactory {
 
   def code = "Time"
-
-  case class LocalTimeFormatImpl(width: Int, fill: StringSpaceFill, pattern: String)
+  
+  abstract class LocalTimeBase(width: Int, fill: StringSpaceFill)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
-    override def parseToken(lexer: LexerBase): Object = null
+    val formatter: DateTimeFormatter
+
+    override def parseToken(lexer: LexerBase): Object = LocalTime.parse(lexer.token, formatter)
 
     override def buildToken(value: Object, writer: WriterBase): String = {
       value match {
-        case t: LocalTime =>
-        case _ => wrongType(value, writer)
+        case d: LocalTime => d.format(formatter)
+        case _ =>
+          wrongType(value, writer)
+          ""
       }
-      ""
-    }
-
-    override def writeOptions(writer: pairWriter): Unit = {
-      writeFill(fill, writer)
-      if (pattern != null) writePattern(pattern, writer)
     }
   }
 
-  def apply(width: Int, fill: StringSpaceFill): TypeFormat = LocalTimeFormatImpl(width, fill, null)
-  def apply(width: Int, fill: StringSpaceFill, pattern: String): TypeFormat = LocalTimeFormatImpl(width, fill, pattern)
+  case class LocalTimeFormatImpl(width: Int, fill: StringSpaceFill)
+      extends LocalTimeBase(width, fill) with FlatFileFormat {
+
+    val formatter =
+      if (width >= 9) DateTimeFormatter.ofPattern("HHmmssSSS")
+      else width match {
+        case 2 => DateTimeFormatter.ofPattern("HH")
+        case 4 => DateTimeFormatter.ofPattern("HHmm")
+        case 6 => DateTimeFormatter.ofPattern("HHmmss")
+        case 7 => DateTimeFormatter.ofPattern("HHmmssS")
+        case 8 => DateTimeFormatter.ofPattern("HHmmssSS")
+        case _ => throw new IllegalArgumentException(s"Width $width is invalid for Time (must be 2, 4, or >= 6)")
+      }
+
+    override def writeOptions(writer: pairWriter): Unit = {
+      writeFill(fill, writer)
+    }
+  }
+
+  case class LocalTimePatternImpl(width: Int, fill: StringSpaceFill, pattern: String)
+      extends LocalTimeBase(width, fill) with FlatFileFormat {
+
+    val formatter = DateTimeFormatter.ofPattern(pattern)
+
+    override def writeOptions(writer: pairWriter): Unit = {
+      writeFill(fill, writer)
+      writePattern(pattern, writer)
+    }
+  }
+
+  def apply(width: Int, fill: StringSpaceFill): TypeFormat = LocalTimeFormatImpl(width, fill)
+  def apply(width: Int, fill: StringSpaceFill, pattern: String): TypeFormat = LocalTimePatternImpl(width, fill, pattern)
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
     val fill = getFill(map)

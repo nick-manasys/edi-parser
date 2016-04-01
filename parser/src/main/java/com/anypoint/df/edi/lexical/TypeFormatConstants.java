@@ -4,7 +4,7 @@ public final class TypeFormatConstants
 {
     public enum StringSpaceFill
     {
-        LEFT("Left justify"), RIGHT("Right justify"), NONE("Exact width");
+        LEFT("Left justify"), RIGHT("Right justify"), NONE("None");
         
         private final String textName;
         

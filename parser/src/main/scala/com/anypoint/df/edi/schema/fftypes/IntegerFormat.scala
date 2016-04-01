@@ -2,7 +2,7 @@ package com.anypoint.df.edi.schema.fftypes
 
 import spire.math.Number
 
-import java.text.{ DecimalFormat, DecimalFormatSymbols }
+import java.{ lang => jl, text => jt }
 import java.util.Locale
 
 import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
@@ -23,9 +23,12 @@ object IntegerFormat extends FormatFactory {
 
     override def write(value: Object, writer: WriterBase) = {
       value match {
+        case n: jl.Number => writeIntegerValue(value, writer)
         case n: Number =>
           writer.startToken
-          writeIntegerValue(value, writer)
+          if (n.canBeInt) writeIntegerValue(Integer.valueOf(n.toInt), writer)
+          else if (n.canBeLong) writeIntegerValue(jl.Long.valueOf(n.toLong), writer)
+          else writeIntegerValue(n.toBigInt.bigInteger, writer)
         case _ =>
           wrongType(value, writer)
           writer.writeToken("")
@@ -41,7 +44,7 @@ object IntegerFormat extends FormatFactory {
   case class IntegerPatternImpl(width: Int, pattern: String, locale: Locale)
       extends TypeFormatBase(code, width, width) with FlatFileFormat {
 
-    private def buildFormat = new DecimalFormat(pattern, new DecimalFormatSymbols(locale))
+    private def buildFormat = new jt.DecimalFormat(pattern, new jt.DecimalFormatSymbols(locale))
 
     override def parse(lexer: LexerBase) = {
       val format = buildFormat

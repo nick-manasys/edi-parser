@@ -17,7 +17,7 @@ segments:
     - name: 'MONTHLY-SALES'
       values: 
       - { name: 'QUANTITY-SOLD', type: Integer, length: 3 }
-      - { name: 'UNIT-PRICE', type: Real, length: 7 }
+      - { name: 'UNIT-PRICE', type: Decimal, length: 7 }
 - id: 'MR0'
   name: 'MAILING-RECORD'
   values: 

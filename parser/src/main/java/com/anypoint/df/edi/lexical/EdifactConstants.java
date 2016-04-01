@@ -8,7 +8,7 @@ import java.util.Map;
 import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberPad;
 import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberSign;
 import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
-import com.anypoint.df.edi.lexical.formats.NumberFormat;
+import com.anypoint.df.edi.lexical.formats.ExplicitDecimalFormat;
 import com.anypoint.df.edi.lexical.formats.RestrictedCharacterStringFormat;
 
 /**
@@ -199,7 +199,7 @@ public final class EdifactConstants
             return new RestrictedCharacterStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT,
                 alphaNumerics, true);
         } if ("n".equals(norm)) {
-            return new NumberFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
+            return new ExplicitDecimalFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
                 NumberPad.ZEROES, false, true, false, false);
         } else if ("a".equals(norm)) {
             return new RestrictedCharacterStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT,

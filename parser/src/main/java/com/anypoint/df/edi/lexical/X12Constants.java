@@ -8,7 +8,7 @@ import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
 import com.anypoint.df.edi.lexical.formats.GeneralStringFormat;
 import com.anypoint.df.edi.lexical.formats.ImpliedDecimalFormat;
 import com.anypoint.df.edi.lexical.formats.IntegerFormat;
-import com.anypoint.df.edi.lexical.formats.NumberFormat;
+import com.anypoint.df.edi.lexical.formats.ExplicitDecimalFormat;
 import com.anypoint.df.edi.lexical.formats.MillisecondTimeFormat;
 import com.anypoint.df.edi.lexical.formats.X12DateFormat;
 
@@ -112,7 +112,7 @@ public final class X12Constants
         if ("AN".equals(norm)) {
             return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT);
         } if ("R".equals(norm)) {
-            return new NumberFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
+            return new ExplicitDecimalFormat(type, minLength, maxLength, NumberSign.NEGATIVE_ONLY, false,
                 NumberPad.ZEROES, false, false, true, false);
         } if (norm.startsWith("N")) {
             if (norm.length() == 1 || "N0".equals(norm)) {

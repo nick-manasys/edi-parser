@@ -9,6 +9,7 @@ trait FlatFileYaml {
   val fillKey = "justify"
   val numberSignKey = "sign"
   val numberPadKey = "justify"
+  val implicitKey = "implicit"
   val boolReprKey = "represent"
   val formatKey = "format"
   val patternKey = "pattern"
@@ -88,12 +89,12 @@ object FixedWidthFormats {
   val fixedFactories = Map[String, FormatFactory](BooleanFormat.code -> BooleanFormat,
     IntegerFormat.code -> IntegerFormat, LocalDateFormat.code -> LocalDateFormat,
     LocalDateTimeFormat.code -> LocalDateTimeFormat, LocalTimeFormat.code -> LocalTimeFormat,
-    RealFormat.code -> RealFormat, StringFormat.code -> StringFormat)
+    DecimalFormat.code -> DecimalFormat, StringFormat.code -> StringFormat)
 }
 
 object CopybookFormats {
   val copybookFactories = Map[String, FormatFactory](BooleanFormat.code -> BooleanFormat,
     IntegerFormat.code -> IntegerFormat, LocalDateFormat.code -> LocalDateFormat,
     LocalDateTimeFormat.code -> LocalDateTimeFormat, LocalTimeFormat.code -> LocalTimeFormat,
-    RealFormat.code -> RealFormat, StringFormat.code -> StringFormat)
+    DecimalFormat.code -> DecimalFormat, StringFormat.code -> StringFormat)
 }

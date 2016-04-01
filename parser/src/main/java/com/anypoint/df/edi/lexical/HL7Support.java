@@ -5,7 +5,7 @@ import com.anypoint.df.edi.lexical.TypeFormatConstants.NumberSign;
 import com.anypoint.df.edi.lexical.TypeFormatConstants.StringSpaceFill;
 import com.anypoint.df.edi.lexical.formats.GeneralStringFormat;
 import com.anypoint.df.edi.lexical.formats.IntegerFormat;
-import com.anypoint.df.edi.lexical.formats.NumberFormat;
+import com.anypoint.df.edi.lexical.formats.ExplicitDecimalFormat;
 import com.anypoint.df.edi.lexical.formats.XmlDateFormat;
 import com.anypoint.df.edi.lexical.formats.XmlDateFormat.Variation;
 
@@ -41,7 +41,7 @@ public final class HL7Support
         if ("ST".equals(norm) || "VARIES".equals(norm) || "VAR".equals(norm)) {
             return new GeneralStringFormat(type, minLength, maxLength, StringSpaceFill.LEFT);
         } if ("NM".equals(norm)) {
-            return new NumberFormat(type, minLength, maxLength, NumberSign.OPTIONAL, true,
+            return new ExplicitDecimalFormat(type, minLength, maxLength, NumberSign.OPTIONAL, true,
                 NumberPad.ZEROES, true, false, false, false);
         } else if ("SI".equals(norm)) {
             return new IntegerFormat(type, minLength, maxLength, NumberSign.UNSIGNED, false, NumberPad.ZEROES);
