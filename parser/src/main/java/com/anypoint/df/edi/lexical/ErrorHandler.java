@@ -18,6 +18,7 @@ public interface ErrorHandler
         INVALID_FORMAT("invalid format for data type"),
         // output only
         WRONG_TYPE("unsupported value class"),
+        DATA_TRUNCATION("data too long for field"),
         INVALID_VALUE("value not allowed");
         
         private final String errorText;

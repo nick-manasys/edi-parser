@@ -1,7 +1,9 @@
 package com.anypoint.df.edi.lexical.formats;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.MathContext;
 
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition;
 import com.anypoint.df.edi.lexical.LexerBase;
@@ -87,7 +89,7 @@ public abstract class NumberFormatBase extends TypeFormatBase
         StringBuilder builder = lexer.tokenBuilder();
         boolean signed = false;
         int index = signType.trailingSign() ? builder.length() - 1 : 0;
-        int chr = builder.charAt(index);
+        char chr = builder.charAt(index);
         if (chr == '-') {
             if (signType.useMinus()) {
                 signed = true;
@@ -181,6 +183,54 @@ public abstract class NumberFormatBase extends TypeFormatBase
         }
         return new BigInteger(text);
     }
+
+    /**
+     * Convert a decimal input value with no exponent or length checks to a value.
+     * 
+     * @param lexer
+     * @return value
+     * @throws LexicalException
+     */
+    protected Object convertPlainDecimal(LexerBase lexer) throws LexicalException {
+        StringBuilder builder = lexer.tokenBuilder();
+        stripPadding(lexer);
+        boolean signed = signToNormalForm(lexer);
+        int index = signed ? 1 : 0;
+        boolean number = false;
+        int digits = 0;
+        boolean decimal = false;
+        int altmark = lexer.getAltDecimalMark();
+        for (; index < builder.length(); index++) {
+            char chr = builder.charAt(index);
+            if (chr >= '0' && chr <= '9') {
+                number = true;
+                if (digits > 0 || chr != '0') {
+                    digits++;
+                }
+            } else if (!decimal && (chr == '.' || chr == altmark)) {
+                decimal = true;
+                if (chr == altmark) {
+                    builder.setCharAt(index, '.');
+                }
+            } else if (index != 0 || !signed) {
+                invalidCharacter(chr, lexer);
+                builder.deleteCharAt(index--);
+            }
+        }
+        if (!number) {
+            noValuePresent(lexer);
+            builder.append('0');
+        }
+        if (!decimal) {
+            lexer.error(this, ErrorCondition.INVALID_FORMAT, "missing required decimal mark");
+        }
+        char last = builder.charAt(builder.length() - 1);
+        if (last == '.' || last == altmark) {
+            builder.deleteCharAt(builder.length() - 1);
+            return convertSizedInteger(lexer, digits);
+        }
+        return new BigDecimal(lexer.token());
+    }
     
     /**
      * Write a numeric value padded to a minimum length with leading zeroes.
@@ -246,9 +296,6 @@ public abstract class NumberFormatBase extends TypeFormatBase
                 writer.writeEscaped(text);
                 break;
         }
-        if (signType == NumberSign.ALWAYS_RIGHT) {
-            writer.writeEscaped(negate ? "-" : "+");
-        }
     }
     
     /**
@@ -272,6 +319,48 @@ public abstract class NumberFormatBase extends TypeFormatBase
         }
     }
     
+    private static String appendSuffix(String text, String suffix) {
+        if (suffix == null) {
+            return text;
+        }
+        return text + suffix;
+    }
+    
+    /**
+     * Write an integer value of any supported type, with optional suffix to value.
+     * 
+     * @param value
+     * @param suffix
+     * @param writer
+     * @throws IOException
+     */
+    protected void writeIntegerValue(Object value, String suffix, WriterBase writer) throws IOException {
+        if (value instanceof Integer) {
+            int actual = ((Integer)value).intValue();
+            if (actual < 0) {
+                writePadded(appendSuffix(Integer.toString(-actual), suffix), true, writer);
+            } else {
+                writePadded(appendSuffix(Integer.toString(actual), suffix), false, writer);
+            }
+        } else if (value instanceof Long) {
+            long actual = ((Long)value).longValue();
+            if (actual < 0) {
+                writePadded(appendSuffix(Long.toString(-actual), suffix), true, writer);
+            } else {
+                writePadded(appendSuffix(Long.toString(actual), suffix), false, writer);
+            }
+        } else if (value instanceof BigInteger) {
+            BigInteger actual = (BigInteger)value;
+            if (actual.signum() < 0) {
+                writePadded(appendSuffix(actual.abs().toString(), suffix), true, writer);
+            } else {
+                writePadded(appendSuffix(actual.toString(), suffix), false, writer);
+            }
+        } else {
+            wrongType(value, writer);
+        }
+    }
+    
     /**
      * Write an integer value of any supported type.
      * 
@@ -280,24 +369,60 @@ public abstract class NumberFormatBase extends TypeFormatBase
      * @throws IOException
      */
     protected void writeIntegerValue(Object value, WriterBase writer) throws IOException {
-        if (value instanceof Integer) {
-            int actual = ((Integer)value).intValue();
-            if (actual < 0) {
-                writePadded(Integer.toString(-actual), true, writer);
+        writeIntegerValue(value, null, writer);
+    }
+    
+    /**
+     * Write an decimal value of any supported type without an exponent.
+     * 
+     * @param value
+     * @param writer
+     * @throws IOException
+     */
+    protected void writeDecimalValue(Object value, WriterBase writer) throws IOException {
+        if (value instanceof BigDecimal) {
+            BigDecimal big = (BigDecimal)value;
+            int precision = big.precision();
+            int scale = big.scale();
+            if (scale <= 0 && (precision - scale) <= maxLength) {
+                writeIntegerValue(big.toBigIntegerExact(), ".", writer);
             } else {
-                writePadded(Integer.toString(actual), false, writer);
+                boolean negate = big.signum() < 0;
+                if (negate) {
+                    big = big.abs();
+                }
+                if (scale >= 0 && Math.max(precision, scale) <= maxLength) {
+                    
+                    // write as simple decimal
+                    String text = big.toPlainString();
+                    if (text.length() > 1 && text.charAt(0) == '0') {
+                        text = text.substring(1);
+                    }
+                    writePadded(text, text.length(), negate, writer);
+                    
+                } else {
+                    
+                    // exact representation not possible, round to specified precision
+                    int allowed = maxLength - 1 - (negate && countSign ? 1 : 0);
+                    if (allowed + scale < 0) {
+                        writer.error(this, ErrorCondition.INVALID_FORMAT,
+                            "value representation not possible for " + ((BigDecimal)value).toString());
+                        writePadded("0", 1, false, writer);
+                    } else {
+                        writer.error(this, ErrorCondition.DATA_TRUNCATION,
+                            "rounding value to fit " + ((BigDecimal)value).toString());
+                        MathContext mc = new MathContext(allowed);
+                        big.round(mc);
+                        String text = big.toPlainString();
+                        if (text.length() > 1 && text.charAt(0) == '0') {
+                            text = text.substring(1);
+                        }
+                        writePadded(text, text.length(), negate, writer);
+                    }
+                }
             }
-        } else if (value instanceof Long) {
-            long actual = ((Long)value).longValue();
-            if (actual < 0) {
-                writePadded(Long.toString(-actual), true, writer);
-            } else {
-                writePadded(Long.toString(actual), false, writer);
-            }
-        } else if (value instanceof BigInteger) {
-            writeBigInteger((BigInteger)value, writer);
-        } else {
-            wrongType(value, writer);
+       } else {
+            writeIntegerValue(value, ".", writer);
         }
     }
 }

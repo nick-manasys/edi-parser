@@ -23,12 +23,14 @@ object IntegerFormat extends FormatFactory {
 
     override def write(value: Object, writer: WriterBase) = {
       value match {
-        case n: jl.Number => writeIntegerValue(value, writer)
         case n: Number =>
           writer.startToken
           if (n.canBeInt) writeIntegerValue(Integer.valueOf(n.toInt), writer)
           else if (n.canBeLong) writeIntegerValue(jl.Long.valueOf(n.toLong), writer)
           else writeIntegerValue(n.toBigInt.bigInteger, writer)
+        case n: jl.Number =>
+          writer.startToken
+          writeIntegerValue(value, writer)
         case _ =>
           wrongType(value, writer)
           writer.writeToken("")
@@ -55,7 +57,11 @@ object IntegerFormat extends FormatFactory {
     override def write(value: Object, writer: WriterBase) = {
       value match {
         case n: Number =>
-          writer.writeEscaped(buildFormat.format(value))
+          if (n.canBeInt) writer.writeEscaped(buildFormat.format(Integer.valueOf(n.toInt)))
+          else if (n.canBeLong) writer.writeEscaped(buildFormat.format(jl.Long.valueOf(n.toLong)))
+          else writer.writeEscaped(buildFormat.format(n.toBigInt.bigInteger))
+        case n: jl.Number =>
+          writer.writeEscaped(buildFormat.format(n))
         case _ =>
           wrongType(value, writer)
           writer.writeToken("")

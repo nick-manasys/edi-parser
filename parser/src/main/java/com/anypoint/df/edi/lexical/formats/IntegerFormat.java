@@ -38,6 +38,6 @@ public class IntegerFormat extends NumberFormatBase
     @Override
     public void write(Object value, WriterBase writer) throws IOException {
         writer.startToken();
-        writeIntegerValue(value, writer);
+        writeIntegerValue(value, null, writer);
     }
 }

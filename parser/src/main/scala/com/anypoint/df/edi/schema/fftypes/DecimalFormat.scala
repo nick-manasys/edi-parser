@@ -1,28 +1,33 @@
 package com.anypoint.df.edi.schema.fftypes
 
 import spire.math.Number
-
 import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
-import com.anypoint.df.edi.lexical.formats.{ DecimalFormatBase, NumberFormatBase, TypeFormatBase }
-
-import java.{ math => jm, text => jt }
+import com.anypoint.df.edi.lexical.formats.{ NumberFormatBase, TypeFormatBase }
+import java.{ lang => jl, math => jm, text => jt }
 import java.util.Locale
+import scala.annotation.tailrec
 
 object DecimalFormat extends FormatFactory {
   
   def code = "Decimal"
   
   case class DecimalFormatImpl(width: Int, sign: NumberSign, fill: FillMode)
-      extends DecimalFormatBase(code, width, width, sign, true, fill, true, false, false, false) with FlatFileFormat {
+      extends NumberFormatBase(code, width, width, sign, true, fill) with FlatFileFormat {
     
-    override def parse(lexer: LexerBase) = convertDecimalValue(lexer)
+    override def parse(lexer: LexerBase) = convertPlainDecimal(lexer)
     
     override def write(value: Object, writer: WriterBase) = {
       value match {
         case n: Number =>
           writer.startToken
-          writeIntegerValue(value, writer)
+          if (n.canBeInt) writeDecimalValue(Integer.valueOf(n.toInt), writer)
+          else if (n.canBeLong) writeDecimalValue(jl.Long.valueOf(n.toLong), writer)
+          else if (n.isWhole) writeDecimalValue(n.toBigInt.bigInteger, writer)
+          else writeDecimalValue(n.toBigDecimal, writer)
+        case n: jl.Number =>
+          writer.startToken
+          writeDecimalValue(n, writer)
         case _ =>
           wrongType(value, writer)
           writer.writeToken("")
@@ -44,15 +49,16 @@ object DecimalFormat extends FormatFactory {
     }
     
     override def write(value: Object, writer: WriterBase) = {
+      def writeImplicit(decimal: jm.BigDecimal) = {
+          writer.startToken
+          val adjusted = decimal.movePointRight(impl).setScale(impl, jm.RoundingMode.HALF_UP)
+          writeBigInteger(adjusted.toBigIntegerExact, writer)
+      }
       value match {
         case n: Number =>
-          writer.startToken
-          value match {
-            case d: jm.BigDecimal =>
-              val adjusted = d.movePointRight(impl).setScale(impl, jm.RoundingMode.HALF_UP)
-              writeBigInteger(adjusted.toBigIntegerExact, writer)
-          }
-          writeIntegerValue(value, writer)
+          writeImplicit(n.toBigDecimal.bigDecimal)
+        case d: jm.BigDecimal =>
+          writeImplicit(d)
         case _ =>
           wrongType(value, writer)
           writer.writeToken("")
