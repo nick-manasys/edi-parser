@@ -4,12 +4,18 @@ public final class TypeFormatConstants
 {
     public enum FillMode
     {
-        LEFT("Left justify"), RIGHT("Right justify"), NONE("None"), ZEROES("Zero filled");
+        LEFT("Left justify", false), RIGHT("Right justify", false), NONE("None", false), ZEROES("Zero filled", true);
         
         private final String textName;
+        private final boolean numberOnly;
         
-        private FillMode(String text) {
+        private FillMode(String text, boolean number) {
             textName = text;
+            numberOnly = number;
+        }
+        
+        public boolean numberOnly() {
+            return numberOnly;
         }
         
         public String toString() {

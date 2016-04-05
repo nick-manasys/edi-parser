@@ -1,6 +1,6 @@
 package com.anypoint.df.edi.schema.fftypes
 
-import java.{ lang => jl, math => jm }
+import java.{ lang => jl, math => jm, text => jt, util => ju }
 import java.io.IOException
 
 import org.scalatest.FlatSpec
@@ -196,5 +196,36 @@ class DecimalFormatTest extends FlatSpec with Matchers {
     intercept[IOException] { DemoSupport.writeString(null, alwaysRight4) }
     intercept[IOException] { DemoSupport.writeString(new jm.BigDecimal("233"), alwaysRight4) }
     intercept[IOException] { DemoSupport.writeString(new jm.BigDecimal("28223134"), alwaysRight8) }
+  }
+  
+  val pattern12Left = DecimalFormat(12, "#,###,###.00X", new ju.Locale("en"), FillMode.LEFT)
+  val pattern12Right = DecimalFormat(12, "#,###,###.00X", new ju.Locale("en"), FillMode.RIGHT)
+  
+  behavior of "Decimal pattern"
+  
+  it should "parse input correctly" in {
+    DemoSupport.parseString("1.00X       ", pattern12Left) should be (new jm.BigDecimal("1.00"))
+    DemoSupport.parseString("12,345.23X  ", pattern12Left) should be (new jm.BigDecimal("12345.23"))
+    DemoSupport.parseString("234,567.89X ", pattern12Left) should be (new jm.BigDecimal("234567.89"))
+    DemoSupport.parseString("       1.00X", pattern12Right) should be (new jm.BigDecimal("1.00"))
+    DemoSupport.parseString("  12,345.23X", pattern12Right) should be (new jm.BigDecimal("12345.23"))
+    DemoSupport.parseString(" 234,567.89X", pattern12Right) should be (new jm.BigDecimal("234567.89"))
+  }
+  
+  it should "throw exception on invalid input" in {
+    intercept[jt.ParseException] { DemoSupport.parseString("1           ", pattern12Left) }
+  }
+  
+  it should "write output correctly" in {
+    DemoSupport.writeString(Integer.valueOf(2), pattern12Left) should be ("2.00X       ")
+    DemoSupport.writeString(new jm.BigDecimal("12345.23"), pattern12Left) should be ("12,345.23X  ")
+    DemoSupport.writeString(new jm.BigDecimal("234567.89"), pattern12Left) should be ("234,567.89X ")
+    DemoSupport.writeString(Integer.valueOf(2), pattern12Right) should be ("       2.00X")
+    DemoSupport.writeString(new jm.BigDecimal("12345.23"), pattern12Right) should be ("  12,345.23X")
+    DemoSupport.writeString(new jm.BigDecimal("234567.89"), pattern12Right) should be (" 234,567.89X")
+  }
+  
+  it should "throw exception on invalid value" in {
+    intercept[IOException] { DemoSupport.writeString("  ", pattern12Left) }
   }
 }

@@ -3,7 +3,7 @@ package com.anypoint.df.edi.schema.fftypes
 import spire.math.Number
 import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
-import com.anypoint.df.edi.lexical.formats.{ NumberFormatBase, TypeFormatBase }
+import com.anypoint.df.edi.lexical.formats.{ NumberFormatBase, StringFormatBase }
 import java.{ lang => jl, math => jm, text => jt }
 import java.util.Locale
 import scala.annotation.tailrec
@@ -72,24 +72,30 @@ object DecimalFormat extends FormatFactory {
     }
   }
   
-  case class DecimalPatternImpl(width: Int, pattern: String, locale: Locale)
-      extends TypeFormatBase(code, width, width) with FlatFileFormat {
+  case class DecimalPatternImpl(width: Int, pattern: String, locale: Locale, fill: FillMode)
+      extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
     private def buildFormat = new jt.DecimalFormat(pattern, new jt.DecimalFormatSymbols(locale))
 
-    override def parse(lexer: LexerBase) = {
+    override def parseToken(lexer: LexerBase) = {
       val format = buildFormat
-      format.setParseIntegerOnly(true)
+      format.setParseBigDecimal(true)
       format.parse(lexer.token)
     }
 
-    override def write(value: Object, writer: WriterBase) = {
+    override def buildToken(value: Object, writer: WriterBase) = {
       value match {
         case n: Number =>
-          writer.writeEscaped(buildFormat.format(value))
+          writer.startToken
+          if (n.canBeInt) buildFormat.format(Integer.valueOf(n.toInt))
+          else if (n.canBeLong) buildFormat.format(jl.Long.valueOf(n.toLong))
+          else if (n.isWhole) buildFormat.format(n.toBigInt.bigInteger)
+          else buildFormat.format(n.toBigDecimal)
+        case n: jl.Number =>
+          buildFormat.format(value)
         case _ =>
           wrongType(value, writer)
-          writer.writeToken("")
+          ""
       }
     }
 
@@ -101,13 +107,15 @@ object DecimalFormat extends FormatFactory {
   
   def apply(width: Int, sign: NumberSign, fill: FillMode): TypeFormat = DecimalFormatImpl(width, sign, fill)
   def apply(width: Int, sign: NumberSign, impl: Int, fill: FillMode): TypeFormat = DecimalImplicitImpl(width, impl, sign, fill)
-  def apply(width: Int, pattern: String, locale: Locale): TypeFormat = DecimalPatternImpl(width, pattern, locale)
+  def apply(width: Int, pattern: String, locale: Locale, fill: FillMode): TypeFormat =
+    DecimalPatternImpl(width, pattern, locale, fill)
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
     if (map != null && map.containsKey(patternKey)) {
       val pattern = getPattern(map)
       val locale = getLocale(map)
-      apply(width, pattern, locale)
+      val fill = getFill(map)
+      apply(width, pattern, locale, fill)
     } else if (map != null && map.containsKey(implicitKey)) {
       val impl = getRequiredInt(implicitKey, map)
       val sign = getSign(map)

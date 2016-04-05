@@ -228,28 +228,34 @@ class IntegerFormatTest extends FlatSpec with Matchers {
     intercept[IOException] { DemoSupport.writeString(Integer.valueOf(28223134), alwaysRight8) }
   }
   
-  val pattern12 = IntegerFormat(12, "###,###,###X", new ju.Locale("en"))
+  val pattern12Left = IntegerFormat(12, "###,###,###X", new ju.Locale("en"), FillMode.LEFT)
+  val pattern12Right = IntegerFormat(12, "###,###,###X", new ju.Locale("en"), FillMode.RIGHT)
   
   behavior of "Integer pattern"
   
   it should "parse input correctly" in {
-    DemoSupport.parseString("1X          ", pattern12) should be (Integer.valueOf(1))
-    DemoSupport.parseString("12,345X     ", pattern12) should be (Integer.valueOf(12345))
-    DemoSupport.parseString("1,234,567X  ", pattern12) should be (Integer.valueOf(1234567))
+    DemoSupport.parseString("1X          ", pattern12Left) should be (Integer.valueOf(1))
+    DemoSupport.parseString("12,345X     ", pattern12Left) should be (Integer.valueOf(12345))
+    DemoSupport.parseString("1,234,567X  ", pattern12Left) should be (Integer.valueOf(1234567))
+    DemoSupport.parseString("          1X", pattern12Right) should be (Integer.valueOf(1))
+    DemoSupport.parseString("     12,345X", pattern12Right) should be (Integer.valueOf(12345))
+    DemoSupport.parseString("  1,234,567X", pattern12Right) should be (Integer.valueOf(1234567))
   }
   
   it should "throw exception on invalid input" in {
-    intercept[jt.ParseException] { DemoSupport.parseString("1           ", pattern12) }
+    intercept[jt.ParseException] { DemoSupport.parseString("1           ", pattern12Left) }
   }
   
   it should "write output correctly" in {
-    // TODO: add padding support with pattern
-//    DemoSupport.writeString(Integer.valueOf(2), pattern12) should be ("2X          ")
-//    DemoSupport.writeString(Integer.valueOf(12345), pattern12) should be ("12,345X     ")
-//    DemoSupport.writeString(Integer.valueOf(1234567), pattern12) should be ("1,234,567X  ")
+    DemoSupport.writeString(Integer.valueOf(2), pattern12Left) should be ("2X          ")
+    DemoSupport.writeString(Integer.valueOf(12345), pattern12Left) should be ("12,345X     ")
+    DemoSupport.writeString(Integer.valueOf(1234567), pattern12Left) should be ("1,234,567X  ")
+    DemoSupport.writeString(Integer.valueOf(2), pattern12Right) should be ("          2X")
+    DemoSupport.writeString(Integer.valueOf(12345), pattern12Right) should be ("     12,345X")
+    DemoSupport.writeString(Integer.valueOf(1234567), pattern12Right) should be ("  1,234,567X")
   }
   
   it should "throw exception on invalid value" in {
-    intercept[IOException] { DemoSupport.writeString("  ", pattern12) }
+    intercept[IOException] { DemoSupport.writeString("  ", pattern12Left) }
   }
 }

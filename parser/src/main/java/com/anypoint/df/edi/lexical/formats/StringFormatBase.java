@@ -18,6 +18,9 @@ public abstract class StringFormatBase extends TypeFormatBase {
     public StringFormatBase(String code, int min, int max, FillMode fill) {
         super(code, min, max);
         spaceFill = fill;
+        if (spaceFill.numberOnly()) {
+            throw new IllegalArgumentException("Numeric fill option not supported");
+        }
     }
     
     /**
@@ -48,6 +51,9 @@ public abstract class StringFormatBase extends TypeFormatBase {
                 stripSpaceLeft(lexer.tokenBuilder());
                 break;
             case NONE:
+                break;
+            default:
+                throw new IllegalStateException("Invalid string format fill setting");
         }
         return parseToken(lexer);
     }
@@ -70,6 +76,9 @@ public abstract class StringFormatBase extends TypeFormatBase {
             case NONE:
                 text = checkOutputLength(text, writer);
                 writer.writeEscaped(text);
+                break;
+            default:
+                throw new IllegalStateException("Invalid string format fill setting");
         }
     }
 }

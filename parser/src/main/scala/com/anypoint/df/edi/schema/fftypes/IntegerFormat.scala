@@ -7,7 +7,7 @@ import java.util.Locale
 
 import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
-import com.anypoint.df.edi.lexical.formats.{ NumberFormatBase, TypeFormatBase }
+import com.anypoint.df.edi.lexical.formats.{ NumberFormatBase, StringFormatBase }
 
 object IntegerFormat extends FormatFactory {
 
@@ -43,28 +43,28 @@ object IntegerFormat extends FormatFactory {
     }
   }
 
-  case class IntegerPatternImpl(width: Int, pattern: String, locale: Locale)
-      extends TypeFormatBase(code, width, width) with FlatFileFormat {
+  case class IntegerPatternImpl(width: Int, pattern: String, locale: Locale, fill: FillMode)
+      extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
     private def buildFormat = new jt.DecimalFormat(pattern, new jt.DecimalFormatSymbols(locale))
 
-    override def parse(lexer: LexerBase) = {
+    override def parseToken(lexer: LexerBase) = {
       val format = buildFormat
       format.setParseIntegerOnly(true)
       format.parse(lexer.token)
     }
 
-    override def write(value: Object, writer: WriterBase) = {
+    override def buildToken(value: Object, writer: WriterBase) = {
       value match {
         case n: Number =>
-          if (n.canBeInt) writer.writeEscaped(buildFormat.format(Integer.valueOf(n.toInt)))
-          else if (n.canBeLong) writer.writeEscaped(buildFormat.format(jl.Long.valueOf(n.toLong)))
-          else writer.writeEscaped(buildFormat.format(n.toBigInt.bigInteger))
+          if (n.canBeInt) buildFormat.format(Integer.valueOf(n.toInt))
+          else if (n.canBeLong) buildFormat.format(jl.Long.valueOf(n.toLong))
+          else buildFormat.format(n.toBigInt.bigInteger)
         case n: jl.Number =>
-          writer.writeEscaped(buildFormat.format(n))
+          buildFormat.format(n)
         case _ =>
           wrongType(value, writer)
-          writer.writeToken("")
+          ""
       }
     }
 
@@ -75,13 +75,15 @@ object IntegerFormat extends FormatFactory {
   }
 
   def apply(width: Int, sign: NumberSign, fill: FillMode): TypeFormat = IntegerFormatImpl(width, sign, fill)
-  def apply(width: Int, pattern: String, locale: Locale): TypeFormat = IntegerPatternImpl(width, pattern, locale)
+  def apply(width: Int, pattern: String, locale: Locale, fill: FillMode): TypeFormat =
+    IntegerPatternImpl(width, pattern, locale, fill)
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
     if (map != null && map.containsKey(patternKey)) {
       val pattern = getPattern(map)
       val locale = getLocale(map)
-      apply(width, pattern, locale)
+      val fill = getFill(map)
+      apply(width, pattern, locale, fill)
     } else {
       val sign = getSign(map)
       val fill = getNumberFill(map)
