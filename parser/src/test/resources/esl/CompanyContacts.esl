@@ -39,17 +39,17 @@ segments:
   - { idRef: 'Extension', position: 10 }
   - { idRef: 'EffectiveDate', position: 11 }
 elements:
-  - { id: 'CompanyName', name: 'Company Name', type: AN, minLength: 0, maxLength: 20 }
-  - { id: 'IndustryCode', name: 'Industry Classification Code', type: N0, minLength: 0, maxLength: 6 }
-  - { id: 'Address', name: 'Street Address', type: AN, minLength: 0, maxLength: 20 }
-  - { id: 'City', name: 'City', type: AN, minLength: 0, maxLength: 12 }
-  - { id: 'State', name: 'State', type: AN, minLength: 0, maxLength: 2 }
-  - { id: 'Zip', name: 'Zip Code', type: N0, minLength: 0, maxLength: 5 }
-  - { id: 'Phone', name: 'Phone Number', type: N0, minLength: 0, maxLength: 10 }
-  - { id: 'FirstName', name: 'First Name', type: AN, minLength: 0, maxLength: 10 }
-  - { id: 'LastName', name: 'Last Name', type: AN, minLength: 0, maxLength: 15 }
-  - { id: 'Title', name: 'Title', type: AN, minLength: 0, maxLength: 15 }
-  - { id: 'Email', name: 'Email Address', type: AN, minLength: 0, maxLength: 20 }
-  - { id: 'Extension', name: 'Phone Extension', type: N0, minLength: 0, maxLength: 5 }
-  - { id: 'EffectiveDate', name: 'Effective Date', type: DT, minLength: 0, maxLength: 8 }
+  - { id: 'CompanyName', name: 'Company Name', type: String, length: 20 }
+  - { id: 'IndustryCode', name: 'Industry Classification Code', type: Integer, format: { justify: zeroes }, length: 6 }
+  - { id: 'Address', name: 'Street Address', type: String, length: 20 }
+  - { id: 'City', name: 'City', type: String, length: 12 }
+  - { id: 'State', name: 'State', type: String, length: 2 }
+  - { id: 'Zip', name: 'Zip Code', type: Integer, format: { justify: zeroes }, length: 5 }
+  - { id: 'Phone', name: 'Phone Number', type: Integer, format: { justify: zeroes }, length: 10 }
+  - { id: 'FirstName', name: 'First Name', type: String, length: 10 }
+  - { id: 'LastName', name: 'Last Name', type: String, length: 15 }
+  - { id: 'Title', name: 'Title', type: String, length: 15 }
+  - { id: 'Email', name: 'Email Address', type: String, length: 20 }
+  - { id: 'Extension', name: 'Phone Extension', type: Integer, format: { justify: zeroes }, length: 5 }
+  - { id: 'EffectiveDate', name: 'Effective Date', type: Date, length: 8 }
 

@@ -104,7 +104,7 @@ elements:
   - { id: 'Unused502', name: 'Filler', type: String, length: 2 }
   - { id: 'BSBExpDate', name: 'BSB / Expiry Date', type: String, length: 8 }
   - { id: 'AcctNum', name: 'Account Number', type: String, length: 17 }
-  - { id: 'Amount', name: 'Amount', type: Integer, length: 10 }
+  - { id: 'Amount', name: 'Amount', type: Integer, format: { justify: zeroes }, length: 10 }
   - { id: 'CustNum', name: 'Customer Number', type: String, length: 15 }
   - { id: 'CustAcct', name: 'Customer Account Name', type: String, length: 22 }
   - { id: 'TransNum', name: 'Transaction Number', type: String, length: 15 }
@@ -112,11 +112,11 @@ elements:
   - { id: 'AuthId', name: 'Authorization ID', type: String, length: 6 }
   - { id: 'ECI', name: 'Electronic Commerence Indicator', type: String, length: 3 }
   - { id: 'Filler512', name: 'Filler', type: String, length: 136 }
-  - { id: 'BatchTransCount', name: 'Batch Transaction Count', type: Integer, length: 6 }
-  - { id: 'BatchTransAmount', name: 'Batch Transaction Amount', type: Integer, length: 10 }
+  - { id: 'BatchTransCount', name: 'Batch Transaction Count', type: Integer, format: { justify: zeroes }, length: 6 }
+  - { id: 'BatchTransAmount', name: 'Batch Transaction Amount', type: Integer, format: { justify: zeroes }, length: 10 }
   - { id: 'Filler706', name: 'Filler', type: String, length: 208 }
-  - { id: 'FileBatchCount', name: 'File Batch Count', type: Integer, length: 2 }
-  - { id: 'FileTransCount', name: 'File Transaction Count', type: Integer, length: 8 }
-  - { id: 'FileTransAmount', name: 'File Transaction Amount', type: Integer, length: 12 }
+  - { id: 'FileBatchCount', name: 'File Batch Count', type: Integer, format: { justify: zeroes }, length: 2 }
+  - { id: 'FileTransCount', name: 'File Transaction Count', type: Integer, format: { justify: zeroes }, length: 8 }
+  - { id: 'FileTransAmount', name: 'File Transaction Amount', type: Integer, format: { justify: zeroes }, length: 12 }
   - { id: 'Filler908', name: 'Filler', type: String, length: 167 }
 

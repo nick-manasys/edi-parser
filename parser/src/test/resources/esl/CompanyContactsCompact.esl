@@ -12,26 +12,26 @@ structures:
       tag: '0'
       name: Company Information Record
       values:
-      - { name: 'Company Name', type: AN, minLength: 0, maxLength: 20 }
-      - { name: 'Industry Classification Code', type: N0, minLength: 0, maxLength: 6 }
-      - { name: 'Street Address', type: AN, minLength: 0, maxLength: 20 }
-      - { name: 'City', type: AN, minLength: 0, maxLength: 12 }
-      - { name: 'State', type: AN, minLength: 0, maxLength: 2 }
-      - { name: 'Zip Code', type: N0, minLength: 0, maxLength: 5 }
-      - { name: 'Phone Number', type: N0, minLength: 0, maxLength: 10 }
+      - { name: 'Company Name', type: String, length: 20 }
+      - { name: 'Industry Classification Code', type: Integer, format: { justify: zeroes }, length: 6 }
+      - { name: 'Street Address', type: String, length: 20 }
+      - { name: 'City', type: String, length: 12 }
+      - { name: 'State', type: String, length: 2 }
+      - { name: 'Zip Code', type: Integer, format: { justify: zeroes }, length: 5 }
+      - { name: 'Phone Number', type: Integer, format: { justify: zeroes }, length: 10 }
     - id: 'CONTACT'
       tag: '1'
       name: Contact Person Record
       count: '>1'
       values:
-      - { name: 'First Name', type: AN, minLength: 0, maxLength: 10 }
-      - { name: 'Last Name', type: AN, minLength: 0, maxLength: 15 }
-      - { name: 'Title', type: AN, minLength: 0, maxLength: 15 }
-      - { name: 'Email Address', type: AN, minLength: 0, maxLength: 20 }
-      - { name: 'Street Address', type: AN, minLength: 0, maxLength: 20 }
-      - { name: 'City', type: AN, minLength: 0, maxLength: 12 }
-      - { name: 'State', type: AN, minLength: 0, maxLength: 2 }
-      - { name: 'Zip Code', type: N0, minLength: 0, maxLength: 5 }
-      - { name: 'Phone Number', type: N0, minLength: 0, maxLength: 10 }
-      - { name: 'Phone Extension', type: N0, minLength: 0, maxLength: 5 }
-      - { name: 'Effective Date', type: DT, minLength: 0, maxLength: 8 }
+      - { name: 'First Name', type: String, length: 10 }
+      - { name: 'Last Name', type: String, length: 15 }
+      - { name: 'Title', type: String, length: 15 }
+      - { name: 'Email Address', type: String, length: 20 }
+      - { name: 'Street Address', type: String, length: 20 }
+      - { name: 'City', type: String, length: 12 }
+      - { name: 'State', type: String, length: 2 }
+      - { name: 'Zip Code', type: Integer, format: { justify: zeroes }, length: 5 }
+      - { name: 'Phone Number', type: Integer, format: { justify: zeroes }, length: 10 }
+      - { name: 'Phone Extension', type: Integer, format: { justify: zeroes }, length: 5 }
+      - { name: 'Effective Date', type: Date, length: 8 }

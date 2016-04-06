@@ -11,7 +11,6 @@ import scala.io.Source
 import java.io.ByteArrayInputStream
 import java.util.GregorianCalendar
 import scala.util.Success
-import java.util.Calendar
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.io.File
@@ -20,6 +19,8 @@ import com.anypoint.df.edi.lexical.EdiConstants._
 import com.anypoint.df.edi.lexical.LexicalException
 import com.anypoint.df.edi.schema.tools.YamlSupport
 import javax.xml.datatype.XMLGregorianCalendar
+
+import org.threeten.bp.{ LocalDate, LocalTime }
 
 class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
   
@@ -55,7 +56,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   behavior of "FlatFileSchemaParser"
 
-/*  it should "parse a simple message" in {
+  it should "parse a simple message" in {
     val in = new ByteArrayInputStream((line1 + line9).getBytes())
     val parser = new FlatFileStructureParser(in, testSchema.structures.values.head)
     val result = parser.parse
@@ -66,11 +67,13 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     val seg1 = data.get("1_FCH").asInstanceOf[ValueMap]
     seg1.size should be (5)
     seg1 get("FCH01") should be ("MISSION")
-    val date = seg1.get("FCH02").asInstanceOf[GregorianCalendar]
-    date get(Calendar.YEAR) should be (2013)
-    date get(Calendar.MONTH) should be (7)
-    date get(Calendar.DAY_OF_MONTH) should be (2)
-    seg1 get("FCH03") should be (Integer.valueOf(28800000))
+    val date = seg1.get("FCH02").asInstanceOf[LocalDate]
+    date.getYear should be (2013)
+    date.getMonthValue should be (8)
+    date.getDayOfMonth should be (2)
+    val time = seg1.get("FCH03").asInstanceOf[LocalTime]
+    time.getHour should be (8)
+    time.getMinute should be (0)
     seg1 get("FCH04") should be ("MISSIONAUSTRALIA")
     seg1 get("FCH05") should be ("2009110401")
     val seg2 = data.get("5_FCF").asInstanceOf[ValueMap]
@@ -82,10 +85,10 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     seg2 get("FCF05") should be ("MISSIONAUSTRALIA")
     seg2 get("FCF06") should be ("2009110401")
   }
-*/  
+
   val fixedSchemaText = """form: FIXEDWIDTH
 values: 
-- { name: 'field_0', type: Integer, length: 10 }
+- { name: 'field_0', type: Integer, format: { justify: zeroes }, length: 10 }
 - { name: 'field_1', type: String, length: 10 }
 - { name: 'field_2', type: String, length: 10 }"""
   val fixedDataText = "0004567891QAZWSX    0987654   "
@@ -106,7 +109,7 @@ values:
 
   behavior of "FlatFileSchemaWriter"
 
-/*  it should "roundtrip a complete document" in {
+  it should "roundtrip a complete document" in {
     val msg = readDoc("edi/QB-FFSampleRequest.txt")
     val in = new ByteArrayInputStream(msg.getBytes())
     val parser = new FlatFileStructureParser(in, testStructure)
@@ -218,5 +221,5 @@ values:
 //    val swriter = new StringWriter
 //    YamlSupport.writeMap(input, swriter)
     text should be (fixedMultiText)
-  }*/
+  }
 }
