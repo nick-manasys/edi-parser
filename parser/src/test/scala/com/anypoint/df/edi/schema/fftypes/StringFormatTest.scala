@@ -13,6 +13,7 @@ class StringFormatTest extends FlatSpec with Matchers {
   
   val pattern12Left = StringFormat(12, FillMode.LEFT)
   val pattern12Right = StringFormat(12, FillMode.RIGHT)
+  val pattern12None = StringFormat(12, FillMode.NONE)
   
   behavior of "String pattern"
   
@@ -23,6 +24,9 @@ class StringFormatTest extends FlatSpec with Matchers {
     DemoSupport.parseString("          1X", pattern12Right) should be ("1X")
     DemoSupport.parseString("     12,345X", pattern12Right) should be ("12,345X")
     DemoSupport.parseString(" 1,234,567X ", pattern12Right) should be ("1,234,567X ")
+    DemoSupport.parseString("1X          ", pattern12None) should be ("1X          ")
+    DemoSupport.parseString("  12,345X   ", pattern12None) should be ("  12,345X   ")
+    DemoSupport.parseString(" 1,234,567X ", pattern12None) should be (" 1,234,567X ")
   }
   
   it should "write output correctly" in {
@@ -34,5 +38,13 @@ class StringFormatTest extends FlatSpec with Matchers {
     DemoSupport.writeString("12,345X", pattern12Right) should be ("     12,345X")
     DemoSupport.writeString("1,234,567X ", pattern12Right) should be (" 1,234,567X ")
     DemoSupport.writeString(Integer.valueOf(123), pattern12Right) should be ("         123")
+    DemoSupport.writeString("1X          ", pattern12None) should be ("1X          ")
+    DemoSupport.writeString("  12,345X   ", pattern12None) should be ("  12,345X   ")
+    DemoSupport.writeString(" 1,234,567X ", pattern12None) should be (" 1,234,567X ")
+  }
+  
+  it should "throw exception on invalid value" in {
+    intercept[IOException] { DemoSupport.writeString("01234567890", pattern12None) }
+    intercept[IOException] { DemoSupport.writeString("0123456789012", pattern12None) }
   }
 }
