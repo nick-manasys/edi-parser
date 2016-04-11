@@ -43,4 +43,4 @@ segments:
   - { name: 'ADDRESS', type: String, length: 15 }
   - { name: 'CITY', type: String, length: 15 }
   - { name: 'STATE', type: String, length: 2 }
-  - { name: 'ZIP', type: Integer, length: 5 }
+  - { name: 'ZIP', type: Integer, length: 5, format: { justify: ZEROES } }

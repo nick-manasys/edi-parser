@@ -53,25 +53,41 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
   protected def getFill(map: ValueMap): FillMode = {
     if (map != null && map.containsKey(fillKey)) {
       val code = getAsString(fillKey, map)
-      FillMode.valueOf(code.toUpperCase)
+      try {
+          FillMode.valueOf(code.toUpperCase)
+      } catch {
+        case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $fillKey")
+      }
     } else defaultFill
   }
   protected def getSign(map: ValueMap): NumberSign = {
     if (map != null && map.containsKey(numberSignKey)) {
       val code = getAsString(numberSignKey, map)
-      NumberSign.valueOf(code.toUpperCase)
+      try {
+          NumberSign.valueOf(code.toUpperCase)
+      } catch {
+        case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $numberSignKey")
+      }
     } else defaultSign
   }
   protected def getNumberFill(map: ValueMap): FillMode = {
     if (map != null && map.containsKey(fillKey)) {
       val code = getAsString(fillKey, map)
-      FillMode.valueOf(code.toUpperCase)
+      try {
+          FillMode.valueOf(code.toUpperCase)
+      } catch {
+        case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $fillKey")
+      }
     } else defaultNumberFill
   }
   protected def getBooleanRepresentation(map: ValueMap): BooleanRepresentation = {
     if (map != null && map.containsKey(boolReprKey)) {
       val code = getAsString(boolReprKey, map)
-      BooleanRepresentation.valueOf(code.toUpperCase)
+      try {
+          BooleanRepresentation.valueOf(code.toUpperCase)
+      } catch {
+        case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $boolReprKey")
+      }
     } else defaultBoolRepr
   }
   protected def getPattern(map: ValueMap): String = {

@@ -110,12 +110,22 @@ class YamlFormatter(writer: Writer) {
   }
 
   def openGrouping: YamlFormatter = openGrouping(formStack.head)
-
+  
   def closeGrouping = {
     val compact = formStack.head
     formStack = formStack.tail
     if (compact) writer append " }\n"
     indentCount -= 1
+  }
+  
+  def openEmbeddedGrouping: YamlFormatter = {
+    writer append "{ "
+    firstInner = true
+    this
+  }
+  
+  def closeEmbeddedGrouping = {
+    writer append " }"
   }
 }
 
@@ -183,13 +193,14 @@ object YamlWriter extends YamlDefs {
             else formatter.keyValueQuote(key, s)
           }
         case m: ju.Map[String, Object] =>
-          formatter.openGrouping(true)
+          formatter.writeKey(key)
+          formatter.openEmbeddedGrouping
           val iter = m.keySet.iterator
           while (iter.hasNext) {
             val key = iter.next.asInstanceOf[String]
             writePair(key, m.get(key))
           }
-          formatter.closeGrouping
+          formatter.closeEmbeddedGrouping
         case null =>
         case _ => throw new IllegalArgumentException(s"No support for type ${value.getClass}")
       }
