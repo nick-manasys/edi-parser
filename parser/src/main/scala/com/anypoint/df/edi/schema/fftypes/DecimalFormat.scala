@@ -24,7 +24,7 @@ object DecimalFormat extends FormatFactory {
           if (n.canBeInt) writeDecimalValue(Integer.valueOf(n.toInt), writer)
           else if (n.canBeLong) writeDecimalValue(jl.Long.valueOf(n.toLong), writer)
           else if (n.isWhole) writeDecimalValue(n.toBigInt.bigInteger, writer)
-          else writeDecimalValue(n.toBigDecimal, writer)
+          else writeDecimalValue(n.toBigDecimal.bigDecimal, writer)
         case n: jl.Number =>
           writer.startToken
           writeDecimalValue(n, writer)
@@ -90,7 +90,7 @@ object DecimalFormat extends FormatFactory {
           if (n.canBeInt) buildFormat.format(Integer.valueOf(n.toInt))
           else if (n.canBeLong) buildFormat.format(jl.Long.valueOf(n.toLong))
           else if (n.isWhole) buildFormat.format(n.toBigInt.bigInteger)
-          else buildFormat.format(n.toBigDecimal)
+          else buildFormat.format(n.toBigDecimal.bigDecimal)
         case n: jl.Number =>
           buildFormat.format(value)
         case _ =>
