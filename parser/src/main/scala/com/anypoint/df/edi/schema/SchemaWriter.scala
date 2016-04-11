@@ -137,7 +137,6 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
       case ref: ReferenceComponent =>
         if (!isEnvelopeSegment(ref.segment)) {
           if (map.containsKey(key)) {
-            val value = map.get(key)
             if (ref.count != 1) {
               val list = getRequiredMapList(key, map)
               if (list.isEmpty) ref.usage match {
