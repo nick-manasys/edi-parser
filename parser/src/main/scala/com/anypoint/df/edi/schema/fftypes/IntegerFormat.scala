@@ -1,10 +1,8 @@
 package com.anypoint.df.edi.schema.fftypes
 
 import spire.math.Number
-
 import java.{ lang => jl, text => jt }
 import java.util.Locale
-
 import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.{ NumberFormatBase, StringFormatBase }
@@ -22,18 +20,17 @@ object IntegerFormat extends FormatFactory {
     }
 
     override def write(value: Object, writer: WriterBase) = {
+      writer.startToken
       value match {
         case n: Number =>
-          writer.startToken
           if (n.canBeInt) writeIntegerValue(Integer.valueOf(n.toInt), writer)
           else if (n.canBeLong) writeIntegerValue(jl.Long.valueOf(n.toLong), writer)
           else writeIntegerValue(n.toBigInt.bigInteger, writer)
         case n: jl.Number =>
-          writer.startToken
           writeIntegerValue(value, writer)
         case _ =>
           wrongType(value, writer)
-          writer.writeToken("")
+          writePadded("0", false, writer)
       }
     }
 
