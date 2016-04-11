@@ -198,6 +198,45 @@ class DecimalFormatTest extends FlatSpec with Matchers {
     intercept[IOException] { DemoSupport.writeString(new jm.BigDecimal("28223134"), alwaysRight8) }
   }
   
+  val implied8Left = DecimalFormat(8, NumberSign.OPTIONAL, 2, FillMode.LEFT)
+  val implied8Right = DecimalFormat(8, NumberSign.OPTIONAL, 4, FillMode.RIGHT)
+  val implied8Zeroes = DecimalFormat(8, NumberSign.OPTIONAL, 2, FillMode.ZEROES)
+  
+  behavior of "Decimal implied"
+  
+  it should "parse input correctly" in {
+    DemoSupport.parseString("12345   ", implied8Left) should be (new jm.BigDecimal("123.45"))
+    DemoSupport.parseString("-12345  ", implied8Left) should be (new jm.BigDecimal("-123.45"))
+    DemoSupport.parseString("1       ", implied8Left) should be (new jm.BigDecimal(".01"))
+    DemoSupport.parseString("   12345", implied8Right) should be (new jm.BigDecimal("1.2345"))
+    DemoSupport.parseString("  -12345", implied8Right) should be (new jm.BigDecimal("-1.2345"))
+    DemoSupport.parseString("       1", implied8Right) should be (new jm.BigDecimal(".0001"))
+    DemoSupport.parseString("00012345", implied8Zeroes) should be (new jm.BigDecimal("123.45"))
+    DemoSupport.parseString("-0012345", implied8Zeroes) should be (new jm.BigDecimal("-123.45"))
+    DemoSupport.parseString("00000001", implied8Zeroes) should be (new jm.BigDecimal(".01"))
+  }
+  
+  it should "throw exception on invalid input" in {
+    intercept[LexicalException] { DemoSupport.parseString("1           ", implied8Right) }
+    intercept[LexicalException] { DemoSupport.parseString("1           ", implied8Zeroes) }
+  }
+  
+  it should "write output correctly" in {
+    DemoSupport.writeString(new jm.BigDecimal("123.45"), implied8Left) should be ("12345   ")
+    DemoSupport.writeString(new jm.BigDecimal("-123.45"), implied8Left) should be ("-12345  ")
+    DemoSupport.writeString(new jm.BigDecimal(".01"), implied8Left) should be ("1       ")
+    DemoSupport.writeString(new jm.BigDecimal("1.2345"), implied8Right) should be ("   12345")
+    DemoSupport.writeString(new jm.BigDecimal("-1.2345"), implied8Right) should be ("  -12345")
+    DemoSupport.writeString(new jm.BigDecimal(".0001"), implied8Right) should be ("       1")
+    DemoSupport.writeString(new jm.BigDecimal("123.45"), implied8Zeroes) should be ("00012345")
+    DemoSupport.writeString(new jm.BigDecimal("-123.45"), implied8Zeroes) should be ("-0012345")
+    DemoSupport.writeString(new jm.BigDecimal(".01"), implied8Zeroes) should be ("00000001")
+  }
+  
+  it should "throw exception on invalid value" in {
+    intercept[IOException] { DemoSupport.writeString("  ", implied8Left) }
+  }
+  
   val pattern12Left = DecimalFormat(12, "#,###,###.00X", new ju.Locale("en"), FillMode.LEFT)
   val pattern12Right = DecimalFormat(12, "#,###,###.00X", new ju.Locale("en"), FillMode.RIGHT)
   

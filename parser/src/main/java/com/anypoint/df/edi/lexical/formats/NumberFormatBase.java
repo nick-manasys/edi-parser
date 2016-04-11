@@ -243,58 +243,76 @@ public abstract class NumberFormatBase extends TypeFormatBase
      */
     protected void writePadded(String text, int length, boolean negate, WriterBase writer) throws IOException {
         int effect = length;
-        switch (signType) {
-            case ALWAYS_LEFT:
-                writer.writeEscaped(negate ? "-" : "+");
-                if (countSign) {
+        if (signType == NumberSign.UNSIGNED && negate) {
+            writer.error(this, ErrorCondition.INVALID_VALUE, "negative value not allowed");
+            negate = false;
+        }
+        if (countSign) {
+            switch (signType) {
+                case ALWAYS_LEFT:
+                case ALWAYS_RIGHT:
                     effect++;
-                }
-                break;
-            case ALWAYS_RIGHT:
-                text = text + (negate ? '-' : '+');
-                if (countSign) {
-                    effect++;
-                }
-                break;
-            case NEGATIVE_ONLY:
-            case OPTIONAL:
-                if (negate) {
-                    writer.writeEscaped("-");
-                    if (countSign) {
+                    break;
+                default:
+                    if (negate) {
                         effect++;
                     }
-                }
-                break;
-            case UNSIGNED:
-                if (negate) {
-                    writer.error(this, ErrorCondition.INVALID_VALUE, "negative value not allowed");
-                    negate = false;
-                }
-                break;
+                    break;
+            }
         }
         if (effect > maxLength) {
             tooLong(effect, writer);
+            int trim = Math.max(text.length() - effect + maxLength, 0);
+            text = text.substring(0, trim);
+            effect = maxLength;
         }
         int pad = minLength - effect;
-        switch (fillMode) {
-            case RIGHT:
+        if (fillMode == FillMode.ZEROES) {
+            switch (signType) {
+                case ALWAYS_LEFT:
+                    writer.writeEscaped(negate ? "-" : "+");
+                    break;
+                case NEGATIVE_ONLY:
+                case OPTIONAL:
+                    if (negate) {
+                        writer.writeEscaped("-");
+                    }
+                    break;
+                default:
+                    break;
+            }
+            writePadding(pad, ZEROES, writer);
+            writer.writeEscaped(text);
+            if (signType == NumberSign.ALWAYS_RIGHT) {
+                writer.writeEscaped(negate ? "-" : "+");
+            }
+        } else {
+            if (fillMode == FillMode.RIGHT) {
                 writePadding(pad, SPACES, writer);
-                writer.writeEscaped(text);
-                break;
-            case LEFT:
-                writer.writeEscaped(text);
+            }
+            switch (signType) {
+                case ALWAYS_LEFT:
+                    writer.writeEscaped(negate ? "-" : "+");
+                    writer.writeEscaped(text);
+                    break;
+                case ALWAYS_RIGHT:
+                    writer.writeEscaped(text);
+                    writer.writeEscaped(negate ? "-" : "+");
+                    break;
+                case NEGATIVE_ONLY:
+                case OPTIONAL:
+                    if (negate) {
+                        writer.writeEscaped("-");
+                    }
+                    writer.writeEscaped(text);
+                    break;
+                case UNSIGNED:
+                    writer.writeEscaped(text);
+                    break;
+            }
+            if (fillMode == FillMode.LEFT) {
                 writePadding(pad, SPACES, writer);
-                break;
-            case NONE:
-                if (effect < minLength) {
-                    tooShort(effect, writer);
-                }
-                writer.writeEscaped(text);
-                break;
-            case ZEROES:
-                writePadding(pad, ZEROES, writer);
-                writer.writeEscaped(text);
-                break;
+            }
         }
     }
     
