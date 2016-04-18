@@ -1,11 +1,12 @@
 package com.anypoint.df.edi.schema.fftypes
 
-import org.threeten.bp.LocalDate
-import org.threeten.bp.format.DateTimeFormatter
+import java.util.Calendar
 
-import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.StringFormatBase
+import com.anypoint.df.edi.lexical.{LexerBase, TypeFormat, WriterBase}
+import org.threeten.bp.LocalDate
+import org.threeten.bp.format.DateTimeFormatter
 
 object LocalDateFormat extends FormatFactory {
 
@@ -21,6 +22,7 @@ object LocalDateFormat extends FormatFactory {
     override def buildToken(value: Object, writer: WriterBase): String = {
       value match {
         case d: LocalDate => d.format(formatter)
+        case c: Calendar => LocalDate.of(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).format(formatter)
         case _ =>
           wrongType(value, writer)
           ""
