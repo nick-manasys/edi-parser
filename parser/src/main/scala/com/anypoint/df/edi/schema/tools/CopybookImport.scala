@@ -70,7 +70,7 @@ object DataDescriptionParser extends Parsers {
   val justifyBaseParser = ("JUSTIFIED" | "JUST") <~ "RIGHT".?
   val justifyParser = propertyParser(justifiedKey, justifyBaseParser)
   val occursDependsParser = propertyParser(occursDependKey, "DEPENDING" ~> "ON".? ~> matchAnyParser)
-  val occursParser = propertyParser(occursKey, "OCCURS" ~> matchAnyParser ~> "TIMES".? ~> occursDependsParser) ~>
+  val occursParser = propertyParser(occursKey, "OCCURS" ~> matchAnyParser <~ "TIMES".? <~ occursDependsParser.?) ~>
     propertyParser(occursToKey, "TO" ~> matchAnyParser ~> "TIMES".? ~> occursDependsParser).? ~>
     (("ASCENDING" | "DESCENDING") ~> "KEY".? ~> "IS".? ~> matchAnyParser).? ~>
     ("INDEXED" ~> "BY".? ~> matchAnyParser).?
@@ -82,7 +82,7 @@ object DataDescriptionParser extends Parsers {
   val usageBaseParser = "USAGE" ~> "IS".? ~>
     ("DISPLAY" | "PACKED-DECIMAL" | "COMP-3" | "COMPUTATIONAL-3" | err("Unsupported USAGE type"))
   val usageParser = propertyParser(usageKey, usageBaseParser)
-  val clauseParser = blankParser | dateParser | globalParser | justifyParser | pictureParser | signParser | usageParser
+  val clauseParser = blankParser | dateParser | globalParser | justifyParser | occursParser | pictureParser | signParser | usageParser
   val redefinesParser = propertyParser(redefinesKey, "REDEFINES" ~> matchAnyParser)
   val descriptionParser = (("FILLER" ~> (redefinesParser) | clauseParser) | clauseParser |
     propertyParser(nameKey, matchAnyParser <~ redefinesParser) | propertyParser(nameKey, matchAnyParser)) ~ clauseParser.*
