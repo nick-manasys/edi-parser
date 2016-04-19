@@ -168,7 +168,7 @@ class CopybookImport(in: InputStream, enc: String) {
           val fulltext = lead + line.slice(7, 72).trim
           val split = fulltext.indexOf('.')
           if (split >= 0) fulltext.substring(0, split).replace(',', ' ').replace(';', ' ').toUpperCase.split(" +")
-          else accumr(fulltext)
+          else accumr(fulltext + ' ')
         }
       }
     }
