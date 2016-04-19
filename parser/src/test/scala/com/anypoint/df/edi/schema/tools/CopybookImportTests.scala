@@ -86,6 +86,7 @@ class CopybookImportTests extends FlatSpec with Matchers {
   it should "build a simple segment" in {
     val cbi = new CopybookImport(new ByteArrayInputStream(baseDef.getBytes("UTF-8")), "UTF-8")
     val (problems, optseg) = cbi.buildSegment
+    problems should be (Nil)
     optseg match {
       case Some(segment) =>
         segment.name should be ("MAILING-RECORD")
@@ -104,6 +105,7 @@ class CopybookImportTests extends FlatSpec with Matchers {
   it should "build a segment with nested composites" in {
     val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef).getBytes("UTF-8")), "UTF-8")
     val (problems, optseg) = cbi.buildSegment
+    problems should be (Nil)
     optseg match {
       case Some(segment) =>
         segment.name should be ("MAILING-RECORD")
@@ -134,23 +136,56 @@ class CopybookImportTests extends FlatSpec with Matchers {
     //      Some("VP-MARKETING"), "MR05", 5, MandatoryUsage, 1))
   }
 
-  //  it should "build multiple segments" in {
-  //    val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
-  //    val segment1 = cbi.buildSegment
-  //    segment1.name should be ("MAILING-RECORD")
-  //    segment1.ident should be ("MR0")
-  //    val comps1 = segment1.components
-  //    comps1.length should be (3)
-  //    val segment2 = cbi.buildSegment
-  //    segment2.name should be ("OTHER-RECORD")
-  //    segment2.ident should be ("OR0")
-  //    val comps2 = segment2.components
-  //    comps2.length should be (2)
-  //  }
+    it should "build multiple segments" in {
+      val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
+      val (problems1, optseg1) = cbi.buildSegment
+      problems1 should be (Nil)
+      optseg1 match {
+        case Some(segment) =>
+          segment.name should be ("MAILING-RECORD")
+          segment.ident should be ("MR0")
+          val comps = segment.components
+          comps.length should be (3)
+        case None => fail
+      }
+      val (problems2, optseg2) = cbi.buildSegment
+      problems2 should be (Nil)
+      optseg2 match {
+        case Some(segment) =>
+          segment.name should be ("OTHER-RECORD")
+          segment.ident should be ("OR0")
+          val comps = segment.components
+          comps.length should be (2)
+        case None => fail
+      }
+    }
 
   it should "build a schema which can be written and read back in" in {
     val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
     val (optschema, problems) = cbi.buildSchema
+    problems should be (Nil)
+    optschema match {
+      case Some(schema) =>
+        val writer = new StringWriter
+        YamlWriter.write(schema, Array(), writer)
+        val text = writer.toString
+//        println(text)
+        val schemax = new YamlReader().loadYaml(new StringReader(text), Array())
+        schemax.composites should be (schema.composites)
+        schemax.elements should be (schema.elements)
+        val segments = schema.segments.values.toList.sortBy { _.name }
+        val segmentsx = schemax.segments.values.toList.sortBy { _.name }
+        schemax.segments.size should be (segments.size)
+    // disable until position numbering fixed
+    //      segments.zip(segmentsx).foreach { case (s1, s2) => s2 should be (s1) }
+      case None => fail
+    }
+  }
+
+  it should "convert a complex copybook to a schema which can be written and read back in" in {
+    val cbi = new CopybookImport(getClass.getClassLoader.getResourceAsStream("esl/claim.cpb"), "UTF-8")
+    val (optschema, problems) = cbi.buildSchema
+    problems should be (Nil)
     optschema match {
       case Some(schema) =>
         val writer = new StringWriter

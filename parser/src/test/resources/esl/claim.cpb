@@ -1,0 +1,95 @@
+            01  O5400SA-OUTPUT-INST-RECORD.
+                05  O5400SA-TCN               PIC X(17).
+                05  O5400SA-TCN-TO-CREDIT     PIC X(17).
+                05  O5400SA-TCN-OF-CREDIT     PIC X(17).
+                05  O5400SA-ADJUST-IND        PIC X(01).
+                05  O5400SA-RECIPIENT-ID      PIC X(10).
+                05  O5400SA-PLACE-OF-SVC      PIC X(02).
+                05  O5400SA-FIRST-DATE-OF-SVC PIC 9(08).
+                05  O5400SA-LAST-DATE-OF-SVC  PIC 9(08).
+                05  O5400SA-CLM-INPUT-FRM-IND PIC X(01).
+                05  O5400SA-LEVEL-OF-CARE     PIC X(02).
+                05  O5400SA-PAY-TO-PROV       PIC X(09).
+                05  O5400SA-PAY-TO-PROV-NPI   PIC X(10).
+                05  O5400SA-PAY-TO-PROV-TAX   PIC X(10).
+                05  O5400SA-DIAGNOSIS-DATA.
+                    10  O5400SA-DIAG-CODE-ICD-9-GROUP
+                             OCCURS 0025 TIMES
+                             INDEXED BY OX5400SA-DIAG-CODE-ICD-9.
+                        20  O5400SA-DIAG-CODE PIC X(08).
+                        20  O5400SA-POA-IND   PIC X(01).
+                        20  O5400SA-DIAG-SCHEME-CODE PIC X(01).
+                05  O5400SA-PROCEDURE-DATA.
+                    10  O5400SA-PROCEDURE-DATA-GROUP
+                        OCCURS 25 TIMES
+                        INDEXED BY OX5400SA-PROCEDURE-DATA.
+                        20  O5400SA-PROC-CODE PIC X(08).
+                        20  O5400SA-PROC-TYPE-OF-SERVICE PIC X(01).
+                05  O5400SA-TTL-CLM-CHARGE    PIC 9(07)V99.
+                05  O5400SA-TTL-CLM-CHARGE-S  PIC X(01).
+                05  O5400SA-TTL-ALLOWED-CHRG  PIC 9(07)V99.
+                05  O5400SA-TTL-ALLOWED-CHRG-S PIC X(01).
+                05  O5400SA-TTL-COPAY-AMT     PIC 9(05)V99.
+                05  O5400SA-TTL-COPAY-AMT-S   PIC X(01).
+                05  O5400SA-THIRD-PARTY-PMT   PIC 9(07)V99.
+                05  O5400SA-THIRD-PARTY-PMT-S PIC X(01).
+                05  O5400SA-REIMB-AMOUNT      PIC 9(07)V99.
+                05  O5400SA-REIMB-AMOUNT-S    PIC X(01).
+                05  O5400SA-ADJUSTMENT-REASON PIC X(02).
+                05  O5400SA-CLAIM-STATUS      PIC X(01).
+                05  O5400SA-TYPE-BILL         PIC X(03).
+                05  O5400SA-PATIENT-STATUS    PIC X(02).
+                05  O5400SA-ADMISSION-DATE    PIC X(08).
+                05  O5400SA-ADMIT-TYPE        PIC X(01).
+                05  O5400SA-LINE-ITEM-CODE    PIC X(03).
+                05  O5400SA-REVENUE-CODE      PIC X(04).
+                05  O5400SA-LI-HCPCS-CODE     PIC X(07).
+                05  O5400SA-LI-MODIFIERS.
+                    10  O5400SA-PROC-MOD-1    PIC X(02).
+                    10  O5400SA-PROC-MOD-2    PIC X(02).
+                    10  O5400SA-PROC-MOD-3    PIC X(02).
+                    10  O5400SA-PROC-MOD-4    PIC X(02).
+                05  O5400SA-LI-SUB-UNITS      PIC 9(05).
+                05  O5400SA-LI-SUB-UNITS-S    PIC X(01).
+                05  O5400SA-UNITS-OF-SERVICE  PIC 9(05).
+                05  O5400SA-UNITS-OF-SERVICE-S PIC X(01).
+                05  O5400SA-LI-SUB-CHARGE     PIC 9(07)V99.
+                05  O5400SA-LI-SUB-CHARGE-S   PIC X(01).
+                05  O5400SA-LI-ALLOWED-CHARGE PIC 9(07)V99.
+                05  O5400SA-LI-ALLOWED-CHARGE-S PIC X(01).
+                05  O5400SA-LI-COPAY          PIC 9(05)V99.
+                05  O5400SA-LI-COPAY-S        PIC X(01).
+                05  O5400SA-LI-THRD-PARTY-AMT PIC 9(07)V99.
+                05  O5400SA-LI-THRD-PARTY-AMT-S PIC X(01).
+                05  O5400SA-LI-REIMB-AMT      PIC 9(07)V99.
+                05  O5400SA-LI-REIMB-AMT-S    PIC X(01).
+                05  O5400SA-ATT-PROV          PIC X(09).
+                05  O5400SA-ATT-PROV-NPI      PIC X(10).
+                05  O5400SA-ATT-PROV-TAX      PIC X(10).
+                05  O5400SA-OTH-PROV          PIC X(09).
+                05  O5400SA-OTH-PROV-NPI      PIC X(10).
+                05  O5400SA-OTH-PROV-TAX      PIC X(10).
+                05  O5400SA-PFM-PROV          PIC X(09).
+                05  O5400SA-PFM-PROV-NPI      PIC X(10).
+                05  O5400SA-PFM-PROV-TAX      PIC X(10).
+                05  O5400SA-ORIGINAL-RECIP-ID PIC X(10).
+                05  O5400SA-MED-REC-NUM       PIC X(30).
+                05  O5400SA-PATIENT-ACCT-NUM  PIC X(20).
+                05  O5400SA-ADMIT-TIME.
+                    10  O5400SA-ADMIT-TIME-HR         PIC 9(02).
+                    10  O5400SA-ADMIT-TIME-MIN        PIC 9(02).
+                05  O5400SA-DISCHARGE-TIME.
+                    10  O5400SA-DISCHARGE-TIME-HR     PIC 9(02).
+                    10  O5400SA-DISCHARGE-TIME-MIN    PIC 9(02).
+                05  O5400SA-VOID-IND          PIC X(01).
+                05  O5400SA-LI-FDOS           PIC 9(08).
+                05  O5400SA-LI-LDOS           PIC 9(08).
+                05  O5400SA-LI-NDC            PIC X(11).
+                05  O5400SA-LI-NDC-UNITS      PIC 9(05)V999.
+                05  O5400SA-LI-NDC-UNITS-S    PIC X(01).
+
+            01  O5400SA-OUTPUT-TOTAL-RECORD.
+                05  O5400SA-CAPTION           PIC X(06) VALUE 'TOTAL:'.
+		05  O5400SA-TOTAL             PIC 9(09).
+                05  FILLER                    PIC X(926).
+

@@ -54,6 +54,7 @@ object DataDescriptionParser extends Parsers {
   val separateKey = "SEPARATE"
   val signKey = "SIGN"
   val usageKey = "USAGE"
+  val valueKey = "VALUE"
 
   // level number is always the first component of a data description, and followed by either a data-name, FILLER, or
   //  other clauses; if no data-name is present FILLER is implicit (so first match productions, then if failure assume
@@ -82,7 +83,10 @@ object DataDescriptionParser extends Parsers {
   val usageBaseParser = "USAGE" ~> "IS".? ~>
     ("DISPLAY" | "PACKED-DECIMAL" | "COMP-3" | "COMPUTATIONAL-3" | err("Unsupported USAGE type"))
   val usageParser = propertyParser(usageKey, usageBaseParser)
-  val clauseParser = blankParser | dateParser | globalParser | justifyParser | occursParser | pictureParser | signParser | usageParser
+  val valueParser = propertyParser(valueKey, ("VALUE" ~> "IS".? ~> matchAnyParser) |
+    ("VALUES" ~> "ARE".? ~> matchAnyParser <~ (("THROUGH" | "THRU") ~> matchAnyParser).?))
+  val clauseParser = blankParser | dateParser | globalParser | justifyParser | occursParser | pictureParser | signParser |
+    usageParser | valueParser
   val redefinesParser = propertyParser(redefinesKey, "REDEFINES" ~> matchAnyParser)
   val descriptionParser = (("FILLER" ~> (redefinesParser) | clauseParser) | clauseParser |
     propertyParser(nameKey, matchAnyParser <~ redefinesParser) | propertyParser(nameKey, matchAnyParser)) ~ clauseParser.*
@@ -142,8 +146,9 @@ object DataDescriptionParser extends Parsers {
     test(Array("xyz", "JUST", "abc", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
     test(Array("xyz", "JUST", "RIGHT", "abc", "GLOBAL", "BLANK", "ZERO"))
     test(Array("abc", "REDEFINES", "xyz", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
-    test(Array("abc", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO", "USAGE", "IS", "COMP-3"))
-    test(Array("abc", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO", "USAGE", "IS", "COMP"))
+    test(Array("abc", "JUST", "RIGHT", "OCCURS", "25", "TIMES", "BLANK", "ZERO", "USAGE", "IS", "COMP-3"))
+    test(Array("abc", "JUST", "RIGHT", "BLANK", "ZERO", "USAGE", "IS", "COMP"))
+    test(Array("abc", "JUST", "RIGHT", "OCCURS", "25", "USAGE", "IS", "COMP"))
   }
 }
 
@@ -155,6 +160,8 @@ class CopybookImport(in: InputStream, enc: String) {
 
     private val warnings: scm.Buffer[CopybookImportError] = new scm.ArrayBuffer
     private var lineCount = 0
+    private var peekLine = 0
+    private var startLine = 0
     private var nextTokens: Array[String] = Array()
 
     @tailrec
@@ -165,6 +172,7 @@ class CopybookImport(in: InputStream, enc: String) {
         lineCount += 1
         if (line.size < 7 || line(6) == '*') accumr(lead)
         else {
+          if (lead.isEmpty) peekLine = lineCount
           val fulltext = lead + line.slice(7, 72).trim
           val split = fulltext.indexOf('.')
           if (split >= 0) fulltext.substring(0, split).replace(',', ' ').replace(';', ' ').toUpperCase.split(" +")
@@ -193,6 +201,7 @@ class CopybookImport(in: InputStream, enc: String) {
       if (nextTokens.isEmpty) throw new IllegalStateException("Past end of input")
       else {
         val result = nextTokens
+        startLine = peekLine
         nextTokens = filteredDef
         result
       }
@@ -202,7 +211,7 @@ class CopybookImport(in: InputStream, enc: String) {
 
     def peek = nextTokens
 
-    def lineNumber = lineCount
+    def lineNumber = startLine
 
     def lineWarnings = warnings.toList
 
@@ -315,7 +324,7 @@ class CopybookImport(in: InputStream, enc: String) {
         if (count == 1) buildr(level, rootKey, position + 1, Nil)
         else buildr(level, name, 1, Nil)
       val comp = Composite("", name, nested, Nil, 0)
-      CompositeComponent(comp, Some(name), genKey(rootKey, position), position, MandatoryUsage, 1)
+      CompositeComponent(comp, Some(name), genKey(rootKey, position), position, MandatoryUsage, count)
     }
 
     def buildr(level: String, key: String, position: Int, acc: List[SegmentComponent]): List[SegmentComponent] =
@@ -329,7 +338,7 @@ class CopybookImport(in: InputStream, enc: String) {
           if (problems.forall { !_.error }) {
             val count = map.get(DataDescriptionParser.occursToKey) match {
               case Some(v) => v.toInt
-              case _ => map.get(DataDescriptionParser.occursToKey) match {
+              case _ => map.get(DataDescriptionParser.occursKey) match {
                 case Some(v) => v.toInt
                 case _ => 1
               }
@@ -349,8 +358,8 @@ class CopybookImport(in: InputStream, enc: String) {
                       val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1)
                       buildr(level, key, position + 1, comp :: acc)
                     case _ =>
-                      problems += CopybookImportError(true, input.lineNumber, "Missing definition", "")
-                      buildr(level, key, position + 1, acc)
+                      val nested = buildNested(definition(1), key, position, count, definition(0))
+                      buildr(level, key, position + 1, nested :: acc)
                   }
                 case None =>
                   // TODO: add unused definition
