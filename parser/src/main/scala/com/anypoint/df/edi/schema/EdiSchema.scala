@@ -421,7 +421,9 @@ object EdiSchema {
   }
 
   /** Key for a structure component. */
-  def componentKey(ident: String, pos: SegmentPosition) = pos.position + "_" + ident.replace(' ', '_')
+  def componentKey(ident: String, pos: SegmentPosition) =
+    if (pos.defined) pos.position + "_" + ident.replace(' ', '_')
+    else ident.replace(' ', '_')
 
   /** Identifier used in key for segment. */
   def segmentId(segment: Segment) = if (segment.ident.nonEmpty) segment.ident else segment.name
@@ -626,6 +628,9 @@ object EdiSchema {
 
     /** Create key for version in data maps. */
     def versionKey(version: String): String
+    
+    /** Format uses segment positions flag. */
+    def segmentsPositioned: Boolean
 
     // keys used in YAML
     val lengthKey = "length"
@@ -642,6 +647,7 @@ object EdiSchema {
     def writeFormat(format: TypeFormat, writer: PairWriter): Unit
   }
   sealed abstract class DelimitedEdiBase(text: String, layout: SchemaLayout) extends EdiForm(text, layout, false) {
+    override def segmentsPositioned = true
     def formatBuilder: (String, Int, Int) => TypeFormat
     def convertMinMaxLength(map: ValueMap) = {
       if (map.containsKey(lengthKey)) {
@@ -707,6 +713,8 @@ object EdiSchema {
     override def keyName(parentId: String, name: String, position: Int) =
       if (name.nonEmpty) name else defaultKey(parentId, position)
 
+    override def segmentsPositioned = false
+    
     def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat
 
     override def readFormat(code: String, map: ValueMap): TypeFormat = {

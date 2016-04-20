@@ -64,7 +64,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     val input = result.get
     input get("Id") should be ("QBRequest")
     val data = input.get("Data").asInstanceOf[ValueMap]
-    val seg1 = data.get("1_FCH").asInstanceOf[ValueMap]
+    val seg1 = data.get("FCH").asInstanceOf[ValueMap]
     seg1.size should be (5)
     seg1 get("FCH01") should be ("MISSION")
     val date = seg1.get("FCH02").asInstanceOf[LocalDate]
@@ -76,7 +76,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     time.getMinute should be (0)
     seg1 get("FCH04") should be ("MISSIONAUSTRALIA")
     seg1 get("FCH05") should be ("2009110401")
-    val seg2 = data.get("5_FCF").asInstanceOf[ValueMap]
+    val seg2 = data.get("FCF").asInstanceOf[ValueMap]
     seg2.size should be (6)
     seg2 get("FCF01") should be (Integer.valueOf(1))
     seg2 get("FCF02") should be (Integer.valueOf(1))

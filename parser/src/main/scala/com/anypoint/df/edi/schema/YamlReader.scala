@@ -289,6 +289,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       else text
     }
     def convertComponent(values: ValueMap, seqPos: Int): StructureComponent = {
+      def definePosition(key: String) = {
+        if (ediForm.segmentsPositioned) new DefinedPosition(table, getRequiredString(key, values))
+        else StartPosition
+      }
       val use = convertUsage(getAs(usageKey, MandatoryUsage.code, values))
       val count = values.get(countKey) match {
         case n: Integer => n.toInt
@@ -311,14 +315,15 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         if (list.size != 1) throw new IllegalArgumentException(s"Single group definition required for loop with $wrapIdKey $wrapid")
         val group = convertComponent(list.iterator.next, seqPos).asInstanceOf[GroupComponent]
         if (identSegments.contains(ediForm.loopWrapperStart) && identSegments.contains(ediForm.loopWrapperEnd)) {
-          val start = new DefinedPosition(table, getRequiredString(positionKey, values))
-          val end = new DefinedPosition(table, getRequiredString(endPositionKey, values))
+          val start = definePosition(positionKey)
+          val end = definePosition(endPositionKey)
           LoopWrapperComponent(identSegments(ediForm.loopWrapperStart), identSegments(ediForm.loopWrapperEnd), start,
             end, OptionalUsage, wrapid, group)
         } else throw new IllegalArgumentException(s"Missing loop wrapper segment definition (${ediForm.loopWrapperStart} or ${ediForm.loopWrapperEnd})")
       } else {
-        val actualPos = getAs(positionKey, convertPosition(seqPos), values)
-        val position = new DefinedPosition(table, actualPos)
+        val position = 
+          if (ediForm.segmentsPositioned) new DefinedPosition(table, getAs(positionKey, convertPosition(seqPos), values))
+          else StartPosition
         if (values.containsKey(idRefKey)) {
           val id = getRequiredString(idRefKey, values)
           if (identSegments.contains(id)) {
