@@ -12,6 +12,7 @@ public final class EdiConstants
     
     // standard character sets
     public static final Charset ASCII_CHARSET = Charset.forName("US-ASCII");
+    public static final Charset ISO88591_CHARSET = Charset.forName("ISO-8859-1");
     
     /** Maximum year number accepted (otherwise wrapped to previous century). */
     public static final int maximumYear = 2070;

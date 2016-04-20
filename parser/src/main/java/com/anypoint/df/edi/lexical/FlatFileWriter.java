@@ -6,6 +6,8 @@ import java.io.FilterWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.Map;
 
@@ -21,14 +23,24 @@ public class FlatFileWriter extends WriterBase
     private static final char[] SPACES =
         "                                                                                               ".toCharArray();
     
+    /** Character encoding used for writing. */
+    private final Charset encoding;
+    
+    /** Flag for raw data writing supported (meaning symmetrical conversions used). */
+    private Boolean supportsRaw;
+    
+    /** Transform from raw data to character code. */
+    private char[] rawTransform;
+    
     /**
      * Constructor.
      *
      * @param os output
-     * @param encoding character set encoding
+     * @param enc character set encoding
      */
-    public FlatFileWriter(OutputStream os, Charset encoding) {
-        super(new LineBasedWriter(os, encoding), '.');
+    public FlatFileWriter(OutputStream os, Charset enc) {
+        super(new LineBasedWriter(os, enc), '.');
+        encoding = enc;
     }
 
     /**
@@ -108,6 +120,46 @@ public class FlatFileWriter extends WriterBase
     @Override
     public void writeEscaped(String text) throws IOException {
         writer.write(text);
+    }
+    
+    /**
+     * Write raw data to output. This does an inverse transform of the byte data to be written, converting it into
+     * characters, and writes the characters to the writer. Not all encodings support inverse transforms, so this first
+     * checks that the encoding being used by the writer does support it.
+     * 
+     * @param bytes
+     * @throws IOException
+     */
+    public void writeRaw(byte[] bytes) throws IOException {
+        if (supportsRaw == null) {
+            ByteBuffer bbuf = ByteBuffer.allocate(256);
+            for (int i = 0; i < 256; i++) {
+                bbuf.put((byte)i);
+            }
+            bbuf.position(0);
+            CharBuffer cbuf = encoding.decode(bbuf);
+            byte[] rbytes = encoding.encode(cbuf).array();
+            supportsRaw = Boolean.FALSE;
+            if (rbytes.length == 256) {
+                supportsRaw = Boolean.TRUE;
+                for (int i = 0; i < 256; i++) {
+                    if ((rbytes[i] & 0xFF) != i) {
+                        supportsRaw = Boolean.FALSE;
+                        break;
+                    }
+                }
+                rawTransform = cbuf.array();
+            }
+        }
+        if (supportsRaw.booleanValue()) {
+            char[] chars = new char[bytes.length];
+            for (int i = 0; i < chars.length; i++) {
+                chars[i] = rawTransform[bytes[i] & 0xFF];
+            }
+            writer.write(chars);
+        } else {
+            throw new IllegalStateException("Raw data is not supported for character encoding " + encoding.name());
+        }
     }
 
     /**
@@ -255,4 +307,21 @@ public class FlatFileWriter extends WriterBase
             }
         }
     }
+//    
+//    public static void main(String[] args) throws IOException {
+//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+//        FlatFileWriter writer = new FlatFileWriter(bos, Charset.forName("Cp1047"));
+//        byte[] ibytes = new byte[256];
+//        for (int i = 0; i < 256; i++) {
+//            ibytes[i] = (byte)i;
+//        }
+//        writer.writeRaw(ibytes);
+//        writer.close();
+//        byte[] obytes = bos.toByteArray();
+//        for (int i = 0; i < 256; i++) {
+//            if ((obytes[i] & 0xFF) != i) {
+//                System.out.println("Error at " + i);
+//            }
+//        }
+//    }
 }

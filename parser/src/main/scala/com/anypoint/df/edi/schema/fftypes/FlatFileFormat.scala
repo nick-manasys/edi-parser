@@ -14,6 +14,7 @@ trait FlatFileYaml {
   val formatKey = "format"
   val patternKey = "pattern"
   val localeKey = "locale"
+  val signedKey = "signed"
 
   val defaultFill = FillMode.LEFT
   val defaultSign = NumberSign.OPTIONAL
@@ -105,12 +106,14 @@ object FixedWidthFormats {
   val fixedFactories = Map[String, FormatFactory](BooleanFormat.code -> BooleanFormat,
     IntegerFormat.code -> IntegerFormat, LocalDateFormat.code -> LocalDateFormat,
     LocalDateTimeFormat.code -> LocalDateTimeFormat, LocalTimeFormat.code -> LocalTimeFormat,
-    DecimalFormat.code -> DecimalFormat, StringFormat.code -> StringFormat)
+    DecimalFormat.code -> DecimalFormat, PackedDecimalFormat.code -> PackedDecimalFormat,
+    StringFormat.code -> StringFormat)
 }
 
 object CopybookFormats {
   val copybookFactories = Map[String, FormatFactory](BooleanFormat.code -> BooleanFormat,
     IntegerFormat.code -> IntegerFormat, LocalDateFormat.code -> LocalDateFormat,
     LocalDateTimeFormat.code -> LocalDateTimeFormat, LocalTimeFormat.code -> LocalTimeFormat,
-    DecimalFormat.code -> DecimalFormat, StringFormat.code -> StringFormat)
+    DecimalFormat.code -> DecimalFormat, PackedDecimalFormat.code -> PackedDecimalFormat,
+    StringFormat.code -> StringFormat)
 }

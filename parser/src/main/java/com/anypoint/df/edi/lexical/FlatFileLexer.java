@@ -6,6 +6,9 @@ import java.io.FilterReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
 
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
 
@@ -14,16 +17,28 @@ import com.anypoint.df.edi.lexical.EdiConstants.ItemType;
  */
 public class FlatFileLexer extends LexerBase
 {	
+    /** Reader for accessing data. */
     private final LineBasedReader typedReader;
+    
+    /** Character encoding used for writing. */
+    private final Charset encoding;
+    
+    /** Flag for raw data writing supported (meaning symmetrical conversions used). */
+    private Boolean supportsRaw;
+    
+    /** Transform from character code to raw data. */
+    private byte[] rawTransform;
     
     /**
      * Constructor.
      *
      * @param is input
+     * @param enc character set for reading stream
      */
-    public FlatFileLexer(InputStream is) {
+    public FlatFileLexer(InputStream is, Charset enc) {
         super(is, -1);
-        reader = typedReader = new LineBasedReader(stream);
+        encoding = enc;
+        reader = typedReader = new LineBasedReader(stream, enc);
     }
     
     /**
@@ -88,6 +103,47 @@ public class FlatFileLexer extends LexerBase
     }
     
     /**
+     * Get raw bytes for token. This does an inverse transform of the character data which was read, converting it back
+     * into bytes and returning the bytes. Not all encodings support inverse transforms, so this first checks that the
+     * encoding being used by the reader does support it.
+     * 
+     * @param bytes
+     * @throws IOException
+     */
+    public byte[] rawToken() throws IOException {
+        if (supportsRaw == null) {
+            CharBuffer cbuf = CharBuffer.allocate(256);
+            for (int i = 0; i < 256; i++) {
+                cbuf.put((char)i);
+            }
+            cbuf.position(0);
+            ByteBuffer bbuf = encoding.encode(cbuf);
+            char[] rchars = encoding.decode(bbuf).array();
+            supportsRaw = Boolean.FALSE;
+            if (rchars.length == 256) {
+                supportsRaw = Boolean.TRUE;
+                for (int i = 0; i < 256; i++) {
+                    if (rchars[i] != i) {
+                        supportsRaw = Boolean.FALSE;
+                        break;
+                    }
+                }
+                rawTransform = bbuf.array();
+            }
+        }
+        if (supportsRaw.booleanValue()) {
+            String token = token();
+            byte[] bytes = new byte[token.length()];
+            for (int i = 0; i < bytes.length; i++) {
+                bytes[i] = rawTransform[token.charAt(i)];
+            }
+            return bytes;
+        } else {
+            throw new IllegalStateException("Raw data is not supported for character encoding " + encoding.name());
+        }
+    }
+    
+    /**
      * Handle lexical error. This passes off to the configured handler, but logs the error appropriately based on the
      * result.
      *
@@ -138,8 +194,8 @@ public class FlatFileLexer extends LexerBase
         /** Buffer for characters preceding the tag in line (filled for every line). */
         private char[] leadBuffer;
 
-        protected LineBasedReader(InputStream in) {
-            super(new BufferedReader(new InputStreamReader(stream, EdiConstants.ASCII_CHARSET)));
+        protected LineBasedReader(InputStream in, Charset enc) {
+            super(new BufferedReader(new InputStreamReader(stream, enc)));
             leadBuffer = new char[1];
             leadOffset = 1;
             tagStart = 1;

@@ -8,7 +8,7 @@ import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.util.{ Calendar, GregorianCalendar }
 
-import com.anypoint.df.edi.lexical.{ ErrorHandler, LexerBase, LexicalException, FlatFileLexer }
+import com.anypoint.df.edi.lexical.{ EdiConstants, ErrorHandler, LexerBase, LexicalException, FlatFileLexer }
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType
 import com.anypoint.df.edi.lexical.EdiConstants.ItemType._
 import com.anypoint.df.edi.lexical.ErrorHandler.ErrorCondition
@@ -19,7 +19,7 @@ import com.mulesoft.ltmdata.StorageContext
 
 /** Base parser for flat file documents. */
 abstract class FlatFileParserBase(in: InputStream)
-extends SchemaParser(new FlatFileLexer(in), StorageContext.workingContext) {
+extends SchemaParser(new FlatFileLexer(in, EdiConstants.ISO88591_CHARSET), StorageContext.workingContext) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
