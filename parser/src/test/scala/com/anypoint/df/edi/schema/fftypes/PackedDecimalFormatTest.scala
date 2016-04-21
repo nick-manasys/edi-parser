@@ -17,7 +17,7 @@ class PackedDecimalFormatTest extends FlatSpec with Matchers {
   
   def rawParse(data: String, format: TypeFormat) = DemoSupport.parseString(data, format, EdiConstants.ISO88591_CHARSET, true)
   
-/*  behavior of "Packed decimal unsigned form"
+  behavior of "Packed decimal unsigned form"
   
   it should "parse input correctly" in {
     rawParse("\u0000\u0012\u003D", unsigned3) should be (Integer.valueOf(123))
@@ -71,7 +71,7 @@ class PackedDecimalFormatTest extends FlatSpec with Matchers {
     DemoSupport.writeString(jl.Long.valueOf(-12345678900L), signed6) should be ("\u0012\u0034\u0056\u0078\u0090\u000D")
     DemoSupport.writeString(jl.Long.valueOf(12345678900L), signed12) should be ("\u0000\u0000\u0000\u0000\u0000\u0000\u0012\u0034\u0056\u0078\u0090\u000F")
     DemoSupport.writeString(new jm.BigInteger("-12345678901234567890123"), signed12) should be ("\u0012\u0034\u0056\u0078\u0090\u0012\u0034\u0056\u0078\u0090\u0012\u003D")
-  }	*/
+  }
   
   val implied3 = PackedDecimalFormat(3, 2, true)
   val implied6 = PackedDecimalFormat(6, -2, true)
