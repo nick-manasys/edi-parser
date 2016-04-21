@@ -23,6 +23,9 @@ public class FlatFileLexer extends LexerBase
     /** Character encoding used for writing. */
     private final Charset encoding;
     
+    /** Allow raw access to data (disables end-of-line checks). */
+    private final boolean allowRaw;
+    
     /** Flag for raw data writing supported (meaning symmetrical conversions used). */
     private Boolean supportsRaw;
     
@@ -34,10 +37,12 @@ public class FlatFileLexer extends LexerBase
      *
      * @param is input
      * @param enc character set for reading stream
+     * @param raw support reading raw values
      */
-    public FlatFileLexer(InputStream is, Charset enc) {
+    public FlatFileLexer(InputStream is, Charset enc, boolean raw) {
         super(is, -1);
         encoding = enc;
+        allowRaw = raw;
         reader = typedReader = new LineBasedReader(stream, enc);
     }
     
@@ -111,6 +116,9 @@ public class FlatFileLexer extends LexerBase
      * @throws IOException
      */
     public byte[] rawToken() throws IOException {
+        if (!allowRaw) {
+            throw new IllegalStateException("Lexer is not configured for raw data access");
+        }
         if (supportsRaw == null) {
             CharBuffer cbuf = CharBuffer.allocate(256);
             for (int i = 0; i < 256; i++) {
@@ -286,7 +294,7 @@ public class FlatFileLexer extends LexerBase
                 int chr = read();
                 if (chr == -1) {
                     throw new LexicalException("Unexpected end of file in line " + segmentNumber);
-                } else if (chr == '\r' || chr == '\n') {
+                } else if (!allowRaw && (chr == '\r' || chr == '\n')) {
                     throw new LexicalException("Unexpected end of line (expected " + (length - i) + " more characters) for line " + segmentNumber);
                 }
                 tokenBuilder.append((char)chr);
