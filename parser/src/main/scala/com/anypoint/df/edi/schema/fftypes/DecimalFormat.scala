@@ -9,14 +9,14 @@ import java.util.Locale
 import scala.annotation.tailrec
 
 object DecimalFormat extends FormatFactory {
-  
+
   def code = "Decimal"
-  
+
   case class DecimalFormatImpl(width: Int, sign: NumberSign, fill: FillMode)
       extends NumberFormatBase(code, width, width, sign, true, fill) with FlatFileFormat {
-    
+
     override def parse(lexer: LexerBase) = convertPlainDecimal(lexer)
-    
+
     override def write(value: Object, writer: WriterBase) = {
       value match {
         case n: Number =>
@@ -39,20 +39,20 @@ object DecimalFormat extends FormatFactory {
       writeNumberFill(fill, writer)
     }
   }
-  
+
   case class DecimalImplicitImpl(width: Int, impl: Int, sign: NumberSign, fill: FillMode)
       extends NumberFormatBase(code, width, width, sign, true, fill) with FlatFileFormat {
-    
+
     override def parse(lexer: LexerBase) = {
-        checkIntegerFormat(lexer);
-        new jm.BigDecimal(new jm.BigInteger(lexer.token()), impl);
+      checkIntegerFormat(lexer);
+      new jm.BigDecimal(new jm.BigInteger(lexer.token()), impl)
     }
-    
+
     override def write(value: Object, writer: WriterBase) = {
       def writeImplicit(decimal: jm.BigDecimal) = {
-          writer.startToken
-          val adjusted = decimal.movePointRight(impl).setScale(impl, jm.RoundingMode.HALF_UP)
-          writeBigInteger(adjusted.toBigIntegerExact, writer)
+        writer.startToken
+        val adjusted = decimal.movePointRight(impl).setScale(impl, jm.RoundingMode.HALF_UP)
+        writeBigInteger(adjusted.toBigIntegerExact, writer)
       }
       value match {
         case n: Number =>
@@ -71,7 +71,7 @@ object DecimalFormat extends FormatFactory {
       writeNumberFill(fill, writer)
     }
   }
-  
+
   case class DecimalPatternImpl(width: Int, pattern: String, locale: Locale, fill: FillMode)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
@@ -104,7 +104,7 @@ object DecimalFormat extends FormatFactory {
       writeLocale(locale, writer)
     }
   }
-  
+
   def apply(width: Int, sign: NumberSign, fill: FillMode): TypeFormat = DecimalFormatImpl(width, sign, fill)
   def apply(width: Int, sign: NumberSign, impl: Int, fill: FillMode): TypeFormat = DecimalImplicitImpl(width, impl, sign, fill)
   def apply(width: Int, pattern: String, locale: Locale, fill: FillMode): TypeFormat =
