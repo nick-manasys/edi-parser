@@ -19,7 +19,7 @@ import com.mulesoft.ltmdata.StorageContext
 
 /** Base parser for flat file documents. */
 abstract class FlatFileParserBase(in: InputStream)
-extends SchemaParser(new FlatFileLexer(in, EdiConstants.ISO88591_CHARSET), StorageContext.workingContext) {
+extends SchemaParser(new FlatFileLexer(in, EdiConstants.ISO88591_CHARSET, false), StorageContext.workingContext) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
