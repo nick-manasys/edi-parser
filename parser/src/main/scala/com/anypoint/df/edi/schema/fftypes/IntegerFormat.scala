@@ -11,7 +11,7 @@ object IntegerFormat extends FormatFactory {
 
   def code = "Integer"
 
-  case class IntegerFormatImpl(width: Int, sign: NumberSign, fill: FillMode)
+  case class IntegerFormatImpl(width: Int, sign: NumberSign, fill: FillMode, zoned: Boolean)
       extends NumberFormatBase(code, width, width, sign, true, fill) with FlatFileFormat {
 
     override def parse(lexer: LexerBase) = {
@@ -37,6 +37,7 @@ object IntegerFormat extends FormatFactory {
     override def writeOptions(writer: pairWriter): Unit = {
       writeSign(sign, writer)
       writeNumberFill(fill, writer)
+      writeZoned(zoned, writer)
     }
   }
 
@@ -71,7 +72,9 @@ object IntegerFormat extends FormatFactory {
     }
   }
 
-  def apply(width: Int, sign: NumberSign, fill: FillMode): TypeFormat = IntegerFormatImpl(width, sign, fill)
+  def apply(width: Int, sign: NumberSign, fill: FillMode, zoned: Boolean): TypeFormat =
+    IntegerFormatImpl(width, sign, fill, zoned)
+  def apply(width: Int, sign: NumberSign, fill: FillMode): TypeFormat = apply(width, sign, fill, false)
   def apply(width: Int, pattern: String, locale: Locale, fill: FillMode): TypeFormat =
     IntegerPatternImpl(width, pattern, locale, fill)
 
@@ -84,7 +87,8 @@ object IntegerFormat extends FormatFactory {
     } else {
       val sign = getSign(map)
       val fill = getNumberFill(map)
-      apply(width, sign, fill)
+      val zoned = getZoned(map)
+      apply(width, sign, fill, zoned)
     }
   }
 }

@@ -132,27 +132,27 @@ object DataDescriptionParser extends Parsers {
     parse(new WordReader(line, 1, words))
   }
 
-//  def test(words: Array[String]): Unit = {
-//    println(s"\nParsing ${words.toList}")
-//    parse(new WordReader(1, 1, words)) match {
-//      case (Nil, map) => println("Successful parse")
-//      case (l, _) => l.foreach { e => println(s"Parse problem (${e.error}) at line ${e.line}: ${e.message}\n${e.fullText}") }
-//    }
-//    println(s"Map is $formatDetails")
-//  }
-//
-//  // simple base parsers
-//  def main(args: Array[String]): Unit = {
-//    test(Array("JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO", "END"))
-//    test(Array("FILLER", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
-//    test(Array("xyz", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
-//    test(Array("xyz", "JUST", "abc", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
-//    test(Array("xyz", "JUST", "RIGHT", "abc", "GLOBAL", "BLANK", "ZERO"))
-//    test(Array("abc", "REDEFINES", "xyz", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
-//    test(Array("abc", "JUST", "RIGHT", "OCCURS", "25", "TIMES", "BLANK", "ZERO", "USAGE", "IS", "COMP-3"))
-//    test(Array("abc", "JUST", "RIGHT", "BLANK", "ZERO", "USAGE", "IS", "COMP"))
-//    test(Array("abc", "JUST", "RIGHT", "OCCURS", "25", "USAGE", "IS", "COMP"))
-//  }
+  //  def test(words: Array[String]): Unit = {
+  //    println(s"\nParsing ${words.toList}")
+  //    parse(new WordReader(1, 1, words)) match {
+  //      case (Nil, map) => println("Successful parse")
+  //      case (l, _) => l.foreach { e => println(s"Parse problem (${e.error}) at line ${e.line}: ${e.message}\n${e.fullText}") }
+  //    }
+  //    println(s"Map is $formatDetails")
+  //  }
+  //
+  //  // simple base parsers
+  //  def main(args: Array[String]): Unit = {
+  //    test(Array("JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO", "END"))
+  //    test(Array("FILLER", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
+  //    test(Array("xyz", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
+  //    test(Array("xyz", "JUST", "abc", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
+  //    test(Array("xyz", "JUST", "RIGHT", "abc", "GLOBAL", "BLANK", "ZERO"))
+  //    test(Array("abc", "REDEFINES", "xyz", "JUST", "RIGHT", "GLOBAL", "BLANK", "ZERO"))
+  //    test(Array("abc", "JUST", "RIGHT", "OCCURS", "25", "TIMES", "BLANK", "ZERO", "USAGE", "IS", "COMP-3"))
+  //    test(Array("abc", "JUST", "RIGHT", "BLANK", "ZERO", "USAGE", "IS", "COMP"))
+  //    test(Array("abc", "JUST", "RIGHT", "OCCURS", "25", "USAGE", "IS", "COMP"))
+  //  }
 }
 
 class CopybookImport(in: InputStream, enc: String) {
@@ -226,7 +226,15 @@ class CopybookImport(in: InputStream, enc: String) {
   val compositeNameCounts = new scm.HashMap[String, Int]
   val segmentNameCounts = new scm.HashMap[String, Int]
 
+  val segments = scm.Buffer[Segment]()
+  val problems = scm.Buffer[CopybookImportError]()
+
   var elements = new scm.HashMap[String, Set[Element]]
+
+  private def dataError(msg: String) = {
+    problems += CopybookImportError(true, input.lineNumber, msg, "")
+    throw new IllegalArgumentException(msg)
+  }
 
   def abbreviateName(name: String) = {
     val builder = new StringBuilder
@@ -256,8 +264,6 @@ class CopybookImport(in: InputStream, enc: String) {
     counts.put(prefix, prior + 1)
     prefix + prior
   }
-
-  private def dataError(msg: String) = throw new IllegalStateException(s"$msg at ${input.lineNumber}")
 
   def convertReps(picchar: Char, pattern: Seq[Char], count: Int): (Int, Seq[Char]) = {
     @tailrec
@@ -293,10 +299,13 @@ class CopybookImport(in: InputStream, enc: String) {
 
   def convertPic(name: String, pic: String, packed: Boolean, signed: Boolean, map: scm.Map[String, String]): Element = {
 
-    def convertImplicitDisplay(name: String, pic: Seq[Char], lead: Int, mode: FillMode, sign: NumberSign): Element = {
+    val mode = fillMode(map)
+    val zoned = map.contains(DataDescriptionParser.separateKey)
+
+    def convertImplicitDisplay(name: String, pic: Seq[Char], lead: Int, sign: NumberSign): Element = {
       val (fract, rem) = convertReps('9', pic, 0)
       val length = lead + fract
-      if (rem.isEmpty) Element("", name, DecimalFormat(length, sign, fract, mode))
+      if (rem.isEmpty) Element("", name, DecimalFormat(length, sign, fract, mode, zoned))
       else dataError("Invalid expression in PIC clause")
     }
 
@@ -306,8 +315,6 @@ class CopybookImport(in: InputStream, enc: String) {
       if (rem.isEmpty) Element("", name, PackedDecimalFormat(length, fract, signed))
       else dataError("Invalid expression in PIC clause")
     }
-    
-    val mode = fillMode(map)
     pic.head match {
       case 'X' =>
         val (lead, rem) = convertReps('X', pic.tail, 1)
@@ -319,23 +326,20 @@ class CopybookImport(in: InputStream, enc: String) {
         val (lead, rem) = convertReps('9', pic.tail, 1)
         val sign = numberSign(map)
         if (rem.isEmpty) {
-          val format = IntegerFormat(lead, sign, mode)
+          val format = IntegerFormat(lead, sign, mode, zoned)
           Element("", name, format)
         } else if (rem.head == 'V') {
           if (packed) convertImplicitPacked(name, rem.tail, lead)
-          else convertImplicitDisplay(name, rem.tail, lead, mode, sign)
-        }
-        else dataError("Invalid expression in PIC clause")
+          else convertImplicitDisplay(name, rem.tail, lead, sign)
+        } else dataError("Invalid expression in PIC clause")
       case 'V' =>
         if (packed) convertImplicitPacked(name, pic.tail, 0)
-        else convertImplicitDisplay(name, pic.tail, 0, mode, numberSign(map))
+        else convertImplicitDisplay(name, pic.tail, 0, numberSign(map))
       case _ => dataError("Invalid expression in PIC clause")
     }
   }
 
-  def buildSegment: (List[CopybookImportError], Option[Segment]) = {
-
-    val problems = scm.Buffer[CopybookImportError]()
+  def buildSegment: Option[Segment] = {
 
     def buildNested(name: String, rootKey: String, position: Int, count: Int, level: String) = {
       val nested =
@@ -369,44 +373,49 @@ class CopybookImport(in: InputStream, enc: String) {
         val nextLevel = input.peek(0)
         if (nextLevel <= level) acc.reverse
         else {
-          val definition = input.next
-          val (problist, map) = DataDescriptionParser(input.lineNumber, definition)
-          problems ++= problist
-          if (problist.forall { !_.error }) {
-            if (definition.size == 2) {
-              val nested = buildNested(definition(1), key, position, count(map), definition(0))
-              buildr(level, key, position + 1, nested :: acc)
-            } else if (map.isDefinedAt(DataDescriptionParser.redefinesKey)) {
-              buildr(level, key, position, Nil)
-              buildr(level, key, position, acc)
-            } else {
-              map.get(DataDescriptionParser.nameKey) match {
-                case Some(name) =>
-                  map.get(DataDescriptionParser.pictureKey) match {
-                    case Some(picture) =>
-                      map.get(DataDescriptionParser.usageKey) match {
-                        case Some("DISPLAY") | None =>
-                          val element = convertPic(name, picture, false, false, map)
-                          val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1)
-                          buildr(level, key, position + 1, comp :: acc)
-                        case Some("COMP-3") | Some("COMPUTATIONAL-3") | Some("PACKED-DECIMAL") =>
-                          val element = convertPic(name, picture, true, false, map)
-                          val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1)
-                          buildr(level, key, position + 1, comp :: acc)
-                        case Some(other) =>
-                          problems += new CopybookImportError(true, input.lineNumber, s"Unsupported USAGE $other", definitionText(definition))
-                          buildr(level, key, position + 1, acc)
-                      }
-                    case _ =>
-                      val nested = buildNested(definition(1), key, position, count(map), definition(0))
-                      buildr(level, key, position + 1, nested :: acc)
-                  }
-                case None =>
-                  // TODO: add unused definition
-                  buildr(level, key, position + 1, acc)
+          try {
+            val definition = input.next
+            val (problist, map) = DataDescriptionParser(input.lineNumber, definition)
+            problems ++= problist
+            if (problist.forall { !_.error }) {
+              if (definition.size == 2) {
+                val nested = buildNested(definition(1), key, position, count(map), definition(0))
+                buildr(level, key, position + 1, nested :: acc)
+              } else if (map.isDefinedAt(DataDescriptionParser.redefinesKey)) {
+                problems += CopybookImportError(false, input.lineNumber, "Ignoring unsupported REDEFINE", "")
+                buildr(level, key, position, Nil)
+                buildr(level, key, position, acc)
+              } else {
+                map.get(DataDescriptionParser.nameKey) match {
+                  case Some(name) =>
+                    map.get(DataDescriptionParser.pictureKey) match {
+                      case Some(picture) =>
+                        map.get(DataDescriptionParser.usageKey) match {
+                          case Some("DISPLAY") | None =>
+                            val element = convertPic(name, picture, false, false, map)
+                            val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1)
+                            buildr(level, key, position + 1, comp :: acc)
+                          case Some("COMP-3") | Some("COMPUTATIONAL-3") | Some("PACKED-DECIMAL") =>
+                            val element = convertPic(name, picture, true, false, map)
+                            val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1)
+                            buildr(level, key, position + 1, comp :: acc)
+                          case Some(other) =>
+                            problems += new CopybookImportError(true, input.lineNumber, s"Unsupported USAGE $other", definitionText(definition))
+                            buildr(level, key, position + 1, acc)
+                        }
+                      case _ =>
+                        val nested = buildNested(definition(1), key, position, count(map), definition(0))
+                        buildr(level, key, position + 1, nested :: acc)
+                    }
+                  case None =>
+                    // TODO: add unused definition
+                    buildr(level, key, position + 1, acc)
+                }
               }
-            }
-          } else buildr(level, key, position + 1, acc)
+            } else buildr(level, key, position + 1, acc)
+          } catch {
+            case e: IllegalArgumentException => buildr(level, key, position, acc)
+          }
         }
       } else acc.reverse
     }
@@ -418,17 +427,13 @@ class CopybookImport(in: InputStream, enc: String) {
     val abbrev = abbreviateName(segname)
     val ident = generateIdent(abbrev, segmentNameCounts)
     val comps = buildr("01", abbrev, 1, Nil)
-    if (comps.isEmpty) (problems.toList, None)
-    else (problems.toList, Some(Segment(ident, ident, segname, comps, Nil)))
+    if (comps.isEmpty) None
+    else Some(Segment(ident, ident, segname, comps, Nil))
   }
 
   def buildSchema: (Option[EdiSchema], List[CopybookImportError]) = {
-    val segments = scm.Buffer[Segment]()
-    val problems = scm.Buffer[CopybookImportError]()
     while (input.hasNext) {
-      val result = buildSegment
-      problems ++= result._1
-      result._2.foreach { segments += _ }
+      buildSegment.foreach { segments += _ }
     }
     if (segments.isEmpty) (None, problems.toList)
     else {
@@ -446,6 +451,7 @@ object CopybookImport {
   def main(args: Array[String]): Unit = {
     val infile = new File(args(0))
     val (optschema, problems) = new CopybookImport(new FileInputStream(infile), "UTF-8").buildSchema
+    problems.foreach { x => println(s"${x.message} for definition starting at line ${x.line}") }
     optschema match {
       case Some(s) =>
         val writer = new FileWriter(args(1))

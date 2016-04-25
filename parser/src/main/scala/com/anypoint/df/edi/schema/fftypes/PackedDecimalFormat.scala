@@ -107,16 +107,16 @@ object PackedDecimalFormat extends FormatFactory {
     }
 
     override def writeOptions(writer: pairWriter): Unit = {
-      writer(implicitKey, Integer.valueOf(impl))
-      writer(signedKey, jl.Boolean.valueOf(signed))
+      writeImplicit(impl, writer)
+      writeSigned(signed, writer)
     }
   }
   
   def apply(width: Int, impl: Int, signed: Boolean): TypeFormat = PackedDecimalImpl(width, impl, signed)
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
-    val impl = if (map != null && map.containsKey(implicitKey)) getAsInt(implicitKey, map) else 0
-    val signed = map != null && map.containsKey(signedKey)
+    val impl = getImplicit(map)
+    val signed = getSigned(map)
     apply(width, impl, signed)
   }
 }

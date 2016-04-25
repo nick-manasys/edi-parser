@@ -20,9 +20,9 @@ class CopybookImportTests extends FlatSpec with Matchers {
     val cbi = new CopybookImport(dummyInput, "UTF-8")
     cbi.abbreviateName("ABCD") should be ("A")
     cbi.abbreviateName("ABCD-EF-G") should be ("AEG")
-    an[IllegalStateException] should be thrownBy cbi.abbreviateName("")
-    an[IllegalStateException] should be thrownBy cbi.abbreviateName("-")
-    an[IllegalStateException] should be thrownBy cbi.abbreviateName("A-B--")
+    an[IllegalArgumentException] should be thrownBy cbi.abbreviateName("")
+    an[IllegalArgumentException] should be thrownBy cbi.abbreviateName("-")
+    an[IllegalArgumentException] should be thrownBy cbi.abbreviateName("A-B--")
   }
 
   "generateIdent" should "return unique identifiers" in {
@@ -85,8 +85,8 @@ class CopybookImportTests extends FlatSpec with Matchers {
 
   it should "build a simple segment" in {
     val cbi = new CopybookImport(new ByteArrayInputStream(baseDef.getBytes("UTF-8")), "UTF-8")
-    val (problems, optseg) = cbi.buildSegment
-    problems should be (Nil)
+    val optseg = cbi.buildSegment
+    cbi.problems should be (Nil)
     optseg match {
       case Some(segment) =>
         segment.name should be ("MAILING-RECORD")
@@ -104,8 +104,8 @@ class CopybookImportTests extends FlatSpec with Matchers {
 
   it should "build a segment with nested composites" in {
     val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef).getBytes("UTF-8")), "UTF-8")
-    val (problems, optseg) = cbi.buildSegment
-    problems should be (Nil)
+    val optseg = cbi.buildSegment
+    cbi.problems should be (Nil)
     optseg match {
       case Some(segment) =>
         segment.name should be ("MAILING-RECORD")
@@ -136,29 +136,29 @@ class CopybookImportTests extends FlatSpec with Matchers {
     //      Some("VP-MARKETING"), "MR05", 5, MandatoryUsage, 1))
   }
 
-    it should "build multiple segments" in {
-      val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
-      val (problems1, optseg1) = cbi.buildSegment
-      problems1 should be (Nil)
-      optseg1 match {
-        case Some(segment) =>
-          segment.name should be ("MAILING-RECORD")
-          segment.ident should be ("MR0")
-          val comps = segment.components
-          comps.length should be (3)
-        case None => fail
-      }
-      val (problems2, optseg2) = cbi.buildSegment
-      problems2 should be (Nil)
-      optseg2 match {
-        case Some(segment) =>
-          segment.name should be ("OTHER-RECORD")
-          segment.ident should be ("OR0")
-          val comps = segment.components
-          comps.length should be (2)
-        case None => fail
-      }
+  it should "build multiple segments" in {
+    val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
+    val optseg1 = cbi.buildSegment
+    cbi.problems should be (Nil)
+    optseg1 match {
+      case Some(segment) =>
+        segment.name should be ("MAILING-RECORD")
+        segment.ident should be ("MR0")
+        val comps = segment.components
+        comps.length should be (3)
+      case None => fail
     }
+    val optseg2 = cbi.buildSegment
+    cbi.problems should be (Nil)
+    optseg2 match {
+      case Some(segment) =>
+        segment.name should be ("OTHER-RECORD")
+        segment.ident should be ("OR0")
+        val comps = segment.components
+        comps.length should be (2)
+      case None => fail
+    }
+  }
 
   it should "build a schema which can be written and read back in" in {
     val cbi = new CopybookImport(new ByteArrayInputStream((baseDef + nestedDef + secondDef).getBytes("UTF-8")), "UTF-8")
@@ -169,15 +169,15 @@ class CopybookImportTests extends FlatSpec with Matchers {
         val writer = new StringWriter
         YamlWriter.write(schema, Array(), writer)
         val text = writer.toString
-//        println(text)
+        //        println(text)
         val schemax = new YamlReader().loadYaml(new StringReader(text), Array())
         schemax.composites should be (schema.composites)
         schemax.elements should be (schema.elements)
         val segments = schema.segments.values.toList.sortBy { _.name }
         val segmentsx = schemax.segments.values.toList.sortBy { _.name }
         schemax.segments.size should be (segments.size)
-    // disable until position numbering fixed
-    //      segments.zip(segmentsx).foreach { case (s1, s2) => s2 should be (s1) }
+      // disable until position numbering fixed
+      //      segments.zip(segmentsx).foreach { case (s1, s2) => s2 should be (s1) }
       case None => fail
     }
   }
@@ -191,15 +191,15 @@ class CopybookImportTests extends FlatSpec with Matchers {
         val writer = new StringWriter
         YamlWriter.write(schema, Array(), writer)
         val text = writer.toString
-//        println(text)
+        //        println(text)
         val schemax = new YamlReader().loadYaml(new StringReader(text), Array())
         schemax.composites should be (schema.composites)
         schemax.elements should be (schema.elements)
         val segments = schema.segments.values.toList.sortBy { _.name }
         val segmentsx = schemax.segments.values.toList.sortBy { _.name }
         schemax.segments.size should be (segments.size)
-    // disable until position numbering fixed
-    //      segments.zip(segmentsx).foreach { case (s1, s2) => s2 should be (s1) }
+      // disable until position numbering fixed
+      //      segments.zip(segmentsx).foreach { case (s1, s2) => s2 should be (s1) }
       case None => fail
     }
   }

@@ -1,9 +1,10 @@
 package com.anypoint.df.edi.schema.fftypes
 
-import java.{ util => ju }
 import com.anypoint.df.edi.lexical.TypeFormat
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.schema.SchemaJavaDefs
+import java.{ util => ju }
+import scala.annotation.tailrec
 
 trait FlatFileYaml {
   val fillKey = "justify"
@@ -15,6 +16,7 @@ trait FlatFileYaml {
   val patternKey = "pattern"
   val localeKey = "locale"
   val signedKey = "signed"
+  val zonedKey = "zoned"
 
   val defaultFill = FillMode.LEFT
   val defaultSign = NumberSign.OPTIONAL
@@ -24,7 +26,7 @@ trait FlatFileYaml {
 
 trait FlatFileFormat extends SchemaJavaDefs with FlatFileYaml {
   type pairWriter = (String, Object) => Unit
-  
+
   // utility methods for writing format parameters
   protected def writeFill(fill: FillMode, writer: pairWriter) = {
     if (fill != defaultFill) writer(fillKey, fill.name)
@@ -44,7 +46,16 @@ trait FlatFileFormat extends SchemaJavaDefs with FlatFileYaml {
   protected def writeLocale(locale: ju.Locale, writer: pairWriter) = {
     writer(localeKey, locale.getCountry)
   }
-  
+  protected def writeImplicit(impl: Int, writer: pairWriter) = {
+    if (impl != 0) writer(implicitKey, Integer.valueOf(impl))
+  }
+  protected def writeSigned(signed: Boolean, writer: pairWriter) = {
+    if (signed) writer(signedKey, "TRUE")
+  }
+  protected def writeZoned(zoned: Boolean, writer: pairWriter) = {
+    if (zoned) writer(zonedKey, "TRUE")
+  }
+
   def writeOptions(writer: pairWriter): Unit
 }
 
@@ -55,7 +66,7 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
     if (map != null && map.containsKey(fillKey)) {
       val code = getAsString(fillKey, map)
       try {
-          FillMode.valueOf(code.toUpperCase)
+        FillMode.valueOf(code.toUpperCase)
       } catch {
         case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $fillKey")
       }
@@ -65,7 +76,7 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
     if (map != null && map.containsKey(numberSignKey)) {
       val code = getAsString(numberSignKey, map)
       try {
-          NumberSign.valueOf(code.toUpperCase)
+        NumberSign.valueOf(code.toUpperCase)
       } catch {
         case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $numberSignKey")
       }
@@ -75,7 +86,7 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
     if (map != null && map.containsKey(fillKey)) {
       val code = getAsString(fillKey, map)
       try {
-          FillMode.valueOf(code.toUpperCase)
+        FillMode.valueOf(code.toUpperCase)
       } catch {
         case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $fillKey")
       }
@@ -85,7 +96,7 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
     if (map != null && map.containsKey(boolReprKey)) {
       val code = getAsString(boolReprKey, map)
       try {
-          BooleanRepresentation.valueOf(code.toUpperCase)
+        BooleanRepresentation.valueOf(code.toUpperCase)
       } catch {
         case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $boolReprKey")
       }
@@ -97,6 +108,15 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
   protected def getLocale(map: ValueMap): ju.Locale = {
     val country = getAsString(localeKey, map)
     new ju.Locale(country)
+  }
+  protected def getImplicit(map: ValueMap): Int = {
+    if (map != null && map.containsKey(implicitKey)) getAsInt(implicitKey, map) else 0
+  }
+  protected def getSigned(map: ValueMap): Boolean = {
+    map != null && map.containsKey(signedKey) && getAsString(signedKey, map).toUpperCase == "TRUE"
+  }
+  protected def getZoned(map: ValueMap): Boolean = {
+    map != null && map.containsKey(zonedKey) && getAsString(zonedKey, map).toUpperCase == "TRUE"
   }
 
   def readFormat(width: Int, map: ValueMap): TypeFormat

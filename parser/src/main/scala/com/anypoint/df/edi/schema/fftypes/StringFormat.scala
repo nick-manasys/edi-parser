@@ -6,7 +6,14 @@ import com.anypoint.df.edi.lexical.formats.StringFormatBase
 
 object StringFormat extends FormatFactory {
 
+  import PictureHandling._
+
   def code = "String"
+
+  val pictureExpander = new PictureExpander {
+    val allowedChars = Set('A', 'X', '9', 'B', '/', '0')
+    val dataChars = Set('A', 'X', '9')
+  }
 
   case class StringFormatImpl(width: Int, fill: FillMode)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
@@ -29,5 +36,11 @@ object StringFormat extends FormatFactory {
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
     val fill = getFill(map)
     apply(width, fill)
+  }
+
+  def main(args: Array[String]) = {
+    println(pictureExpander.expandPicture("9(5)A(3)"))
+    println(pictureExpander.expandPicture("XXB(5)9"))
+    println(pictureExpander.expandPicture("XX*"))
   }
 }
