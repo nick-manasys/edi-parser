@@ -125,4 +125,33 @@ class BooleanFormatTest extends FlatSpec with Matchers {
     DemoSupport.writeString(jl.Boolean.FALSE, lower7) should be ("  false")
     DemoSupport.writeString(jl.Boolean.TRUE, lower7) should be ("   true")
   }
+  
+  val nocase1 = BooleanFormat(1, "true", "false", false, FillMode.NONE)
+  val nocase2 = BooleanFormat(2, "true", "false", false, FillMode.LEFT)
+  val nocase5 = BooleanFormat(5, "true", "false", false, FillMode.LEFT)
+  val nocase7 = BooleanFormat(7, "true", "false", false, FillMode.RIGHT)
+  
+  behavior of "BooleanFormat caseless form"
+  
+  it should "parse input correctly" in {
+    DemoSupport.parseString("F", nocase1).asInstanceOf[Boolean] should be (false)
+    DemoSupport.parseString("t", nocase1).asInstanceOf[Boolean] should be (true)
+    DemoSupport.parseString("fa", nocase2).asInstanceOf[Boolean] should be (false)
+    DemoSupport.parseString("TR", nocase2).asInstanceOf[Boolean] should be (true)
+    DemoSupport.parseString("false", nocase5).asInstanceOf[Boolean] should be (false)
+    DemoSupport.parseString("TRUE ", nocase5).asInstanceOf[Boolean] should be (true)
+    DemoSupport.parseString("  FALSE", nocase7).asInstanceOf[Boolean] should be (false)
+    DemoSupport.parseString("   true", nocase7).asInstanceOf[Boolean] should be (true)
+  }
+  
+  it should "write output correctly" in {
+    DemoSupport.writeString(jl.Boolean.FALSE, nocase1) should be ("f")
+    DemoSupport.writeString(jl.Boolean.TRUE, nocase1) should be ("t")
+    DemoSupport.writeString(jl.Boolean.FALSE, nocase2) should be ("fa")
+    DemoSupport.writeString(jl.Boolean.TRUE, nocase2) should be ("tr")
+    DemoSupport.writeString(jl.Boolean.FALSE, nocase5) should be ("false")
+    DemoSupport.writeString(jl.Boolean.TRUE, nocase5) should be ("true ")
+    DemoSupport.writeString(jl.Boolean.FALSE, nocase7) should be ("  false")
+    DemoSupport.writeString(jl.Boolean.TRUE, nocase7) should be ("   true")
+  }
 }

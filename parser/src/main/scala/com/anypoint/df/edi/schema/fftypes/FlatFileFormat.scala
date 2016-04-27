@@ -12,6 +12,7 @@ trait FlatFileYaml {
   val numberFillKey = "justify"
   val implicitKey = "implicit"
   val boolReprKey = "represent"
+  val caseKey = "caseSensitive"
   val formatKey = "format"
   val patternKey = "pattern"
   val localeKey = "locale"
@@ -40,6 +41,9 @@ trait FlatFileFormat extends SchemaJavaDefs with FlatFileYaml {
   protected def writeBooleanRepresentation(t: String, f: String, writer: pairWriter) = {
     val repr = t + '|' + f
     if (repr != defaultBoolRepr) writer(boolReprKey, repr)
+  }
+  protected def writeCaseSensitive(sensitive: Boolean, writer: pairWriter) = {
+    if (sensitive) writer(caseKey, "TRUE")
   }
   protected def writePattern(pattern: String, writer: pairWriter) = {
     writer(patternKey, pattern)
@@ -98,6 +102,9 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
     val split = repr.indexOf('|')
     if (split < 0) throw new IllegalArgumentException("Missing required '|' separator in boolean representation")
     (repr.take(split), repr.drop(split + 1))
+  }
+  protected def getCaseSensitive(map: ValueMap): Boolean = {
+    map != null && map.containsKey(caseKey) && getAsString(caseKey, map).toUpperCase == "TRUE"
   }
   protected def getPattern(map: ValueMap): String = {
     getAsString(patternKey, map)
