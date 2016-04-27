@@ -9,50 +9,31 @@ object BooleanFormat extends FormatFactory {
 
   def code = "Boolean"
 
-  case class BooleanFormatImpl(width: Int, repr: BooleanRepresentation, fill: FillMode)
+  case class BooleanFormatImpl(width: Int, t: String, f: String, fill: FillMode)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
+    
+    val (useTrue, useFalse) =
+      if (t.length <= width && f.length <= width) (t, f)
+      else {
+        val trimt = t.substring(0, math.min(t.length, width))
+        val trimf = f.substring(0, math.min(f.length, width))
+        (trimt, trimf)
+      }
 
     override def parseToken(lexer: LexerBase): Object = {
       val token = lexer.token
-      repr match {
-        case BooleanRepresentation.NUMBER =>
-          verifyDigits(lexer)
-          if (token == "0") jl.Boolean.FALSE
-          else if (token == "1") jl.Boolean.TRUE
-          else {
-            invalidInput(lexer)
-            jl.Boolean.FALSE
-          }
-        case BooleanRepresentation.ALPHA_LOWER =>
-          if (token == "t" || token == "true") jl.Boolean.TRUE
-          else if (token == "f" || token == "false") jl.Boolean.FALSE
-          else {
-            invalidInput(lexer)
-            jl.Boolean.FALSE
-          }
-        case BooleanRepresentation.ALPHA_UPPER =>
-          if (token == "T" || token == "TRUE") jl.Boolean.TRUE
-          else if (token == "F" || token == "FALSE") jl.Boolean.FALSE
-          else {
-            invalidInput(lexer)
-            jl.Boolean.FALSE
-          }
-      }
-    }
-
-    private def trimSize(full: String) = {
-      if (width < 5) full.substring(0, 1)
-      else full
+      if (token == useTrue) jl.Boolean.TRUE
+      else if (token == useFalse) jl.Boolean.FALSE
+      else {
+          invalidInput(lexer)
+          jl.Boolean.FALSE
+        }
     }
 
     override def buildToken(value: Object, writer: WriterBase): String = {
       value match {
         case b: jl.Boolean =>
-          repr match {
-            case BooleanRepresentation.NUMBER => if (b.booleanValue) "1" else "0"
-            case BooleanRepresentation.ALPHA_LOWER => trimSize(b.toString)
-            case BooleanRepresentation.ALPHA_UPPER => trimSize(b.toString.toUpperCase)
-          }
+          if (b.booleanValue) useTrue else useFalse
         case _ =>
           wrongType(value, writer)
           ""
@@ -61,15 +42,22 @@ object BooleanFormat extends FormatFactory {
 
     override def writeOptions(writer: pairWriter): Unit = {
       writeFill(fill, writer)
-      writeBooleanRepresentation(repr, writer)
+      writeBooleanRepresentation(useTrue, useFalse, writer)
     }
   }
 
-  def apply(width: Int, repr: BooleanRepresentation, fill: FillMode): TypeFormat = BooleanFormatImpl(width, repr, fill)
+  def apply(width: Int, t: String, f: String, fill: FillMode): TypeFormat = BooleanFormatImpl(width, t, f, fill)
+  def apply(width: Int, repr: BooleanRepresentation, fill: FillMode): TypeFormat = {
+    repr match {
+      case BooleanRepresentation.ALPHA_LOWER => apply(width, "true", "false", fill)
+      case BooleanRepresentation.ALPHA_UPPER => apply(width, "TRUE", "FALSE", fill)
+      case BooleanRepresentation.NUMBER => apply(width, "1", "0", fill)
+    }
+  }
 
   override def readFormat(width: Int, map: ValueMap): TypeFormat = {
-    val repr = getBooleanRepresentation(map)
+    val (t, f) = getBooleanRepresentation(map)
     val fill = getFill(map)
-    apply(width, repr, fill)
+    apply(width, t, f, fill)
   }
 }

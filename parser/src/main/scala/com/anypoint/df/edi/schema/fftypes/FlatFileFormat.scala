@@ -21,7 +21,7 @@ trait FlatFileYaml {
   val defaultFill = FillMode.LEFT
   val defaultSign = NumberSign.OPTIONAL
   val defaultNumberFill = FillMode.RIGHT
-  val defaultBoolRepr = BooleanRepresentation.ALPHA_LOWER
+  val defaultBoolRepr = "true|false"
 }
 
 trait FlatFileFormat extends SchemaJavaDefs with FlatFileYaml {
@@ -37,8 +37,9 @@ trait FlatFileFormat extends SchemaJavaDefs with FlatFileYaml {
   protected def writeNumberFill(pad: FillMode, writer: pairWriter) = {
     if (pad != defaultNumberFill) writer(numberFillKey, pad.name)
   }
-  protected def writeBooleanRepresentation(repr: BooleanRepresentation, writer: pairWriter) = {
-    if (repr != defaultBoolRepr) writer(boolReprKey, repr.name)
+  protected def writeBooleanRepresentation(t: String, f: String, writer: pairWriter) = {
+    val repr = t + '|' + f
+    if (repr != defaultBoolRepr) writer(boolReprKey, repr)
   }
   protected def writePattern(pattern: String, writer: pairWriter) = {
     writer(patternKey, pattern)
@@ -92,15 +93,11 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
       }
     } else defaultNumberFill
   }
-  protected def getBooleanRepresentation(map: ValueMap): BooleanRepresentation = {
-    if (map != null && map.containsKey(boolReprKey)) {
-      val code = getAsString(boolReprKey, map)
-      try {
-        BooleanRepresentation.valueOf(code.toUpperCase)
-      } catch {
-        case e: IllegalArgumentException => throw new IllegalArgumentException(s"Unknown value '$code' for $boolReprKey")
-      }
-    } else defaultBoolRepr
+  protected def getBooleanRepresentation(map: ValueMap): (String, String) = {
+    val repr = if (map != null && map.containsKey(boolReprKey)) getAsString(boolReprKey, map) else defaultBoolRepr
+    val split = repr.indexOf('|')
+    if (split < 0) throw new IllegalArgumentException("Missing required '|' separator in boolean representation")
+    (repr.take(split), repr.drop(split + 1))
   }
   protected def getPattern(map: ValueMap): String = {
     getAsString(patternKey, map)

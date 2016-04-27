@@ -60,8 +60,8 @@ class BooleanFormatTest extends FlatSpec with Matchers {
   it should "parse input correctly" in {
     DemoSupport.parseString("F", upper1).asInstanceOf[Boolean] should be (false)
     DemoSupport.parseString("T", upper1).asInstanceOf[Boolean] should be (true)
-    DemoSupport.parseString("F ", upper2).asInstanceOf[Boolean] should be (false)
-    DemoSupport.parseString("T ", upper2).asInstanceOf[Boolean] should be (true)
+    DemoSupport.parseString("FA", upper2).asInstanceOf[Boolean] should be (false)
+    DemoSupport.parseString("TR", upper2).asInstanceOf[Boolean] should be (true)
     DemoSupport.parseString("FALSE", upper5).asInstanceOf[Boolean] should be (false)
     DemoSupport.parseString("TRUE ", upper5).asInstanceOf[Boolean] should be (true)
     DemoSupport.parseString("  FALSE", upper7).asInstanceOf[Boolean] should be (false)
@@ -80,8 +80,8 @@ class BooleanFormatTest extends FlatSpec with Matchers {
   it should "write output correctly" in {
     DemoSupport.writeString(jl.Boolean.FALSE, upper1) should be ("F")
     DemoSupport.writeString(jl.Boolean.TRUE, upper1) should be ("T")
-    DemoSupport.writeString(jl.Boolean.FALSE, upper2) should be ("F ")
-    DemoSupport.writeString(jl.Boolean.TRUE, upper2) should be ("T ")
+    DemoSupport.writeString(jl.Boolean.FALSE, upper2) should be ("FA")
+    DemoSupport.writeString(jl.Boolean.TRUE, upper2) should be ("TR")
     DemoSupport.writeString(jl.Boolean.FALSE, upper5) should be ("FALSE")
     DemoSupport.writeString(jl.Boolean.TRUE, upper5) should be ("TRUE ")
     DemoSupport.writeString(jl.Boolean.FALSE, upper7) should be ("  FALSE")
@@ -98,8 +98,8 @@ class BooleanFormatTest extends FlatSpec with Matchers {
   it should "parse input correctly" in {
     DemoSupport.parseString("f", lower1).asInstanceOf[Boolean] should be (false)
     DemoSupport.parseString("t", lower1).asInstanceOf[Boolean] should be (true)
-    DemoSupport.parseString("f ", lower2).asInstanceOf[Boolean] should be (false)
-    DemoSupport.parseString("t ", lower2).asInstanceOf[Boolean] should be (true)
+    DemoSupport.parseString("fa", lower2).asInstanceOf[Boolean] should be (false)
+    DemoSupport.parseString("tr", lower2).asInstanceOf[Boolean] should be (true)
     DemoSupport.parseString("false", lower5).asInstanceOf[Boolean] should be (false)
     DemoSupport.parseString("true ", lower5).asInstanceOf[Boolean] should be (true)
     DemoSupport.parseString("  false", lower7).asInstanceOf[Boolean] should be (false)
@@ -118,8 +118,8 @@ class BooleanFormatTest extends FlatSpec with Matchers {
   it should "write output correctly" in {
     DemoSupport.writeString(jl.Boolean.FALSE, lower1) should be ("f")
     DemoSupport.writeString(jl.Boolean.TRUE, lower1) should be ("t")
-    DemoSupport.writeString(jl.Boolean.FALSE, lower2) should be ("f ")
-    DemoSupport.writeString(jl.Boolean.TRUE, lower2) should be ("t ")
+    DemoSupport.writeString(jl.Boolean.FALSE, lower2) should be ("fa")
+    DemoSupport.writeString(jl.Boolean.TRUE, lower2) should be ("tr")
     DemoSupport.writeString(jl.Boolean.FALSE, lower5) should be ("false")
     DemoSupport.writeString(jl.Boolean.TRUE, lower5) should be ("true ")
     DemoSupport.writeString(jl.Boolean.FALSE, lower7) should be ("  false")
