@@ -18,8 +18,8 @@ import SchemaJavaValues._
 import com.mulesoft.ltmdata.StorageContext
 
 /** Base parser for flat file documents. */
-abstract class FlatFileParserBase(in: InputStream)
-extends SchemaParser(new FlatFileLexer(in, EdiConstants.ISO88591_CHARSET, false), StorageContext.workingContext) {
+abstract class FlatFileParserBase(in: InputStream, charSet: Charset)
+extends SchemaParser(new FlatFileLexer(in, charSet, false), StorageContext.workingContext) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
@@ -112,7 +112,7 @@ extends SchemaParser(new FlatFileLexer(in, EdiConstants.ISO88591_CHARSET, false)
 }
 
 /** Parser for structured flat file documents. */
-class FlatFileStructureParser(in: InputStream, struct: Structure) extends FlatFileParserBase(in) {
+class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure) extends FlatFileParserBase(in, cs) {
 
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {
@@ -133,7 +133,7 @@ class FlatFileStructureParser(in: InputStream, struct: Structure) extends FlatFi
 }
 
 /** Parser for single repeated segment documents. */
-class FlatFileSegmentParser(in: InputStream, segment: Segment) extends FlatFileParserBase(in) {
+class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment) extends FlatFileParserBase(in, cs) {
 
   /** Parse the input message. */
   def parse: Try[ValueMap] = Try(try {

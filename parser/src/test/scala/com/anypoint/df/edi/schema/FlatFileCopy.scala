@@ -5,6 +5,7 @@ import java.io.File
 import java.io.InputStreamReader
 import java.io.FileOutputStream
 import java.nio.charset.Charset
+import com.anypoint.df.edi.lexical.EdiConstants
 
 object FlatFileCopy {
   
@@ -16,7 +17,7 @@ object FlatFileCopy {
   def main(args: Array[String]): Unit = {
     val start = System.currentTimeMillis
     val ins = new FileInputStream(new File(args(0)))
-    val parser = new FlatFileStructureParser(ins, testSchema.structures.values.head)
+    val parser = new FlatFileStructureParser(ins, EdiConstants.ISO88591_CHARSET, testSchema.structures.values.head)
     val data = parser.parse.get
     println(s"Input took ${(System.currentTimeMillis - start) / 1000} seconds")
     val outFile = new File(args(1))

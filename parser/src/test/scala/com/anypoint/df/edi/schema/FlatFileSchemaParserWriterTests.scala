@@ -50,7 +50,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   def parseDoc(doc: String) = {
     val ins = new ByteArrayInputStream(doc.getBytes(ASCII_CHARSET))
-    val parser = new FlatFileStructureParser(ins, testSchema.structures.values.head)
+    val parser = new FlatFileStructureParser(ins, EdiConstants.ISO88591_CHARSET, testSchema.structures.values.head)
     parser.parse.get
   }
 
@@ -58,7 +58,7 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
 
   it should "parse a simple message" in {
     val in = new ByteArrayInputStream((line1 + line9).getBytes())
-    val parser = new FlatFileStructureParser(in, testSchema.structures.values.head)
+    val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, testSchema.structures.values.head)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -100,10 +100,10 @@ values:
   
   it should "report an error on input too short" in {
     val in1 = new ByteArrayInputStream(fixedShort1Text.getBytes())
-    val parser1 = new FlatFileSegmentParser(in1, fixedSegment)
+    val parser1 = new FlatFileSegmentParser(in1, EdiConstants.ISO88591_CHARSET, fixedSegment)
     intercept[LexicalException] { parser1.parse.get }
     val in2 = new ByteArrayInputStream(fixedShort2Text.getBytes())
-    val parser2 = new FlatFileSegmentParser(in2, fixedSegment)
+    val parser2 = new FlatFileSegmentParser(in2, EdiConstants.ISO88591_CHARSET, fixedSegment)
     intercept[LexicalException] { parser2.parse.get }
   }
 
@@ -112,7 +112,7 @@ values:
   it should "roundtrip a complete document" in {
     val msg = readDoc("edi/QB-FFSampleRequest.txt")
     val in = new ByteArrayInputStream(msg.getBytes())
-    val parser = new FlatFileStructureParser(in, testStructure)
+    val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, testStructure)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -145,7 +145,7 @@ values:
 
   it should "roundtrip document with flatfile schema using references" in {
     val in = new ByteArrayInputStream(altMessage.getBytes())
-    val parser = new FlatFileStructureParser(in, altStructure1)
+    val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, altStructure1)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -170,7 +170,7 @@ values:
 
   it should "roundtrip document with flatfile schema using inlining" in {
     val in = new ByteArrayInputStream(altMessage.getBytes())
-    val parser = new FlatFileStructureParser(in, altStructure2)
+    val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, altStructure2)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -190,7 +190,7 @@ values:
   
   it should "roundtrip single-segment flatfile document" in {
     val in = new ByteArrayInputStream(fixedDataText.getBytes())
-    val parser = new FlatFileSegmentParser(in, fixedSegment)
+    val parser = new FlatFileSegmentParser(in, EdiConstants.ISO88591_CHARSET, fixedSegment)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
@@ -210,7 +210,7 @@ values:
   
   it should "roundtrip multiple-segment flatfile document" in {
     val in = new ByteArrayInputStream(fixedMultiText.getBytes())
-    val parser = new FlatFileSegmentParser(in, fixedSegment)
+    val parser = new FlatFileSegmentParser(in, EdiConstants.ISO88591_CHARSET, fixedSegment)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
