@@ -1,12 +1,11 @@
 package com.anypoint.df.edi.schema.fftypes
 
-
 import java.util.Calendar
 
 import com.anypoint.df.edi.lexical.TypeFormatConstants._
 import com.anypoint.df.edi.lexical.formats.StringFormatBase
-import com.anypoint.df.edi.lexical.{LexerBase, TypeFormat, WriterBase}
-import org.threeten.bp.LocalDateTime
+import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
+import org.threeten.bp.{ LocalDateTime, OffsetDateTime, ZonedDateTime }
 import org.threeten.bp.format.DateTimeFormatter
 
 object LocalDateTimeFormat extends FormatFactory {
@@ -17,13 +16,19 @@ object LocalDateTimeFormat extends FormatFactory {
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
     val formatter: DateTimeFormatter
-
+    
     override def parseToken(lexer: LexerBase): Object = LocalDateTime.parse(lexer.token, formatter)
+    
+    private def truncate(text: String) = if (text.length > width) text.substring(0, width) else text
 
     override def buildToken(value: Object, writer: WriterBase): String = {
       value match {
-        case d: LocalDateTime => d.format(formatter)
-        case c: Calendar => LocalDateTime.of(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH), c.get(Calendar.HOUR), c.get(Calendar.MINUTE), c.get(Calendar.SECOND)).format(formatter)
+        case d: LocalDateTime => truncate(d.format(formatter))
+        case o: OffsetDateTime => truncate(o.format(formatter))
+        case z: ZonedDateTime => truncate(z.format(formatter))
+        case c: Calendar =>
+          truncate(LocalDateTime.of(c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH),
+            c.get(Calendar.HOUR), c.get(Calendar.MINUTE), c.get(Calendar.SECOND)).format(formatter))
         case _ =>
           wrongType(value, writer)
           ""
@@ -35,13 +40,10 @@ object LocalDateTimeFormat extends FormatFactory {
       extends LocalDateTimeBase(width, fill) with FlatFileFormat {
 
     val formatter =
-      if (width >= 17) DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS")
-      else width match {
+      width match {
         case 12 => DateTimeFormatter.ofPattern("yyyyMMddHHmm")
         case 14 => DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-        case 15 => DateTimeFormatter.ofPattern("yyyyMMddHHmmssS")
-        case 16 => DateTimeFormatter.ofPattern("yyyyMMddHHmmssSS")
-        case _ => throw new IllegalArgumentException(s"Width $width is invalid for DateTime (must be 12 or >= 14)")
+        case _ => throw new IllegalArgumentException(s"Width $width is invalid for DateTime (must be 12 or 14)")
       }
 
     override def writeOptions(writer: pairWriter): Unit = {

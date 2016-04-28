@@ -1,6 +1,6 @@
 package com.anypoint.df.edi.schema.fftypes
 
-import org.threeten.bp.LocalTime
+import org.threeten.bp.{ LocalDateTime, LocalTime, OffsetDateTime, OffsetTime, ZonedDateTime }
 import org.threeten.bp.format.DateTimeFormatter
 
 import com.anypoint.df.edi.lexical.{ LexerBase, TypeFormat, WriterBase }
@@ -17,10 +17,16 @@ object LocalTimeFormat extends FormatFactory {
     val formatter: DateTimeFormatter
 
     override def parseToken(lexer: LexerBase): Object = LocalTime.parse(lexer.token, formatter)
+    
+    private def truncate(text: String) = if (text.length > width) text.substring(0, width) else text
 
     override def buildToken(value: Object, writer: WriterBase): String = {
       value match {
-        case d: LocalTime => d.format(formatter)
+        case t: LocalTime => truncate(t.format(formatter))
+        case d: LocalDateTime => truncate(d.format(formatter))
+        case o: OffsetDateTime => truncate(o.format(formatter))
+        case o: OffsetTime => truncate(o.format(formatter))
+        case z: ZonedDateTime => truncate(z.format(formatter))
         case _ =>
           wrongType(value, writer)
           ""
