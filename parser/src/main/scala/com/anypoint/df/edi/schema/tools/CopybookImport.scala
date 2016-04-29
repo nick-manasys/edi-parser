@@ -175,11 +175,14 @@ class CopybookImport(in: InputStream, enc: String) {
         lineCount += 1
         if (line.size < 7 || line(6) == '*') accumr(lead)
         else {
-          if (lead.isEmpty) peekLine = lineCount
-          val fulltext = lead + line.slice(7, 72).trim
-          val split = fulltext.indexOf('.')
-          if (split >= 0) fulltext.substring(0, split).replace(',', ' ').replace(';', ' ').toUpperCase.split(" +")
-          else accumr(fulltext + ' ')
+          val usetext = line.slice(7, 72).trim
+          if (usetext.length > 0) {
+            if (lead.isEmpty) peekLine = lineCount
+            val fulltext = lead + line.slice(7, 72).trim
+            val split = fulltext.indexOf('.')
+            if (split >= 0) fulltext.substring(0, split).replace(',', ' ').replace(';', ' ').toUpperCase.split(" +")
+            else accumr(fulltext + ' ')
+          } else accumr(lead)
         }
       }
     }
@@ -422,7 +425,9 @@ class CopybookImport(in: InputStream, enc: String) {
 
     var position = 0
     val recdef = input.next
-    if (recdef.size != 2 || recdef.head != "01") dataError("Missing expected record definition line")
+    if (recdef.size != 2 || recdef.head != "01") {
+      problems += CopybookImportError(true, input.lineNumber, "Missing expected record definition line", "")
+    }
     val segname = recdef(1)
     val abbrev = abbreviateName(segname)
     val ident = generateIdent(abbrev, segmentNameCounts)
