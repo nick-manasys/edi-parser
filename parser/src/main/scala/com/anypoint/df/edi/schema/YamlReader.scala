@@ -520,9 +520,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       case _ => {
         val is = getClass.getResourceAsStream(path)
         if (is == null) {
-          val is1 = getClass.getClassLoader.getResourceAsStream(path)
+          val relpath = if (path.startsWith(File.pathSeparator)) path.substring(File.pathSeparator.length) else path
+          val is1 = getClass.getClassLoader.getResourceAsStream(relpath)
           if (is1 == null) {
-            val is2 = Thread.currentThread.getContextClassLoader.getResourceAsStream(path)
+            val is2 = Thread.currentThread.getContextClassLoader.getResourceAsStream(relpath)
             if (is2 == null) throw new IllegalArgumentException(s"file $path not found on any classpath")
             else is2
           } else is1
