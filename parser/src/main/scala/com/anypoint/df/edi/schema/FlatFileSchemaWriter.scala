@@ -84,7 +84,9 @@ class FlatFileStructureWriter(out: OutputStream, structure: Structure, config: F
     structure.heading.foreach { seq => writeTopSection(0, datamap, seq) }
   } catch {
     case e: WriteException => throw e
-    case e: Throwable => logAndThrow("Writer error ", e)
+    case e: Throwable =>
+      logger error e
+      throw new WriteException("Writer error: " + e.getMessage, e)
   } finally {
     try { close } catch { case e: Throwable => }
   })
@@ -101,7 +103,9 @@ class FlatFileSegmentWriter(out: OutputStream, segment: Segment, config: FlatFil
     foreachMapInList(data, { map => writeSegment(map, segment) })
   } catch {
     case e: WriteException => throw e
-    case e: Throwable => logAndThrow("Writer error ", e)
+    case e: Throwable =>
+      logger error e
+      throw new WriteException("Writer error: " + e.getMessage, e)
   } finally {
     try { close } catch { case e: Throwable => }
   })
