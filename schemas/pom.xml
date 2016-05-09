@@ -69,7 +69,7 @@
               <target>${jdk.version}</target>
               <launchers>
                 <launcher>
-                  <mainClass>com.anypoint.df.edi.schema.convert.X12TablesConverter</mainClass>
+                  <mainClass>com.mulesoft.flatfile.schema.convert.X12TablesConverter</mainClass>
                   <args>
                     <arg>${basedir}/src/main/build-resources/x12</arg>
                     <arg>${project.build.directory}/schemas/x12</arg>
@@ -94,7 +94,7 @@
               <target>${jdk.version}</target>
               <launchers>
                 <launcher>
-                  <mainClass>com.anypoint.df.edi.schema.convert.EdifactTablesConverter</mainClass>
+                  <mainClass>com.mulesoft.flatfile.schema.convert.EdifactTablesConverter</mainClass>
                   <args>
                     <arg>${basedir}/src/main/build-resources/edifact</arg>
                     <arg>${project.build.directory}/schemas/edifact</arg>
@@ -119,7 +119,7 @@
               <target>${jdk.version}</target>
               <launchers>
                 <launcher>
-                  <mainClass>com.anypoint.df.edi.schema.convert.HL7TablesConverter</mainClass>
+                  <mainClass>com.mulesoft.flatfile.schema.convert.HL7TablesConverter</mainClass>
                   <args>
                     <arg>${basedir}/src/main/build-resources/hl7</arg>
                     <arg>${project.build.directory}/schemas/hl7</arg>
