@@ -210,13 +210,13 @@ class FlatFileUnorderedParser(in: InputStream, cs: Charset, schema: EdiSchema) e
   override def parse: Try[ValueMap] = Try(try {
     val map = new ValueMapImpl
     lexer.init
-    val data = new MapListImpl
+    val data = new ValueMapImpl
     map put (dataKey, data)
     while (lexer.currentType != END) {
       lookupSegment(schema.tagLookup) match {
         case Some(s) =>
-          val data = parseSegment(s, StartPosition)
-          getOrSet(s.ident, new MapListImpl, map).add(data)
+          val segdata = parseSegment(s, StartPosition)
+          getOrSet(s.ident, new MapListImpl, data).add(segdata)
         case _ =>
           segmentError(true, "Unrecognized segment")
           lexer.discardSegment
