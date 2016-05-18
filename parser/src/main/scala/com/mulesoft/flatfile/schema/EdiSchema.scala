@@ -523,13 +523,19 @@ object EdiSchema {
   }
   
   /** Base class for target associated with a fixed width segment tag component. */
-  sealed abstract class TagTarget
+  sealed abstract class TagTarget {
+    def size: Int
+  }
   
   /** Segment identified by fixed width segment tag component. */
-  case class TagSegment(val segment: Segment) extends TagTarget
+  case class TagSegment(val segment: Segment) extends TagTarget {
+    def size = 1
+  }
   
   /** Next fixed width segment tag component. */
-  case class TagNext(val offset: Int, val length: Int, val targets: Map[String, TagTarget]) extends TagTarget
+  case class TagNext(val offset: Int, val length: Int, val targets: Map[String, TagTarget]) extends TagTarget {
+    def size = targets.foldLeft(0) { case (acc, (k, v)) => acc + v.size }
+  }
   
   /** Build tag structure for a set of segments. */
   def buildTagTarget(segments: Set[Segment]): TagTarget = {
@@ -603,7 +609,10 @@ object EdiSchema {
     }
     
     val segTags: List[(Segment, List[(Int, Int, String)])] = segments.map { s => (s, segmentTags(s)) }.filter { case (s, l) => l.nonEmpty }.toList
-    buildTarget(segTags)
+    val target = buildTarget(segTags)
+    val count = target.size
+    if (count > 0 && count < segments.size) throw new IllegalArgumentException(s"All segments must define tags if any do (found $count of ${segments.size} tags)")
+    target
   }
 
   /** Structure definition.
