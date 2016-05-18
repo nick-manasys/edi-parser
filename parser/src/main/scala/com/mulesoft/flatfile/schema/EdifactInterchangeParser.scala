@@ -65,7 +65,7 @@ case class EdifactError(@BeanProperty val segment: Int, @BeanProperty val fatal:
 }
 
 case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, handler: EdifactEnvelopeHandler)
-  extends SchemaParser(new EdifactLexer(in, defaultDelims), StorageContext.workingContext) {
+  extends DelimiterSchemaParser(new EdifactLexer(in, defaultDelims), StorageContext.workingContext) {
 
   /** Exception reporting problem in interchange. */
   case class EdifactInterchangeException(error: SyntaxError, text: String, cause: Throwable = null)
@@ -703,11 +703,13 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
           var ackId = 1
           lexer.setHandler(EdifactErrorHandler)
           while (lexer.currentType != END && !isInterchangeEnvelope) {
+            segmentIdent = delimLexer.segmentTag
             if (isGroupEnvelope) {
               val groupmap = openGroup
               handler.handleUng(groupmap) match {
                 case EdifactHandlerError(error, text) => groupError(error, text)
                 case null =>
+                  segmentIdent = delimLexer.segmentTag
                   while (!isGroupClose) {
                     if (isSetOpen) parseMessage(Some(groupmap))
                     else groupError(InvalidOccurrence)

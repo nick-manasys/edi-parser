@@ -57,7 +57,7 @@ public class FlatFileLexer extends LexerBase
         if (typ != ItemType.SEGMENT) {
             throw new IllegalArgumentException("Flat files do not support " + typ + " data type positioning");
         }
-        nextLine();
+        typedReader.nextLine(true);
     }
     
     /**
@@ -68,17 +68,18 @@ public class FlatFileLexer extends LexerBase
      * @throws IOException 
      */
     public boolean nextLine() throws IOException {
-        return typedReader.nextLine();
+        return typedReader.nextLine(false);
     }
     
     /**
-     * Define segment tag position in line.
+     * Load tag field from line.
      * 
      * @param start
      * @param length
+     * @throws IOException 
      */
-    public void setTagField(int start, int length) {
-        typedReader.setTagField(start, length);
+    public String loadTagField(int start, int length) throws IOException {
+        return typedReader.loadTagField(start, length);
     }
     
     /**
@@ -89,7 +90,7 @@ public class FlatFileLexer extends LexerBase
     public void init() throws IOException {
         int chr = reader.read();
         if (chr >= 0) {
-            ((LineBasedReader)reader).loadTag((char)chr);
+            typedReader.startLine(chr);
         } else {
             currentType = ItemType.END;
         }
@@ -190,13 +191,10 @@ public class FlatFileLexer extends LexerBase
      */
     private class LineBasedReader extends FilterReader
     {
-        /** Segment tag start position in line. If no tag used, this must be 1 to buffer first character of line. */
-        private int tagStart;
+        /** Number of buffered characters. */
+        private int leadCount;
         
-        /** Length of segment tag. */
-        private int tagLength;
-        
-        /** Number of buffered character prior to start tag (from end of buffer). */
+        /** Offset for reading data from buffered. */
         private int leadOffset;
         
         /** Buffer for characters preceding the tag in line (filled for every line). */
@@ -204,69 +202,65 @@ public class FlatFileLexer extends LexerBase
 
         protected LineBasedReader(InputStream in, Charset enc) {
             super(new BufferedReader(new InputStreamReader(stream, enc)));
-            leadBuffer = new char[1];
-            leadOffset = 1;
-            tagStart = 1;
+            leadBuffer = new char[128];
+            leadCount = 0;
         }
         
         /**
-         * Define segment tag position in line.
+         * Read tag field from input line. There line must be at least as long as the end of the field.
          * 
          * @param start
          * @param length
+         * @throws IOException 
          */
-        protected void setTagField(int start, int length) {
-            tagStart = length > 0 ? start : 1;
-            tagLength = length;
-            leadBuffer = new char[tagStart];
-            leadOffset = tagStart;
+        protected String loadTagField(int start, int length) throws IOException {
+            int limit = start + length;
+            if (leadBuffer.length < limit) {
+                char[] newbuff = new char[limit];
+                System.arraycopy(leadBuffer, 0, newbuff, 0, leadCount);
+                leadBuffer = newbuff;
+            }
+            int remain = limit - leadCount;
+            int actual = 0;
+            while (remain > 0 && (actual = super.read(leadBuffer, leadCount, remain)) > 0) {
+                leadCount += actual;
+                remain -= actual;
+            }
+            if (actual < 0) {
+                throw new EOFException("read only " + leadCount + " with at least " + limit + " expected");
+            }
+            return new String(leadBuffer, start, length);
         }
         
         /**
-         * Load segment tag from line. The current input position must be at the start of line when this is called.
+         * Initialize state for start of line, saving the first character of the line to the input buffer.
          * 
-         * @param chr initial character of line
+         * @param chr
          */
-        protected void loadTag(char chr) throws IOException {
-            if (tagLength > 0) {
-                tokenBuilder.setLength(0);
-                if (tagStart > 0) {
-                    leadBuffer[0] = chr;
-                    int offset = 1;
-                    int remain = tagStart - 1;
-                    int actual = 0;
-                    while (remain > 0 && (actual = read(leadBuffer, offset, remain)) > 0) {
-                        offset += actual;
-                        remain -= actual;
-                    }
-                    if (actual < 0) {
-                        throw new EOFException("read only " + offset + " with " + tagStart + " expected");
-                    }
-                    leadOffset = 0;
-                } else {
-                    tokenBuilder.append((char)chr);
-                }
-                readToken(tagLength - tokenBuilder.length());
-                segmentTag = tokenBuilder.toString();
-            } else {
-                leadBuffer[0] = (char)chr;
-                leadOffset = 0;
-                segmentTag = "";
-            }
+        protected void startLine(int chr) {
+            leadBuffer[0] = (char)chr;
+            leadCount = 1;
+            leadOffset = 0;
             segmentNumber++;
             elementNumber = 0;
             currentType = ItemType.SEGMENT;
         }
         
         /**
-         * Advance to next line of input. This checks for an expected line break as the next input and advances to the
-         * next line, buffering any leading text and extracting the segment tag.
+         * Advance to next line of input. This checks for an expected line break and advances to the next line,
+         * buffering any leading text and extracting the segment tag.
          * 
+         * @param force discard remainder of current line
          * @return <code>true</code> if line present, <code>false</code> if end of input
          * @throws IOException 
          */
-        protected boolean nextLine() throws IOException {
-            int chr = read();
+        protected boolean nextLine(boolean force) throws IOException {
+            int chr = 0;
+            while ((chr = read()) != -1) {
+                if (!force || chr == '\n' || chr == '\r') {
+                    break;
+                }
+            }
             if (chr == -1) {
                 currentType = ItemType.END;
                 return false;
@@ -279,7 +273,7 @@ public class FlatFileLexer extends LexerBase
                 currentType = ItemType.END;
                 return false;
             }
-            loadTag((char)chr);
+            startLine(chr);
             return true;
         }
 
@@ -304,7 +298,7 @@ public class FlatFileLexer extends LexerBase
 
         @Override
         public int read() throws IOException {
-            if (leadOffset < tagStart) {
+            if (leadOffset < leadCount) {
                 return leadBuffer[leadOffset++];
             }
             return super.read();
@@ -314,8 +308,8 @@ public class FlatFileLexer extends LexerBase
         public int read(char[] cbuf, int off, int len) throws IOException {
             int actual = 0;
             int remain = len;
-            if (leadOffset < tagStart) {
-                int use = Math.min(len, tagStart - leadOffset);
+            if (leadOffset < leadCount) {
+                int use = Math.min(len, leadCount - leadOffset);
                 System.arraycopy(leadBuffer, leadOffset, cbuf, off, use);
                 leadOffset += use;
                 actual = use;

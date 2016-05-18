@@ -91,6 +91,7 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     props.get(interHeadDateKey) should be (90604)
     props.get(interHeadTimeKey) should be (1205)
     props.get(interHeadReferenceKey) should be ("8")
+    parser.segmentIdent = parser.delimLexer.segmentTag
     val (transid, sprops) = parser.openSet
     transid should be("INVOIC")
     sprops.get(msgHeadReferenceKey) should be ("800001")
@@ -108,8 +109,10 @@ class EdifactSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJ
     val props = new ValueMapImpl
     parser.init(props) should be (SyntaxVersion.VERSION3)
     parser.parseCompList(segUNBv3.components.tail, ItemType.DATA_ELEMENT, ItemType.DATA_ELEMENT, props)
+    parser.segmentIdent = parser.delimLexer.segmentTag
     intercept[IllegalStateException] { parser.openGroup }
     parser.openSet
+    parser.segmentIdent = parser.delimLexer.segmentTag
     intercept[IllegalStateException] { parser.openSet }
   }
 

@@ -8,7 +8,6 @@ import java.io.InputStreamReader
 import java.io.Reader
 import java.io.StringWriter
 import java.io.StringReader
-
 import org.yaml.snakeyaml.Yaml
 import org.yaml.snakeyaml.constructor.AbstractConstruct
 import org.yaml.snakeyaml.constructor.Constructor
@@ -16,14 +15,14 @@ import org.yaml.snakeyaml.error.YAMLException
 import org.yaml.snakeyaml.nodes.Node
 import org.yaml.snakeyaml.nodes.Tag
 import org.yaml.snakeyaml.nodes.NodeId
-
 import collection.JavaConverters._
 import scala.annotation.tailrec
 import scala.collection.mutable.Buffer
 import scala.collection.immutable.AbstractMap
 import scala.collection.mutable
-
 import com.mulesoft.flatfile.lexical.EdiConstants
+import com.mulesoft.flatfile.lexical.TypeFormatConstants
+import com.mulesoft.flatfile.lexical.formats.GeneralStringFormat
 
 /** Read YAML representation of EDI schema.
   *
@@ -39,6 +38,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
   var identElements = Map[String, Element]()
   var identComposites = Map[String, Composite]()
   var identSegments = Map[String, Segment]()
+
+  // handle virtual field added at start of segment
+  var tagLength = 0
+  var tagElement: Element = null
 
   /** Get child list value (error if not found). */
   def getChildList(key: String, map: ValueMap): SimpleList = map.get(key) match {
@@ -84,10 +87,20 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       val key = ediForm.keyName(parentId, name.getOrElse(""), position)
       val use = getUsage(values)
       val count = convertCount(values)
+
+      def elementComp(element: Element) = {
+        if (values.containsKey(tagValueKey)) {
+          ElementComponent(element, name, key, position, use, count, true, getStringOption(tagValueKey, values))
+        } else {
+          ElementComponent(element, name, key, position, use, count, false, getStringOption(valueKey, values))
+        }
+      }
+
       if (values.containsKey(idRefKey)) {
         val id = getRequiredString(idRefKey, values)
-        if (identElements.contains(id)) ElementComponent(identElements(id), name, key, position, use, count)
-        else if (composites.contains(id)) {
+        if (identElements.contains(id)) {
+          elementComp(identElements(id))
+        } else if (composites.contains(id)) {
           val composite = composites(id)
           if (count > 1) CompositeComponent(composite, name, key, position, use, count)
           else CompositeComponent(composite.rewrite(key, ediForm), name, key, position, use, count)
@@ -99,7 +112,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val code = getRequiredString(typeKey, values)
         val typ = ediForm.readFormat(code, values)
         val element = Element("", name.getOrElse(""), typ)
-        ElementComponent(element, name, key, position, use, count)
+        elementComp(element)
       }
     }
     @tailrec
@@ -209,9 +222,16 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       val use = getUsageOverride(values, comp.usage)
       val count = getCountOverride(values, comp.count)
       comp match {
-        case elem: ElementComponent => ElementComponent(elem.element, name, elem.key, elem.position, use, count)
-        case comp: CompositeComponent => CompositeComponent(comp.composite, name, comp.key,
-          comp.position, use, count)
+        case elem: ElementComponent =>
+          if (elem.tagPart || values.containsKey(tagValueKey)) {
+            val text = getAs(tagValueKey, elem.value.getOrElse(""), values)
+            ElementComponent(elem.element, name, elem.key, elem.position, use, count, true, Some(text))
+          } else {
+            val value = if (values.containsKey(valueKey)) Some(getAsString(valueKey, values)) else elem.value
+            ElementComponent(elem.element, name, elem.key, elem.position, use, count, false, value)
+          }
+        case comp: CompositeComponent =>
+          CompositeComponent(comp.composite, name, comp.key, comp.position, use, count)
       }
     }
     @tailrec
@@ -265,11 +285,21 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     } else Nil
 
   def buildSegment(ident: String, segmap: ValueMap) = {
-    val tag = getAs(tagKey, ident, segmap)
+    val prefix = getAs(compPrefKey, ident, segmap)
+    def buildComps: List[SegmentComponent] = {
+      val listed =
+        if (segmap.get(valuesKey) == null) Nil
+        else parseSegmentComponents(prefix, getAs[MapList](valuesKey, segmap), identComposites)
+      if (segmap.containsKey(tagKey) && tagLength > 0) {
+        val tag = getAsString(tagKey, segmap)
+        val comp = ElementComponent(tagElement, None, "", 0, EdiSchema.IgnoredUsage, 1, true, Some(tag))
+        comp :: listed
+      } else listed
+    }
     val list = getAs[MapList](valuesKey, segmap)
-    val comps = if (list == null) Nil else parseSegmentComponents(ident, list, identComposites)
+    val comps = buildComps
     val name = getAs(nameKey, "", segmap)
-    Segment(ident, tag, name, comps, getRules(segmap, comps))
+    Segment(ident, prefix, name, comps, getRules(segmap, comps))
   }
 
   /** Build structure components from input data.
@@ -306,9 +336,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         val postext = getAsString(positionKey, values)
         val position = if (postext == null) None else Some(new DefinedPosition(table, postext))
         val seq = StructureSequence(true, parseComponent(items.asScala.toList, Nil, seqPos))
-        val tagStart = getIntOption(tagStartKey, values)
-        val tagLength = getIntOption(tagLengthKey, values)
-        GroupComponent(ident, use, count, seq, None, Nil, None, position, false, tagStart, tagLength)
+        GroupComponent(ident, use, count, seq, None, Nil, None, position, false)
       } else if (values.containsKey(wrapIdKey)) {
         val wrapid = getRequiredString(wrapIdKey, values)
         val list = getRequiredMapList(groupKey, values)
@@ -321,7 +349,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
             end, OptionalUsage, wrapid, group)
         } else throw new IllegalArgumentException(s"Missing loop wrapper segment definition (${ediForm.loopWrapperStart} or ${ediForm.loopWrapperEnd})")
       } else {
-        val position = 
+        val position =
           if (ediForm.segmentsPositioned) new DefinedPosition(table, getAs(positionKey, convertPosition(seqPos), values))
           else StartPosition
         if (values.containsKey(idRefKey)) {
@@ -405,10 +433,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
                     if (values.containsKey(itemsKey)) {
                       StructureSequence(true, overLevel(getRequiredMapList(itemsKey, values), group.seq.items))
                     } else group.seq
-                  val tagStart = getIntOption(tagStartKey, group.tagStart, values)
-                  val tagLength = getIntOption(tagLengthKey, group.tagLength, values)
                   overr(t, GroupComponent(group.ident, use, count, seq, group.varkey, group.variants, group.ky,
-                    group.pos, group.ch, tagStart, tagLength) :: prior, bt)
+                    group.pos, group.ch) :: prior, bt)
                 }
               }
               else overr(remain, bh :: prior, bt)
@@ -427,8 +453,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     def trimComps(comps: List[SegmentComponent], trim: Int) = {
       val (keep, drop) = comps.splitAt(trim)
       keep ::: (drop.foldLeft(List[SegmentComponent]())((acc, comp) => comp match {
-        case ElementComponent(element, oname, key, pos, _, count, value) =>
-          ElementComponent(element, oname, key, pos, UnusedUsage, count, value) :: acc
+        case ElementComponent(element, oname, key, pos, _, count, tag, value) =>
+          ElementComponent(element, oname, key, pos, UnusedUsage, count, tag, value) :: acc
         case CompositeComponent(composite, oname, key, pos, _, count) =>
           CompositeComponent(composite, oname, key, pos, UnusedUsage, count) :: acc
       }).reverse)
@@ -447,15 +473,16 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
             if (segmap.containsKey(valuesKey)) {
               val list = getRequiredMapList(valuesKey, segmap)
               val comps = parseSegmentOverlayComponents(idref, list, Nil)
-              map + (idref -> Segment(idref, basedef.tag, name, comps, getRules(segmap, comps)))
+              map + (idref -> Segment(idref, idref, name, comps, getRules(segmap, comps)))
             } else {
-              map + (idref -> Segment(idref, basedef.tag, name, basedef.components, getRules(segmap, basecomps)))
+              map + (idref -> Segment(idref, idref, name, basedef.components, getRules(segmap, basecomps)))
             }
           }
           case None => throw new IllegalStateException(s"referenced segment $idref is not defined")
         }
       } else throw new IllegalStateException(s"segment definition needs either $idKey or $idRefKey value"))
   }
+
   def optSeq(items: List[StructureComponent]) = if (items.isEmpty) None else Some(StructureSequence(false, items))
   def sectionItems(optseq: Option[StructureSequence]): List[StructureComponent] = optseq match {
     case Some(seq) => seq.items
@@ -474,9 +501,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     val heading = optSeq(parseStructurePart(firstkey, transmap, 0))
     val detail = dataSection(detailKey, transmap, 1)
     val summary = dataSection(summaryKey, transmap, 2)
-    val tagStart = getIntOption(tagStartKey, transmap)
-    val tagLength = getIntOption(tagLengthKey, transmap)
-    Structure(ident, name, group, heading, detail, summary, version, tagStart, tagLength)
+    Structure(ident, name, group, heading, detail, summary, version)
   }
 
   private def overlayStructure(transmap: ValueMap, version: EdiSchemaVersion, basedef: Structure) = {
@@ -486,9 +511,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     val heading = optSeq(parseStructureOverlayPart(firstkey, transmap, sectionItems(basedef.heading)))
     val detail = optSeq(parseStructureOverlayPart(detailKey, transmap, sectionItems(basedef.detail)))
     val summary = optSeq(parseStructureOverlayPart(summaryKey, transmap, sectionItems(basedef.summary)))
-    val tagStart = getIntOption(tagStartKey, basedef.tagStart, transmap)
-    val tagLength = getIntOption(tagLengthKey, basedef.tagLength, transmap)
-    Structure(basedef.ident, name, group, heading, detail, summary, version, tagStart, tagLength)
+    Structure(basedef.ident, name, group, heading, detail, summary, version)
   }
 
   /** Convert structure definitions. */
@@ -534,6 +557,15 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     findr(basePaths.toList)
   }
 
+  def configureTagAdapt(values: ValueMap) = {
+    if (values.containsKey(tagStartKey) && getAsInt(tagStartKey, values) != 0) throw new IllegalArgumentException(s"Only $tagStartKey = 0 is supported")
+    if (values.containsKey(tagLengthKey)) {
+      tagLength = getAsInt(tagLengthKey, values)
+      val format = new GeneralStringFormat("tag", tagLength, tagLength, TypeFormatConstants.FillMode.NONE)
+      tagElement = Element("", "tag", format)
+    }
+  }
+
   /** Read schema from YAML document.
     *
     * @param reader
@@ -563,9 +595,14 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
           }
         })
       } else new EdiSchema(version)
+
+      // merge base definitions with table definitions in this document
       identElements = baseSchema.elements
       identComposites = baseSchema.composites
       identSegments = baseSchema.segments
+      if (input.containsKey(elementsKey)) identElements = convertElements(getRequiredMapList(elementsKey, input))
+      if (input.containsKey(compositesKey)) identComposites =
+        convertComposites(getRequiredMapList(compositesKey, input))
       if (!ediForm.layout.structures && input.containsKey(valuesKey)) {
 
         // schema with a single segment definition
@@ -579,12 +616,15 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
 
         // schema with a single structure definition or overlay definition
         val struct = if (input.containsKey(idRefKey)) {
+          if (input.containsKey(segmentsKey)) identSegments = convertSegments(getRequiredMapList(segmentsKey, input))
           val idref = getRequiredString(idRefKey, input)
           val basedefs = baseSchema.structures
           if (!basedefs.contains(idref)) throw new IllegalStateException(s"referenced structure $idref is not defined")
           val basedef = basedefs(idref)
           overlayStructure(input, version, basedef)
         } else {
+          configureTagAdapt(input)
+          if (input.containsKey(segmentsKey)) identSegments = convertSegments(getRequiredMapList(segmentsKey, input))
           val ident = getAs(idKey, "", input)
           buildStructure(ident, input, version)
         }
@@ -594,9 +634,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       } else {
 
         // normal schema with all sections potentially present
-        if (input.containsKey(elementsKey)) identElements = convertElements(getRequiredMapList(elementsKey, input))
-        if (input.containsKey(compositesKey)) identComposites =
-          convertComposites(getRequiredMapList(compositesKey, input))
+        if (input.containsKey(structuresKey)) {
+          val smaps = getRequiredMapList(structuresKey, input)
+          if (!smaps.isEmpty) configureTagAdapt(smaps.iterator.next)
+        }
         if (input.containsKey(segmentsKey)) identSegments = convertSegments(getRequiredMapList(segmentsKey, input))
         val structures =
           if (input.containsKey(structuresKey)) convertStructures(input, version, baseSchema.structures)

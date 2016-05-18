@@ -1,0 +1,502 @@
+form: COPYBOOK
+segments: 
+- id: 'U837P-CLM-REC'
+  name: 'U837P-CLM-REC'
+  compPrefix: 'UCR0'
+  values: 
+  - name: 'U837P-CLM-REC-KEY'
+    values: 
+    - { name: 'U837P-CLM-LPID', position: 2, type: String, length: 6, tagValue: "2300  " }
+    - { name: 'U837P-CLM-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-CLM-SGID', position: 4, type: String, length: 4, tagValue: "CLM " }
+    - { name: 'U837P-CLM-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-CLM-PAT-ACCT-NUM', type: String, length: 38 }
+  - { name: 'U837P-CLM-TOT-CHRG-AMT', type: Decimal, length: 18, format: { implicit: 2, justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+  - name: 'U837P-CLM-PLACE-OF-SERV-CD'
+    values: 
+    - { name: 'U837P-CLM-FACIL-TP-CD', position: 5, type: String, length: 2 }
+    - { name: 'U837P-CLM-FACIL-CD-QUAL', position: 6, type: String, length: 2 }
+    - { name: 'U837P-CLM-SUBMIS-REAS-CD', position: 7, type: String, length: 1 }
+  - { name: 'U837P-CLM-PRV-SIGN-IND', type: String, length: 1 }
+  - { name: 'U837P-CLM-PRV-ACCEPT-ASSIGN-CD', type: String, length: 1 }
+  - { name: 'U837P-CLM-PRV-ASSIGN-BEN-IND', type: String, length: 1 }
+  - { name: 'U837P-CLM-REL-OF-INFO-CD', type: String, length: 1 }
+  - { name: 'U837P-CLM-PAT-SIGN-SRC-CD', type: String, length: 1 }
+  - name: 'U837P-CLM-RELATED-CAUSE-INFO'
+    values: 
+    - { name: 'U837P-CLM-REL-CAUSE-CD1', position: 11, type: String, length: 3 }
+    - { name: 'U837P-CLM-REL-CAUSE-CD2', position: 12, type: String, length: 3 }
+    - { name: 'U837P-CLM-REL-CAUSE-CD3', position: 13, type: String, length: 3 }
+    - { name: 'U837P-CLM-AUTO-ACC-ST', position: 14, type: String, length: 2 }
+    - { name: 'U837P-CLM-AUTO-ACC-CNTRY', position: 15, type: String, length: 3 }
+  - { name: 'U837P-CLM-SPEC-PROG-IND', type: String, length: 3 }
+  - { name: 'U837P-CLM-PRV-AGREE-CD', type: String, length: 1 }
+  - { name: 'U837P-CLM-DELAY-RSN-CD', type: String, length: 2 }
+- id: 'U837P-DTP-SERVICE-DATE-REC'
+  name: 'U837P-DTP-SERVICE-DATE-REC'
+  compPrefix: 'UDSDR0'
+  values: 
+  - name: 'U837P-DTP-SERVICE-DATE-KEY'
+    values: 
+    - { name: 'U837P-DTP-SERV-DT-LPID', position: 2, type: String, length: 6, tagValue: "2400  " }
+    - { name: 'U837P-DTP-SERV-DT-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-DTP-SERV-DT-SGID', position: 4, type: String, length: 4, tagValue: "DTP " }
+    - { name: 'U837P-DTP-SERV-DT-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-DTP-SERV-DT-TP', type: String, length: 3 }
+  - { name: 'U837P-DTP-SERV-DT-FORMAT', type: String, length: 3 }
+  - { name: 'U837P-DTP-SERV-DATE', type: String, length: 16 }
+- id: 'U837P-DMG-SUBSCRIBER-REC'
+  name: 'U837P-DMG-SUBSCRIBER-REC'
+  compPrefix: 'UDSR0'
+  values: 
+  - name: 'U837P-DMG-SBR-REC-KEY'
+    values: 
+    - { name: 'U837P-DMG-SBR-LPID', position: 2, type: String, length: 6, tagValue: "2010BA" }
+    - { name: 'U837P-DMG-SBR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-DMG-SBR-SGID', position: 4, type: String, length: 4, tagValue: "DMG " }
+    - { name: 'U837P-DMG-SBR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-DMG-SBR-DATE-QUAL', type: String, length: 3 }
+  - { name: 'U837P-DMG-SBR-DOB', type: String, length: 8 }
+  - { name: 'U837P-DMG-SBR-SEX', type: String, length: 1 }
+- id: 'U837P-HL-BILL-PROV-REC'
+  name: 'U837P-HL-BILL-PROV-REC'
+  compPrefix: 'UHBPR0'
+  values: 
+  - name: 'U837P-HL-BILL-PROV-REC-KEY'
+    values: 
+    - { name: 'U837P-HL-BILL-PROV-LPID', position: 2, type: String, length: 6, tagValue: "2000A " }
+    - { name: 'U837P-HL-BILL-PROV-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-HL-BILL-PROV-SGID', position: 4, type: String, length: 4, tagValue: "HL  " }
+    - { name: 'U837P-HL-BILL-PROV-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-HL-BILL-PROV-HID-NUM', type: String, length: 12 }
+  - { name: 'U837P-HL-BILL-PROV-HLEV-CD', type: String, length: 2 }
+  - { name: 'U837P-HL-BILL-PROV-HCHILD-CD', type: String, length: 1 }
+  - { name: 'U837P-HL-BILL-VERSION-ID-CD', type: String, length: 12 }
+- id: 'U837P-HI-CLM-DIAG-CODE-REC'
+  name: 'U837P-HI-CLM-DIAG-CODE-REC'
+  compPrefix: 'UHCDCR0'
+  values: 
+  - name: 'U837P-HI-CLM-DIAG-CODE-KEY'
+    values: 
+    - { name: 'U837P-HI-CLM-DIAG-CD-LPID', position: 2, type: String, length: 6, tagValue: "2300  " }
+    - { name: 'U837P-HI-CLM-DIAG-CD-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-HI-CLM-DIAG-CD-SGID', position: 4, type: String, length: 4, tagValue: "HI  " }
+    - { name: 'U837P-HI-CLM-DIAG-CD-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - name: 'U837P-HI-CLM-DIAG-CD-PRIN'
+    values: 
+    - { name: 'U837P-HI-CLM-PRIN-DIAG-CD-TP', position: 3, type: String, length: 3 }
+    - { name: 'U837P-HI-CLM-PRIN-DIAG-CD', position: 4, type: String, length: 30 }
+  - name: 'U837P-HI-CLM-DIAG-CD-INFO'
+    count: 11
+    values: 
+    - { name: 'U837P-HI-CLM-DIAG-CD-TP', type: String, length: 3 }
+    - { name: 'U837P-HI-CLM-DIAG-CD', type: String, length: 30 }
+- id: 'U837P-HL-SUBSCRIBER-REC'
+  name: 'U837P-HL-SUBSCRIBER-REC'
+  compPrefix: 'UHSR0'
+  values: 
+  - name: 'U837P-HL-SUBSCR-REC-KEY'
+    values: 
+    - { name: 'U837P-HL-SUBSCR-LPID', position: 2, type: String, length: 6, tagValue: "2000B " }
+    - { name: 'U837P-HL-SUBSCR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-HL-SUBSCR-SGID', position: 4, type: String, length: 4, tagValue: "HL  " }
+    - { name: 'U837P-HL-SUBSCR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-HL-SUBSCR-HID-NUM', type: String, length: 12 }
+  - { name: 'U837P-HL-SUBSCR-HPAR-ID-NUM', type: String, length: 12 }
+  - { name: 'U837P-HL-SUBSCR-HLEV-CD', type: String, length: 2 }
+  - { name: 'U837P-HL-SUBSCR-HCHILD-CD', type: String, length: 1 }
+- id: 'U837P-LX-SERVICE-LINE-REC'
+  name: 'U837P-LX-SERVICE-LINE-REC'
+  compPrefix: 'ULSLR0'
+  values: 
+  - name: 'U837P-LX-SERVICE-LINE-KEY'
+    values: 
+    - { name: 'U837P-LX-LPID', position: 2, type: String, length: 6, tagValue: "2400  " }
+    - { name: 'U837P-LX-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-LX-SGID', position: 4, type: String, length: 4, tagValue: "LX  " }
+    - { name: 'U837P-LX-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-LX-LINE-NBR', type: Integer, length: 6, format: { justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+- id: 'U837P-NM1-BILL-PROVIDER-REC'
+  name: 'U837P-NM1-BILL-PROVIDER-REC'
+  compPrefix: 'UNBPR0'
+  values: 
+  - name: 'U837P-NM1-BILL-PROV-REC-KEY'
+    values: 
+    - { name: 'U837P-NM1-BILL-PROV-LPID', position: 2, type: String, length: 6, tagValue: "2010AA" }
+    - { name: 'U837P-NM1-BILL-PROV-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-NM1-BILL-PROV-SGID', position: 4, type: String, length: 4, tagValue: "NM1 " }
+    - { name: 'U837P-NM1-BILL-PROV-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-NM1-BILL-PROV-ID-CD', type: String, length: 3 }
+  - { name: 'U837P-NM1-BILL-PROV-TP-QUAL', type: String, length: 1 }
+  - { name: 'U837P-NM1-BILL-PROV-LORG-NAME', type: String, length: 60 }
+  - { name: 'U837P-NM1-BILL-PROV-FIRST-NAME', type: String, length: 35 }
+  - { name: 'U837P-NM1-BILL-PROV-MID-NAME', type: String, length: 25 }
+  - { name: 'U837P-NM1-BILL-PROV-SUFX', type: String, length: 10 }
+  - { name: 'U837P-NM1-BILL-PROV-ID-QUAL', type: String, length: 2 }
+  - { name: 'U837P-NM1-BILL-PROV-ID', type: String, length: 80 }
+- id: 'U837P-N3-BILL-PROV-REC'
+  name: 'U837P-N3-BILL-PROV-REC'
+  compPrefix: 'UNBPR2'
+  values: 
+  - name: 'U837P-N3-BILL-PROV-REC-KEY'
+    values: 
+    - { name: 'U837P-N3-BILL-PROV-LPID', position: 2, type: String, length: 6, tagValue: "2010AA" }
+    - { name: 'U837P-N3-BILL-PROV-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-N3-BILL-PROV-SGID', position: 4, type: String, length: 4, tagValue: "N3  " }
+    - { name: 'U837P-N3-BILL-PROV-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-N3-BILL-PROV-ADDR1', type: String, length: 55 }
+  - { name: 'U837P-N3-BILL-PROV-ADDR2', type: String, length: 55 }
+- id: 'U837P-N4-BILL-PROV-REC'
+  name: 'U837P-N4-BILL-PROV-REC'
+  compPrefix: 'UNBPR3'
+  values: 
+  - name: 'U837P-N4-BILL-PROV-REC-KEY'
+    values: 
+    - { name: 'U837P-N4-BILL-PROV-LPID', position: 2, type: String, length: 6, tagValue: "2010AA" }
+    - { name: 'U837P-N4-BILL-PROV-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-N4-BILL-PROV-SGID', position: 4, type: String, length: 4, tagValue: "N4  " }
+    - { name: 'U837P-N4-BILL-PROV-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-N4-BILL-PROV-CITY', type: String, length: 30 }
+  - { name: 'U837P-N4-BILL-PROV-ST', type: String, length: 2 }
+  - { name: 'U837P-N4-BILL-PROV-ZIP', type: String, length: 15 }
+  - { name: 'U837P-N4-BILL-PROV-CNTRY', type: String, length: 3 }
+  - { name: 'U837P-N4-BILL-PROV-CNTRY-SUBD', type: String, length: 3 }
+- id: 'U837P-NTE-CLM-NOTE-REC'
+  name: 'U837P-NTE-CLM-NOTE-REC'
+  compPrefix: 'UNCNR0'
+  values: 
+  - name: 'U837P-NTE-CLM-NOTE-KEY'
+    values: 
+    - { name: 'U837P-NTE-CLM-CLMNOTE-LPID', position: 2, type: String, length: 6, tagValue: "2300  " }
+    - { name: 'U837P-NTE-CLM-CLMNOTE-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-NTE-CLM-CLMNOTE-SGID', position: 4, type: String, length: 4, tagValue: "NTE " }
+    - { name: 'U837P-NTE-CLM-CLMNOTE-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-NTE-CLM-CLMNOTE-TP', type: String, length: 3 }
+  - { name: 'U837P-NTE-CLM-CLMNOTE', type: String, length: 80 }
+- id: 'U837P-NM1-CLM-PSRV-PROV-NM-REC'
+  name: 'U837P-NM1-CLM-PSRV-PROV-NM-REC'
+  compPrefix: 'UNCPPNR0'
+  values: 
+  - name: 'U837P-NM1-CLM-PSRV-PRV-NM-KEY'
+    values: 
+    - { name: 'U837P-NM1-CLM-PSRVPRV-LPID', position: 2, type: String, length: 6, tagValue: "2310C " }
+    - { name: 'U837P-NM1-CLM-PSRVPRV-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-NM1-CLM-PSRVPRV-SGID', position: 4, type: String, length: 4, tagValue: "NM1 " }
+    - { name: 'U837P-NM1-CLM-PSRVPRV-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-NM1-CLM-PSRVPRV-ID-CD', type: String, length: 3 }
+  - { name: 'U837P-NM1-CLM-PSRVPRV-TP-QUAL', type: String, length: 1 }
+  - { name: 'U837P-NM1-CLM-PSRVPRV-LORG-NM', type: String, length: 35 }
+  - { name: 'U837P-NM1-CLM-PSRVPRV-FRST-NM', type: String, length: 25 }
+  - { name: 'U837P-NM1-CLM-PSRVPRV-MID-NAME', type: String, length: 25 }
+  - { name: 'U837P-NM1-CLM-PSRVPRV-ID-QUAL', type: String, length: 2 }
+  - { name: 'U837P-NM1-CLM-PSRVPRV-ID', type: String, length: 80 }
+- id: 'U837P-NM1-CLM-REND-PROV-NM-REC'
+  name: 'U837P-NM1-CLM-REND-PROV-NM-REC'
+  compPrefix: 'UNCRPNR1'
+  values: 
+  - name: 'U837P-NM1-CLM-REND-PRV-NM-KEY'
+    values: 
+    - { name: 'U837P-NM1-CLM-RENPRV-LPID', position: 2, type: String, length: 6, tagValue: "2310B " }
+    - { name: 'U837P-NM1-CLM-RENPRV-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-NM1-CLM-RENPRV-SGID', position: 4, type: String, length: 4, tagValue: "NM1 " }
+    - { name: 'U837P-NM1-CLM-RENPRV-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-NM1-CLM-RENPRV-ID-CD', type: String, length: 3 }
+  - { name: 'U837P-NM1-CLM-RENPRV-TP-QUAL', type: String, length: 1 }
+  - { name: 'U837P-NM1-CLM-RENPRV-LORG-NM', type: String, length: 60 }
+  - { name: 'U837P-NM1-CLM-RENPRV-FRST-NM', type: String, length: 35 }
+  - { name: 'U837P-NM1-CLM-RENPRV-MID-NAME', type: String, length: 25 }
+  - { name: 'U837P-NM1-CLM-RENPRV-SUFX', type: String, length: 10 }
+  - { name: 'U837P-NM1-CLM-RENPRV-ID-QUAL', type: String, length: 2 }
+  - { name: 'U837P-NM1-CLM-RENPRV-ID', type: String, length: 80 }
+- id: 'U837P-N3-CLM-SERV-FACIL-REC'
+  name: 'U837P-N3-CLM-SERV-FACIL-REC'
+  compPrefix: 'UNCSFR2'
+  values: 
+  - name: 'U837P-N3-CLM-SERV-FACIL-KEY'
+    values: 
+    - { name: 'U837P-N3-CLM-SRVFAC-LPID', position: 2, type: String, length: 6, tagValue: "2310C " }
+    - { name: 'U837P-N3-CLM-SRVFAC-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-N3-CLM-SRVFAC-SGID', position: 4, type: String, length: 4, tagValue: "N3  " }
+    - { name: 'U837P-N3-CLM-SRVFAC-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-N3-CLM-SRVFAC-ADDR1', type: String, length: 55 }
+  - { name: 'U837P-N3-CLM-SRVFAC-ADDR2', type: String, length: 55 }
+- id: 'U837P-N4-CLM-SERV-FACIL-REC'
+  name: 'U837P-N4-CLM-SERV-FACIL-REC'
+  compPrefix: 'UNCSFR3'
+  values: 
+  - name: 'U837P-N4-CLM-SERV-FACIL-KEY'
+    values: 
+    - { name: 'U837P-N4-CLM-SRVFAC-LPID', position: 2, type: String, length: 6, tagValue: "2310C " }
+    - { name: 'U837P-N4-CLM-SRVFAC-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-N4-CLM-SRVFAC-SGID', position: 4, type: String, length: 4, tagValue: "N4  " }
+    - { name: 'U837P-N4-CLM-SRVFAC-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-N4-CLM-SRVFAC-CITY', type: String, length: 30 }
+  - { name: 'U837P-N4-CLM-SRVFAC-ST', type: String, length: 2 }
+  - { name: 'U837P-N4-CLM-SRVFAC-ZIP', type: String, length: 15 }
+  - { name: 'U837P-N4-CLM-SRVFAC-CNTRY', type: String, length: 3 }
+  - { name: 'U837P-N4-CLM-SRVFAC-CNTRY-SUBD', type: String, length: 3 }
+- id: 'U837P-NM1-SUBSCRIBER-PAYER-REC'
+  name: 'U837P-NM1-SUBSCRIBER-PAYER-REC'
+  compPrefix: 'UNSPR0'
+  values: 
+  - name: 'U837P-NM1-SBR-PYR-REC-KEY'
+    values: 
+    - { name: 'U837P-NM1-SBR-PYR-LPID', position: 2, type: String, length: 6, tagValue: "2010BB" }
+    - { name: 'U837P-NM1-SBR-PYR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-NM1-SBR-PYR-SGID', position: 4, type: String, length: 4, tagValue: "NM1 " }
+    - { name: 'U837P-NM1-SBR-PYR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-NM1-SBR-PYR-ID-CD', type: String, length: 3 }
+  - { name: 'U837P-NM1-SBR-PYR-TP-QUAL', type: String, length: 1 }
+  - { name: 'U837P-NM1-SBR-PYR-LORG-NAME', type: String, length: 60 }
+  - { name: 'U837P-NM1-SBR-PYR-ID-QUAL', type: String, length: 2 }
+  - { name: 'U837P-NM1-SBR-PYR-ID', type: String, length: 80 }
+- id: 'U837P-N3-SUBSCRIBER-PAYER-REC'
+  name: 'U837P-N3-SUBSCRIBER-PAYER-REC'
+  compPrefix: 'UNSPR2'
+  values: 
+  - name: 'U837P-N3-SBR-PYR-REC-KEY'
+    values: 
+    - { name: 'U837P-N3-SBR-PYR-LPID', position: 2, type: String, length: 6, tagValue: "2010BB" }
+    - { name: 'U837P-N3-SBR-PYR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-N3-SBR-PYR-SGID', position: 4, type: String, length: 4, tagValue: "N3  " }
+    - { name: 'U837P-N3-SBR-PYR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-N3-SBR-PYR-ADDR1', type: String, length: 55 }
+  - { name: 'U837P-N3-SBR-PYR-ADDR2', type: String, length: 55 }
+- id: 'U837P-N4-SUBSCRIBER-PAYER-REC'
+  name: 'U837P-N4-SUBSCRIBER-PAYER-REC'
+  compPrefix: 'UNSPR3'
+  values: 
+  - name: 'U837P-N4-SBR-PYR-REC-KEY'
+    values: 
+    - { name: 'U837P-N4-SBR-PYR-LPID', position: 2, type: String, length: 6, tagValue: "2010BB" }
+    - { name: 'U837P-N4-SBR-PYR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-N4-SBR-PYR-SGID', position: 4, type: String, length: 4, tagValue: "N4  " }
+    - { name: 'U837P-N4-SBR-PYR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-N4-SBR-PYR-CITY', type: String, length: 30 }
+  - { name: 'U837P-N4-SBR-PYR-ST', type: String, length: 2 }
+  - { name: 'U837P-N4-SBR-PYR-ZIP', type: String, length: 15 }
+  - { name: 'U837P-N4-SBR-PYR-CNTRY', type: String, length: 3 }
+  - { name: 'U837P-N4-SBR-PYR-CNTRY-SUBD', type: String, length: 3 }
+- id: 'U837P-NM1-SUBSCRIBER-REC'
+  name: 'U837P-NM1-SUBSCRIBER-REC'
+  compPrefix: 'UNSR2'
+  values: 
+  - name: 'U837P-NM1-SBR-REC-KEY'
+    values: 
+    - { name: 'U837P-NM1-SBR-LPID', position: 2, type: String, length: 6, tagValue: "2010BA" }
+    - { name: 'U837P-NM1-SBR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-NM1-SBR-SGID', position: 4, type: String, length: 4, tagValue: "NM1 " }
+    - { name: 'U837P-NM1-SBR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-NM1-SBR-ID-CD', type: String, length: 3 }
+  - { name: 'U837P-NM1-SBR-TP-QUAL', type: String, length: 1 }
+  - { name: 'U837P-NM1-SBR-LORG-NAME', type: String, length: 60 }
+  - { name: 'U837P-NM1-SBR-FIRST-NAME', type: String, length: 35 }
+  - { name: 'U837P-NM1-SBR-MID-NAME', type: String, length: 25 }
+  - { name: 'U837P-NM1-SBR-SUFX', type: String, length: 10 }
+  - { name: 'U837P-NM1-SBR-ID-QUAL', type: String, length: 2 }
+  - { name: 'U837P-NM1-SBR-ID', type: String, length: 80 }
+- id: 'U837P-N3-SUBSCRIBER-REC'
+  name: 'U837P-N3-SUBSCRIBER-REC'
+  compPrefix: 'UNSR4'
+  values: 
+  - name: 'U837P-N3-SBR-REC-KEY'
+    values: 
+    - { name: 'U837P-N3-SBR-LPID', position: 2, type: String, length: 6, tagValue: "2010BA" }
+    - { name: 'U837P-N3-SBR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-N3-SBR-SGID', position: 4, type: String, length: 4, tagValue: "N3  " }
+    - { name: 'U837P-N3-SBR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-N3-SBR-ADDR1', type: String, length: 55 }
+  - { name: 'U837P-N3-SBR-ADDR2', type: String, length: 55 }
+- id: 'U837P-N4-SUBSCRIBER-REC'
+  name: 'U837P-N4-SUBSCRIBER-REC'
+  compPrefix: 'UNSR5'
+  values: 
+  - name: 'U837P-N4-SBR-REC-KEY'
+    values: 
+    - { name: 'U837P-N4-SBR-LPID', position: 2, type: String, length: 6, tagValue: "2010BA" }
+    - { name: 'U837P-N4-SBR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-N4-SBR-SGID', position: 4, type: String, length: 4, tagValue: "N4  " }
+    - { name: 'U837P-N4-SBR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-N4-SBR-CITY', type: String, length: 30 }
+  - { name: 'U837P-N4-SBR-ST', type: String, length: 2 }
+  - { name: 'U837P-N4-SBR-ZIP', type: String, length: 15 }
+  - { name: 'U837P-N4-SBR-CNTRY', type: String, length: 3 }
+  - { name: 'U837P-N4-SBR-CNTRY-SUBD', type: String, length: 3 }
+- id: 'U837P-PER-BILL-PROV-REC'
+  name: 'U837P-PER-BILL-PROV-REC'
+  compPrefix: 'UPBPR1'
+  values: 
+  - name: 'U837P-PER-BPRV-REC-KEY'
+    values: 
+    - { name: 'U837P-PER-BPRV-LPID', position: 2, type: String, length: 6, tagValue: "2010AA" }
+    - { name: 'U837P-PER-BPRV-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-PER-BPRV-SGID', position: 4, type: String, length: 4, tagValue: "PER " }
+    - { name: 'U837P-PER-BPRV-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-PER-BPRV-CONT-CD', type: String, length: 2 }
+  - { name: 'U837P-PER-BPRV-CONT-NM', type: String, length: 60 }
+  - name: 'U837P-PER-BPRV-CONT-INFO'
+    count: 3
+    values: 
+    - { name: 'U837P-PER-BPRV-COMM-NBR-QUAL', type: String, length: 2 }
+    - { name: 'U837P-PER-BPRV-COMM-NBR', type: String, length: 256 }
+- id: 'U837P-REF-BILL-PROV-SID-REC'
+  name: 'U837P-REF-BILL-PROV-SID-REC'
+  compPrefix: 'URBPSR0'
+  values: 
+  - name: 'U837P-REF-BPRV-SID-REC-KEY'
+    values: 
+    - { name: 'U837P-REF-BPRV-SID-LPID', position: 2, type: String, length: 6, tagValue: "2010AA" }
+    - { name: 'U837P-REF-BPRV-SID-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-REF-BPRV-SID-SGID', position: 4, type: String, length: 4, tagValue: "REF " }
+    - { name: 'U837P-REF-BPRV-SID-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-REF-BPRV-SID-QUAL', type: String, length: 3 }
+  - { name: 'U837P-REF-BPRV-SEC-ID', type: String, length: 50 }
+- id: 'U837P-REF-CLM-SRV-AUTH-EXC-REC'
+  name: 'U837P-REF-CLM-SRV-AUTH-EXC-REC'
+  compPrefix: 'URCSAER0'
+  values: 
+  - name: 'U837P-REF-CLM-SVAUTH-EXC-KEY'
+    values: 
+    - { name: 'U837P-REF-CLM-SAE-LPID', position: 2, type: String, length: 6, tagValue: "2300  " }
+    - { name: 'U837P-REF-CLM-SAE-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-REF-CLM-SAE-SGID', position: 4, type: String, length: 4, tagValue: "REF " }
+    - { name: 'U837P-REF-CLM-SAE-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-REF-CLM-SAE-QUAL', type: String, length: 3 }
+  - { name: 'U837P-REF-CLM-SAE-CD', type: String, length: 50 }
+- id: 'U837P-REF-SUBSCRIBER-SID-REC'
+  name: 'U837P-REF-SUBSCRIBER-SID-REC'
+  compPrefix: 'URSSR0'
+  values: 
+  - name: 'U837P-REF-SBR-SID-REC-KEY'
+    values: 
+    - { name: 'U837P-REF-SBR-SID-LPID', position: 2, type: String, length: 6, tagValue: "2010BA" }
+    - { name: 'U837P-REF-SBR-SID-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-REF-SBR-SID-SGID', position: 4, type: String, length: 4, tagValue: "REF " }
+    - { name: 'U837P-REF-SBR-SID-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-REF-SBR-SID-QUAL', type: String, length: 3 }
+  - { name: 'U837P-REF-SBR-SEC-ID', type: String, length: 50 }
+- id: 'U837P-SV1-PROF-SERV-LINE-REC'
+  name: 'U837P-SV1-PROF-SERV-LINE-REC'
+  compPrefix: 'USPSLR0'
+  values: 
+  - name: 'U837P-SV1-PROF-SERV-LINE-KEY'
+    values: 
+    - { name: 'U837P-SV1-LPID', position: 2, type: String, length: 6, tagValue: "2400  " }
+    - { name: 'U837P-SV1-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-SV1-SGID', position: 4, type: String, length: 4, tagValue: "SV1 " }
+    - { name: 'U837P-SV1-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - name: 'U837P-SV1-PROCEDURE'
+    values: 
+    - { name: 'U837P-SV1-PROC-CD-TP', position: 3, type: String, length: 2 }
+    - { name: 'U837P-SV1-PROC-CD', position: 4, type: String, length: 48 }
+    - { name: 'U837P-SV1-PROC-CD-MOD1', position: 5, type: String, length: 2 }
+    - { name: 'U837P-SV1-PROC-CD-MOD2', position: 6, type: String, length: 2 }
+    - { name: 'U837P-SV1-PROC-CD-MOD3', position: 7, type: String, length: 2 }
+    - { name: 'U837P-SV1-PROC-CD-MOD4', position: 8, type: String, length: 2 }
+    - { name: 'U837P-SV1-DESCRIPTION', position: 9, type: String, length: 80 }
+  - { name: 'U837P-SV1-LINE-CHARGE', type: Decimal, length: 18, format: { implicit: 2, justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+  - { name: 'U837P-SV1-QTY-TP', type: String, length: 2 }
+  - { name: 'U837P-SV1-UNITS-MINS', type: Decimal, length: 18, format: { implicit: 2, justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+  - { name: 'U837P-SV1-PLACE-OF-SERV', type: String, length: 2 }
+  - name: 'U837P-SV1-DIAGNOSIS-CD-PTRS'
+    values: 
+    - { name: 'U837P-SV1-DIAG-CD-PTR1', position: 8, type: Integer, length: 2, format: { justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+    - { name: 'U837P-SV1-DIAG-CD-PTR2', position: 9, type: Integer, length: 2, format: { justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+    - { name: 'U837P-SV1-DIAG-CD-PTR3', position: 10, type: Integer, length: 2, format: { justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+    - { name: 'U837P-SV1-DIAG-CD-PTR4', position: 11, type: Integer, length: 2, format: { justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+  - { name: 'U837P-SV1-EMERGENCY-IND', type: String, length: 1 }
+  - { name: 'U837P-SV1-EPSDT-IND', type: String, length: 1 }
+  - { name: 'U837P-SV1-FAM-PLAN-IND', type: String, length: 1 }
+  - { name: 'U837P-SV1-COPAY-STATUS-CD', type: String, length: 1 }
+- id: 'U837P-ST-REC'
+  name: 'U837P-ST-REC'
+  compPrefix: 'USR0'
+  values: 
+  - name: 'U837P-ST-REC-KEY'
+    values: 
+    - { name: 'U837P-ST-LPID', position: 2, type: String, length: 6, tagValue: "      " }
+    - { name: 'U837P-ST-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-ST-SGID', position: 4, type: String, length: 4, tagValue: "ST  " }
+    - { name: 'U837P-ST-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-ST-TRANS-ID-CD', type: String, length: 3 }
+  - { name: 'U837P-ST-TRANS-CONTRL-NO', type: String, length: 9 }
+  - { name: 'U837P-ST-IMPLE-GUIDE-VER', type: String, length: 35 }
+- id: 'U837P-SE-RE'
+  name: 'U837P-SE-REC'
+  compPrefix: 'USR1'
+  values: 
+  - name: 'U837P-SE-REC-KEY'
+    values: 
+    - { name: 'U837P-SE-LPID', position: 2, type: String, length: 6, tagValue: "      " }
+    - { name: 'U837P-SE-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-SE-SGID', position: 4, type: String, length: 4, tagValue: "SE  " }
+    - { name: 'U837P-SE-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-SE-TRANS-SEG-COUNT', type: Integer, length: 10, format: { justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
+  - { name: 'U837P-SE-TRANS-CONTRL-NO', type: String, length: 9 }
+- id: 'U837P-SBR-SUBSCRIBER-REC'
+  name: 'U837P-SBR-SUBSCRIBER-REC'
+  compPrefix: 'USSR0'
+  values: 
+  - name: 'U837P-SBR-SBR-REC-KEY'
+    values: 
+    - { name: 'U837P-SBR-SBR-LPID', position: 2, type: String, length: 6, tagValue: "2000B " }
+    - { name: 'U837P-SBR-SBR-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-SBR-SBR-SGID', position: 4, type: String, length: 4, tagValue: "SBR " }
+    - { name: 'U837P-SBR-SBR-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-SBR-SBR-PAYER-SEQ', type: String, length: 1 }
+  - { name: 'U837P-SBR-SBR-REL-CD', type: String, length: 2 }
+  - { name: 'U837P-SBR-SBR-GRP-NUM', type: String, length: 50 }
+  - { name: 'U837P-SBR-SBR-GRP-NM', type: String, length: 60 }
+  - { name: 'U837P-SBR-SBR-INS-TP', type: String, length: 3 }
+  - { name: 'U837P-SBR-SBR-CLM-FIL-IND', type: String, length: 2 }
+- id: 'U837P-UFE-REC'
+  name: 'U837P-UFE-REC'
+  compPrefix: 'UUR0'
+  values: 
+  - name: 'U837P-UFE-REC-KEY'
+    values: 
+    - { name: 'U837P-UFE-LPID', position: 2, type: String, length: 6, tagValue: "2300  " }
+    - { name: 'U837P-UFE-LPSQ', position: 3, type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }
+    - { name: 'U837P-UFE-SGID', position: 4, type: String, length: 4, tagValue: "UFE " }
+    - { name: 'U837P-UFE-SGSQ', position: 5, type: Integer, length: 4, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-UFE-CLM-ROUTE-IND', type: String, length: 1 }
+  - { name: 'U837P-UFE-SOURCE-IND', type: String, length: 1 }
+  - { name: 'U837P-UFE-VENDOR-ID', type: String, length: 2 }
+  - { name: 'U837P-UFE-VENDOR-TYPE', type: String, length: 1 }
+  - { name: 'U837P-UFE-PROVIDER-NO', type: String, length: 80 }
+  - { name: 'U837P-UFE-TIN-SUFFIX', type: Integer, length: 5, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-UFE-EPD-SEL-ALGORITHM', type: String, length: 4 }
+  - { name: 'U837P-UFE-EE-ID', type: String, length: 80 }
+  - { name: 'U837P-UFE-GROUP-NUM', type: String, length: 7 }
+  - { name: 'U837P-UFE-SYSTEM', type: String, length: 1 }
+  - { name: 'U837P-UFE-PAY-LOC-DIV-CD', type: String, length: 3 }
+  - { name: 'U837P-UFE-MEM-SEL-ALGORITHM', type: String, length: 4 }
+  - { name: 'U837P-UFE-KEYER-ID', type: String, length: 9 }
+  - { name: 'U837P-UFE-MED-CARR-NAME', type: String, length: 4 }
+  - { name: 'U837P-UFE-OFC-EXCEPT', type: String, length: 1 }
+  - { name: 'U837P-UFE-CANCEL-DATE', type: Integer, length: 8, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-UFE-RUNOUT-DATE', type: Integer, length: 8, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-UFE-REROUTE-COMM', type: String, length: 30 }
+  - { name: 'U837P-UFE-MH-CD-IND', type: String, length: 1 }
+  - { name: 'U837P-UFE-PROV-SEL-IND', type: String, length: 1 }
+  - { name: 'U837P-UFE-PROV-TIN-PREFIX', type: Integer, length: 1, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-UFE-PROV-NO-URGCRE', type: String, length: 80 }
+  - { name: 'U837P-UFE-PROV-TIN-SUFX-URGCRE', type: Integer, length: 5, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-UFE-EPD-SEL-ALGOR-URGCRE', type: String, length: 4 }
+  - { name: 'U837P-UFE-PROV-TIN-PREFX-URGCR', type: Integer, length: 1, format: { justify: LEFT, sign: 'UNSIGNED' } }
+  - { name: 'U837P-UFE-UNET-ROUTE-IND', type: String, length: 1 }
+  - { name: 'U837P-UFE-IMCS-RUNOUT-IND', type: String, length: 1 }
+  - { name: 'U837P-UFE-CLAIM-ENC-IND', type: String, length: 2 }
+  - { name: 'U837P-UFE-CLAIM-ID', type: String, length: 15 }
+  - { name: 'U837P-UFE-FOREIGN-PROV', type: String, length: 1 }
+  - { name: 'U837P-UFE-SPLIT-IND', type: String, length: 1 }
+  - { name: 'U837P-UFE-UNET-PROV-TYPE', type: String, length: 2 }
+  - { name: 'U837P-UFE-PTI-ORGID-DER', type: String, length: 4 }
+  - { name: 'U837P-UFE-PTI-ORGID-SEL', type: String, length: 4 }
+  - { name: 'U837P-UFE-PTI-SEL', type: String, length: 1 }
+  - { name: 'U837P-UFE-PTI-UHN', type: String, length: 1 }
+  - { name: 'U837P-UFE-PTI-ADDL', type: String, length: 1 }
+  - { name: 'U837P-UFE-FILLER', type: String, length: 6 }
+  - { name: 'U837P-UFE-OBLIGOR-ID', type: String, length: 2 }
+  - { name: 'U837P-UFE-GROUP-NUM-EXP', type: String, length: 15 }
+  - { name: 'U837P-UFE-NDB-MPIN', type: Integer, length: 9, format: { justify: LEFT, sign: 'UNSIGNED' } }

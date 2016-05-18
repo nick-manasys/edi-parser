@@ -396,11 +396,11 @@ class CopybookImport(in: InputStream, enc: String) {
                         map.get(DataDescriptionParser.usageKey) match {
                           case Some("DISPLAY") | None =>
                             val element = convertPic(name, picture, false, false, map)
-                            val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1)
+                            val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1, false)
                             buildr(level, key, position + 1, comp :: acc)
                           case Some("COMP-3") | Some("COMPUTATIONAL-3") | Some("PACKED-DECIMAL") =>
                             val element = convertPic(name, picture, true, false, map)
-                            val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1)
+                            val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1, false)
                             buildr(level, key, position + 1, comp :: acc)
                           case Some(other) =>
                             problems += new CopybookImportError(true, input.lineNumber, s"Unsupported USAGE $other", definitionText(definition))

@@ -3,7 +3,7 @@ package com.mulesoft.flatfile.schema.fftypes
 import com.mulesoft.flatfile.lexical.TypeFormat
 import com.mulesoft.flatfile.lexical.TypeFormatConstants._
 import com.mulesoft.flatfile.schema.SchemaJavaDefs
-import java.{ util => ju }
+import java.{ lang => jl, util => ju }
 import scala.annotation.tailrec
 
 trait FlatFileYaml {
@@ -117,10 +117,10 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
     if (map != null && map.containsKey(implicitKey)) getAsInt(implicitKey, map) else 0
   }
   protected def getSigned(map: ValueMap): Boolean = {
-    map != null && map.containsKey(signedKey) && getAsString(signedKey, map).toUpperCase == "TRUE"
+    map != null && map.containsKey(signedKey) && map.get(signedKey).asInstanceOf[jl.Boolean]
   }
   protected def getZoned(map: ValueMap): Boolean = {
-    map != null && map.containsKey(zonedKey) && getAsString(zonedKey, map).toUpperCase == "TRUE"
+    map != null && map.containsKey(zonedKey) && map.get(zonedKey).asInstanceOf[jl.Boolean]
   }
 
   def readFormat(width: Int, map: ValueMap): TypeFormat

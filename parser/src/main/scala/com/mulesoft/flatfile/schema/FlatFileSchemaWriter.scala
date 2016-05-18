@@ -31,13 +31,19 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
     case UnusedUsage | IgnoredUsage => false
     case _ => true
   }
+  
+  override def startSegment(segment: Segment) = Unit
 
   /** Write a value from map. */
-  def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
+  override def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
-    def writeSimple(value: Any, element: Element) =
-      if (value == null) writer.writeBlank(element.typeFormat.maxLength)
-      else element.typeFormat.write(value, writer)
+    def writeSimple(value: Any, ec: ElementComponent) = {
+      val element = ec.element
+      val format = element.typeFormat
+      if (value != null) format.write(value, writer)
+      else if (ec.value.isDefined) format.write(ec.value.get, writer)
+      else writer.writeBlank(format.maxLength)
+    }
 
     def skipComponentList(comps: List[SegmentComponent]): Unit = comps match {
       case h :: t => h match {
@@ -57,9 +63,8 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
           skipComponentList(cc.composite.components)
         }
       case ec: ElementComponent =>
-        val elem = ec.element
         val value = if (userValue(ec.usage)) map.get(ec.key) else null
-        writeSimple(value, elem)
+        writeSimple(value, ec)
     }
   }
 
@@ -79,7 +84,6 @@ class FlatFileStructureWriter(out: OutputStream, structure: Structure, config: F
 
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
-    writer.setTagField(structure.tagStart.get)
     val datamap = getRequiredValueMap(dataKey, map)
     structure.heading.foreach { seq => writeTopSection(0, datamap, seq) }
   } catch {
@@ -98,7 +102,6 @@ class FlatFileSegmentWriter(out: OutputStream, segment: Segment, config: FlatFil
 
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
-    writer.setTagField(-1)
     val data = getRequiredMapList(dataKey, map)
     foreachMapInList(data, { map => writeSegment(map, segment) })
   } catch {

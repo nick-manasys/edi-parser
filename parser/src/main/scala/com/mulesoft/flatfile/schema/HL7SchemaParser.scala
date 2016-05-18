@@ -41,7 +41,7 @@ trait HL7EnvelopeHandler {
 
 /** Parser for HL7 EDI documents. */
 case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config: HL7ParserConfig)
-    extends SchemaParser(new HL7Lexer(in, config.substitutionChar), StorageContext.workingContext) {
+    extends DelimiterSchemaParser(new HL7Lexer(in, config.substitutionChar), StorageContext.workingContext) {
 
   import HL7SchemaDefs._
   import HL7Acknowledgment._
@@ -137,7 +137,8 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
         case _ =>
           logger.warn(s"${describeError(false)} message error: too many values present${describeComponent(true)} at $positionInMessage")
           while (rest == lexer.currentType) lexer.advance
-      } else remain match {
+      }
+      else remain match {
         case h :: t =>
           if (h.usage == MandatoryUsage) addElementError(ErrorRequiredFieldMissing, false, "missing required field")
           else parseRest(t)

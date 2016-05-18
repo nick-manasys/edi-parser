@@ -41,6 +41,9 @@ public abstract class DelimiterLexer extends LexerBase
     /** Next token (empty if not yet scanned). */
     StringBuilder peekToken;
     
+    /** Current segment tag. */
+    String segmentTag;
+    
     /** Repetition number (from start of data element). */
     private int repetitionNumber;
     
@@ -212,6 +215,15 @@ public abstract class DelimiterLexer extends LexerBase
      * @throws IOException 
      */
     abstract void handleEscape() throws IOException;
+    
+    /**
+     * Get the current segment tag.
+     *
+     * @return tag
+     */
+    public String segmentTag() {
+        return segmentTag;
+    }
     
     /**
      * Parse token beyond the current token.

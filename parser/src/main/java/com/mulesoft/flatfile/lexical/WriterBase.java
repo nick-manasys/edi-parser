@@ -91,15 +91,6 @@ public abstract class WriterBase implements ErrorHandler
     public abstract void term(Map<String,Object> props) throws IOException;
     
     /**
-     * Write a segment start tag. This must always be called before any of the write value methods are called for the
-     * segment data.
-     *
-     * @param tag
-     * @throws IOException
-     */
-    public abstract void writeSegmentTag(String tag) throws IOException;
-    
-    /**
      * Write a segment terminator.
      *
      * @throws IOException

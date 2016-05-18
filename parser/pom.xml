@@ -9,7 +9,7 @@
   <parent>
     <groupId>org.mule.edi</groupId>
     <artifactId>edi</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.1-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
 

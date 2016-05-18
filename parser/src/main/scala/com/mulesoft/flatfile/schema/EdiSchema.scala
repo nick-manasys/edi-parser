@@ -73,11 +73,12 @@ object EdiSchema {
     * @param pos numeric position
     * @param use
     * @param cnt maximum repetition count
+    * @param tagPart element used as (part of) segment tag flag
     * @param value fixed text value for unused (checked on input, written on output) and ignored (written on output)
     * usage types
     */
   case class ElementComponent(val element: Element, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int,
-    val value: Option[String] = None)
+    val tagPart: Boolean = false, val value: Option[String] = None)
       extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt)
 
   /** Composite segment component.
@@ -178,7 +179,7 @@ object EdiSchema {
           val rekey = form.keyName(prefix, "", scomp.position)
           scomp match {
             case ec: ElementComponent =>
-              ElementComponent(ec.element, Some(ec.name), rekey, ec.position, ec.usage, ec.count)
+              ElementComponent(ec.element, Some(ec.name), rekey, ec.position, ec.usage, ec.count, ec.tagPart, ec.value)
             case cc: CompositeComponent =>
               val comp = if (cc.count == 1) cc.composite.rewrite(rekey, form) else cc.composite
               CompositeComponent(comp, Some(cc.name), rekey, cc.position, cc.usage, cc.count)
@@ -192,13 +193,13 @@ object EdiSchema {
   /** Segment definition.
     * @param ident identifier (used for key in multisegment schemas, also as id/idRef in YAML if non in-lined; ignored
     * in single segment schemas)
-    * @param tag value in data (used to identify segments in data, generally same as ident but flat file may differ or
-    * not be used)
+    * @param prefix prefix used for value key names, with value position suffix (generally same as ident but flat file
+    * may differ)
     * @param name human readable name
     * @param components
     * @param rules
     */
-  case class Segment(val ident: String, val tag: String, val name: String,
+  case class Segment(val ident: String, val prefix: String, val name: String,
       val components: List[SegmentComponent], val rules: List[OccurrenceRule]) {
     def this(id: String, nm: String, comps: List[SegmentComponent], rls: List[OccurrenceRule]) =
       this (id, id, nm, comps, rls)
@@ -231,12 +232,12 @@ object EdiSchema {
   sealed abstract class StructureComponent(val key: String, val position: SegmentPosition, val usage: Usage,
     val count: Int)
 
-  private def tag(comp: StructureComponent) = comp match {
-    case r: ReferenceComponent => r.segment.tag
-    case g: GroupBase => g.leadSegmentRef.segment.tag
+  private def compIdent(comp: StructureComponent) = comp match {
+    case r: ReferenceComponent => r.segment.ident
+    case g: GroupBase => g.leadSegmentRef.segment.ident
     case w: LoopWrapperComponent => w.startCode
   }
-
+  
   /** Subsequence of structure components with no segments reused. The segments are mapped so they can be processed in
     * any order.
     */
@@ -258,7 +259,7 @@ object EdiSchema {
     * @param loop forces a separate subsequence for the first segment in a loop
     * @param items structure components
     */
-  case class StructureSequence(private val loop: Boolean, val items: List[StructureComponent]) {
+  case class StructureSequence(val loop: Boolean, val items: List[StructureComponent]) {
 
     /** Start position. */
     val startPos = items.head.position
@@ -272,7 +273,7 @@ object EdiSchema {
     val (allAtLevel, reusedSegments) =
       items.filterNot {
         comp => comp.isInstanceOf[WildcardComponent] || comp.isInstanceOf[LoopWrapperComponent]
-      }.map { tag(_) }.foldLeft((Set[String](), Set[String]())) {
+      }.map { compIdent(_) }.foldLeft((Set[String](), Set[String]())) {
         case ((segs, reps), tag) =>
           if (segs.contains(tag)) (segs, reps + tag) else (segs + tag, reps)
       }
@@ -310,14 +311,14 @@ object EdiSchema {
       val seqs = sm.Buffer[StructureSubsequence]()
 
       def addNormal(incl: CompList, terms: Terminations) = {
-        val comps = incl.map { c => (tag(c), c) }.toMap
+        val comps = incl.map { c => (compIdent(c), c) }.toMap
         // build terminations for all groups included in subsequence
         val (_, _, grps) = incl.reverse.foldLeft((terms.required, terms.idents, Map[GroupComponent, Terminations]())) {
           case ((cnt, ids, acc), comp) =>
             val ncnt = if (comp.usage == MandatoryUsage) cnt + 1 else cnt
-            val nids = ids + tag(comp)
+            val nids = ids + compIdent(comp)
             comp match {
-              case g: GroupComponent => (ncnt, nids, acc + (g -> Terminations(cnt, ids + tag(g.leadSegmentRef))))
+              case g: GroupComponent => (ncnt, nids, acc + (g -> Terminations(cnt, ids + compIdent(g.leadSegmentRef))))
               case _ => (ncnt, nids, acc)
             }
         }
@@ -329,7 +330,7 @@ object EdiSchema {
         seqs += StructureSubsequence(wild.position.position, comps, Terminations(1, comps.keySet), Map())
       }
       def addRequired(req: StructureComponent) = {
-        val id = tag(req)
+        val id = compIdent(req)
         seqs += StructureSubsequence(req.position.position, Map(id -> req), Terminations(1, Set(id)), Map())
       }
 
@@ -346,8 +347,8 @@ object EdiSchema {
         }
         def addNonEmpty(acc: CompList, rest: CompList) = {
           if (acc.nonEmpty) {
-            val termIds = rest.map { tag(_) }.toSet
-            val inclIds = acc.map { tag(_) }.toSet
+            val termIds = rest.map { compIdent(_) }.toSet
+            val inclIds = acc.map { compIdent(_) }.toSet
             addNormal(acc, Terminations(reqCount(rest), termIds -- inclIds))
           }
           splitr(rest, Nil)
@@ -355,8 +356,8 @@ object EdiSchema {
         @tailrec
         def splitr(rem: CompList, acc: CompList): Unit = rem match {
           case h :: t =>
-            val id = tag(h)
-            if ((reusedSegments.contains(id) && t.exists { tag(_) == id })) {
+            val id = compIdent(h)
+            if ((reusedSegments.contains(id) && t.exists { compIdent(_) == id })) {
               val (seq, rest) = findreq(t, h :: acc)
               if (rest.isEmpty) splitHead(h, t)
               else addNonEmpty(seq, rest)
@@ -365,8 +366,8 @@ object EdiSchema {
           case _ => if (!acc.isEmpty) addNormal(acc.reverse, terms)
         }
         def splitHead(head: StructureComponent, rest: CompList) = {
-          val restIds = rest.map { tag(_) }.toSet - tag(head)
-          val termIds = if (head.count == 1) restIds + tag(head) else restIds
+          val restIds = rest.map { compIdent(_) }.toSet - compIdent(head)
+          val termIds = if (head.count == 1) restIds + compIdent(head) else restIds
           addNormal(List(head), Terminations(reqCount(rest), termIds))
           splitr(rest, Nil)
         }
@@ -390,7 +391,7 @@ object EdiSchema {
             lead match {
               case split :+ last =>
                 if (!last.isInstanceOf[ReferenceComponent] || last.usage != MandatoryUsage || last.count != 1) throw new IllegalStateException("Structure uses wildcard segment without preceding required singleton segment reference")
-                splitReuses(split, Terminations(1, Set(tag(last))))
+                splitReuses(split, Terminations(1, Set(compIdent(last))))
                 addRequired(last)
               case _ =>
             }
@@ -510,17 +511,99 @@ object EdiSchema {
     * @param variants group variant forms
     * @param ky explicit key value (ident used by default)
     * @param ch choice group flag
-    * @param tagStart starting column of tag field (ignored unless flat file)
-    * @param tagLength length of tag field (ignored unless flat file)
     */
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, ssq: StructureSequence, val varkey: Option[String],
     val variants: List[VariantGroup], ky: Option[String] = None, pos: Option[SegmentPosition] = None,
-    ch: Boolean = false, val tagStart: Option[Int] = None, val tagLength: Option[Int] = None)
+    ch: Boolean = false)
       extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(ssq.startPos))),
         pos.getOrElse(ssq.startPos), use, cnt, ch, ssq) {
 
     /** Group variants by key value. */
     val varbyval = Map(variants map { v => (v.elemval, v) }: _*)
+  }
+  
+  /** Base class for target associated with a fixed width segment tag component. */
+  sealed abstract class TagTarget
+  
+  /** Segment identified by fixed width segment tag component. */
+  case class TagSegment(val segment: Segment) extends TagTarget
+  
+  /** Next fixed width segment tag component. */
+  case class TagNext(val offset: Int, val length: Int, val targets: Map[String, TagTarget]) extends TagTarget
+  
+  /** Build tag structure for a set of segments. */
+  def buildTagTarget(segments: Set[Segment]): TagTarget = {
+    
+    /** Build list of tag values for segment (start offset, length, value). */
+    def segmentTags(s: Segment): List[(Int, Int, String)] = {
+      val buffer = sm.Buffer[(Int, Int, String)]()
+      def compr(offset: Int, allowTag: Boolean, comp: CompositeComponent): Int = {
+        val count = comp.count
+        if (count == 1) tagr(offset, allowTag, comp.composite.components)
+        else {
+          val length = tagr(0, false, comp.composite.components)
+          offset + length * count
+        }
+      }
+      @tailrec
+      def tagr(offset: Int, allowTag: Boolean, comps: List[SegmentComponent]): Int = {
+        comps match {
+          case h :: t =>
+            h match {
+              case e: ElementComponent =>
+                val length = e.element.typeFormat.maxLength
+                if (e.tagPart) {
+                  if (e.count != 1) throw new IllegalArgumentException(s"Repeated element ${e.name} cannot be part of tag")
+                  else if (e.value.isEmpty) throw new IllegalArgumentException(s"Tag value not defined for element ${e.name}")
+                  else {
+                    val value = e.value.get
+                    if (value.size > length) throw new IllegalArgumentException(s"Tag value too long for element ${e.name}")
+                    else {
+                      val item = (offset, length, value)
+                      buffer += item
+                    }
+                  }
+                }
+                tagr(offset + length * e.count, true, t)
+              case c: CompositeComponent =>
+                val next = compr(offset, allowTag, c)
+                tagr(next, allowTag, t)
+            }
+          case _ => offset
+        }
+      }
+      
+      tagr(0, true, s.components)
+      buffer.toList
+    }
+    
+    def buildTarget(segTags: List[(Segment, List[(Int, Int, String)])]): TagTarget = {
+      segTags match {
+        case (seg, Nil) :: Nil => TagSegment(seg)
+        case (seg, tag0 :: tags) :: Nil =>
+          val rest = buildTarget((seg, tags) :: Nil)
+          TagNext(tag0._1, tag0._2, Map(tag0._3 -> rest))
+        case (seg0, tags) :: t =>
+          if (tags.isEmpty) throw new IllegalArgumentException(s"Segment ${seg0.ident} conflicts with ${t.head._1.ident}")
+          else {
+            val tag0 = tags.head
+            t.foreach {
+              case (seg1, tag1 :: _) =>
+                if (tag0._1 != tag1._1 || tag0._2 != tag1._2) throw new IllegalArgumentException(s"Segment ${seg0.ident} tag fields conflict with ${seg1.ident}")
+              case (seg1, Nil) => throw new IllegalArgumentException(s"Segment ${seg1.ident} tags conflict with ${seg0.ident}")
+            }
+            val map = segTags.groupBy {
+              case (_, tagHead :: _) => tagHead._3 }.map { case (key, list) =>
+                val pruned = list.map { case (s, l) => (s, l.tail) }
+                (key, buildTarget(pruned)) }
+            TagNext(tag0._1, tag0._2, map)
+          }
+        case Nil => TagNext(0, 0, Map())
+      }
+    }
+    
+    val segTags: List[(Segment, List[(Int, Int, String)])] = segments.map { s => (s, segmentTags(s)) }.filter { case (s, l) => l.nonEmpty }.toList
+    buildTarget(segTags)
   }
 
   /** Structure definition.
@@ -531,13 +614,10 @@ object EdiSchema {
     * @param detail
     * @param summary
     * @param version
-    * @param tagStart starting column of tag field (ignored unless flat file)
-    * @param tagLength length of tag field (ignored unless flat file)
     */
   case class Structure(val ident: String, val name: String, val group: Option[String],
       val heading: Option[StructureSequence], val detail: Option[StructureSequence],
-      val summary: Option[StructureSequence], val version: EdiSchemaVersion, val tagStart: Option[Int] = None,
-      val tagLength: Option[Int] = None) extends MemoryResident {
+      val summary: Option[StructureSequence], val version: EdiSchemaVersion) extends MemoryResident {
 
     def memoryId = ident
 
@@ -573,7 +653,7 @@ object EdiSchema {
       def referencer(comps: List[SegmentComponent], elements: Set[Element]): Set[Element] =
         comps.foldLeft(elements)((acc, comp) => comp match {
           case CompositeComponent(composite, _, _, _, _, _) => referencer(composite.components, acc)
-          case ElementComponent(element, _, _, _, _, _, _) => acc + element
+          case ElementComponent(element, _, _, _, _, _, _, _) => acc + element
         })
       segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
     }
@@ -586,7 +666,7 @@ object EdiSchema {
         @tailrec
         def termr(rem: List[StructureComponent], acc: Set[String]): Set[String] = rem match {
           case h :: t =>
-            val nacc = acc + EdiSchema.tag(h)
+            val nacc = acc + compIdent(h)
             if (h.usage == MandatoryUsage) nacc else termr(t, nacc)
           case _ => acc
         }
@@ -607,6 +687,11 @@ object EdiSchema {
     val headingKeys = optionKeys(heading)
     val detailKeys = optionKeys(detail)
     val summaryKeys = optionKeys(summary)
+    
+    // generate tag lookups for fixed width structures
+    val tagLookup: TagTarget =
+      if (version.ediForm.multiPartTags) buildTagTarget(segmentsUsed)
+      else TagNext(0, 0, Map())
   }
 
   type StructureMap = Map[String, Structure]
@@ -630,8 +715,11 @@ object EdiSchema {
     def versionKey(version: String): String
     
     /** Format uses segment positions flag. */
-    def segmentsPositioned: Boolean
-
+    val segmentsPositioned: Boolean
+    
+    /** Multi-part segment tags flag. */
+    val multiPartTags: Boolean
+    
     // keys used in YAML
     val lengthKey = "length"
     val minLengthKey = "minLength"
@@ -647,7 +735,8 @@ object EdiSchema {
     def writeFormat(format: TypeFormat, writer: PairWriter): Unit
   }
   sealed abstract class DelimitedEdiBase(text: String, layout: SchemaLayout) extends EdiForm(text, layout, false) {
-    override def segmentsPositioned = true
+    override val segmentsPositioned = true
+    override val multiPartTags = false
     def formatBuilder: (String, Int, Int) => TypeFormat
     def convertMinMaxLength(map: ValueMap) = {
       if (map.containsKey(lengthKey)) {
@@ -713,7 +802,8 @@ object EdiSchema {
     override def keyName(parentId: String, name: String, position: Int) =
       if (name.nonEmpty) name else defaultKey(parentId, position)
 
-    override def segmentsPositioned = false
+    override val segmentsPositioned = false
+    override val multiPartTags = true
     
     def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat
 
@@ -804,4 +894,10 @@ case class EdiSchema(val ediVersion: EdiSchemaVersion, val elements: Map[String,
     val transMap = structures + (transact.ident -> transact)
     EdiSchema(ediVersion, elemMap, compMap, segMap, transMap)
   }
+  
+  // generate tag lookups for fixed width schema with no structures
+  val tagLookup: EdiSchema.TagTarget =
+    if (structures.isEmpty && segments.nonEmpty && ediVersion.ediForm.multiPartTags) {
+      EdiSchema.buildTagTarget(segments.values.toSet)
+    } else EdiSchema.TagNext(0, 0, Map())
 }

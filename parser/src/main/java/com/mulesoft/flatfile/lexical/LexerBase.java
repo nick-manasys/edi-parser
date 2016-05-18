@@ -46,9 +46,6 @@ public abstract class LexerBase implements ErrorHandler
     /** Holder for current token. */
     StringBuilder tokenBuilder;
     
-    /** Current segment tag. */
-    String segmentTag;
-    
     /**
      * Constructor.
      *
@@ -174,15 +171,6 @@ public abstract class LexerBase implements ErrorHandler
      */
     public int getElementNumber() {
         return elementNumber;
-    }
-    
-    /**
-     * Get the current segment tag.
-     *
-     * @return tag
-     */
-    public String segmentTag() {
-        return segmentTag;
     }
     
     /**

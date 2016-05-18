@@ -78,7 +78,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
   val lexer = new X12Lexer(in, charSet)
 
   /** Parser for X12 EDI documents. A separate parser instance is created for each interchange. */
-  private class X12SchemaParser(inter: ValueMap, root: ValueMap) extends SchemaParser(lexer, storageContext) {
+  private class X12SchemaParser(inter: ValueMap, root: ValueMap) extends DelimiterSchemaParser(lexer, storageContext) {
 
     /** Configuration in use. */
     private var config: X12ParserConfig = null
@@ -223,7 +223,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           val compC030Comps = xk4Comps(0).asInstanceOf[CompositeComponent].composite.components
           xk4 put (compC030Comps(0).key, Integer.valueOf(lexer.getSegmentNumber - transactionStartSegment + 1))
           comp match {
-            case ElementComponent(elem, _, _, _, _, _, _) => xk4 put (xk4Comps(1).key, Integer.valueOf(elem.ident))
+            case ElementComponent(elem, _, _, _, _, _, _, _) => xk4 put (xk4Comps(1).key, Integer.valueOf(elem.ident))
             case _: CompositeComponent => xk4 put (compC030Comps(1).key, Integer.valueOf(lexer.getComponentNumber))
           }
           if (comp.count != 1) xk4 put (compC030Comps(2).key, Integer.valueOf(lexer.getRepetitionNumber))
@@ -477,6 +477,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
       val setacks = storageContext.newMapSeq
       val transLists = getOrSet("v" + version.take(6), storageContext.newMemoryResidentMap, schemaVersionTransactions)
+      segmentIdent = delimLexer.segmentTag
       while (lexer.currentType != END && !isGroupEnvelope && !isInterchangeEnvelope) {
         if (isSetOpen) {
           val (setid, setprops) = openSet
@@ -690,6 +691,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
               parser.setConfig(config)
               parser.parseInterchange
               interchangeAck = AcknowledgedWithErrors
+              parser.segmentIdent = parser.delimLexer.segmentTag
               if (parser.isGroupOpen) parser.parseInterchangeGroups
               if (lexer.currentType == END) {
                 logger.error("end of file with missing IEA")

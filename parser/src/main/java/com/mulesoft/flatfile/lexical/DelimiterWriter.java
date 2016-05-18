@@ -237,10 +237,13 @@ public abstract class DelimiterWriter extends WriterBase
         skippedSubCompCount = 0;
     }
     
-    /* (non-Javadoc)
-     * @see com.mulesoft.flatfile.lexical.WriterBase#writeSegmentTag(java.lang.String)
+    /**
+     * Write a segment start tag. This must always be called before any of the write value methods are called for the
+     * segment data.
+     *
+     * @param tag
+     * @throws IOException
      */
-    @Override
     public void writeSegmentTag(String tag) throws IOException {
         writeToken(tag);
     }

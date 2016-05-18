@@ -74,6 +74,9 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
 
   /** Write a value. */
   def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit
+  
+  /** Start writing a segment. */
+  def startSegment(segment: Segment): Unit
 
   /** Write a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def writeCompList(map: ValueMap, typ: ItemType, skip: Boolean, comps: List[SegmentComponent]): Unit = comps match {
@@ -93,7 +96,7 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
 
   /** Write a segment from a map of values. */
   def writeSegment(map: ValueMap, segment: Segment): Unit = {
-    baseWriter.writeSegmentTag(segment.tag)
+    startSegment(segment)
     try {
       writeCompList(map, DATA_ELEMENT, false, segment.components)
     } catch {
@@ -206,7 +209,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
   import com.mulesoft.flatfile.lexical.EdiConstants.ItemType._
 
   /** Write a value from map. */
-  def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
+  override def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
     def writeSimple(value: Any, element: Element) = element.typeFormat.write(value, delimWriter)
     
@@ -222,7 +225,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
     def writeComponent(value: Object, repeat: Boolean) = {
       writeSeparator(repeat)
       comp match {
-        case ElementComponent(elem, _, _, _, _, _, _) =>
+        case ElementComponent(elem, _, _, _, _, _, _, _) =>
           writeSimple(value, elem)
         case CompositeComponent(composite, _, _, _, _, _) =>
           writeCompList(value.asInstanceOf[ValueMap], typ.nextLevel, true, composite.components)
@@ -285,4 +288,7 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
         }
     }
   }
+  
+  override def startSegment(segment: Segment) = delimWriter.writeSegmentTag(segment.ident)
+
 }

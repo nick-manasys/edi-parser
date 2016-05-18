@@ -167,8 +167,6 @@ object YamlWriter extends YamlDefs {
     def writeGroupComponent(group: GroupComponent): Unit = {
       formatter.openGrouping(false).keyValueQuote(groupIdKey, group.ident).keyCountOptionalPair(countKey, group.count)
       if (!schema.ediVersion.ediForm.fixed) formatter.keyValuePair(usageKey, group.usage.code)
-      group.tagStart.foreach { x => formatter.keyValuePair(tagStartKey, x) }
-      group.tagLength.foreach { x => formatter.keyValuePair(tagLengthKey, x) }
       val childPos = group.seq.items.head.position
       if (group.position != childPos) formatter.keyValueQuote(positionKey, group.position.position)
       writeStructureComps(itemsKey, group.seq.items)
@@ -258,7 +256,7 @@ object YamlWriter extends YamlDefs {
 
     def writeSegmentDetails(segment: Segment) = {
       formatter.keyValueOptionalQuote(nameKey, segment.name)
-      if (segment.ident != segment.tag) formatter.keyValueOptionalQuote(tagKey, segment tag)
+      if (segment.ident != segment.prefix) formatter.keyValueOptionalQuote(compPrefKey, segment prefix)
       formatter.keyLine(valuesKey)
       writeSegmentComponents(segment.components)
       if (!segment.rules.isEmpty) {
@@ -298,8 +296,6 @@ object YamlWriter extends YamlDefs {
           case Some(g) => formatter.keyValuePair(classKey, g)
           case None =>
         }
-        struct.tagStart.foreach { x => formatter.keyValuePair(tagStartKey, x) }
-        struct.tagLength.foreach { x => formatter.keyValuePair(tagLengthKey, x) }
         if (schema.ediVersion.ediForm.layout.sectioned) {
           struct.heading.foreach { seq => writeStructureComps(headingKey, seq.items) }
           struct.detail.foreach { seq => writeStructureComps(detailKey, seq.items) }

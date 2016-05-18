@@ -1,0 +1,157 @@
+       01  KSE00256-REC.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a simple numeric field.
+      *    2. What is the relative position within the record layout?
+           05  KSE00256-KEY-01     pic 9(6).
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two alphameric fields within the group item.
+      *    3. What is the length of the group item?
+           05  X-ALHPAMERIC-FIELDS.
+               10  X-FIELD-08      pic X(8).
+               10  X-FIELD-32      pic X(32).
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create various fields within the group item.
+      *    3. What is the length of the group item?
+           05  VARIOUS-FORMATS.
+               10  PIC-XXX         pic XXX.
+               10  PIC-999         pic 999.
+               10  PIC-99V999      pic 99V999.
+               10  PIC-99V9P3P     pic 99V9(3).
+               10  PIC-9P2PV999    pic 9(2)V999.
+               10  PIC-S999        pic S999.
+               10  PIC-S99V999     pic S99V999.
+               10  PIC-S99V9P3P    pic S99V9(3).
+               10  PIC-S9P2PV999   pic S9(2)V999.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two numeric fields within the group item.
+      *    3. What is the length of the group item?
+           05  N-NUMERIC.
+               10  N-07-UNSIGN     pic  9(7)V9(2).
+               10  N-07-SIGNED     pic S9(7)V9(2).
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two packed, numeric fields within the group item.
+      *    3. What is the length of the group item?
+           05  P-NUMERIC.
+               10  P-09-UNSIGN     pic  9(7)V9(2)   COMP-3.
+               10  P-09-SIGNED     pic S9(7)V9(2)   COMP-3.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two binary, numeric fields within the group item.
+      *    3. What is the length of the group item?
+           05  B-NUMERIC.
+               10  B-09-UNSIGN     pic  9(7)V9(2)   COMP.
+               10  B-09-SIGNED     pic S9(7)V9(2)   BINARY.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two leading, signed fields within the group item.
+      *    3. What is the length of the group item?
+           05  LN-SIGNED.
+               10  LN-09-SIGNED    pic S9(7)V9(2)   SIGN LEADING.
+               10  LN-09-SIGNED-S  pic S9(7)V9(2)
+                                   SIGN LEADING SEPARATE.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two trailing, signed fields within the group item.
+      *    3. What is the length of the group item?
+           05  TN-SIGNED.
+               10  TN-09-SIGNED    pic S9(7)V9(2)   SIGN TRAILING.
+               10  TN-09-SIGNED-S  pic S9(7)V9(2)
+                                   SIGN TRAILING SEPARATE.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a simple table.
+      *    2. What is the size of a table element or cell?
+      *    3. What is the size of the table?
+           05  TABLE-A-PIX-X5-O    pic X(5)    OCCURS 10 TIMES.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create a table or array within the group item.
+      *    3. What is the length of the group item?
+           05  TABLE-P-09S-10E.
+               10  TABLE-P-09S-O   pic S9(9)       COMP-3
+                                   OCCURS 10 TIMES.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item that is a table.
+      *    2. Create a table or array within the group item.
+      *    3. Create a table within a table element or cell.
+      *    4. What is the length of the group item?
+           05  TABLE-X-PIC-NO-O    OCCURS 15 TIMES.
+               10  TABLE-X-PIC-XX  pic XX.
+               10  TABLE-X-PIC-3   pic X(3).
+               10  TABLE-X-PIC-3-O pic X(3)    OCCURS 2 TIMES.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a four-byte alphameric field.
+      *    2. Create a redefined group item.
+      *    3. Create four fields within the redefined group item.
+           05  RED-01-PRIME        pic X(4).
+           05  RED-01-AGAIN        REDEFINES RED-01-PRIME.
+               10  RED-01-BYTE-01  pic X.
+               10  RED-01-BYTE-02  pic X.
+               10  RED-01-BYTE-03  pic X.
+               10  RED-01-BYTE-04  pic X.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a four-byte alphameric field.
+      *    2. Create a redefined group item.
+      *    3. Create two fields within the redefined group item.
+      *    4. What is the length of the redefined group item?
+           05  BLUE-01-PRIME       pic X(4).
+           05  BLUE-01-SHORT       REDEFINES BLUE-01-PRIME.
+               10  BLUE-01-BYTE-01 pic X.
+               10  BLUE-01-BYTE-02 pic X.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a four-byte alphameric field.
+      *    2. Create a redefined four-byte, numeric field.
+           05  FOUR-BYTES-PRIME    pic X(4).
+           05  FOUR-BYTES-VALUE    REDEFINES FOUR-BYTES-PRIME
+                                   pic 9(4).
+      *    *----------------------------------------------------------*
+      *    1. Create a six-byte alphameric field.
+      *    2. Create a short-redefine as a four-byte, numeric field.
+           05  SIX-BYTES-PRIME     pic X(6).
+           05  SIX-BYTES-SHORT     REDEFINES SIX-BYTES-PRIME
+                                   pic 9(4).
+
+      *    *----------------------------------------------------------*
+      *    1. Create a nine-byte, alphameric field.
+      *    2. Create a short-redefine as a packed, five-digit,
+      *       three-byte field.
+      *    3. Create a nested redefine as a three-byte, alphameric
+      *       field.
+           05  NINE-PRIME          pic X(9).
+           05  NINE-AGAIN          REDEFINES NINE-PRIME.
+               10  NINE-AGAIN-05   pic 9(5)    COMP-3.
+               10  NINE-AGAIN-05-R REDEFINES NINE-AGAIN-05
+                                   pic X(3).
+      *    *----------------------------------------------------------*
+      *    1. Create a one-byte, alphameric field.
+           05  ONE-BYTE            pic X   value '*'.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two binary, numeric fields within the group item.
+      *    3. What is the length of the group item on the mainframe?
+      *    3. What is the length of the group item on the PC?
+           05  B-NUMERIC.
+               10  B-09-UNSIGN     pic  9(5)   COMP.
+               10  B-09-SIGNED     pic  9(5)   BINARY.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a filler, alphameric field.
+           05  FILLER              pic X(55).
