@@ -117,19 +117,23 @@ object DataDescriptionParser extends Parsers {
     else input.first
   }
 
-  def parse(input: WordReader): (List[CopybookImportError], scm.Map[String, String]) = {
-    formatDetails = scm.Map[String, String]()
+  def parse(input: WordReader, init: scm.Map[String, String]): (List[CopybookImportError], scm.Map[String, String]) = {
+    formatDetails = init
     descriptionParser(input) match {
       case Success(value, remain) =>
         if (remain.atEnd) (Nil, formatDetails)
         else (List(new CopybookImportError(true, input.line, "Unknown input", remain.pos.longString)), formatDetails)
-      case Error(msg, remain) => (List(new CopybookImportError(true, input.line, msg, remain.pos.longString)), formatDetails)
+      case Error(msg, remain)   => (List(new CopybookImportError(true, input.line, msg, remain.pos.longString)), formatDetails)
       case Failure(msg, remain) => (List(new CopybookImportError(true, input.line, msg, remain.pos.longString)), formatDetails)
     }
   }
 
+  def apply(line: Int, words: Array[String], init: scm.Map[String, String]): (List[CopybookImportError], scm.Map[String, String]) = {
+    parse(new WordReader(line, 1, words), init)
+  }
+
   def apply(line: Int, words: Array[String]): (List[CopybookImportError], scm.Map[String, String]) = {
-    parse(new WordReader(line, 1, words))
+    apply(line, words, scm.Map[String, String]())
   }
 
   //  def test(words: Array[String]): Unit = {
@@ -289,26 +293,27 @@ class CopybookImport(in: InputStream, enc: String) {
   def fillMode(map: scm.Map[String, String]): FillMode = {
     map.get(DataDescriptionParser.justifiedKey) match {
       case Some(_) => FillMode.RIGHT
-      case None => FillMode.LEFT
+      case None    => FillMode.LEFT
     }
   }
 
-  def numberSign(map: scm.Map[String, String]): NumberSign = {
-    map.get(DataDescriptionParser.signKey) match {
-      case Some("LEADING") => NumberSign.NEGATIVE_ONLY
-      case _ => NumberSign.ALWAYS_RIGHT
+  def numberSign(signed: Boolean, map: scm.Map[String, String]): NumberSign = {
+    if (signed) map.get(DataDescriptionParser.signKey) match {
+      case Some("LEADING") => NumberSign.ALWAYS_LEFT
+      case _               => NumberSign.ALWAYS_RIGHT
     }
+    else NumberSign.UNSIGNED
   }
 
   def convertPic(name: String, pic: String, packed: Boolean, signed: Boolean, map: scm.Map[String, String]): Element = {
 
     val mode = fillMode(map)
-    val zoned = map.contains(DataDescriptionParser.separateKey)
+    val zoned = !(map.contains(DataDescriptionParser.separateKey))
 
     def convertImplicitDisplay(name: String, pic: Seq[Char], lead: Int, sign: NumberSign): Element = {
       val (fract, rem) = convertReps('9', pic, 0)
       val length = lead + fract
-      if (rem.isEmpty) Element("", name, DecimalFormat(length, sign, fract, mode, zoned))
+      if (rem.isEmpty) Element("", name, DecimalFormat(length, sign, fract, mode, zoned && signed))
       else dataError("Invalid expression in PIC clause")
     }
 
@@ -318,6 +323,7 @@ class CopybookImport(in: InputStream, enc: String) {
       if (rem.isEmpty) Element("", name, PackedDecimalFormat(length, fract, signed))
       else dataError("Invalid expression in PIC clause")
     }
+    
     pic.head match {
       case 'X' =>
         val (lead, rem) = convertReps('X', pic.tail, 1)
@@ -327,31 +333,104 @@ class CopybookImport(in: InputStream, enc: String) {
         convertPic(name, pic.tail, packed, true, map)
       case '9' =>
         val (lead, rem) = convertReps('9', pic.tail, 1)
-        val sign = numberSign(map)
-        if (rem.isEmpty) {
-          val format = IntegerFormat(lead, sign, mode, zoned)
-          Element("", name, format)
-        } else if (rem.head == 'V') {
-          if (packed) convertImplicitPacked(name, rem.tail, lead)
-          else convertImplicitDisplay(name, rem.tail, lead, sign)
-        } else dataError("Invalid expression in PIC clause")
+        val sign = numberSign(signed, map)
+        rem.toList match {
+          case 'V' :: t =>
+            if (packed) convertImplicitPacked(name, t, lead)
+            else convertImplicitDisplay(name, t, lead, sign)
+          case Nil =>
+            if (packed) convertImplicitPacked(name, Nil, lead)
+            else Element("", name, IntegerFormat(lead, sign, mode, zoned && signed))
+          case _ =>
+            dataError("Invalid expression in PIC clause")
+        }
       case 'V' =>
         if (packed) convertImplicitPacked(name, pic.tail, 0)
-        else convertImplicitDisplay(name, pic.tail, 0, numberSign(map))
+        else convertImplicitDisplay(name, pic.tail, 0, numberSign(signed, map))
       case _ => dataError("Invalid expression in PIC clause")
     }
   }
 
   def buildSegment: Option[Segment] = {
 
-    def buildNested(name: String, rootKey: String, position: Int, count: Int, level: String) = {
-      val nested =
-        if (count == 1) buildr(level, rootKey, position + 1, Nil)
-        else buildr(level, name, 1, Nil)
+    /** Build composite from nested field definitions at level. */
+    def buildComposite(name: String, rootKey: String, position: Int, count: Int, level: String): CompositeComponent = {
+      val nested = if (count == 1) buildNested(name, rootKey, position + 1, level)
+      else buildNested(name, rootKey, 1, level)
       val comp = Composite("", name, nested, Nil, 0)
       CompositeComponent(comp, Some(name), genKey(rootKey, position), position, MandatoryUsage, count)
     }
 
+    /** Build list of components from nested field definitions at level. */
+    def buildNested(name: String, rootKey: String, position: Int, level: String): List[SegmentComponent] = {
+
+      /** Recursively build definitions at level, generating the list of segment components for a composite or segment. */
+      def buildr(key: String, position: Int, acc: List[SegmentComponent]): List[SegmentComponent] = {
+        def count(map: scm.Map[String, String]) = {
+          map.get(DataDescriptionParser.occursToKey) match {
+            case Some(v) => v.toInt
+            case _ => map.get(DataDescriptionParser.occursKey) match {
+              case Some(v) => v.toInt
+              case _       => 1
+            }
+          }
+        }
+
+        if (input.hasNext) {
+          val nextLevel = input.peek(0)
+          if (nextLevel <= level) acc.reverse
+          else {
+            try {
+              val definition = input.next
+              val (problist, map) = DataDescriptionParser(input.lineNumber, definition)
+              problems ++= problist
+              if (problist.forall { !_.error }) {
+                if (definition.size == 2) {
+                  val nested = buildComposite(definition(1), key, position, count(map), definition(0))
+                  buildr(key, position + 1, nested :: acc)
+                } else if (map.isDefinedAt(DataDescriptionParser.redefinesKey)) {
+                  problems += CopybookImportError(false, input.lineNumber, "Ignoring unsupported REDEFINE", "")
+                  buildNested(definition(1), key, position, definition(0))
+                  buildr(key, position, acc)
+                } else {
+                  map.get(DataDescriptionParser.nameKey) match {
+                    case Some(name) =>
+                      map.get(DataDescriptionParser.pictureKey) match {
+                        case Some(picture) =>
+                          map.get(DataDescriptionParser.usageKey) match {
+                            case Some("DISPLAY") | None =>
+                              val element = convertPic(name, picture, false, false, map)
+                              val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1, false)
+                              buildr(key, position + 1, comp :: acc)
+                            case Some("COMP-3") | Some("COMPUTATIONAL-3") | Some("PACKED-DECIMAL") =>
+                              val element = convertPic(name, picture, true, false, map)
+                              val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1, false)
+                              buildr(key, position + 1, comp :: acc)
+                            case Some(other) =>
+                              problems += new CopybookImportError(true, input.lineNumber, s"Unsupported USAGE $other", definitionText(definition))
+                              buildr(key, position + 1, acc)
+                          }
+                        case _ =>
+                          val nested = buildComposite(definition(1), key, position, count(map), definition(0))
+                          buildr(key, position + 1, nested :: acc)
+                      }
+                    case None =>
+                      // TODO: add unused definition
+                      buildr(key, position + 1, acc)
+                  }
+                }
+              } else buildr(key, position + 1, acc)
+            } catch {
+              case e: IllegalArgumentException => buildr(key, position, acc)
+            }
+          }
+        } else acc.reverse
+      }
+
+      buildr(rootKey, position + 1, Nil)
+    }
+
+    /** Get definition line text as a single line (comments and such stripped). */
     def definitionText(words: Array[String]) = {
       val builder = new StringBuilder
       words.foreach { w =>
@@ -359,68 +438,6 @@ class CopybookImport(in: InputStream, enc: String) {
         builder.append(w)
       }
       builder.toString
-    }
-
-    def buildr(level: String, key: String, position: Int, acc: List[SegmentComponent]): List[SegmentComponent] = {
-      def count(map: scm.Map[String, String]) = {
-        map.get(DataDescriptionParser.occursToKey) match {
-          case Some(v) => v.toInt
-          case _ => map.get(DataDescriptionParser.occursKey) match {
-            case Some(v) => v.toInt
-            case _ => 1
-          }
-        }
-      }
-
-      if (input.hasNext) {
-        val nextLevel = input.peek(0)
-        if (nextLevel <= level) acc.reverse
-        else {
-          try {
-            val definition = input.next
-            val (problist, map) = DataDescriptionParser(input.lineNumber, definition)
-            problems ++= problist
-            if (problist.forall { !_.error }) {
-              if (definition.size == 2) {
-                val nested = buildNested(definition(1), key, position, count(map), definition(0))
-                buildr(level, key, position + 1, nested :: acc)
-              } else if (map.isDefinedAt(DataDescriptionParser.redefinesKey)) {
-                problems += CopybookImportError(false, input.lineNumber, "Ignoring unsupported REDEFINE", "")
-                buildr(level, key, position, Nil)
-                buildr(level, key, position, acc)
-              } else {
-                map.get(DataDescriptionParser.nameKey) match {
-                  case Some(name) =>
-                    map.get(DataDescriptionParser.pictureKey) match {
-                      case Some(picture) =>
-                        map.get(DataDescriptionParser.usageKey) match {
-                          case Some("DISPLAY") | None =>
-                            val element = convertPic(name, picture, false, false, map)
-                            val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1, false)
-                            buildr(level, key, position + 1, comp :: acc)
-                          case Some("COMP-3") | Some("COMPUTATIONAL-3") | Some("PACKED-DECIMAL") =>
-                            val element = convertPic(name, picture, true, false, map)
-                            val comp = ElementComponent(element, Some(name), genKey(key, position), position, MandatoryUsage, 1, false)
-                            buildr(level, key, position + 1, comp :: acc)
-                          case Some(other) =>
-                            problems += new CopybookImportError(true, input.lineNumber, s"Unsupported USAGE $other", definitionText(definition))
-                            buildr(level, key, position + 1, acc)
-                        }
-                      case _ =>
-                        val nested = buildNested(definition(1), key, position, count(map), definition(0))
-                        buildr(level, key, position + 1, nested :: acc)
-                    }
-                  case None =>
-                    // TODO: add unused definition
-                    buildr(level, key, position + 1, acc)
-                }
-              }
-            } else buildr(level, key, position + 1, acc)
-          } catch {
-            case e: IllegalArgumentException => buildr(level, key, position, acc)
-          }
-        }
-      } else acc.reverse
     }
 
     var position = 0
@@ -431,9 +448,9 @@ class CopybookImport(in: InputStream, enc: String) {
     val segname = recdef(1)
     val abbrev = abbreviateName(segname)
     val ident = generateIdent(abbrev, segmentNameCounts)
-    val comps = buildr("01", abbrev, 1, Nil)
+    val comps = buildNested(abbrev, abbrev, 0, "01")
     if (comps.isEmpty) None
-    else Some(Segment(ident, ident, segname, comps, Nil))
+    else Some(Segment(ident, segname, comps, Nil))
   }
 
   def buildSchema: (Option[EdiSchema], List[CopybookImportError]) = {

@@ -1,14 +1,13 @@
 package com.mulesoft.flatfile.schema.tools
 
-import java.io.ByteArrayInputStream
-import scala.collection.{ mutable => scm }
+import com.mulesoft.flatfile.lexical.TypeFormatConstants._
+import com.mulesoft.flatfile.schema.EdiSchema._
+import com.mulesoft.flatfile.schema.{ YamlReader, YamlWriter }
+import com.mulesoft.flatfile.schema.fftypes._
+import java.io.{ ByteArrayInputStream, StringReader, StringWriter }
 import org.scalatest.Matchers
 import org.scalatest.FlatSpec
-import com.mulesoft.flatfile.schema.EdiSchema._
-import java.io.StringWriter
-import com.mulesoft.flatfile.schema.YamlWriter
-import java.io.StringReader
-import com.mulesoft.flatfile.schema.YamlReader
+import scala.collection.{ mutable => scm }
 
 class CopybookImportTests extends FlatSpec with Matchers {
 
@@ -73,13 +72,22 @@ class CopybookImportTests extends FlatSpec with Matchers {
 
   val secondDef = """
        01  OTHER-RECORD.
-           05  COMPANY-NAME            PIC X(30).
-           05  ADDRESS                 PIC X(15)."""
+           05  UNSIGNED-INTEGER        PIC 9(4).
+           05  SIGNED-INTEGER          PIC S9(4).
+           05  SIGNED-DECIMAL          PIC S9(4) USAGE IS COMP-3.
+           05  SIGNED-IMPLICIT         PIC S9(4)V99."""
+  
+  val reDef = """
+           05  MULTIPART-ADDRESS REDEFINES ADDRESS.
+               10  STREET              PIC X(18).
+               10  CITY                PIC X(15).
+               10  STATE               PIC XX.
+               10  ZIP                 PIC 9(5)."""
+  
   val trailDef = """
-           05  ADDRESS                 PIC X(15).
-           05  CITY                    PIC X(15).
-           05  STATE                   PIC XX.
-           05  ZIP                     PIC 9(5)."""
+           05  PRESIDENT.
+               10  LAST-NAME           PIC X(15).
+               10  FIRST-NAME          PIC X(8)."""
 
   behavior of "buildSegment"
 
@@ -93,13 +101,13 @@ class CopybookImportTests extends FlatSpec with Matchers {
         segment.ident should be ("MR0")
         val comps = segment.components
         comps.length should be (2)
+        // TODO: fix key values when resolved
+        val comp1 = comps(0)
+        comp1 should be (ElementComponent(Element("", "COMPANY-NAME", StringFormat(30, FillMode.LEFT)), Some("COMPANY-NAME"), "MR01", 1, MandatoryUsage, 1))
+        val comp2 = comps(1)
+        comp2 should be (ElementComponent(Element("", "ADDRESS", StringFormat(15, FillMode.LEFT)), Some("ADDRESS"), "MR02", 2, MandatoryUsage, 1))
       case None => fail
     }
-    // TODO: redo these tests when new copybook import implemented
-    //    val comp1 = comps(0)
-    //    comp1 should be (ElementComponent(Element("", "COMPANY-NAME", DataType.ALPHANUMERIC, 30, 30), Some("COMPANY-NAME"), "MR01", 1, MandatoryUsage, 1, None))
-    //    val comp2 = comps(1)
-    //    comp2 should be (ElementComponent(Element("", "ADDRESS", DataType.ALPHANUMERIC, 15, 15), Some("ADDRESS"), "MR02", 2, MandatoryUsage, 1, None))
   }
 
   it should "build a segment with nested composites" in {
@@ -112,6 +120,10 @@ class CopybookImportTests extends FlatSpec with Matchers {
         segment.ident should be ("MR0")
         val comps = segment.components
         comps.length should be (3)
+        val comp1 = comps(0)
+        comp1.name should be ("COMPANY-NAME")
+        // TODO: fix key values when resolved
+        comp1.key should be ("MR01")
       case None => fail
     }
     // TODO: redo these tests when new copybook import implemented
@@ -155,9 +167,48 @@ class CopybookImportTests extends FlatSpec with Matchers {
         segment.name should be ("OTHER-RECORD")
         segment.ident should be ("OR0")
         val comps = segment.components
-        comps.length should be (2)
+        comps.length should be (4)
       case None => fail
     }
+  }
+
+  it should "handle bot signed and unsigned numeric PICs" in {
+    val cbi = new CopybookImport(new ByteArrayInputStream((secondDef).getBytes("UTF-8")), "UTF-8")
+    val optseg = cbi.buildSegment
+    cbi.problems should be (Nil)
+    optseg match {
+      case Some(segment) =>
+        val comps = segment.components
+        comps.length should be (4)
+        // TODO: fix key values when resolved
+        val comp1 = comps(0)
+        comp1 should be (ElementComponent(Element("", "UNSIGNED-INTEGER", IntegerFormat(4, NumberSign.UNSIGNED, FillMode.LEFT, false)), Some("UNSIGNED-INTEGER"), "OR01", 1, MandatoryUsage, 1))
+        val comp2 = comps(1)
+        comp2 should be (ElementComponent(Element("", "SIGNED-INTEGER", IntegerFormat(4, NumberSign.ALWAYS_RIGHT, FillMode.LEFT, true)), Some("SIGNED-INTEGER"), "OR02", 2, MandatoryUsage, 1))
+        val comp3 = comps(2)
+        comp3 should be (ElementComponent(Element("", "SIGNED-DECIMAL", PackedDecimalFormat(4, 0, true)), Some("SIGNED-DECIMAL"), "OR03", 3, MandatoryUsage, 1))
+        val comp4 = comps(3)
+        comp4 should be (ElementComponent(Element("", "SIGNED-IMPLICIT", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 2, FillMode.LEFT, true)), Some("SIGNED-IMPLICIT"), "OR04", 4, MandatoryUsage, 1))
+      case None => fail
+    }
+  }
+  
+  it should "build segment with REDEFINE" in {
+    val cbi = new CopybookImport(new ByteArrayInputStream((secondDef + reDef + trailDef).getBytes("UTF-8")), "UTF-8")
+    val optseg1 = cbi.buildSegment
+    cbi.problems.size should be (1)
+    val error = cbi.problems.head
+    error.error should be (false)
+    error.line should be (7)
+    error.message should be ("Ignoring unsupported REDEFINE")
+    optseg1 match {
+      case Some(segment) =>
+        segment.name should be ("OTHER-RECORD")
+        segment.ident should be ("OR0")
+        val comps = segment.components
+        comps.length should be (5)
+      case None => fail
+    }    
   }
 
   it should "build a schema which can be written and read back in" in {
