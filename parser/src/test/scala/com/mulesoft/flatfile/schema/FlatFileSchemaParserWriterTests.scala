@@ -225,12 +225,29 @@ values:
   }
 
   val copybookSchema1 = new YamlReader().loadYaml(new InputStreamReader(getClass.
-    getClassLoader.getResourceAsStream("esl/cb837-sample.ffd"), "UTF-8"), Array())
+    getClassLoader.getResourceAsStream("esl/cb837-unordered.ffd"), "UTF-8"), Array())
   
-  it should "read copybook document with multi-part tags" in {
+  it should "read unstructured copybook document with multi-part tags" in {
     val msg = readDoc("edi/cb837-sample.txt")
     val in = new ByteArrayInputStream(msg.getBytes())
     val parser = new FlatFileUnorderedParser(in, EdiConstants.ISO88591_CHARSET, copybookSchema1)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+    val swriter = new StringWriter
+    YamlSupport.writeMap(input, swriter)
+    println(swriter.toString)
+  }
+
+  val copybookSchema2 = new YamlReader().loadYaml(new InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/cb837-structure.ffd"), "UTF-8"), Array())
+  
+  val copybookStructure2 = copybookSchema2.structures("CB837")
+  
+  it should "read structured copybook document with multi-part tags" in {
+    val msg = readDoc("edi/cb837-sample.txt")
+    val in = new ByteArrayInputStream(msg.getBytes())
+    val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, copybookStructure2)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
