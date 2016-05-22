@@ -256,7 +256,6 @@ object YamlWriter extends YamlDefs {
 
     def writeSegmentDetails(segment: Segment) = {
       formatter.keyValueOptionalQuote(nameKey, segment.name)
-      if (segment.ident != segment.prefix) formatter.keyValueOptionalQuote(compPrefKey, segment prefix)
       formatter.keyLine(valuesKey)
       writeSegmentComponents(segment.components)
       if (!segment.rules.isEmpty) {

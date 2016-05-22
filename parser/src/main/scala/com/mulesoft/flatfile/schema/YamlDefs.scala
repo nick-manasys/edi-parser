@@ -15,7 +15,6 @@ trait YamlDefs {
   val afterKey = "after"
   val countKey = "count"
   val itemsKey = "items"
-  val compPrefKey = "compPrefix"
   val wrapIdKey = "wrapId"
   val groupKey = "group"
   val endPositionKey = "endPosition"

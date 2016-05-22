@@ -77,8 +77,8 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     * @param composites ident to known composite map
     * @returns components
     */
-  def parseSegmentComponents(parentId: String, list: MapList,
-    composites: Map[String, Composite]): List[SegmentComponent] = {
+  def parseSegmentComponents(parentId: String, list: MapList, composites: Map[String, Composite]):
+    List[SegmentComponent] = {
     /** Convert a single component, which may have inlined element and/or composite definitions.
       */
     def convertComponent(values: ValueMap, dfltpos: Int) = {
@@ -285,11 +285,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     } else Nil
 
   def buildSegment(ident: String, segmap: ValueMap) = {
-    val prefix = getAs(compPrefKey, ident, segmap)
     def buildComps: List[SegmentComponent] = {
       val listed =
         if (segmap.get(valuesKey) == null) Nil
-        else parseSegmentComponents(prefix, getAs[MapList](valuesKey, segmap), identComposites)
+        else parseSegmentComponents(ident, getAs[MapList](valuesKey, segmap), identComposites)
       if (segmap.containsKey(tagKey) && tagLength > 0) {
         val tag = getAsString(tagKey, segmap)
         val comp = ElementComponent(tagElement, None, "", 0, EdiSchema.IgnoredUsage, 1, true, Some(tag))
@@ -299,7 +298,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     val list = getAs[MapList](valuesKey, segmap)
     val comps = buildComps
     val name = getAs(nameKey, "", segmap)
-    Segment(ident, prefix, name, comps, getRules(segmap, comps))
+    Segment(ident, name, comps, getRules(segmap, comps))
   }
 
   /** Build structure components from input data.
@@ -326,9 +325,11 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       val use = convertUsage(getAs(usageKey, MandatoryUsage.code, values))
       val count = values.get(countKey) match {
         case n: Integer => n.toInt
-        case s: String if (s == anyRepeatsValue) => -1
+        case s: String if (s == anyRepeatsValue || s == anyRepeatsAlt) => -1
         case null => 1
-        case _ => throw new IllegalArgumentException(s"Value $countKey must be an integer or the string '$anyRepeatsValue'")
+        case _ =>
+          val preferred = if (ediForm.fixed) anyRepeatsAlt else anyRepeatsValue
+          throw new IllegalArgumentException(s"Value $countKey must be an integer or the string '$preferred'")
       }
       if (values.containsKey(itemsKey)) {
         val ident = getRequiredString(groupIdKey, values)
@@ -473,9 +474,9 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
             if (segmap.containsKey(valuesKey)) {
               val list = getRequiredMapList(valuesKey, segmap)
               val comps = parseSegmentOverlayComponents(idref, list, Nil)
-              map + (idref -> Segment(idref, idref, name, comps, getRules(segmap, comps)))
+              map + (idref -> Segment(idref, name, comps, getRules(segmap, comps)))
             } else {
-              map + (idref -> Segment(idref, idref, name, basedef.components, getRules(segmap, basecomps)))
+              map + (idref -> Segment(idref, name, basedef.components, getRules(segmap, basecomps)))
             }
           }
           case None => throw new IllegalStateException(s"referenced segment $idref is not defined")

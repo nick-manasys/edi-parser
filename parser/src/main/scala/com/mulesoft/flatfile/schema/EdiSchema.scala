@@ -193,16 +193,12 @@ object EdiSchema {
   /** Segment definition.
     * @param ident identifier (used for key in multisegment schemas, also as id/idRef in YAML if non in-lined; ignored
     * in single segment schemas)
-    * @param prefix prefix used for value key names, with value position suffix (generally same as ident but flat file
-    * may differ)
     * @param name human readable name
     * @param components
     * @param rules
     */
-  case class Segment(val ident: String, val prefix: String, val name: String,
-      val components: List[SegmentComponent], val rules: List[OccurrenceRule]) {
-    def this(id: String, nm: String, comps: List[SegmentComponent], rls: List[OccurrenceRule]) =
-      this (id, id, nm, comps, rls)
+  case class Segment(val ident: String, val name: String, val components: List[SegmentComponent],
+    val rules: List[OccurrenceRule]) {
     val keys = collectKeys(components, Nil)
   }
 
