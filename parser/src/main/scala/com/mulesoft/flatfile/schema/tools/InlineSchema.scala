@@ -49,7 +49,7 @@ object InlineSchema {
     }
     val oschema = EdiSchema(ischema.ediVersion, Map(), Map(), Map(), structs)
     val writer = new FileWriter(new File(args(1)))
-    YamlWriter.write(oschema, true, Array(), writer)
+    YamlWriter.write(oschema, Array(), writer)
     writer.close
   }
 }
