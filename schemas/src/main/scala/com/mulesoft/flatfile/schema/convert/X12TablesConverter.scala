@@ -3,6 +3,7 @@ package com.mulesoft.flatfile.schema.convert
 import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStream, InputStreamReader, OutputStreamWriter }
 
 import scala.annotation.tailrec
+import scala.collection.immutable.ListMap
 import scala.io.Source
 
 import com.mulesoft.flatfile.lexical.X12Constants
@@ -96,8 +97,8 @@ object X12TablesConverter {
     * appears to be correct for X12.
     */
   def defineComposites(elemNames: Map[String, String], elements: Map[String, Element], compNames: Map[String, String],
-    groups: ListOfKeyedLists) =
-    groups.foldLeft(Map.empty[String, Composite])((map, pair) =>
+    groups: ListOfKeyedLists) = {
+    val list = groups.foldLeft(List[Composite]())((acc, pair) =>
       pair match {
         case (key, list) => {
           val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
@@ -106,14 +107,16 @@ object X12TablesConverter {
               ElementComponent(elements(elem), None, X12.keyName(key, "", position), position, convertUsage(req), 1) :: acc
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
-          map + (key -> Composite(key, compNames(key), comps, Nil, 0))
+          Composite(key, compNames(key), comps, Nil, 0) :: acc
         }
-      })
+      }).sortBy { _.ident }
+    list.foldLeft(ListMap[String, Composite]())((map, comp) => map + (comp.ident -> comp))
+  }
 
   /** Build map from segment ids to definitions. */
   def defineSegments(elemNames: Map[String, String], elements: Map[String, Element], compNames: Map[String, String],
-    composites: Map[String, Composite], segNames: Map[String, String], groups: ListOfKeyedLists) =
-    groups.foldLeft(Map.empty[String, Segment])((map, pair) =>
+    composites: Map[String, Composite], segNames: Map[String, String], groups: ListOfKeyedLists) = {
+    val list = groups.foldLeft(List[Segment]())((acc, pair) =>
       pair match {
         case (key, list) => {
           val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
@@ -127,9 +130,11 @@ object X12TablesConverter {
             }
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
-          map + (key -> new Segment(key, segNames(key), comps, Nil))
+          new Segment(key, segNames(key), comps, Nil) :: acc
         }
-      })
+      }).sortBy { _.ident }
+    list.foldLeft(ListMap[String, Segment]())((map, seg) => map + (seg.ident -> seg))
+  }
 
   /** Build map from structure ids to definitions. */
   def defineStructures(segments: Map[String, Segment], transHeads: Map[String, (String, String)],
@@ -291,13 +296,15 @@ object X12TablesConverter {
       println(s"Processing ${version.getName}")
       val schemaVersion = EdiSchemaVersion(X12, version.getName)
       val elemNames = nameMap(fileInput(version, elementHeadersName))
-      val elemDefs = foldInput(fileInput(version, elementDetailsName), Map.empty[String, Element])((map, list) =>
-        list match {
+      val elemList = foldInput(fileInput(version, elementDetailsName), List.empty[Element])((acc, detail) =>
+        detail match {
           case number :: typ :: min :: max :: Nil =>
             val usetyp = if (typ.isEmpty()) "AN" else typ
-            map + (number -> Element(number, elemNames(number), X12Constants.buildType(usetyp, convertLength(min), convertLength(max))))
+            val format = X12Constants.buildType(usetyp, convertLength(min), convertLength(max))
+            Element(number, elemNames(number), format) :: acc
           case _ => throw new IllegalArgumentException("wrong number of values in file")
-        })
+        }).sortBy { _.ident }
+      val elemDefs = elemList.foldLeft(ListMap[String, Element]()) { (acc, e) => acc + (e.ident -> e) }
       val compNames = nameMap(fileInput(version, compositeHeadersName))
       val compGroups = gatherGroups(compositeDetailsName, fileInput(version, compositeDetailsName), 4, None)
       val compDefs = defineComposites(elemNames, elemDefs, compNames, compGroups)

@@ -3,6 +3,7 @@ package com.mulesoft.flatfile.schema.convert
 import java.io.{ BufferedReader, File, FileInputStream, FileOutputStream, FileWriter, InputStream, InputStreamReader, OutputStreamWriter }
 
 import scala.annotation.tailrec
+import scala.collection.immutable.ListMap
 import scala.io.Source
 
 import com.mulesoft.flatfile.lexical.EdifactConstants
@@ -632,17 +633,17 @@ object EdifactTablesConverter {
 
       /** Build map from extracted key to object for all items in list. */
       def buildMap[T](list: List[T], key: T => String) =
-        list.foldLeft(Map[String, T]()){ (acc, t) => acc + (key(t) -> t) }
+        list.foldLeft(ListMap[String, T]()){ (acc, t) => acc + (key(t) -> t) }
 
       println(s"Processing ${version.getName}")
       val extension = "." + version.getName.toUpperCase.substring(1)
-      val elements = processFile(elementDefsName + extension, readElements(_))
+      val elements = processFile(elementDefsName + extension, readElements(_)).sortBy(_.ident)
       val elemDefs = buildMap[Element](elements, (e: Element) => e.ident)
       val composites = processFile(compositeDefsName + extension, iter =>
-        readComposites(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemDefs))
+        readComposites(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemDefs)).sortBy(_.ident)
       val compDefs = buildMap[Composite](composites, (c: Composite) => c.ident)
       val segments = processFile(segmentDefsName + extension, iter =>
-        readSegments(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemDefs, compDefs))
+        readSegments(iter, buildTemplate(iter.next), buildTemplate(iter.next), elemDefs, compDefs)).sortBy(_.ident)
       val segDefs = buildMap[Segment](segments, (s: Segment) => s.ident)
       val schemaVersion = EdiSchemaVersion(EdiFact, version.getName)
       val baseSchema = EdiSchema(schemaVersion, elemDefs, compDefs, segDefs, Map[String, Structure]())

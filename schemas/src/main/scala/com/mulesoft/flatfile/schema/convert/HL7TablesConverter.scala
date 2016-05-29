@@ -1,12 +1,12 @@
 package com.mulesoft.flatfile.schema.convert
 
 import java.io.{ File, FileInputStream, FileOutputStream, FileWriter, InputStream, InputStreamReader, OutputStreamWriter }
-import scala.annotation.tailrec
-import scala.io.Source
 import com.mulesoft.flatfile.lexical.HL7Support
 import com.mulesoft.flatfile.schema.{ EdiSchema, EdiSchemaVersion, YamlReader, YamlWriter }
 import com.mulesoft.flatfile.schema.EdiSchema._
-import scala.collection.{ mutable => cm }
+import scala.annotation.tailrec
+import scala.collection.{ immutable => sci, mutable => scm }
+import scala.io.Source
 
 /** Application to generate HL7 message schemas from table data.
   */
@@ -66,7 +66,7 @@ object HL7TablesConverter {
   def lineList(in: InputStream) = foldInput(in, Nil.asInstanceOf[LineFields])((list, line) => line.toArray :: list)
 
   /** Generate map from first column of data to list of remaining values in row. */
-  def nameMap(in: InputStream) = foldInput(in, Map.empty[String, Array[String]])((map, list) =>
+  def nameMap(in: InputStream) = foldInput(in, Map[String, Array[String]]())((map, list) =>
     list match {
       case name :: t => map + (name -> t.toArray)
       case _ => throw new IllegalArgumentException("wrong number of values in file")
@@ -124,7 +124,7 @@ object HL7TablesConverter {
   def buildComposite(lines: LineFields, names: Map[String, String], elems: Map[String, Array[String]],
     comps: Map[String, ComponentBase]) = {
     val ident = lines.head(0)
-    println(s"building composite $ident")
+//    println(s"building composite $ident")
     val compList = lines.map { line =>
       comps(elems(line(2))(2)) match {
         case Element(id, nm, typ) => {
@@ -144,7 +144,7 @@ object HL7TablesConverter {
   def buildComposites(grouped: Map[String, LineFields], names: Map[String, String],
     compdets: Map[String, Array[String]], built: Map[String, ComponentBase]): Map[String, ComponentBase] = {
 
-    val missingDetails = cm.Set[String]()
+    val missingDetails = scm.Set[String]()
 
     def compDetail(key: String): Array[String] = compdets.get(key) match {
       case Some(array) => array
@@ -176,8 +176,7 @@ object HL7TablesConverter {
     }
 
     val building = grouped.filter {
-      case (ident, lines) =>
-        lines.forall { line => built.contains(compDetail(line(2))(3)) }
+      case (ident, lines) => lines.forall { line => built.contains(compDetail(line(2))(3)) }
     }.map { case (ident, lines) => ident }.toSet
     val merged = building.foldLeft(built)((acc, ident) => acc + (ident -> buildComposite(grouped(ident), acc)))
     val remain = grouped.filter { case (ident, lines) => !building.contains(ident) }
@@ -192,7 +191,7 @@ object HL7TablesConverter {
   def buildSegments(grouped: Map[String, LineFields], names: Map[String, String],
     comps: Map[String, (String, ComponentBase)]) = {
     var failed = false
-    val result = names.keys.foldLeft(Map[String, Segment]())((map, ident) => {
+    val result = names.keys.toList.sorted.foldLeft(sci.ListMap[String, Segment]())((map, ident) => {
       val compList = grouped.get(ident) match {
         case Some(list) => list.foldLeft(List[SegmentComponent]())((acc, line) =>
           try {
@@ -311,8 +310,8 @@ object HL7TablesConverter {
       val groupedDataStructs = lineList(fileInput(version, dataStructureComponents)).reverse.groupBy { _(0) }
 
       // build element definitions for elementary components
-      val missingComps = cm.Set[String]()
-      val elemDefs = dataStructs.filter { _(4) == "1" }.foldLeft(Map.empty[String, Element])((map, line) => {
+      val missingComps = scm.Set[String]()
+      val elems = dataStructs.filter { _(4) == "1" }.foldLeft(List[Element]())((acc, line) => {
         val ident = line(0)
         groupedDataStructs.get(ident) match {
           case Some(list) =>
@@ -322,12 +321,13 @@ object HL7TablesConverter {
             val minlen = if (mintext.length > 0) mintext.toInt else 1
             val maxtext = compline(5)
             val maxlen = if (maxtext.length > 0) maxtext.toInt else 0
-            map + (ident -> Element(line(0), line(1), HL7Support.buildType(line(2), minlen, if (maxlen == 0) 9999 else maxlen)))
+            Element(line(0), line(1), HL7Support.buildType(line(2), minlen, if (maxlen == 0) 9999 else maxlen)) :: acc
           case None =>
             missingComps += ident
-            map + (ident -> Element(ident, "", HL7Support.buildType(ident, 1, 9999)))
+            Element(ident, "", HL7Support.buildType(ident, 1, 9999)) :: acc
         }
-      })
+      }).sortBy { _.ident }
+      val elemDefs = elems.foldLeft(sci.ListMap[String, Element]())((map, elem) => map + (elem.ident -> elem))
       if (missingComps.nonEmpty) println(s"WARNING: Missing components for data structures: $missingComps")
 //      println("Generated element definitions:")
 //      elemDefs.keys.foreach { ident => println(ident) }
@@ -352,17 +352,17 @@ object HL7TablesConverter {
       val groupedSegStructs = lineList(fileInput(version, segmentStructures)).reverse.groupBy { _(0) }
       // seg_code, description, visible
       val segNames = lineList(fileInput(version, segmentNames)).filter { line => (line(2) == "1") }.
-        foldLeft(Map[String, String]()) {
-          (acc, line) => acc + (line(0) -> line(1))
-        }
+        foldLeft(Map[String, String]()) { (acc, line) => acc + (line(0) -> line(1)) }
       val segments = buildSegments(groupedSegStructs, segNames, elemMap)
 //      println("Segments:")
 //      segments.foreach {
 //        case (key, comp) => println(s" $key => ${comp.name} with ${comp.components.size} top-level components")
 //      }
-      val compDefs = compMap.foldLeft(Map[String, Composite]()) {
-        case (acc, (key, value: Composite)) => acc + (key -> value)
-        case (acc, _) => acc
+      val compDefs = compMap.keys.toList.sorted.foldLeft(sci.ListMap[String, Composite]()) { (acc, key) =>
+        compMap(key) match {
+          case c: Composite => acc + (key -> c)
+          case _ => acc
+        }
       }
 
       // message_structure, seq_no, seg_code, groupname, repetitional, optional
