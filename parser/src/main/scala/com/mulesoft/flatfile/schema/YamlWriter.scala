@@ -110,20 +110,20 @@ class YamlFormatter(writer: Writer) {
   }
 
   def openGrouping: YamlFormatter = openGrouping(formStack.head)
-  
+
   def closeGrouping = {
     val compact = formStack.head
     formStack = formStack.tail
     if (compact) writer append " }\n"
     indentCount -= 1
   }
-  
+
   def openEmbeddedGrouping: YamlFormatter = {
     writer append "{ "
     firstInner = true
     this
   }
-  
+
   def closeEmbeddedGrouping = {
     writer append " }"
   }
@@ -134,11 +134,11 @@ class YamlFormatter(writer: Writer) {
 object YamlWriter extends YamlDefs {
 
   import EdiSchema._
-  
+
   /** Write schema in YAML form.
     *
     * @param schema
-    * @param imports
+    * @param imports base schemas supplying definitions for this schema
     * @param writer
     */
   def write(schema: EdiSchema, imports: Array[String], writer: Writer) = {
@@ -176,12 +176,12 @@ object YamlWriter extends YamlDefs {
     def writeStructureComps(key: String, segments: List[StructureComponent]): Unit = {
       formatter.keyLine(key)
       segments foreach (segbase => segbase match {
-        case refer: ReferenceComponent => writeReferenceComponent(refer)
+        case refer: ReferenceComponent  => writeReferenceComponent(refer)
         case wrap: LoopWrapperComponent => writeWrapperComponent(wrap)
-        case group: GroupComponent => writeGroupComponent(group)
+        case group: GroupComponent      => writeGroupComponent(group)
       })
     }
-    
+
     def writePair(key: String, value: Object): Unit = {
       value match {
         case i: Integer => formatter.keyValuePair(key, i.intValue)
@@ -200,7 +200,7 @@ object YamlWriter extends YamlDefs {
           }
           formatter.closeEmbeddedGrouping
         case null =>
-        case _ => throw new IllegalArgumentException(s"No support for type ${value.getClass}")
+        case _    => throw new IllegalArgumentException(s"No support for type ${value.getClass}")
       }
     }
 
@@ -243,7 +243,7 @@ object YamlWriter extends YamlDefs {
         remain match {
           case comp :: t =>
             comp match {
-              case ec: ElementComponent => writeElement(ec, dfltpos)
+              case ec: ElementComponent   => writeElement(ec, dfltpos)
               case cc: CompositeComponent => writeComposite(cc, dfltpos)
             }
             writerr(t, dfltpos + 1)
@@ -293,7 +293,7 @@ object YamlWriter extends YamlDefs {
         formatter.keyValueOptionalQuote(idKey, struct.ident).keyValueOptionalQuote(nameKey, struct.name)
         struct.group match {
           case Some(g) => formatter.keyValuePair(classKey, g)
-          case None =>
+          case None    =>
         }
         if (schema.ediVersion.ediForm.layout.sectioned) {
           struct.heading.foreach { seq => writeStructureComps(headingKey, seq.items) }
@@ -307,7 +307,8 @@ object YamlWriter extends YamlDefs {
         schema.structures.values.foreach { writeStructure(_) }
       } else {
         formatter.keyLine(structuresKey)
-        schema.structures.values.toList.sortBy { _.ident } foreach (struct => {
+        val structs = schema.structures.values.toList
+        structs foreach (struct => {
           formatter.openGrouping
           writeStructure(struct)
           formatter.closeGrouping
@@ -323,19 +324,21 @@ object YamlWriter extends YamlDefs {
           writeSegmentDetails(segment)
         }
       } else {
-      formatter.keyLine(segmentsKey)
-      schema.segments.values.toList.sortBy { _.ident } foreach (segment => {
-        formatter.openGrouping.keyValueOptionalQuote(idKey, segment ident)
-        writeSegmentDetails(segment)
-        formatter.closeGrouping
-      })
+        formatter.keyLine(segmentsKey)
+        val segs = schema.segments.values.toList
+        segs foreach (segment => {
+          formatter.openGrouping.keyValueOptionalQuote(idKey, segment ident)
+          writeSegmentDetails(segment)
+          formatter.closeGrouping
+        })
       }
     }
     if (!schema.composites.isEmpty) {
 
       // write composites details
       formatter.keyLine(compositesKey)
-      schema.composites.values.toList.sortBy { _.ident }.foreach (comp => {
+      val comps = schema.composites.values.toList
+      comps foreach (comp => {
         formatter.openGrouping.keyValueOptionalQuote(idKey, comp ident).keyValueOptionalQuote(nameKey, comp.name)
         writeCompositeDetails(comp)
         formatter.closeGrouping
@@ -346,7 +349,8 @@ object YamlWriter extends YamlDefs {
       // write element details
       formatter.keyLine(elementsKey)
       formatter.indentCount += 1
-      schema.elements.values.toList.sortBy { _.ident }.foreach (elem => {
+      val elems = schema.elements.values.toList
+      elems foreach (elem => {
         formatter.openGrouping(true).keyValueOptionalQuote(idKey, elem ident).keyValueOptionalQuote(nameKey, elem.name)
         writeElementDetails(elem)
         formatter.closeGrouping

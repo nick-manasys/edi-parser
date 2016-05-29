@@ -17,9 +17,7 @@ import org.yaml.snakeyaml.nodes.Tag
 import org.yaml.snakeyaml.nodes.NodeId
 import collection.JavaConverters._
 import scala.annotation.tailrec
-import scala.collection.mutable.Buffer
-import scala.collection.immutable.AbstractMap
-import scala.collection.mutable
+import scala.collection. { immutable => sci, mutable => scm }
 import com.mulesoft.flatfile.lexical.EdiConstants
 import com.mulesoft.flatfile.lexical.TypeFormatConstants
 import com.mulesoft.flatfile.lexical.formats.GeneralStringFormat
@@ -32,12 +30,12 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
 
   import EdiSchema._
 
-  val schemaCache = mutable.Map[String, EdiSchema]()
+  val schemaCache = scm.Map[String, EdiSchema]()
 
   var ediForm: EdiForm = null
-  var identElements = Map[String, Element]()
-  var identComposites = Map[String, Composite]()
-  var identSegments = Map[String, Segment]()
+  var identElements: Map[String, Element] = sci.ListMap[String, Element]()
+  var identComposites: Map[String, Composite] = sci.ListMap[String, Composite]()
+  var identSegments: Map[String, Segment] = sci.ListMap[String, Segment]()
 
   // handle virtual field added at start of segment
   var tagLength = 0
@@ -325,7 +323,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       val use = convertUsage(getAs(usageKey, MandatoryUsage.code, values))
       val count = values.get(countKey) match {
         case n: Integer => n.toInt
-        case s: String if (s == anyRepeatsValue || s == anyRepeatsAlt) => -1
+        case s: String if (s == anyRepeatsValue || s == anyRepeatsAlt) => 0
         case null => 1
         case _ =>
           val preferred = if (ediForm.fixed) anyRepeatsAlt else anyRepeatsValue
@@ -517,8 +515,9 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
 
   /** Convert structure definitions. */
   private def convertStructures(input: ValueMap, version: EdiSchemaVersion, basedefs: EdiSchema.StructureMap) = {
+    val ordered = sci.ListMap[String, Structure]() ++ basedefs
     getRequiredMapList(structuresKey, input).asScala.toList.
-      foldLeft(basedefs)((map, transmap) => if (transmap.containsKey(idKey)) {
+      foldLeft(ordered)((map, transmap) => if (transmap.containsKey(idKey)) {
         val ident = getRequiredString(idKey, transmap)
         map + (ident -> buildStructure(ident, transmap, version))
       } else if (transmap.containsKey(idRefKey)) {
@@ -598,9 +597,9 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       } else new EdiSchema(version)
 
       // merge base definitions with table definitions in this document
-      identElements = baseSchema.elements
-      identComposites = baseSchema.composites
-      identSegments = baseSchema.segments
+      identElements = identElements ++ baseSchema.elements
+      identComposites = identComposites ++ baseSchema.composites
+      identSegments = identSegments ++ baseSchema.segments
       if (input.containsKey(elementsKey)) identElements = convertElements(getRequiredMapList(elementsKey, input))
       if (input.containsKey(compositesKey)) identComposites =
         convertComposites(getRequiredMapList(compositesKey, input))
