@@ -6,7 +6,7 @@ import com.mulesoft.flatfile.schema.fftypes._
 import com.mulesoft.flatfile.lexical.TypeFormatConstants._
 import java.io.{ BufferedReader, File, FileInputStream, FileWriter, InputStreamReader, InputStream }
 import scala.annotation.tailrec
-import scala.collection.{ mutable => scm }
+import scala.collection.{ immutable => sci, mutable => scm }
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{ Position, Reader }
 
@@ -459,7 +459,7 @@ class CopybookImport(in: InputStream, enc: String) {
     }
     if (segments.isEmpty) (None, problems.toList)
     else {
-      val segs = segments.map { s => (s.ident, s) }.toMap
+      val segs = segments.foldLeft(sci.ListMap[String, Segment]()) { (acc, s) => acc + (s.ident -> s) }
       val schema = new EdiSchema(EdiSchemaVersion(Copybook, ""), Map.empty, Map.empty, segs, Map.empty)
       (Some(schema), problems.toList)
     }
