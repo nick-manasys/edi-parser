@@ -23,11 +23,11 @@ object EdiSchema {
   case object UnusedUsage extends Usage("U")
   case object IgnoredUsage extends Usage("I")
   def convertUsage(value: String) = value match {
-    case MandatoryUsage.code => MandatoryUsage
-    case OptionalUsage.code => OptionalUsage
+    case MandatoryUsage.code   => MandatoryUsage
+    case OptionalUsage.code    => OptionalUsage
     case ConditionalUsage.code => ConditionalUsage
-    case UnusedUsage.code => UnusedUsage
-    case _ => throw new IllegalArgumentException("'" + value + "' is not an allowed usage code")
+    case UnusedUsage.code      => UnusedUsage
+    case _                     => throw new IllegalArgumentException("'" + value + "' is not an allowed usage code")
   }
 
   // dependency notes - note syntax rules are different for X12, using only single character
@@ -79,7 +79,7 @@ object EdiSchema {
     */
   case class ElementComponent(val element: Element, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int,
     val tagPart: Boolean = false, val value: Option[String] = None)
-      extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt)
+    extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt)
 
   /** Composite segment component.
     * @param composite
@@ -90,7 +90,7 @@ object EdiSchema {
     * @param cnt maximum repetition count
     */
   case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage,
-      cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
+    cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
     val itemType = if (composite.isSimple) ItemType.DATA_ELEMENT else ItemType.SUB_COMPONENT
   }
 
@@ -156,7 +156,7 @@ object EdiSchema {
   private def collectKeys(comps: List[SegmentComponent], keys: List[String]): Array[String] =
     comps.foldLeft(keys) { (acc, comp) =>
       if (comp.count == 1) comp match {
-        case ec: ElementComponent => ec.key :: acc
+        case ec: ElementComponent   => ec.key :: acc
         case cc: CompositeComponent => cc.composite.keys.toList ::: acc
       }
       else comp.key :: acc
@@ -170,12 +170,12 @@ object EdiSchema {
     * @param maxLength maximum length for entire value (0 if no limit)
     */
   case class Composite(id: String, nm: String, val components: List[SegmentComponent], val rules: List[OccurrenceRule],
-      val maxLength: Int) extends ComponentBase(id, nm) {
+    val maxLength: Int) extends ComponentBase(id, nm) {
     def this(id: String, nm: String, comps: List[SegmentComponent], rules: List[OccurrenceRule]) =
       this(id, nm, comps, rules, 0)
-    def rewrite(prefix: String, form: EdiForm): Composite =
-      Composite(ident, name,
-        components.map { scomp =>
+    def rewrite(prefix: String, form: EdiForm): Composite = {
+      if (form.inlineComposites) {
+        val comps = components.map { scomp =>
           val rekey = form.keyName(prefix, "", scomp.position)
           scomp match {
             case ec: ElementComponent =>
@@ -184,8 +184,10 @@ object EdiSchema {
               val comp = if (cc.count == 1) cc.composite.rewrite(rekey, form) else cc.composite
               CompositeComponent(comp, Some(cc.name), rekey, cc.position, cc.usage, cc.count)
           }
-        },
-        rules, maxLength)
+        }
+        Composite(ident, name, comps, rules, maxLength)
+      } else this
+    }
     val isSimple = components.forall { comp => comp.isInstanceOf[ElementComponent] }
     val keys = collectKeys(components, Nil)
   }
@@ -229,16 +231,16 @@ object EdiSchema {
     val count: Int)
 
   private def compIdent(comp: StructureComponent) = comp match {
-    case r: ReferenceComponent => r.segment.ident
-    case g: GroupBase => g.leadSegmentRef.segment.ident
+    case r: ReferenceComponent   => r.segment.ident
+    case g: GroupBase            => g.leadSegmentRef.segment.ident
     case w: LoopWrapperComponent => w.startCode
   }
-  
+
   /** Subsequence of structure components with no segments reused. The segments are mapped so they can be processed in
     * any order.
     */
   case class StructureSubsequence(val startPos: String, val comps: Map[String, StructureComponent],
-      val terms: Terminations, val groupTerms: Map[GroupComponent, Terminations]) {
+    val terms: Terminations, val groupTerms: Map[GroupComponent, Terminations]) {
     //    println(s"subsequence from $startPos: ${comps.values.foldLeft("")((txt, comp) => txt + " " + comp.key)} (terms [${terms.required} required]: ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})")
   }
 
@@ -315,7 +317,7 @@ object EdiSchema {
             val nids = ids + compIdent(comp)
             comp match {
               case g: GroupComponent => (ncnt, nids, acc + (g -> Terminations(cnt, ids + compIdent(g.leadSegmentRef))))
-              case _ => (ncnt, nids, acc)
+              case _                 => (ncnt, nids, acc)
             }
         }
         //        grps.foreach { case (grp, terms) => println(s"group ${grp.ident} has terms (${terms.required} required): ${terms.idents.foldLeft("")((txt, id) => txt + " " + id)})") }
@@ -339,7 +341,7 @@ object EdiSchema {
         @tailrec
         def findreq(rem: CompList, acc: CompList): (CompList, CompList) = rem match {
           case h :: t => if (h.usage == MandatoryUsage) (acc reverse, rem) else findreq(t, h :: acc)
-          case _ => (acc reverse, Nil)
+          case _      => (acc reverse, Nil)
         }
         def addNonEmpty(acc: CompList, rest: CompList) = {
           if (acc.nonEmpty) {
@@ -410,10 +412,10 @@ object EdiSchema {
 
     /** End position. */
     val endPosition: SegmentPosition = items.last match {
-      case ref: ReferenceComponent => ref.position
+      case ref: ReferenceComponent    => ref.position
       case wrap: LoopWrapperComponent => wrap.endPosition
-      case grp: GroupComponent => grp.seq.endPosition
-      case _ => throw new IllegalStateException(s"last item in sequence is not a segment reference or group")
+      case grp: GroupComponent        => grp.seq.endPosition
+      case _                          => throw new IllegalStateException(s"last item in sequence is not a segment reference or group")
     }
   }
 
@@ -455,7 +457,7 @@ object EdiSchema {
     */
   case class LoopWrapperComponent(val open: Segment, val close: Segment, start: SegmentPosition,
     val endPosition: SegmentPosition, use: Usage, val groupId: String, val wrapped: GroupComponent)
-      extends StructureComponent(wrapped.key, start, use, 1) {
+    extends StructureComponent(wrapped.key, start, use, 1) {
     val startCode = open.ident + groupId
     val endCode = close.ident + groupId
     val groupTerms = Terminations(1, Set(endCode, wrapped.leadSegmentRef.segment.ident))
@@ -465,7 +467,7 @@ object EdiSchema {
     seq.items.foldLeft(List[String]()) { (acc, comp) =>
       if (comp.count == 1) comp match {
         case group: GroupBase => group.keys.toList ::: acc
-        case _ => comp.key :: acc
+        case _                => comp.key :: acc
       }
       else comp.key :: acc
     }.reverse.toArray
@@ -479,11 +481,11 @@ object EdiSchema {
     * @param seq
     */
   sealed abstract class GroupBase(ky: String, pos: SegmentPosition, use: Usage, cnt: Int, val choice: Boolean,
-      val seq: StructureSequence) extends StructureComponent(ky, pos, use, cnt) {
+    val seq: StructureSequence) extends StructureComponent(ky, pos, use, cnt) {
     val leadSegmentRef: ReferenceComponent = seq.items match {
       case (r: ReferenceComponent) :: t => r
-      case (g: GroupBase) :: t => g.leadSegmentRef
-      case _ => throw new IllegalStateException(s"first item in sequence is not a segment reference")
+      case (g: GroupBase) :: t          => g.leadSegmentRef
+      case _                            => throw new IllegalStateException(s"first item in sequence is not a segment reference")
     }
     val keys = collectKeys(seq)
   }
@@ -496,7 +498,7 @@ object EdiSchema {
     */
   case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
     ssq: StructureSequence)
-      extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, ssq)
+    extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, ssq)
 
   /** Group component consisting of one or more nested components.
     * @param ident group identifier
@@ -511,31 +513,31 @@ object EdiSchema {
   case class GroupComponent(val ident: String, use: Usage, cnt: Int, ssq: StructureSequence, val varkey: Option[String],
     val variants: List[VariantGroup], ky: Option[String] = None, pos: Option[SegmentPosition] = None,
     ch: Boolean = false)
-      extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(ssq.startPos))),
-        pos.getOrElse(ssq.startPos), use, cnt, ch, ssq) {
+    extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(ssq.startPos))),
+      pos.getOrElse(ssq.startPos), use, cnt, ch, ssq) {
 
     /** Group variants by key value. */
     val varbyval = Map(variants map { v => (v.elemval, v) }: _*)
   }
-  
+
   /** Base class for target associated with a fixed width segment tag component. */
   sealed abstract class TagTarget {
     def size: Int
   }
-  
+
   /** Segment identified by fixed width segment tag component. */
   case class TagSegment(val segment: Segment) extends TagTarget {
     def size = 1
   }
-  
+
   /** Next fixed width segment tag component. */
   case class TagNext(val offset: Int, val length: Int, val targets: Map[String, TagTarget]) extends TagTarget {
     def size = targets.foldLeft(0) { case (acc, (k, v)) => acc + v.size }
   }
-  
+
   /** Build tag structure for a set of segments. */
   def buildTagTarget(segments: Set[Segment]): TagTarget = {
-    
+
     /** Build list of tag values for segment (start offset, length, value). */
     def segmentTags(s: Segment): List[(Int, Int, String)] = {
       val buffer = sm.Buffer[(Int, Int, String)]()
@@ -574,11 +576,11 @@ object EdiSchema {
           case _ => offset
         }
       }
-      
+
       tagr(0, true, s.components)
       buffer.toList
     }
-    
+
     def buildTarget(segTags: List[(Segment, List[(Int, Int, String)])]): TagTarget = {
       segTags match {
         case (seg, Nil) :: Nil => TagSegment(seg)
@@ -595,15 +597,18 @@ object EdiSchema {
               case (seg1, Nil) => throw new IllegalArgumentException(s"Segment ${seg1.ident} tags conflict with ${seg0.ident}")
             }
             val map = segTags.groupBy {
-              case (_, tagHead :: _) => tagHead._3 }.map { case (key, list) =>
+              case (_, tagHead :: _) => tagHead._3
+            }.map {
+              case (key, list) =>
                 val pruned = list.map { case (s, l) => (s, l.tail) }
-                (key, buildTarget(pruned)) }
+                (key, buildTarget(pruned))
+            }
             TagNext(tag0._1, tag0._2, map)
           }
         case Nil => TagNext(0, 0, Map())
       }
     }
-    
+
     val segTags: List[(Segment, List[(Int, Int, String)])] = segments.map { s => (s, segmentTags(s)) }.filter { case (s, l) => l.nonEmpty }.toList
     val target = buildTarget(segTags)
     val count = target.size
@@ -621,8 +626,8 @@ object EdiSchema {
     * @param version
     */
   case class Structure(val ident: String, val name: String, val group: Option[String],
-      val heading: Option[StructureSequence], val detail: Option[StructureSequence],
-      val summary: Option[StructureSequence], val version: EdiSchemaVersion) extends MemoryResident {
+    val heading: Option[StructureSequence], val detail: Option[StructureSequence],
+    val summary: Option[StructureSequence], val version: EdiSchemaVersion) extends MemoryResident {
 
     def memoryId = ident
 
@@ -630,14 +635,14 @@ object EdiSchema {
     val segmentsUsed = {
       def referencer(seq: StructureSequence, segments: Set[Segment]): Set[Segment] =
         seq.items.foldLeft(segments)((acc, comp) => comp match {
-          case ref: ReferenceComponent => acc + ref.segment
+          case ref: ReferenceComponent    => acc + ref.segment
           case wrap: LoopWrapperComponent => referencer(wrap.wrapped.seq, acc + wrap.open + wrap.close)
-          case group: GroupComponent => referencer(group.seq, acc)
-          case _ => acc
+          case group: GroupComponent      => referencer(group.seq, acc)
+          case _                          => acc
         })
       def tableRefs(seqopt: Option[StructureSequence], segments: Set[Segment]): Set[Segment] = seqopt match {
         case Some(seq) => referencer(seq, segments)
-        case None => segments
+        case None      => segments
       }
 
       tableRefs(summary, tableRefs(detail, tableRefs(heading, Set[Segment]())))
@@ -657,7 +662,7 @@ object EdiSchema {
     val elementsUsed = {
       def referencer(comps: List[SegmentComponent], elements: Set[Element]): Set[Element] =
         comps.foldLeft(elements)((acc, comp) => comp match {
-          case CompositeComponent(composite, _, _, _, _, _) => referencer(composite.components, acc)
+          case CompositeComponent(composite, _, _, _, _, _)   => referencer(composite.components, acc)
           case ElementComponent(element, _, _, _, _, _, _, _) => acc + element
         })
       segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
@@ -687,12 +692,12 @@ object EdiSchema {
 
     private def optionKeys(oseq: Option[StructureSequence]) = oseq match {
       case Some(seq) => collectKeys(seq)
-      case None => Array[String]()
+      case None      => Array[String]()
     }
     val headingKeys = optionKeys(heading)
     val detailKeys = optionKeys(detail)
     val summaryKeys = optionKeys(summary)
-    
+
     // generate tag lookups for fixed width structures
     val tagLookup: TagTarget =
       if (version.ediForm.multiPartTags) buildTagTarget(segmentsUsed)
@@ -718,13 +723,16 @@ object EdiSchema {
 
     /** Create key for version in data maps. */
     def versionKey(version: String): String
-    
+
     /** Format uses segment positions flag. */
     val segmentsPositioned: Boolean
-    
+
+    /** Inline single-instance composites flag. */
+    val inlineComposites: Boolean
+
     /** Multi-part segment tags flag. */
     val multiPartTags: Boolean
-    
+
     // keys used in YAML
     val lengthKey = "length"
     val minLengthKey = "minLength"
@@ -741,6 +749,7 @@ object EdiSchema {
   }
   sealed abstract class DelimitedEdiBase(text: String, layout: SchemaLayout) extends EdiForm(text, layout, false) {
     override val segmentsPositioned = true
+    override val inlineComposites = true
     override val multiPartTags = false
     def formatBuilder: (String, Int, Int) => TypeFormat
     def convertMinMaxLength(map: ValueMap) = {
@@ -808,8 +817,9 @@ object EdiSchema {
       if (name.nonEmpty) name else defaultKey(parentId, position)
 
     override val segmentsPositioned = false
+    override val inlineComposites = false
     override val multiPartTags = true
-    
+
     def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat
 
     override def readFormat(code: String, map: ValueMap): TypeFormat = {
@@ -837,7 +847,7 @@ object EdiSchema {
         case Some(f) => f.readFormat(length, map)
         case _ => CopybookFormats.copybookFactories.get(code) match {
           case Some(f) => f.readFormat(length, map)
-          case _ => throw new IllegalArgumentException(s"Unknown format '$code'")
+          case _       => throw new IllegalArgumentException(s"Unknown format '$code'")
         }
       }
     }
@@ -848,7 +858,7 @@ object EdiSchema {
     override def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat = {
       FixedWidthFormats.fixedFactories.get(code) match {
         case Some(f) => f.readFormat(length, map)
-        case _ => throw new IllegalArgumentException(s"Unknown format '$code'")
+        case _       => throw new IllegalArgumentException(s"Unknown format '$code'")
       }
     }
   }
@@ -858,18 +868,18 @@ object EdiSchema {
     override def loadFormat(code: String, length: Int, map: ValueMap): TypeFormat = {
       CopybookFormats.copybookFactories.get(code) match {
         case Some(f) => f.readFormat(length, map)
-        case _ => throw new IllegalArgumentException(s"Unknown format '$code'")
+        case _       => throw new IllegalArgumentException(s"Unknown format '$code'")
       }
     }
   }
   def convertEdiForm(value: String) = value match {
-    case EdiFact.text => EdiFact
-    case X12.text => X12
-    case HL7.text => HL7
-    case FlatFile.text => FlatFile
+    case EdiFact.text    => EdiFact
+    case X12.text        => X12
+    case HL7.text        => HL7
+    case FlatFile.text   => FlatFile
     case FixedWidth.text => FixedWidth
-    case Copybook.text => Copybook
-    case _ => throw new IllegalArgumentException(s"Unknown EDI form $value")
+    case Copybook.text   => Copybook
+    case _               => throw new IllegalArgumentException(s"Unknown EDI form $value")
   }
 }
 
@@ -878,8 +888,8 @@ case class EdiSchemaVersion(val ediForm: EdiSchema.EdiForm, val version: String)
 }
 
 case class EdiSchema(val ediVersion: EdiSchemaVersion, val elements: Map[String, EdiSchema.Element],
-    val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
-    val structures: EdiSchema.StructureMap) {
+  val composites: Map[String, EdiSchema.Composite], val segments: Map[String, EdiSchema.Segment],
+  val structures: EdiSchema.StructureMap) {
   def this(ver: EdiSchemaVersion) = this(ver, Map[String, EdiSchema.Element](),
     Map[String, EdiSchema.Composite](), Map[String, EdiSchema.Segment](), Map[String, EdiSchema.Structure]())
   def merge(other: EdiSchema) = EdiSchema(ediVersion, elements ++ other.elements, composites ++ other.composites,
@@ -899,7 +909,7 @@ case class EdiSchema(val ediVersion: EdiSchemaVersion, val elements: Map[String,
     val transMap = structures + (transact.ident -> transact)
     EdiSchema(ediVersion, elemMap, compMap, segMap, transMap)
   }
-  
+
   // generate tag lookups for fixed width schema with no structures
   val tagLookup: EdiSchema.TagTarget =
     if (structures.isEmpty && segments.nonEmpty && ediVersion.ediForm.multiPartTags) {
