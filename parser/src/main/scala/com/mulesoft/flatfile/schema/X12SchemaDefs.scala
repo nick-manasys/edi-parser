@@ -42,7 +42,7 @@ object X12SchemaDefs {
   val valTM4 = X12Constants.buildType("TM", 4, 4)
   val valTM4_8 = X12Constants.buildType("TM", 4, 8)
   
-  val elemI05 = Element("I05", "Interchange ID Qualifier", valN2)
+  val elemI05 = Element("I05", "Interchange ID Qualifier", valID2)
   val elemI12 = Element("I12", "Interchange Control Number", valN9)
 
   val ISASegment = new Segment("ISA", "Interchange Control Header", List[SegmentComponent](

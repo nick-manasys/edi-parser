@@ -2,6 +2,10 @@ package com.mulesoft.flatfile.lexical;
 
 public final class TypeFormatConstants
 {
+    public enum GenericType
+    {
+        STRING, INTEGER, REAL, DATE, DATETIME, BOOLEAN
+    }
     public enum FillMode
     {
         LEFT("Left justify", false), RIGHT("Right justify", false), NONE("None", false), ZEROES("Zero filled", true);
@@ -59,21 +63,6 @@ public final class TypeFormatConstants
         
         public boolean acceptPlus() {
             return acceptPlus;
-        }
-        
-        public String toString() {
-            return textName;
-        }
-    }
-    
-    public enum BooleanRepresentation
-    {
-        ALPHA_LOWER("Lowercase alpha"), ALPHA_UPPER("Uppercase alpha"), NUMBER("Number (0/1)");
-        
-        private final String textName;
-        
-        private BooleanRepresentation(String text) {
-            textName = text;
         }
         
         public String toString() {

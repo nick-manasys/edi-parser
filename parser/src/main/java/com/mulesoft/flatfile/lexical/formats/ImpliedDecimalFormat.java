@@ -34,7 +34,11 @@ public class ImpliedDecimalFormat extends NumberFormatBase
         super(code, min, max, sign, count, fill);
         decimalPosition = pos;
     }
-
+    
+    @Override
+    public GenericType genericType() {
+        return GenericType.REAL;
+    }
 
     @Override
     public Object parse(LexerBase lexer) throws LexicalException {

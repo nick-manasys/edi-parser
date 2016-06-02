@@ -15,6 +15,8 @@ object LocalTimeFormat extends FormatFactory {
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
     val formatter: DateTimeFormatter
+  
+    override def genericType = GenericType.INTEGER
 
     override def parseToken(lexer: LexerBase): Object = LocalTime.parse(lexer.token, formatter)
     

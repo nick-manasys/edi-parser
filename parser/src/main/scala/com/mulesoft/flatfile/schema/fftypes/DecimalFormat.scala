@@ -15,6 +15,8 @@ object DecimalFormat extends FormatFactory {
 
   case class DecimalFormatImpl(width: Int, sign: NumberSign, fill: FillMode, zoned: Boolean)
       extends ZonedFormatBase(code, width, sign, fill, zoned) {
+    
+    override def genericType = GenericType.REAL
 
     override def parse(lexer: LexerBase) = {
       val neg = zoned && checkNegative(lexer.tokenBuilder)
@@ -48,6 +50,8 @@ object DecimalFormat extends FormatFactory {
 
   case class DecimalImplicitImpl(width: Int, impl: Int, sign: NumberSign, fill: FillMode, zoned: Boolean)
       extends ZonedFormatBase(code, width, sign, fill, zoned) {
+    
+    override def genericType = GenericType.REAL
 
     override def parse(lexer: LexerBase) = {
       val neg = zoned && checkNegative(lexer.tokenBuilder)
@@ -83,6 +87,8 @@ object DecimalFormat extends FormatFactory {
 
   case class DecimalPatternImpl(width: Int, pattern: String, locale: Locale, fill: FillMode)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
+    
+    override def genericType = GenericType.REAL
 
     private def buildFormat = new jt.DecimalFormat(pattern, new jt.DecimalFormatSymbols(locale))
 

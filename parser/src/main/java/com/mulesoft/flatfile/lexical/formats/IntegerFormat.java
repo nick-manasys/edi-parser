@@ -27,7 +27,11 @@ public class IntegerFormat extends NumberFormatBase
     public IntegerFormat(String code, int min, int max, NumberSign sign, boolean count, FillMode fill) {
         super(code, min, max, sign, count, fill);
     }
-
+    
+    @Override
+    public GenericType genericType() {
+        return GenericType.INTEGER;
+    }
 
     @Override
     public Object parse(LexerBase lexer) throws LexicalException {

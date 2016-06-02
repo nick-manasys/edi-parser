@@ -11,9 +11,9 @@ import com.mulesoft.flatfile.lexical.TypeFormatConstants._
 
 class BooleanFormatTest extends FlatSpec with Matchers {
   
-  val digit1 = BooleanFormat(1, BooleanRepresentation.NUMBER, FillMode.NONE)
-  val digit2 = BooleanFormat(2, BooleanRepresentation.NUMBER, FillMode.LEFT)
-  val digit5 = BooleanFormat(5, BooleanRepresentation.NUMBER, FillMode.RIGHT)
+  val digit1 = BooleanFormat(1, "1", "0", false, FillMode.NONE)
+  val digit2 = BooleanFormat(2, "1", "0", false, FillMode.LEFT)
+  val digit5 = BooleanFormat(5, "1", "0", false, FillMode.RIGHT)
   
   behavior of "BooleanFormat digit form"
   
@@ -50,10 +50,10 @@ class BooleanFormatTest extends FlatSpec with Matchers {
     intercept[IOException] { DemoSupport.writeString(null, digit5) }
   }
   
-  val upper1 = BooleanFormat(1, BooleanRepresentation.ALPHA_UPPER, FillMode.NONE)
-  val upper2 = BooleanFormat(2, BooleanRepresentation.ALPHA_UPPER, FillMode.LEFT)
-  val upper5 = BooleanFormat(5, BooleanRepresentation.ALPHA_UPPER, FillMode.LEFT)
-  val upper7 = BooleanFormat(7, BooleanRepresentation.ALPHA_UPPER, FillMode.RIGHT)
+  val upper1 = BooleanFormat(1, "TRUE", "FALSE", true, FillMode.NONE)
+  val upper2 = BooleanFormat(2, "TRUE", "FALSE", true, FillMode.LEFT)
+  val upper5 = BooleanFormat(5, "TRUE", "FALSE", true, FillMode.LEFT)
+  val upper7 = BooleanFormat(7, "TRUE", "FALSE", true, FillMode.RIGHT)
   
   behavior of "BooleanFormat upper form"
   
@@ -88,10 +88,10 @@ class BooleanFormatTest extends FlatSpec with Matchers {
     DemoSupport.writeString(jl.Boolean.TRUE, upper7) should be ("   TRUE")
   }
   
-  val lower1 = BooleanFormat(1, BooleanRepresentation.ALPHA_LOWER, FillMode.NONE)
-  val lower2 = BooleanFormat(2, BooleanRepresentation.ALPHA_LOWER, FillMode.LEFT)
-  val lower5 = BooleanFormat(5, BooleanRepresentation.ALPHA_LOWER, FillMode.LEFT)
-  val lower7 = BooleanFormat(7, BooleanRepresentation.ALPHA_LOWER, FillMode.RIGHT)
+  val lower1 = BooleanFormat(1, "true", "false", true, FillMode.NONE)
+  val lower2 = BooleanFormat(2, "true", "false", true, FillMode.LEFT)
+  val lower5 = BooleanFormat(5, "true", "false", true, FillMode.LEFT)
+  val lower7 = BooleanFormat(7, "true", "false", true, FillMode.RIGHT)
   
   behavior of "BooleanFormat lower form"
   

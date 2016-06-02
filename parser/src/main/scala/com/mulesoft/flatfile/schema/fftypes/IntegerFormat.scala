@@ -13,6 +13,8 @@ object IntegerFormat extends FormatFactory {
 
   case class IntegerFormatImpl(width: Int, sign: NumberSign, fill: FillMode, zoned: Boolean)
     extends ZonedFormatBase(code, width, sign, fill, zoned) {
+  
+    override def genericType = GenericType.INTEGER
 
     override def parse(lexer: LexerBase) = {
       val neg = zoned && checkNegative(lexer.tokenBuilder)
@@ -49,6 +51,8 @@ object IntegerFormat extends FormatFactory {
 
   case class IntegerPatternImpl(width: Int, pattern: String, locale: Locale, fill: FillMode)
     extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
+  
+    override def genericType = GenericType.INTEGER
 
     private def buildFormat = new jt.DecimalFormat(pattern, new jt.DecimalFormatSymbols(locale))
 

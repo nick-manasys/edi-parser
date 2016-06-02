@@ -15,6 +15,13 @@ public interface TypeFormat
     String typeCode();
     
     /**
+     * Generic type of values.
+     * 
+     * @return
+     */
+    TypeFormatConstants.GenericType genericType();
+    
+    /**
      * Convert input text to value.
      * 
      * @param lexer

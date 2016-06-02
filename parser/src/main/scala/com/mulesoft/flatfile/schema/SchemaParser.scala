@@ -27,8 +27,6 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
   /** Stack of loop nestings currently active in parse. */
   val loopStack = Stack[GroupComponent]()
   
-  var segmentIdent = ""
-  
   def userValue(usage: Usage) = usage match {
     case UnusedUsage | IgnoredUsage => false
     case _ => true
@@ -46,8 +44,11 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap): Unit
   
-  /** Load segment identifier in preparation for parsing a segment within structure. */
-  def loadSegmentIdent(structure: Structure): String
+  /** Identify current segment for processing (sets up the segment identifier, if necessary). */
+  def findSegment: Unit
+  
+  /** Get segment identifier in preparation for parsing a segment within structure. */
+  def segmentIdent: String
 
   /** Parse a segment to a map of values. The base parser must be positioned at the segment tag when this is called. */
   def parseSegment(segment: Segment, position: SegmentPosition): ValueMap
@@ -189,7 +190,7 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
               else segmentError(wrap.close.ident, MissingRequired, ParseComplete, segmentNumber)
             }
 
-            segmentIdent = loadSegmentIdent(structure)
+            findSegment
             val ident = convertLoop.getOrElse(segmentIdent)
             if (baseLexer.currentType == ItemType.SEGMENT && !isEnvelopeSegment(ident)) {
 
@@ -313,7 +314,9 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
 abstract class DelimiterSchemaParser(val delimLexer: DelimiterLexer, sc: StorageContext)
 extends SchemaParser(delimLexer, sc) {
   
-  override def loadSegmentIdent(structure: Structure) = delimLexer.segmentTag
+  override def findSegment = Unit
+  
+  override def segmentIdent = delimLexer.segmentTag
 
   override def parseComponent(comp: SegmentComponent, first: ItemType, rest: ItemType, map: ValueMap): Unit = {
     def storeValue(value: Object) = {

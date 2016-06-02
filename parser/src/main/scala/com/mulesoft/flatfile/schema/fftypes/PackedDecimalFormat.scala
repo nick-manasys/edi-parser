@@ -1,6 +1,7 @@
 package com.mulesoft.flatfile.schema.fftypes
 
 import com.mulesoft.flatfile.lexical.{ FlatFileLexer, FlatFileWriter, LexerBase, TypeFormat, WriterBase }
+import com.mulesoft.flatfile.lexical.TypeFormatConstants._
 import com.mulesoft.flatfile.lexical.formats.{ TypeFormatBase }
 import java.{ lang => jl, math => jm, text => jt }
 import spire.math.Number
@@ -11,6 +12,8 @@ object PackedDecimalFormat extends FormatFactory {
   
   case class PackedDecimalImpl(width: Int, impl: Int, signed: Boolean) extends TypeFormatBase(code, width, width)
     with FlatFileFormat {
+    
+    override def genericType = GenericType.REAL
     
     val digits = width * 2 - 1
     

@@ -703,13 +703,11 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
           var ackId = 1
           lexer.setHandler(EdifactErrorHandler)
           while (lexer.currentType != END && !isInterchangeEnvelope) {
-            segmentIdent = delimLexer.segmentTag
             if (isGroupEnvelope) {
               val groupmap = openGroup
               handler.handleUng(groupmap) match {
                 case EdifactHandlerError(error, text) => groupError(error, text)
                 case null =>
-                  segmentIdent = delimLexer.segmentTag
                   while (!isGroupClose) {
                     if (isSetOpen) parseMessage(Some(groupmap))
                     else groupError(InvalidOccurrence)

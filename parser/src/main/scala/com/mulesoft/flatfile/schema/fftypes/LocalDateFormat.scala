@@ -16,6 +16,8 @@ object LocalDateFormat extends FormatFactory {
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
 
     val formatter: DateTimeFormatter
+  
+    override def genericType = GenericType.DATE
     
     private def truncate(text: String) = if (text.length > width) text.substring(0, width) else text
 

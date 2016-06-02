@@ -43,6 +43,11 @@ public class ExplicitDecimalFormat extends NumberFormatBase
         allowExponent = allowexp;
         countExponent = countexp;
     }
+    
+    @Override
+    public GenericType genericType() {
+        return GenericType.REAL;
+    }
 
     /**
      * Convert a decimal input value to appropriate numeric form.

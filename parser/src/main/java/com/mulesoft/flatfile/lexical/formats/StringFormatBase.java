@@ -22,7 +22,7 @@ public abstract class StringFormatBase extends TypeFormatBase {
             throw new IllegalArgumentException("Numeric fill option not supported");
         }
     }
-    
+
     /**
      * Validate characters and parse current lexer token.
      * 

@@ -461,6 +461,10 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
     /** Parse transactions in group. */
     def parseGroup(version: String, ackhead: ValueMap) = {
+          
+      def checkEnvelope: Boolean = {
+        isGroupEnvelope || isInterchangeEnvelope
+      }
 
       def handleStructure(t: Structure, setprops: ValueMap, setack: ValueMap): ValueMap = {
         val data = storageContext.newMap(structureDescriptor)
@@ -477,8 +481,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
 
       val setacks = storageContext.newMapSeq
       val transLists = getOrSet("v" + version.take(6), storageContext.newMemoryResidentMap, schemaVersionTransactions)
-      segmentIdent = delimLexer.segmentTag
-      while (lexer.currentType != END && !isGroupEnvelope && !isInterchangeEnvelope) {
+      while (lexer.currentType != END && !checkEnvelope) {
         if (isSetOpen) {
           val (setid, setprops) = openSet
           transactionNumber = getRequiredString(setControlNumberHeaderKey, setprops)
@@ -539,6 +542,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
       ackroot put (interchangeKey, intercopy)
       swap(SENDER_ID_QUALIFIER, RECEIVER_ID_QUALIFIER, intercopy)
       swap(SENDER_ID, RECEIVER_ID, intercopy)
+      intercopy.remove(errorListKey)
       ackroot
     }
 
@@ -574,6 +578,7 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
           val ackroot = buildAckRoot(inter)
           val groupcopy = storageContext.newMemoryResidentMap(groupMap)
           swap(groupApplicationSenderKey, groupApplicationReceiverKey, groupcopy)
+          groupcopy.remove(errorListKey)
           ackroot put (groupKey, groupcopy)
           ackroot put (structureHeading, ackhead)
           ackroot put (structureDetail, storageContext.newMemoryResidentMap)
@@ -691,7 +696,6 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
               parser.setConfig(config)
               parser.parseInterchange
               interchangeAck = AcknowledgedWithErrors
-              parser.segmentIdent = parser.delimLexer.segmentTag
               if (parser.isGroupOpen) parser.parseInterchangeGroups
               if (lexer.currentType == END) {
                 logger.error("end of file with missing IEA")

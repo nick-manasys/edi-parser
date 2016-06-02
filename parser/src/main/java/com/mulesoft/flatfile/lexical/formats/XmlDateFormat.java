@@ -9,6 +9,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.mulesoft.flatfile.lexical.ErrorHandler.ErrorCondition;
+import com.mulesoft.flatfile.lexical.TypeFormatConstants.GenericType;
 import com.mulesoft.flatfile.lexical.LexerBase;
 import com.mulesoft.flatfile.lexical.LexicalException;
 import com.mulesoft.flatfile.lexical.WriteException;
@@ -38,6 +39,11 @@ public class XmlDateFormat extends TypeFormatBase {
         } catch (DatatypeConfigurationException e) {
             throw new RuntimeException(e);
         }
+    }
+    
+    @Override
+    public GenericType genericType() {
+        return GenericType.DATE;
     }
 
     private int parseComponent(int start, int end, LexerBase lexer) throws LexicalException {

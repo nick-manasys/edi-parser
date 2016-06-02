@@ -18,7 +18,7 @@ import SchemaJavaValues._
 import com.mulesoft.ltmdata.StorageContext
 
 /** Base parser for flat file documents. */
-abstract class FlatFileParserBase(in: InputStream, charSet: Charset)
+abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: Option[Structure])
 extends SchemaParser(new FlatFileLexer(in, charSet, false), StorageContext.workingContext) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
@@ -40,12 +40,19 @@ extends SchemaParser(new FlatFileLexer(in, charSet, false), StorageContext.worki
     }
   }
   
-  override def loadSegmentIdent(structure: Structure) = {
-    lookupSegment(structure.tagLookup) match {
-      case Some(s) =>
-        currentSegment = s
-        s.ident
-      case _ => ""
+  override def segmentIdent = {
+    if (currentSegment == null) throw new IllegalStateException("Segment not defined")
+    else currentSegment.ident
+  }
+  
+  override def findSegment = {
+    structOpt match {
+      case Some(struct) =>
+        lookupSegment(struct.tagLookup) match {
+          case Some(s) => currentSegment = s
+          case _ =>
+        }
+      case _ => throw new IllegalStateException("Not in a structure")
     }
   }
 
@@ -163,7 +170,8 @@ extends SchemaParser(new FlatFileLexer(in, charSet, false), StorageContext.worki
 }
 
 /** Parser for structured flat file documents. */
-class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure) extends FlatFileParserBase(in, cs) {
+class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure)
+extends FlatFileParserBase(in, cs, Some(struct)) {
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {
@@ -183,7 +191,7 @@ class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure) e
 }
 
 /** Parser for single repeated segment documents. */
-class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment) extends FlatFileParserBase(in, cs) {
+class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment) extends FlatFileParserBase(in, cs, None) {
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {
@@ -204,7 +212,8 @@ class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment) exte
 
 
 /** Parser for documents containing any defined segments in any order. */
-class FlatFileUnorderedParser(in: InputStream, cs: Charset, schema: EdiSchema) extends FlatFileParserBase(in, cs) {
+class FlatFileUnorderedParser(in: InputStream, cs: Charset, schema: EdiSchema)
+extends FlatFileParserBase(in, cs, None) {
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {

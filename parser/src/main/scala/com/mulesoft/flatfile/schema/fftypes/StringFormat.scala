@@ -17,6 +17,8 @@ object StringFormat extends FormatFactory {
 
   case class StringFormatImpl(width: Int, fill: FillMode)
       extends StringFormatBase(code, width, width, fill) with FlatFileFormat {
+  
+    override def genericType = GenericType.STRING
 
     override def parseToken(lexer: LexerBase): Object = {
       lexer.token

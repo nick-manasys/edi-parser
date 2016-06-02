@@ -4,6 +4,7 @@ import com.mulesoft.flatfile.lexical.LexerBase;
 import com.mulesoft.flatfile.lexical.LexicalException;
 import com.mulesoft.flatfile.lexical.ErrorHandler.ErrorCondition;
 import com.mulesoft.flatfile.lexical.TypeFormatConstants.FillMode;
+import com.mulesoft.flatfile.lexical.TypeFormatConstants.GenericType;
 import com.mulesoft.flatfile.lexical.WriterBase;
 
 /**
@@ -13,6 +14,11 @@ public class GeneralStringFormat extends StringFormatBase {
     
     public GeneralStringFormat(String code, int min, int max, FillMode fill) {
         super(code, min, max, fill);
+    }
+    
+    @Override
+    public GenericType genericType() {
+        return GenericType.STRING;
     }
 
     @Override

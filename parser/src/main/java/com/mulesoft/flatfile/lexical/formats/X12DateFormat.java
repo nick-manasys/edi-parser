@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import com.mulesoft.flatfile.lexical.ErrorHandler.ErrorCondition;
+import com.mulesoft.flatfile.lexical.TypeFormatConstants.GenericType;
 import com.mulesoft.flatfile.lexical.LexerBase;
 import com.mulesoft.flatfile.lexical.LexicalException;
 import com.mulesoft.flatfile.lexical.WriteException;
@@ -20,6 +21,11 @@ public class X12DateFormat extends TypeFormatBase {
     
     public X12DateFormat(String code, int min, int max) {
         super(code, min, max);
+    }
+    
+    @Override
+    public GenericType genericType() {
+        return GenericType.DATE;
     }
 
     @Override
