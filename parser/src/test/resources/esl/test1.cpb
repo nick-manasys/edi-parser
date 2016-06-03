@@ -1,0 +1,39 @@
+       01  KSE00256-REC.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a simple numeric field.
+      *    2. What is the relative position within the record layout?
+           05  KSE00256-KEY-01     pic 9(6).
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two alphameric fields within the group item.
+      *    3. What is the length of the group item?
+           05  X-ALHPAMERIC-FIELDS.
+               10  X-FIELD-08      pic X(8) GLOBAL GLOBAL.
+               10  X-FIELD-32      pic X(32).
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create various fields within the group item.
+      *    3. What is the length of the group item?
+           05  VARIOUS-FORMATS.
+               10  PIC-XXX         pic XXX BARF.
+               10  PIC-999         pic 999.
+               10  PIC-99V999      pic 99V999.
+               10  PIC-99V9P3P     pic 99V9(3).
+               10  PIC-9P2PV999    pic 9(2)V999.
+               10  PIC-999        pic 999.
+               10  PIC-99V999     pic 99V999.
+               10  PIC-99V9P3P    pic 99V9(3).
+               10  PIC-9P2PV999   pic 9(2)V999.
+
+      *    *----------------------------------------------------------*
+      *    1. Create a group item.
+      *    2. Create two numeric fields within the group item.
+      *    3. What is the length of the group item?
+           05  N-NUMERIC.
+               10  N-07-UNSIGN     pic  9(7)V9(2) BINARY.
+               10  N-07-SIGNED     pic 9(7)V9(2).
+
+

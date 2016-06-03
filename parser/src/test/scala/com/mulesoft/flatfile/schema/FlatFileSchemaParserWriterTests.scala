@@ -66,24 +66,24 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     val data = input.get("Data").asInstanceOf[ValueMap]
     val seg1 = data.get("FCH").asInstanceOf[ValueMap]
     seg1.size should be (5)
-    seg1 get("FCH01") should be ("MISSION")
-    val date = seg1.get("FCH02").asInstanceOf[LocalDate]
+    seg1 get("CommCode") should be ("MISSION")
+    val date = seg1.get("CreatDate").asInstanceOf[LocalDate]
     date.getYear should be (2013)
     date.getMonthValue should be (8)
     date.getDayOfMonth should be (2)
-    val time = seg1.get("FCH03").asInstanceOf[LocalTime]
+    val time = seg1.get("CreatTime").asInstanceOf[LocalTime]
     time.getHour should be (8)
     time.getMinute should be (0)
-    seg1 get("FCH04") should be ("MISSIONAUSTRALIA")
-    seg1 get("FCH05") should be ("2009110401")
+    seg1 get("ClientName") should be ("MISSIONAUSTRALIA")
+    seg1 get("FileId") should be ("2009110401")
     val seg2 = data.get("FCF").asInstanceOf[ValueMap]
     seg2.size should be (6)
-    seg2 get("FCF01") should be (Integer.valueOf(1))
-    seg2 get("FCF02") should be (Integer.valueOf(1))
-    seg2 get("FCF03") should be (Integer.valueOf(10000))
-    seg2 get("FCF04") should be ("MISSION")
-    seg2 get("FCF05") should be ("MISSIONAUSTRALIA")
-    seg2 get("FCF06") should be ("2009110401")
+    seg2 get("FileBatchCount") should be (Integer.valueOf(1))
+    seg2 get("FileTransCount") should be (Integer.valueOf(1))
+    seg2 get("FileTransAmount") should be (Integer.valueOf(10000))
+    seg2 get("CommCode") should be ("MISSION")
+    seg2 get("ClientName") should be ("MISSIONAUSTRALIA")
+    seg2 get("FileId") should be ("2009110401")
   }
 
   val fixedSchemaText = """form: FIXEDWIDTH
@@ -168,8 +168,7 @@ values:
   
   val altStructure2 = altSchema2.structures("CompanyContacts")
 
-  // TODO: fix this test
-/*  it should "roundtrip document with flatfile schema using inlining" in {
+  it should "roundtrip document with flatfile schema using inlining" in {
     val in = new ByteArrayInputStream(altMessage.getBytes())
     val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, altStructure2)
     val result = parser.parse
@@ -187,7 +186,28 @@ values:
 //    println(swriter.toString())
 //    println("returned text:\n" + text + "\n")
     text should be (altMessage)
-  }*/
+  }
+
+  val altSchema3 = new YamlReader().loadYaml(new InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/luis-working.ffd"), "UTF-8"), Array())
+  
+  val altStructure3 = altSchema3.structures("Check")
+  
+  it should "roundtrip documentation sample flatfile document" in {
+    val doc = readDoc("edi/luis-data.txt")
+    val in = new ByteArrayInputStream(doc.getBytes())
+    val parser = new FlatFileStructureParser(in, EdiConstants.ASCII_CHARSET, altStructure3)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+    val out = new ByteArrayOutputStream
+    val writer = new FlatFileStructureWriter(out, altStructure3, FlatFileWriterConfig(true, ASCII_CHARSET))
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray)
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+    text should be (doc)
+  }
   
   it should "roundtrip single-segment flatfile document" in {
     val in = new ByteArrayInputStream(fixedDataText.getBytes())
@@ -233,10 +253,10 @@ values:
     val parser = new FlatFileUnorderedParser(in, EdiConstants.ISO88591_CHARSET, copybookSchema1)
     val result = parser.parse
     result.isSuccess should be (true)
-    val input = result.get
-    val swriter = new StringWriter
-    YamlSupport.writeMap(input, swriter)
-    println(swriter.toString)
+//    val input = result.get
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+//    println(swriter.toString)
   }
 
   val copybookSchema2 = new YamlReader().loadYaml(new InputStreamReader(getClass.
@@ -250,9 +270,9 @@ values:
     val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, copybookStructure2)
     val result = parser.parse
     result.isSuccess should be (true)
-    val input = result.get
-    val swriter = new StringWriter
-    YamlSupport.writeMap(input, swriter)
-    println(swriter.toString)
+//    val input = result.get
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(input, swriter)
+//    println(swriter.toString)
   }
 }

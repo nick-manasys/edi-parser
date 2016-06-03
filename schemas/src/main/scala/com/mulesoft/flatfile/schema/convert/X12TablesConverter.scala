@@ -104,7 +104,8 @@ object X12TablesConverter {
           val comps = list.foldLeft(List[SegmentComponent]())((acc, vals) => vals match {
             case pos :: elem :: req :: Nil =>
               val position = pos.toInt
-              ElementComponent(elements(elem), None, X12.keyName(key, "", position), position, convertUsage(req), 1) :: acc
+              val elemKey = X12.keyName(key, "", "", position)
+              ElementComponent(elements(elem), None, elemKey, position, convertUsage(req), 1) :: acc
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse
           Composite(key, compNames(key), comps, Nil, 0) :: acc
@@ -124,9 +125,9 @@ object X12TablesConverter {
               val count = reps.toInt
               val usage = convertUsage(req)
               val position = pos.toInt
-              val ckey = X12.keyName(key, "", position)
-              if (elements.contains(ident)) ElementComponent(elements(ident), None, ckey, position, usage, count) :: acc
-              else CompositeComponent(composites(ident), None, ckey, position, usage, count) :: acc
+              val compKey = X12.keyName(key, "", "", position)
+              if (elements.contains(ident)) ElementComponent(elements(ident), None, compKey, position, usage, count) :: acc
+              else CompositeComponent(composites(ident), None, compKey, position, usage, count) :: acc
             }
             case _ => throw new IllegalStateException("wrong number of items in list")
           }).reverse

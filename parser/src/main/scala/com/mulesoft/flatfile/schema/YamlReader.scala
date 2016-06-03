@@ -82,12 +82,12 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     def convertComponent(values: ValueMap, dfltpos: Int) = {
       val name = if (values.containsKey(nameKey)) Some(getRequiredString(nameKey, values)) else None
       val position = if (values.containsKey(positionKey)) getRequiredInt(positionKey, values) else dfltpos
-      val key = ediForm.keyName(parentId, name.getOrElse(""), position)
       val use = getUsage(values)
       val count = convertCount(values)
 
-      def elementComp(element: Element) = {
-        if (values.containsKey(tagValueKey)) {
+      def elementComp(id: String, element: Element) = {
+       val key = ediForm.keyName(parentId, id, name.getOrElse(""), position)
+       if (values.containsKey(tagValueKey)) {
           ElementComponent(element, name, key, position, use, count, true, getStringOption(tagValueKey, values))
         } else {
           ElementComponent(element, name, key, position, use, count, false, getStringOption(valueKey, values))
@@ -97,20 +97,23 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       if (values.containsKey(idRefKey)) {
         val id = getRequiredString(idRefKey, values)
         if (identElements.contains(id)) {
-          elementComp(identElements(id))
+          elementComp(id, identElements(id))
         } else if (composites.contains(id)) {
           val composite = composites(id)
+          val key = ediForm.keyName(parentId, id, name.getOrElse(""), position)
           if (count > 1) CompositeComponent(composite, name, key, position, use, count)
           else CompositeComponent(composite.rewrite(key, ediForm), name, key, position, use, count)
         } else throw new IllegalArgumentException(s"No element or composite with id '$id'")
       } else if (values.containsKey(valuesKey)) {
         val component = convertComposite("", parentId, values, composites)
+        val id = getAs(idKey, "", values)
+        val key = ediForm.keyName(parentId, id, name.getOrElse(""), position)
         CompositeComponent(component, name, key, position, use, count)
       } else {
         val code = getRequiredString(typeKey, values)
         val typ = ediForm.readFormat(code, values)
         val element = Element("", name.getOrElse(""), typ)
-        elementComp(element)
+        elementComp(getAs(idKey, "", values), element)
       }
     }
     @tailrec
@@ -296,6 +299,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     val list = getAs[MapList](valuesKey, segmap)
     val comps = buildComps
     val name = getAs(nameKey, "", segmap)
+    val useId =
+      if (ident.nonEmpty) ident
+      else if (name.nonEmpty) name
+      else ""
     Segment(ident, name, comps, getRules(segmap, comps))
   }
 

@@ -317,7 +317,7 @@ object EdifactTablesConverter {
             val position = if (genNumber) number else fields(0).toInt
             val id = fields(2)
             val usage = convertUsage(fields(4))
-            val key = EdiFact.keyName(heads(1), fields(3), position)
+            val key = EdiFact.keyName(heads(1), id, fields(3), position)
             val count = if (fields.length == 6 && fields(5).length > 0) fields(5).toInt else 1
             val comp =
               if (elements.contains(id)) ElementComponent(elements(id), Some(fields(3)), key, position, usage, count)

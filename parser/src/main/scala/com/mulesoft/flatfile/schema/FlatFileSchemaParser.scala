@@ -42,7 +42,8 @@ extends SchemaParser(new FlatFileLexer(in, charSet, false), StorageContext.worki
   
   override def segmentIdent = {
     if (currentSegment == null) throw new IllegalStateException("Segment not defined")
-    else currentSegment.ident
+    else if (currentSegment.ident.nonEmpty) currentSegment.ident
+    else currentSegment.name
   }
   
   override def findSegment = {

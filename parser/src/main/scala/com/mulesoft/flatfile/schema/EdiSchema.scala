@@ -176,7 +176,7 @@ object EdiSchema {
     def rewrite(prefix: String, form: EdiForm): Composite = {
       if (form.inlineComposites) {
         val comps = components.map { scomp =>
-          val rekey = form.keyName(prefix, "", scomp.position)
+          val rekey = form.keyName(prefix, "", "", scomp.position)
           scomp match {
             case ec: ElementComponent =>
               ElementComponent(ec.element, Some(ec.name), rekey, ec.position, ec.usage, ec.count, ec.tagPart, ec.value)
@@ -230,9 +230,13 @@ object EdiSchema {
   sealed abstract class StructureComponent(val key: String, val position: SegmentPosition, val usage: Usage,
     val count: Int)
 
+  private def segmentIdent(seg: Segment) =
+    if (seg.ident.nonEmpty) seg.ident
+    else seg.name
+    
   private def compIdent(comp: StructureComponent) = comp match {
-    case r: ReferenceComponent   => r.segment.ident
-    case g: GroupBase            => g.leadSegmentRef.segment.ident
+    case r: ReferenceComponent   => segmentIdent(r.segment)
+    case g: GroupBase            => segmentIdent(g.leadSegmentRef.segment)
     case w: LoopWrapperComponent => w.startCode
   }
 
@@ -718,8 +722,8 @@ object EdiSchema {
     val loopWrapperStart: String
     val loopWrapperEnd: String
 
-    /** Construct data value key name from parent identifier, name, position value. */
-    def keyName(parentId: String, name: String, position: Int): String
+    /** Construct data value key name from parent identifier, id, name, position value. */
+    def keyName(parentId: String, id: String, name: String, position: Int): String
 
     /** Create key for version in data maps. */
     def versionKey(version: String): String
@@ -777,7 +781,7 @@ object EdiSchema {
     override def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     override val loopWrapperStart = "UGH"
     override val loopWrapperEnd = "UGT"
-    override def keyName(parentId: String, name: String, position: Int) = {
+    override def keyName(parentId: String, id: String, name: String, position: Int) = {
       val scaled = if (position % 10 == 0) position / 10 else position
       if (position < 100) parentId + "0" + scaled.toString
       else parentId + scaled.toString
@@ -792,7 +796,7 @@ object EdiSchema {
     override def isEnvelopeSegment(ident: String) = envelopeSegs contains ident
     override val loopWrapperStart = "LS"
     override val loopWrapperEnd = "LE"
-    override def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId, position)
+    override def keyName(parentId: String, id: String, name: String, position: Int) = defaultKey(parentId, position)
     override def versionKey(version: String) = "v" + version
     override def formatBuilder = X12Constants.buildType
   }
@@ -802,7 +806,8 @@ object EdiSchema {
     override def isEnvelopeSegment(ident: String) = "MSH" == ident || "" == ident
     override val loopWrapperStart = ""
     override val loopWrapperEnd = ""
-    override def keyName(parentId: String, name: String, position: Int) = defaultKey(parentId + "-", position)
+    override def keyName(parentId: String, id: String, name: String, position: Int) =
+      defaultKey(parentId + "-", position)
     override def versionKey(version: String) = "v" + version.filterNot { _ == '.' }
     override def formatBuilder = HL7Support.buildType
   }
@@ -813,8 +818,10 @@ object EdiSchema {
     override val loopWrapperStart = ""
     override val loopWrapperEnd = ""
     override def versionKey(version: String) = version
-    override def keyName(parentId: String, name: String, position: Int) =
-      if (name.nonEmpty) name else defaultKey(parentId, position)
+    override def keyName(parentId: String, id: String, name: String, position: Int) =
+      if (id.nonEmpty) id
+      else if (name.nonEmpty) name
+      else throw new IllegalArgumentException("Fixed width schemas need id or name definition for every value")
 
     override val segmentsPositioned = false
     override val inlineComposites = false
