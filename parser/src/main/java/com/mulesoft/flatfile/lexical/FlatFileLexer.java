@@ -287,9 +287,9 @@ public class FlatFileLexer extends LexerBase
             for (int i = 0; i < length; i++) {
                 int chr = read();
                 if (chr == -1) {
-                    throw new LexicalException("Unexpected end of file in line " + segmentNumber);
+                    throw new LexicalException("Unexpected end of file in line " + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
                 } else if (!allowRaw && (chr == '\r' || chr == '\n')) {
-                    throw new LexicalException("Unexpected end of line (expected " + (length - i) + " more characters) for line " + segmentNumber);
+                    throw new LexicalException("Unexpected end of line" + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
                 }
                 tokenBuilder.append((char)chr);
             }
