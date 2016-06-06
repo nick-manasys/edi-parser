@@ -18,6 +18,7 @@ trait FlatFileYaml {
   val localeKey = "locale"
   val signedKey = "signed"
   val zonedKey = "zoned"
+  val digitsKey = "digits"
 
   val defaultFill = FillMode.LEFT
   val defaultSign = NumberSign.OPTIONAL
@@ -59,6 +60,9 @@ trait FlatFileFormat extends SchemaJavaDefs with FlatFileYaml {
   }
   protected def writeZoned(zoned: Boolean, writer: pairWriter) = {
     if (zoned) writer(zonedKey, "TRUE")
+  }
+  protected def writeDigits(digits: Int, writer: pairWriter) = {
+    writer(digitsKey, Integer.valueOf(digits))
   }
 
   def writeOptions(writer: pairWriter): Unit
@@ -122,21 +126,24 @@ trait FormatFactory extends SchemaJavaDefs with FlatFileYaml {
   protected def getZoned(map: ValueMap): Boolean = {
     map != null && map.containsKey(zonedKey) && map.get(zonedKey).asInstanceOf[jl.Boolean]
   }
+  protected def getDigits(map: ValueMap): Int = {
+    if (map != null && map.containsKey(digitsKey)) getAsInt(digitsKey, map) else 0
+  }
 
   def readFormat(width: Int, map: ValueMap): TypeFormat
 }
 
 object FixedWidthFormats {
-  val fixedFactories = Map[String, FormatFactory](BooleanFormat.code -> BooleanFormat,
-    IntegerFormat.code -> IntegerFormat, LocalDateFormat.code -> LocalDateFormat,
+  val fixedFactories = Map[String, FormatFactory](BinaryFormat.code -> BinaryFormat,
+    BooleanFormat.code -> BooleanFormat, IntegerFormat.code -> IntegerFormat, LocalDateFormat.code -> LocalDateFormat,
     LocalDateTimeFormat.code -> LocalDateTimeFormat, LocalTimeFormat.code -> LocalTimeFormat,
     DecimalFormat.code -> DecimalFormat, PackedDecimalFormat.code -> PackedDecimalFormat,
     StringFormat.code -> StringFormat)
 }
 
 object CopybookFormats {
-  val copybookFactories = Map[String, FormatFactory](BooleanFormat.code -> BooleanFormat,
-    IntegerFormat.code -> IntegerFormat, LocalDateFormat.code -> LocalDateFormat,
+  val copybookFactories = Map[String, FormatFactory](BinaryFormat.code -> BinaryFormat,
+    BooleanFormat.code -> BooleanFormat, IntegerFormat.code -> IntegerFormat, LocalDateFormat.code -> LocalDateFormat,
     LocalDateTimeFormat.code -> LocalDateTimeFormat, LocalTimeFormat.code -> LocalTimeFormat,
     DecimalFormat.code -> DecimalFormat, PackedDecimalFormat.code -> PackedDecimalFormat,
     StringFormat.code -> StringFormat)
