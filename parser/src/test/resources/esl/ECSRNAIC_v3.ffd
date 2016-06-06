@@ -1,0 +1,50 @@
+form: COPYBOOK
+segments: 
+- id: 'SR-CONTAINER-WRAPPER-RQ'
+  values: 
+  - name: 'SR-CONTAINERHEADER'
+    values: 
+    - { name: 'SR-CHANNEL-CH', type: String, length: 32 }
+    - { name: 'SR-ORGANIZATION-CH', type: String, length: 12 }
+    - { name: 'SR-COMMIT-INDICATOR-CH', type: String, length: 1 }
+    - { name: 'SR-CSR-LOGIN-ID-CH', type: String, length: 12 }
+    - { name: 'SR-SERVICE-VERSION-CH', type: String, length: 5 }
+    - { name: 'FILLER1', usage: U, type: String, length: 100 }
+  - name: 'SR-NAICSINQ-RQ'
+    values: 
+    - { name: 'SR-RQUID-RQ', type: String, length: 36 }
+    - { name: 'SR-USERINFO-F-RQ', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
+    - name: 'SR-USERINFO-RQ'
+      values: 
+      - { name: 'SR-USERID-RQ', type: String, length: 36 }
+      - { name: 'SR-USERNAME-RQ', type: String, length: 96 }
+      - { name: 'SR-USERPHONENBR-F-RQ', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
+      - { name: 'SR-USERPHONENBR-RQ', type: String, length: 32 }
+    - { name: 'SR-BUSINESSCATEGORYNAME-F-RQ', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
+    - { name: 'SR-BUSINESSCATEGORYNAME-RQ', type: String, length: 40 }
+- id: 'SR-NAICSINQ-RS'
+  values: 
+  - name: 'SR-STATUS-RS'
+    values: 
+    - { name: 'SR-STATUSCODE-RS', type: Integer, length: 10, format: { justify: LEFT, sign: 'ALWAYS_LEFT' } }
+    - { name: 'SR-SEVERITY-RS', type: String, length: 80 }
+    - { name: 'SR-STATUSDESC-RS', type: String, length: 255 }
+    - { name: 'SR-REASONCODE-RS', type: String, length: 80 }
+  - { name: 'SR-RQUID-RS', type: String, length: 36 }
+  - { name: 'SR-BUSINESSCATEGORYLIST-C-RS', type: Binary, length: 4, format: { signed: TRUE, digits: 6 } }
+  - name: 'SR-BUSINESSCATEGORYLIST-RS'
+    count: 500
+    values: 
+    - { name: 'SR-BUSINESSCATEGORYNAME-RS', type: String, length: 40 }
+  - { name: 'SR-BUSINESSCATEGORYREC-C-RS', type: Binary, length: 4, format: { signed: TRUE, digits: 6 } }
+  - name: 'SR-BUSINESSCATEGORYREC-RS'
+    count: 100
+    values: 
+    - { name: 'SR-BUSINESSCATEGORYNAME-RS', type: String, length: 40 }
+    - { name: 'SR-SICCODE-RS', type: String, length: 4 }
+    - { name: 'SR-NAICSCODE-RS', type: String, length: 6 }
+    - { name: 'SR-NAICSNAME-RS', type: String, length: 80 }
+    - { name: 'SR-NAICSRISKCODE-F-RS', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
+    - { name: 'SR-NAICSRISKCODE-RS', type: String, length: 5 }
+    - { name: 'SR-NAICSRISKSETNUM-F-RS', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
+    - { name: 'SR-NAICSRISKSETNUM-RS', type: Binary, length: 8, format: { signed: TRUE, digits: 10 } }
