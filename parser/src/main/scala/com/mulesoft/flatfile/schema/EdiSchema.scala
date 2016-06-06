@@ -728,8 +728,8 @@ object EdiSchema {
     /** Create key for version in data maps. */
     def versionKey(version: String): String
 
-    /** Format uses segment positions flag. */
-    val segmentsPositioned: Boolean
+    /** Format uses segment and component positions flag. */
+    val usePositions: Boolean
 
     /** Inline single-instance composites flag. */
     val inlineComposites: Boolean
@@ -752,7 +752,7 @@ object EdiSchema {
     def writeFormat(format: TypeFormat, writer: PairWriter): Unit
   }
   sealed abstract class DelimitedEdiBase(text: String, layout: SchemaLayout) extends EdiForm(text, layout, false) {
-    override val segmentsPositioned = true
+    override val usePositions = true
     override val inlineComposites = true
     override val multiPartTags = false
     def formatBuilder: (String, Int, Int) => TypeFormat
@@ -823,7 +823,7 @@ object EdiSchema {
       else if (name.nonEmpty) name
       else throw new IllegalArgumentException("Fixed width schemas need id or name definition for every value")
 
-    override val segmentsPositioned = false
+    override val usePositions = false
     override val inlineComposites = false
     override val multiPartTags = true
 

@@ -97,15 +97,13 @@ class CopybookImportTests extends FlatSpec with Matchers {
     cbi.problems should be (Nil)
     optseg match {
       case Some(segment) =>
-        segment.name should be ("MAILING-RECORD")
-        segment.ident should be ("MR0")
+        segment.ident should be ("MAILING-RECORD")
         val comps = segment.components
         comps.length should be (2)
-        // TODO: fix key values when resolved
         val comp1 = comps(0)
-        comp1 should be (ElementComponent(Element("", "COMPANY-NAME", StringFormat(30, FillMode.LEFT)), Some("COMPANY-NAME"), "MR01", 1, MandatoryUsage, 1))
+        comp1 should be (ElementComponent(Element("", "COMPANY-NAME", StringFormat(30, FillMode.LEFT)), None, "COMPANY-NAME", -1, MandatoryUsage, 1))
         val comp2 = comps(1)
-        comp2 should be (ElementComponent(Element("", "ADDRESS", StringFormat(15, FillMode.LEFT)), Some("ADDRESS"), "MR02", 2, MandatoryUsage, 1))
+        comp2 should be (ElementComponent(Element("", "ADDRESS", StringFormat(15, FillMode.LEFT)), None, "ADDRESS", -1, MandatoryUsage, 1))
       case None => fail
     }
   }
@@ -116,14 +114,12 @@ class CopybookImportTests extends FlatSpec with Matchers {
     cbi.problems should be (Nil)
     optseg match {
       case Some(segment) =>
-        segment.name should be ("MAILING-RECORD")
-        segment.ident should be ("MR0")
+        segment.ident should be ("MAILING-RECORD")
         val comps = segment.components
         comps.length should be (3)
         val comp1 = comps(0)
         comp1.name should be ("COMPANY-NAME")
-        // TODO: fix key values when resolved
-        comp1.key should be ("MR01")
+        comp1.key should be ("COMPANY-NAME")
       case None => fail
     }
     // TODO: redo these tests when new copybook import implemented
@@ -154,8 +150,7 @@ class CopybookImportTests extends FlatSpec with Matchers {
     cbi.problems should be (Nil)
     optseg1 match {
       case Some(segment) =>
-        segment.name should be ("MAILING-RECORD")
-        segment.ident should be ("MR0")
+        segment.ident should be ("MAILING-RECORD")
         val comps = segment.components
         comps.length should be (3)
       case None => fail
@@ -164,8 +159,7 @@ class CopybookImportTests extends FlatSpec with Matchers {
     cbi.problems should be (Nil)
     optseg2 match {
       case Some(segment) =>
-        segment.name should be ("OTHER-RECORD")
-        segment.ident should be ("OR0")
+        segment.ident should be ("OTHER-RECORD")
         val comps = segment.components
         comps.length should be (4)
       case None => fail
@@ -180,15 +174,14 @@ class CopybookImportTests extends FlatSpec with Matchers {
       case Some(segment) =>
         val comps = segment.components
         comps.length should be (4)
-        // TODO: fix key values when resolved
         val comp1 = comps(0)
-        comp1 should be (ElementComponent(Element("", "UNSIGNED-INTEGER", IntegerFormat(4, NumberSign.UNSIGNED, FillMode.LEFT, false)), Some("UNSIGNED-INTEGER"), "OR01", 1, MandatoryUsage, 1))
+        comp1 should be (ElementComponent(Element("", "UNSIGNED-INTEGER", IntegerFormat(4, NumberSign.UNSIGNED, FillMode.LEFT, false)), None, "UNSIGNED-INTEGER", -1, MandatoryUsage, 1))
         val comp2 = comps(1)
-        comp2 should be (ElementComponent(Element("", "SIGNED-INTEGER", IntegerFormat(4, NumberSign.ALWAYS_RIGHT, FillMode.LEFT, true)), Some("SIGNED-INTEGER"), "OR02", 2, MandatoryUsage, 1))
+        comp2 should be (ElementComponent(Element("", "SIGNED-INTEGER", IntegerFormat(4, NumberSign.ALWAYS_RIGHT, FillMode.LEFT, true)), None, "SIGNED-INTEGER", -1, MandatoryUsage, 1))
         val comp3 = comps(2)
-        comp3 should be (ElementComponent(Element("", "SIGNED-DECIMAL", PackedDecimalFormat(4, 0, true)), Some("SIGNED-DECIMAL"), "OR03", 3, MandatoryUsage, 1))
+        comp3 should be (ElementComponent(Element("", "SIGNED-DECIMAL", PackedDecimalFormat(4, 0, true)), None, "SIGNED-DECIMAL", -1, MandatoryUsage, 1))
         val comp4 = comps(3)
-        comp4 should be (ElementComponent(Element("", "SIGNED-IMPLICIT", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 2, FillMode.LEFT, true)), Some("SIGNED-IMPLICIT"), "OR04", 4, MandatoryUsage, 1))
+        comp4 should be (ElementComponent(Element("", "SIGNED-IMPLICIT", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 2, FillMode.LEFT, true)), None, "SIGNED-IMPLICIT", -1, MandatoryUsage, 1))
       case None => fail
     }
   }
@@ -203,8 +196,7 @@ class CopybookImportTests extends FlatSpec with Matchers {
     error.message should be ("Ignoring unsupported REDEFINE")
     optseg1 match {
       case Some(segment) =>
-        segment.name should be ("OTHER-RECORD")
-        segment.ident should be ("OR0")
+        segment.ident should be ("OTHER-RECORD")
         val comps = segment.components
         comps.length should be (5)
       case None => fail

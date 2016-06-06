@@ -6,8 +6,8 @@ segments:
   - { name: 'TYPE-OF-NAME', type: String, length: 1 }
   - name: 'CUSTOMER-NAME'
     values: 
-    - { name: 'LAST-NAME', position: 3, type: String, length: 15 }
-    - { name: 'FIRST-NAME', position: 4, type: String, length: 8 }
+    - { name: 'LAST-NAME', type: String, length: 15 }
+    - { name: 'FIRST-NAME', type: String, length: 8 }
 - id: 'IR0'
   name: 'INVENTORY-RECORD'
   values: 
@@ -25,21 +25,18 @@ segments:
   - name: 'CONTACTS'
     values: 
     - name: 'PRESIDENT'
-      position: 3
       values: 
-      - { name: 'LAST-NAME', position: 4, type: String, length: 15 }
-      - { name: 'FIRST-NAME', position: 5, type: String, length: 8 }
+      - { name: 'LAST-NAME', type: String, length: 15 }
+      - { name: 'FIRST-NAME', type: String, length: 8 }
     - name: 'VP-MARKETING'
-      position: 4
       values: 
-      - { name: 'LAST-NAME', position: 5, type: String, length: 15 }
-      - { name: 'FIRST-NAME', position: 6, type: String, length: 8 }
+      - { name: 'LAST-NAME', type: String, length: 15 }
+      - { name: 'FIRST-NAME', type: String, length: 8 }
     - name: 'ALTERNATE-CONTACT'
-      position: 5
       values: 
-      - { name: 'TITLE', position: 6, type: String, length: 10 }
-      - { name: 'LAST-NAME', position: 7, type: String, length: 15 }
-      - { name: 'FIRST-NAME', position: 8, type: String, length: 8 }
+      - { name: 'TITLE', type: String, length: 10 }
+      - { name: 'LAST-NAME', type: String, length: 15 }
+      - { name: 'FIRST-NAME', type: String, length: 8 }
   - { name: 'ADDRESS', type: String, length: 15 }
   - { name: 'CITY', type: String, length: 15 }
   - { name: 'STATE', type: String, length: 2 }

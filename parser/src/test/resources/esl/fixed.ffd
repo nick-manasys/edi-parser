@@ -5,5 +5,5 @@ values:
 - { name: 'TYPE-OF-NAME', type: String, length: 1 }
 - name: 'CUSTOMER-NAME'
   values: 
-  - { name: 'LAST-NAME', position: 3, type: String, length: 15 }
-  - { name: 'FIRST-NAME', position: 4, type: String, length: 8 }
+  - { name: 'LAST-NAME', type: String, length: 15 }
+  - { name: 'FIRST-NAME', type: String, length: 8 }

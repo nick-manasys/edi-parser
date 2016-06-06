@@ -81,7 +81,10 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       */
     def convertComponent(values: ValueMap, dfltpos: Int) = {
       val name = if (values.containsKey(nameKey)) Some(getRequiredString(nameKey, values)) else None
-      val position = if (values.containsKey(positionKey)) getRequiredInt(positionKey, values) else dfltpos
+      val position =
+        if (!ediForm.usePositions) -1
+        else if (values.containsKey(positionKey)) getRequiredInt(positionKey, values)
+        else dfltpos
       val use = getUsage(values)
       val count = convertCount(values)
 
@@ -324,7 +327,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
     }
     def convertComponent(values: ValueMap, seqPos: Int): StructureComponent = {
       def definePosition(key: String) = {
-        if (ediForm.segmentsPositioned) new DefinedPosition(table, getRequiredString(key, values))
+        if (ediForm.usePositions) new DefinedPosition(table, getRequiredString(key, values))
         else StartPosition
       }
       val use = convertUsage(getAs(usageKey, MandatoryUsage.code, values))
@@ -356,7 +359,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
         } else throw new IllegalArgumentException(s"Missing loop wrapper segment definition (${ediForm.loopWrapperStart} or ${ediForm.loopWrapperEnd})")
       } else {
         val position =
-          if (ediForm.segmentsPositioned) new DefinedPosition(table, getAs(positionKey, convertPosition(seqPos), values))
+          if (ediForm.usePositions) new DefinedPosition(table, getAs(positionKey, convertPosition(seqPos), values))
           else StartPosition
         if (values.containsKey(idRefKey)) {
           val id = getRequiredString(idRefKey, values)
