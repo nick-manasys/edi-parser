@@ -104,16 +104,20 @@ extends SchemaParser(new FlatFileLexer(in, charSet, true), StorageContext.workin
         } else storeValue(parseElement(elem))
       case compComp: CompositeComponent => {
         val composite = compComp.composite
+        val descript = storageContext.addDescriptor(composite.keys)
         if (comp.count != 1) {
           val complist = storageContext.newMapSeq
-          val descript = storageContext.addDescriptor(composite.keys)
           (1 to comp.count).foreach { _ => 
             val compmap: ju.Map[String, Object] = storageContext.newMap(descript)
             parseCompList(composite.components, first, rest, compmap)
             complist.add(compmap)
           }
           storeValue(complist)
-        } else parseCompList(composite.components, first, rest, map)
+        } else {
+          val compmap: ju.Map[String, Object] = storageContext.newMap(descript)
+          parseCompList(composite.components, first, rest, compmap)
+          storeValue(compmap)
+        }
       }
     }
   }

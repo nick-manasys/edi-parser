@@ -56,8 +56,8 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
     comp match {
       case cc: CompositeComponent =>
         val comp = cc.composite
-        if (userValue(cc.usage) && comp.components.exists { ccc => map containsKey ccc.key }) {
-          writeCompList(map, typ.nextLevel, true, comp.components)
+        if (userValue(cc.usage) && map.containsKey(cc.key)) {
+          writeCompList(getAsMap(cc.key, map), typ.nextLevel, true, comp.components)
         } else {
           if (cc.usage == MandatoryUsage) logAndThrow(s"missing required value '${cc.name}'")
           skipComponentList(cc.composite.components)
