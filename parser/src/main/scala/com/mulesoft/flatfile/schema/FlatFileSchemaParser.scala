@@ -73,7 +73,7 @@ extends SchemaParser(new FlatFileLexer(in, charSet, true), StorageContext.workin
     } else ""
 
   def logErrorInMessage(fatal: Boolean, incomp: Boolean, text: String) =
-    logger.error(s"${describeError(fatal)} message error: $text${describeComponent(incomp)} at $positionInMessage")
+    logger.error(s"${describeError(fatal)} message error: $text${describeComponent(incomp)}")
 
   /** Report a repetition error on a composite component. */
   override def repetitionError(comp: CompositeComponent) = {}
