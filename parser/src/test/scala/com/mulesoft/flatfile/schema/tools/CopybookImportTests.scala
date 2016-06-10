@@ -37,22 +37,31 @@ class CopybookImportTests extends FlatSpec with Matchers {
 
   behavior of "convertPic"
 
-  // TODO: redo these tests when new copybook import implemented
-  //  it should "handle simple patterns" in {
-  //    val cbi = new CopybookImport(dummyInput, "UTF-8")
-  //    cbi.convertPic("E0", "XXX") should be (Element("", "E0", DataType.ALPHANUMERIC, 3, 3))
-  //    cbi.convertPic("E0", "XXXXX") should be (Element("", "E0", DataType.ALPHANUMERIC, 5, 5))
-  //    cbi.convertPic("E0", "X(3)") should be (Element("", "E0", DataType.ALPHANUMERIC, 3, 3))
-  //    cbi.convertPic("E0", "X(5)") should be (Element("", "E0", DataType.ALPHANUMERIC, 5, 5))
-  //    cbi.convertPic("E0", "999") should be (Element("", "E0", DataType.NUMERIC, 3, 3))
-  //    cbi.convertPic("E0", "99999") should be (Element("", "E0", DataType.NUMERIC, 5, 5))
-  //    cbi.convertPic("E0", "9(3)") should be (Element("", "E0", DataType.NUMERIC, 3, 3))
-  //    cbi.convertPic("E0", "9(5)") should be (Element("", "E0", DataType.NUMERIC, 5, 5))
-  //    cbi.convertPic("E0", "999V9") should be (Element("", "E0", DataType.DECIMAL1, 4, 4))
-  //    cbi.convertPic("E0", "99V9999") should be (Element("", "E0", DataType.DECIMAL4, 6, 6))
-  //    cbi.convertPic("E0", "9(3)V9") should be (Element("", "E0", DataType.DECIMAL1, 4, 4))
-  //    cbi.convertPic("E0", "9(2)V9(4)") should be (Element("", "E0", DataType.DECIMAL4, 6, 6))
-  //  }
+  it should "handle simple patterns" in {
+    val cbi = new CopybookImport(dummyInput, "UTF-8")
+    val map = scm.Map[String, String]()
+    cbi.convertPic("E0", "XXX", DisplayUsage, false, map) should be (Element("", "E0", StringFormat(3, FillMode.LEFT)))
+    cbi.convertPic("E0", "XXXXX", DisplayUsage, false, map) should be (Element("", "E0", StringFormat(5, FillMode.LEFT)))
+    cbi.convertPic("E0", "X(3)", DisplayUsage, false, map) should be (Element("", "E0", StringFormat(3, FillMode.LEFT)))
+    cbi.convertPic("E0", "X(5)", DisplayUsage, false, map) should be (Element("", "E0", StringFormat(5, FillMode.LEFT)))
+    cbi.convertPic("E0", "999", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(3, NumberSign.UNSIGNED, FillMode.LEFT)))
+    cbi.convertPic("E0", "99999", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(5, NumberSign.UNSIGNED, FillMode.LEFT)))
+    cbi.convertPic("E0", "9(3)", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(3, NumberSign.UNSIGNED, FillMode.LEFT)))
+    cbi.convertPic("E0", "9(5)", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(5, NumberSign.UNSIGNED, FillMode.LEFT)))
+    cbi.convertPic("E0", "999V9", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(4, NumberSign.UNSIGNED, 1, FillMode.LEFT, false)))
+    cbi.convertPic("E0", "99V9999", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.LEFT, false)))
+    cbi.convertPic("E0", "9(3)V9", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(4, NumberSign.UNSIGNED, 1, FillMode.LEFT, false)))
+    cbi.convertPic("E0", "9(2)V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.LEFT, false)))
+    cbi.convertPic("E0", "99V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.LEFT, false)))
+    cbi.convertPic("E0", "S99V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 4, FillMode.LEFT, true)))
+  }
+  
+  it should "throw exception on error in pattern" in {
+    val cbi = new CopybookImport(dummyInput, "UTF-8")
+    val map = scm.Map[String, String]()
+    intercept[IllegalArgumentException] { cbi.convertPic("E0", "S99V9(4)P", DisplayUsage, false, map) }
+    intercept[IllegalArgumentException] { cbi.convertPic("E0", "S99VX(4)", DisplayUsage, false, map) }
+  }
 
   val baseDef = """       01  MAILING-RECORD.
            05  COMPANY-NAME            PIC X(30).
@@ -76,6 +85,13 @@ class CopybookImportTests extends FlatSpec with Matchers {
            05  SIGNED-INTEGER          PIC S9(4).
            05  SIGNED-DECIMAL          PIC S9(4) USAGE IS COMP-3.
            05  SIGNED-IMPLICIT         PIC S9(4)V99."""
+  
+  val varDef = """
+       01  VARIOUS-PICS.
+      *    05  PIC-99V9P3P         PIC 99V9(3).
+      *    05  PIC-S99V9P3P        PIC S99V9(3).
+           05  N-07-UNSIGN         PIC 9(7)V9(2).
+           05  N-07-SIGNED         PIC S9(7)V9(2)."""
   
   val reDef = """
            05  MULTIPART-ADDRESS REDEFINES ADDRESS.
@@ -101,9 +117,9 @@ class CopybookImportTests extends FlatSpec with Matchers {
         val comps = segment.components
         comps.length should be (2)
         val comp1 = comps(0)
-        comp1 should be (ElementComponent(Element("", "COMPANY-NAME", StringFormat(30, FillMode.LEFT)), None, "COMPANY-NAME", -1, MandatoryUsage, 1))
+        comp1 should be (ElementComponent(Element("", "COMPANY-NAME", StringFormat(30, FillMode.LEFT)), None, "COMPANY-NAME", -1, OptionalUsage, 1))
         val comp2 = comps(1)
-        comp2 should be (ElementComponent(Element("", "ADDRESS", StringFormat(15, FillMode.LEFT)), None, "ADDRESS", -1, MandatoryUsage, 1))
+        comp2 should be (ElementComponent(Element("", "ADDRESS", StringFormat(15, FillMode.LEFT)), None, "ADDRESS", -1, OptionalUsage, 1))
       case None => fail
     }
   }
@@ -166,8 +182,8 @@ class CopybookImportTests extends FlatSpec with Matchers {
     }
   }
 
-  it should "handle bot signed and unsigned numeric PICs" in {
-    val cbi = new CopybookImport(new ByteArrayInputStream((secondDef).getBytes("UTF-8")), "UTF-8")
+  it should "handle both signed and unsigned numeric PICs" in {
+    val cbi = new CopybookImport(new ByteArrayInputStream(secondDef.getBytes("UTF-8")), "UTF-8")
     val optseg = cbi.buildSegment
     cbi.problems should be (Nil)
     optseg match {
@@ -175,13 +191,13 @@ class CopybookImportTests extends FlatSpec with Matchers {
         val comps = segment.components
         comps.length should be (4)
         val comp1 = comps(0)
-        comp1 should be (ElementComponent(Element("", "UNSIGNED-INTEGER", IntegerFormat(4, NumberSign.UNSIGNED, FillMode.LEFT, false)), None, "UNSIGNED-INTEGER", -1, MandatoryUsage, 1))
+        comp1 should be (ElementComponent(Element("", "UNSIGNED-INTEGER", IntegerFormat(4, NumberSign.UNSIGNED, FillMode.LEFT, false)), None, "UNSIGNED-INTEGER", -1, OptionalUsage, 1))
         val comp2 = comps(1)
-        comp2 should be (ElementComponent(Element("", "SIGNED-INTEGER", IntegerFormat(4, NumberSign.ALWAYS_RIGHT, FillMode.LEFT, true)), None, "SIGNED-INTEGER", -1, MandatoryUsage, 1))
+        comp2 should be (ElementComponent(Element("", "SIGNED-INTEGER", IntegerFormat(4, NumberSign.ALWAYS_RIGHT, FillMode.LEFT, true)), None, "SIGNED-INTEGER", -1, OptionalUsage, 1))
         val comp3 = comps(2)
-        comp3 should be (ElementComponent(Element("", "SIGNED-DECIMAL", PackedDecimalFormat(4, 0, true)), None, "SIGNED-DECIMAL", -1, MandatoryUsage, 1))
+        comp3 should be (ElementComponent(Element("", "SIGNED-DECIMAL", PackedDecimalFormat(4, 0, true)), None, "SIGNED-DECIMAL", -1, OptionalUsage, 1))
         val comp4 = comps(3)
-        comp4 should be (ElementComponent(Element("", "SIGNED-IMPLICIT", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 2, FillMode.LEFT, true)), None, "SIGNED-IMPLICIT", -1, MandatoryUsage, 1))
+        comp4 should be (ElementComponent(Element("", "SIGNED-IMPLICIT", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 2, FillMode.LEFT, true)), None, "SIGNED-IMPLICIT", -1, OptionalUsage, 1))
       case None => fail
     }
   }
