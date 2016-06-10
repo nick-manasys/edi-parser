@@ -103,11 +103,7 @@ class FlatFileSegmentWriter(out: OutputStream, segment: Segment, config: FlatFil
   /** Write the output message. */
   def write(map: ValueMap) = Try(try {
     val data = getRequiredMapList(dataKey, map)
-    foreachMapInList(data, { map =>
-      val swriter = new java.io.StringWriter
-      tools.YamlSupport.writeMap(map, swriter)
-      println(swriter.toString)
-      writeSegment(map, segment) })
+    foreachMapInList(data, { map => writeSegment(map, segment) })
   } catch {
     case e: WriteException => throw e
     case e: Throwable =>
