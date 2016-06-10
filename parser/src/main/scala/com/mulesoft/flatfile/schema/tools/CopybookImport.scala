@@ -289,7 +289,7 @@ class CopybookImport(in: InputStream, enc: String) {
       else if (rem.head == '(') {
         val (reps, rest) = rem.tail.span { _ != ')' }
         if (rest.isEmpty) dataError("Invalid expression in PIC clause")
-        convrunr(rest.tail, count + reps.toString.toInt - 1)
+        convrunr(rest.tail, count + reps.mkString.toInt - 1)
       } else (count, rem)
 
     convrunr(pattern, count)
@@ -383,10 +383,10 @@ class CopybookImport(in: InputStream, enc: String) {
     var fillCount = 0
 
     /** Build composite from nested field definitions at level. */
-    def buildComposite(name: String, count: Int, level: String): CompositeComponent = {
+    def buildCompositeComp(name: String, count: Int, level: String): CompositeComponent = {
       val nested = buildNested(level)
       val comp = Composite("", name, nested, Nil, 0)
-      CompositeComponent(comp, None, name, -1, MandatoryUsage, count)
+      CompositeComponent(comp, None, name, -1, OptionalUsage, count)
     }
 
     /** Build list of components from nested field definitions at level. */
@@ -414,7 +414,7 @@ class CopybookImport(in: InputStream, enc: String) {
               problems ++= problist
               if (problist.forall { !_.error }) {
                 if (definition.size == 2) {
-                  val nested = buildComposite(definition(1), count(map), definition(0))
+                  val nested = buildCompositeComp(definition(1), count(map), definition(0))
                   buildr(nested :: acc)
                 } else if (map.isDefinedAt(DataDescriptionParser.redefinesKey)) {
                   problems += CopybookImportError(false, input.lineNumber, "Ignoring unsupported REDEFINE", "")
@@ -423,7 +423,7 @@ class CopybookImport(in: InputStream, enc: String) {
                 } else {
                   val (name, usage) =
                     if (map.contains(DataDescriptionParser.nameKey)) {
-                      (map(DataDescriptionParser.nameKey), MandatoryUsage)
+                      (map(DataDescriptionParser.nameKey), OptionalUsage)
                     } else {
                       fillCount += 1
                       ("FILLER" + fillCount, UnusedUsage)
@@ -431,24 +431,24 @@ class CopybookImport(in: InputStream, enc: String) {
                   map.get(DataDescriptionParser.pictureKey) match {
                     case Some(picture) =>
 
-                      def buildComponent(form: UsageFormat) = {
+                      def buildElementComp(form: UsageFormat) = {
                         val element = convertPic(name, picture, form, false, map)
-                        ElementComponent(element, None, name, -1, usage, 1, false)
+                        ElementComponent(element, None, name, -1, usage, count(map), false)
                       }
 
                       map.get(DataDescriptionParser.usageKey) match {
                         case Some("DISPLAY") | None =>
-                          buildr(buildComponent(DisplayUsage) :: acc)
+                          buildr(buildElementComp(DisplayUsage) :: acc)
                         case Some("COMP-3") | Some("COMPUTATIONAL-3") | Some("PACKED-DECIMAL") =>
-                          buildr(buildComponent(PackedDecimalUsage) :: acc)
+                          buildr(buildElementComp(PackedDecimalUsage) :: acc)
                         case Some("COMP") | Some("COMPUTATIONAL") | Some("BINARY") =>
-                          buildr(buildComponent(BinaryUsage) :: acc)
+                          buildr(buildElementComp(BinaryUsage) :: acc)
                         case Some(other) =>
                           problems += new CopybookImportError(true, input.lineNumber, s"Unsupported USAGE $other", definitionText(definition))
                           buildr(acc)
                       }
                     case _ =>
-                      val nested = buildComposite(definition(1), count(map), definition(0))
+                      val nested = buildCompositeComp(definition(1), count(map), definition(0))
                       buildr(nested :: acc)
                   }
                 }
