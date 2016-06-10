@@ -40,6 +40,7 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
     def writeSimple(value: Any, ec: ElementComponent) = {
       val element = ec.element
       val format = element.typeFormat
+      println(s"writing value $value for component ${ec.key}")
       if (value != null) format.write(value, writer)
       else if (ec.value.isDefined) format.write(ec.value.get, writer)
       else writer.writeBlank(format.maxLength)
