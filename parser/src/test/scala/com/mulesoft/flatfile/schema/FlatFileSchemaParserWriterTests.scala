@@ -16,6 +16,7 @@ import javax.xml.datatype.XMLGregorianCalendar
 
 import org.threeten.bp.{ LocalDate, LocalTime }
 import scala.collection.mutable.ListBuffer
+import com.mulesoft.flatfile.lexical.WriteException
 
 class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
   
@@ -275,6 +276,7 @@ values:
     getClassLoader.getResourceAsStream("esl/ECSRNAIC_v3.ffd"), "UTF-8"), Array())
   
   val copybookSegment3 = copybookSchema3.segments("SR-CONTAINER-WRAPPER-RQ")
+  val copybookSegment3Alt = copybookSchema3.segments("SR-CONTAINER-WRAPPER-ALT")
 
   def streamBytes(is: jio.InputStream): Array[Byte] = {
     val buf = ListBuffer[Byte]()
@@ -298,11 +300,61 @@ values:
     val writer = new FlatFileSegmentWriter(out, copybookSegment3,
       FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
     writer.write(input).get //isSuccess should be (true)
-    val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
-    println(text)
-    val swriter = new jio.StringWriter
-    YamlSupport.writeMap(input, swriter)
-    println(swriter.toString)
+//    val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
+//    println(text)
+//    val swriter = new jio.StringWriter
+//    YamlSupport.writeMap(input, swriter)
+//    println(swriter.toString)
     out.toByteArray should be (bytes)
+  }
+  
+  it should "write copybook document with partial data" in {
+    val input = new ValueMapImpl
+    val seglist = new MapListImpl
+    input.put(dataKey, seglist)
+    val segdata = new ValueMapImpl
+    seglist.add(segdata)
+    val headdata = new ValueMapImpl
+    segdata.put("SR-CONTAINERHEADER", headdata)
+    val rqdata = new ValueMapImpl
+    segdata.put("SR-NAICSINQ-RQ", rqdata)
+    val out = new jio.ByteArrayOutputStream
+    val writer = new FlatFileSegmentWriter(out, copybookSegment3,
+      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
+    writer.write(input).get //isSuccess should be (true)
+    val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
+    text.length should be (408)
+  }
+  
+  it should "fail when missing required data" in {
+    val input = new ValueMapImpl
+    val seglist = new MapListImpl
+    input.put(dataKey, seglist)
+    val segdata = new ValueMapImpl
+    seglist.add(segdata)
+    val rqdata = new ValueMapImpl
+    segdata.put("SR-NAICSINQ-RQ", rqdata)
+    val userdata = new ValueMapImpl
+    rqdata.put("SR-USERINFO-RQ", userdata)
+    val out1 = new jio.ByteArrayOutputStream
+    val writer1 = new FlatFileSegmentWriter(out1, copybookSegment3Alt,
+      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
+    val thrown1 = intercept[WriteException] { writer1.write(input).get }
+    thrown1.getMessage.contains("SR-CONTAINERHEADER") should be (true)
+    val headdata = new ValueMapImpl
+    segdata.put("SR-CONTAINERHEADER", headdata)
+    val out2 = new jio.ByteArrayOutputStream
+    val writer2 = new FlatFileSegmentWriter(out2, copybookSegment3Alt,
+      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
+    val thrown2 = intercept[WriteException] { writer2.write(input).get }
+    thrown2.getMessage.contains("SR-CHANNEL-CH") should be (true)
+    headdata.put("SR-CHANNEL-CH", "ABC")
+    val out3 = new jio.ByteArrayOutputStream
+    val writer3 = new FlatFileSegmentWriter(out3, copybookSegment3Alt,
+      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
+    writer3.write(input).get
+    val text = new String(out3.toByteArray, EdiConstants.ISO88591_CHARSET)
+    text.length should be (410)
+//    println(s"text: '$text'")
   }
 }

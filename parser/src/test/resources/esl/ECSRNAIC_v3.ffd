@@ -22,6 +22,30 @@ segments:
       - { name: 'SR-USERPHONENBR-RQ', type: String, length: 32 }
     - { name: 'SR-BUSINESSCATEGORYNAME-F-RQ', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
     - { name: 'SR-BUSINESSCATEGORYNAME-RQ', type: String, length: 40 }
+- id: 'SR-CONTAINER-WRAPPER-ALT'
+  values: 
+  - name: 'SR-CONTAINERHEADER'
+    usage: M
+    values: 
+    - { name: 'SR-CHANNEL-CH', type: String, length: 32, usage: M }
+    - { name: 'SR-ORGANIZATION-CH', type: String, length: 12 }
+    - { name: 'SR-COMMIT-INDICATOR-CH', type: String, length: 1 }
+    - { name: 'SR-CSR-LOGIN-ID-CH', type: String, length: 12 }
+    - { name: 'SR-SERVICE-VERSION-CH', type: String, length: 5 }
+    - { name: 'FILLER1', usage: U, type: String, length: 100 }
+  - name: 'SR-NAICSINQ-RQ'
+    usage: M
+    values: 
+    - { name: 'SR-RQUID-RQ', type: String, length: 36 }
+    - { name: 'SR-USERINFO-F-RQ', type: Packed, length: 4, format: { signed: TRUE } }
+    - name: 'SR-USERINFO-RQ'
+      values: 
+      - { name: 'SR-USERID-RQ', type: String, length: 36 }
+      - { name: 'SR-USERNAME-RQ', type: String, length: 96 }
+      - { name: 'SR-USERPHONENBR-F-RQ', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
+      - { name: 'SR-USERPHONENBR-RQ', type: String, length: 32 }
+    - { name: 'SR-BUSINESSCATEGORYNAME-F-RQ', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
+    - { name: 'SR-BUSINESSCATEGORYNAME-RQ', type: String, length: 40 }
 - id: 'SR-NAICSINQ-RS'
   values: 
   - name: 'SR-STATUS-RS'

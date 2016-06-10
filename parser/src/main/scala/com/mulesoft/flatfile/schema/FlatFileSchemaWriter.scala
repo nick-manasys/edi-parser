@@ -46,10 +46,12 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
     }
 
     def skipComponentList(comps: List[SegmentComponent]): Unit = comps match {
-      case h :: t => h match {
-        case cc: CompositeComponent => skipComponentList(cc.composite.components)
-        case ec: ElementComponent => writer.writeBlank(ec.element.typeFormat.maxLength)
-      }
+      case h :: t =>
+        h match {
+          case cc: CompositeComponent => skipComponentList(cc.composite.components)
+          case ec: ElementComponent => writer.writeBlank(ec.element.typeFormat.maxLength)
+        }
+        skipComponentList(t)
       case _ =>
     }
 
@@ -59,10 +61,11 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
         if (userValue(cc.usage) && map.containsKey(cc.key)) {
           writeCompList(getAsMap(cc.key, map), typ.nextLevel, true, comp.components)
         } else {
-          if (cc.usage == MandatoryUsage) logAndThrow(s"missing required value '${cc.key}' for composite $cc")
+          if (cc.usage == MandatoryUsage) logAndThrow(s"missing required map value '${cc.key}'")
           skipComponentList(cc.composite.components)
         }
       case ec: ElementComponent =>
+        if (ec.usage == MandatoryUsage && !map.containsKey(ec.key)) logAndThrow(s"missing required value '${ec.key}'")
         val value = if (userValue(ec.usage)) map.get(ec.key) else null
         writeSimple(value, ec)
     }
