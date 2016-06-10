@@ -65,7 +65,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
           case MandatoryUsage | UnusedUsage | IgnoredUsage => usage
           case _ => throw new IllegalArgumentException(s"Invalid usage value ${usage.code} for fixed width format")
         }
-      } else OptionalUsage
+      } else MandatoryUsage
     } else convertUsage(getRequiredString(usageKey, values))
   }
 
