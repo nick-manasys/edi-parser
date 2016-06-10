@@ -226,7 +226,7 @@ object YamlWriter extends YamlDefs {
         val named = ecomp.name != elem.name || elem.ident.isEmpty
         if (named) formatter.keyValueOptionalQuote(nameKey, ecomp.name)
         if (ecomp.position != dfltpos) writePositionUsed(ecomp.position)
-        if (!schema.ediVersion.ediForm.fixed || ecomp.usage != MandatoryUsage) formatter.keyValuePair(usageKey, ecomp.usage.code toString)
+        if (!schema.ediVersion.ediForm.fixed || ecomp.usage != OptionalUsage) formatter.keyValuePair(usageKey, ecomp.usage.code toString)
         formatter.keyCountOptionalPair(countKey, ecomp.count)
         if (elem.ident.isEmpty) writeElementDetails(elem)
         formatter.closeGrouping
@@ -237,7 +237,7 @@ object YamlWriter extends YamlDefs {
         val named = ccomp.name != comp.name || comp.ident.isEmpty
         if (named) formatter.keyValueOptionalQuote(nameKey, ccomp.name)
         if (ccomp.position != dfltpos) writePositionUsed(ccomp.position)
-        if (!schema.ediVersion.ediForm.fixed || ccomp.usage != MandatoryUsage) formatter.keyValuePair(usageKey, ccomp.usage.code toString)
+        if (!schema.ediVersion.ediForm.fixed || ccomp.usage != OptionalUsage) formatter.keyValuePair(usageKey, ccomp.usage.code toString)
         formatter.keyCountOptionalPair(countKey, ccomp.count)
         if (comp.ident.isEmpty) writeCompositeDetails(comp)
         formatter.closeGrouping
