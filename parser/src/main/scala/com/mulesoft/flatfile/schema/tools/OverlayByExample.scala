@@ -258,7 +258,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     // merge structure data from all documents into a single map structure (excluding 997s, since those are fixed)
     val merged = new ValueMapImpl
     examples.foreach (path => {
-      println(s"merging $path")
+//      println(s"merging $path")
       val is = yaml.findSchema(path, Array())
       val parser = new X12InterchangeParser(is, ASCII_CHARSET, new DefaultX12EnvelopeHandler(config, schema))
       parser.parse match {
@@ -267,9 +267,9 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
           val transacts = vermap.get(schema.ediVersion.versionKey).asInstanceOf[ValueMap]
           transacts.remove("997")
           stripMeta(transacts)
-          println(transacts)
+//          println(transacts)
           mergeMaps(transacts, merged)
-          println(merged)
+//          println(merged)
         }
         case Failure(e) => throw new IllegalArgumentException(s"error parsing example $path: '${e.getMessage}'")
       }
@@ -282,7 +282,7 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
     val segmaps = merged.asScala.toList.foldLeft(Map[Segment, Set[String]]()) {
       case (acc, (key, map: ValueMap)) => {
         val transact = schema.structures(key)
-        println(map)
+//        println(map)
         val headmap = map.get(structureHeading).asInstanceOf[ValueMap]
         val headmods = structureMods(sectionItems(transact.heading), headmap)
         val detailmap = map.get(structureDetail).asInstanceOf[ValueMap]
@@ -296,9 +296,9 @@ object OverlayByExample extends WritesYaml with YamlDefs with SchemaJavaDefs {
             collectSegments(sectionItems(transact.heading), headmap, acc)))
       }
     }
-    segmaps.foreach{ case (segment, idset) => println(s"segment ${segment.ident} => " + idset) }
+//    segmaps.foreach{ case (segment, idset) => println(s"segment ${segment.ident} => " + idset) }
     val segs = segmentMods(segmaps).sortBy { mod => mod.ident }
-    segs.foreach { mod => println(mod) }
+//    segs.foreach { mod => println(mod) }
     writeOverlay(schema, args(0), buffer.toList, segs, writer)
     writer.close
   }

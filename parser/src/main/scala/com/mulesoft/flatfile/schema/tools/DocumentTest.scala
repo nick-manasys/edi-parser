@@ -368,9 +368,9 @@ class DocumentTestHL7(es: EdiSchema, structId: String, config: HL7ParserConfig) 
     * for date/times and line endings following segment terminators.
     */
   override def printDoc(map: ValueMap) = {
-    val swriter = new StringWriter
-    YamlSupport.writeMap(map, swriter)
-    println(swriter.toString())
+//    val swriter = new StringWriter
+//    YamlSupport.writeMap(map, swriter)
+//    println(swriter.toString())
     val out = new ByteArrayOutputStream
     val writer = HL7SchemaWriter(out, structSchema, new DefaultHL7NumberProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
     writer.write(map).get //isSuccess should be (true)

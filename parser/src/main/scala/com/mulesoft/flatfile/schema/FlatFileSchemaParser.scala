@@ -186,10 +186,6 @@ extends FlatFileParserBase(in, cs, Some(struct)) {
     map put (structureName, struct.name)
     map put (dataKey, parseStructure(struct, true, new ValueMapImpl))
     map
-  } catch {
-    case t: Throwable =>
-      t.printStackTrace
-      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
@@ -206,10 +202,6 @@ class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment) exte
     map put (dataKey, data)
     while (lexer.currentType != END) data.add(parseSegment(segment, StartPosition))
     map
-  } catch {
-    case t: Throwable =>
-      t.printStackTrace
-      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
@@ -237,10 +229,6 @@ extends FlatFileParserBase(in, cs, None) {
       }
     }
     map
-  } catch {
-    case t: Throwable =>
-      t.printStackTrace
-      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })

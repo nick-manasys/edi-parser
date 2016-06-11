@@ -79,19 +79,22 @@ abstract class SchemaWriter(val baseWriter: WriterBase, val enforceRequireds: Bo
   def startSegment(segment: Segment): Unit
 
   /** Write a list of components (which may be the segment itself, a repeated set of values, or a composite). */
-  def writeCompList(map: ValueMap, typ: ItemType, skip: Boolean, comps: List[SegmentComponent]): Unit = comps match {
-    case h :: t => {
-      try {
-        writeValue(map, typ, skip, h)
-      } catch {
-        case e: WriteException => throw e
-        case e: Exception =>
-          e.printStackTrace
-          throw new WriteException(s"${e.getMessage} on component ${h.key}")
+  @tailrec
+  final def writeCompList(map: ValueMap, typ: ItemType, skip: Boolean, comps: List[SegmentComponent]): Unit = {
+    comps match {
+      case h :: t => {
+        try {
+          writeValue(map, typ, skip, h)
+        } catch {
+          case e: WriteException => throw e
+          case e: Exception =>
+            e.printStackTrace
+            throw new WriteException(s"${e.getMessage} on component ${h.key}")
+        }
+        writeCompList(map, typ, false, t)
       }
-      writeCompList(map, typ, false, t)
+      case _ =>
     }
-    case _ =>
   }
 
   /** Write a segment from a map of values. */

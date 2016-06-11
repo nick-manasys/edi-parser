@@ -233,8 +233,8 @@ class HL7SchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaD
     val writer = HL7SchemaWriter(out, fullSchema, docProvider, HL7WriterConfig(false, -1, ASCII_CHARSET, "|^~\\&"))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
-    println("original text:\n" + msg + "\n")
-    println("returned text:\n" + text + "\n")
+//    println("original text:\n" + msg + "\n")
+//    println("returned text:\n" + text + "\n")
     split(text, "ADT^A01^ADT_A01|", "|2.5.1") should be (split(msg, "ADT^A01^ADT_A01|", "|2.5.1"))
   }
 }

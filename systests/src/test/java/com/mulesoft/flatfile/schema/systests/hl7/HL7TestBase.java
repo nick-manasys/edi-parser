@@ -60,7 +60,7 @@ public class HL7TestBase extends TestBase
      */
     protected void checkWrite(DocumentTest test, String text, Map<String, Object> result) {
         String output = test.printDoc(result);
-        System.out.println(output);
+//        System.out.println(output);
         List<String> segsin = prepareSegments('\r', '|', text);
         List<String> segsout = prepareSegments('\r', '|', output);
         Iterator<String> iterin = segsin.iterator();
@@ -83,9 +83,9 @@ public class HL7TestBase extends TestBase
      */
     protected void parseAndCheckWrite(String text, DocumentTest test) throws IOException {
         Map<String, Object> result = test.parse(new ByteArrayInputStream(text.getBytes("ASCII")));
-        StringWriter writer = new StringWriter();
-        YamlSupport.writeMap(result, writer);
-        System.out.println(writer.toString());
+//        StringWriter writer = new StringWriter();
+//        YamlSupport.writeMap(result, writer);
+//        System.out.println(writer.toString());
         checkWrite(test, text, result);
     }
 

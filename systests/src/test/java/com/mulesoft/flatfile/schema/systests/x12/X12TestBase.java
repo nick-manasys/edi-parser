@@ -200,7 +200,7 @@ public abstract class X12TestBase extends TestBase {
         }
         try {
             Map<String, Object> result = test.parse(is);
-            printAcknowledgments(result, ack999);
+//            printAcknowledgments(result, ack999);
             test.prepareOutput(result);
             if (!result.containsKey(SchemaJavaValues.delimiterCharacters())) {
                 result.put(SchemaJavaValues.delimiterCharacters(), "*>U~");

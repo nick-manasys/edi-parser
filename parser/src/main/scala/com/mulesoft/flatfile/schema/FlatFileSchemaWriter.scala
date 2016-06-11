@@ -45,14 +45,11 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
       else writer.writeBlank(format.maxLength)
     }
 
-    def skipComponentList(comps: List[SegmentComponent]): Unit = comps match {
-      case h :: t =>
-        h match {
-          case cc: CompositeComponent => skipComponentList(cc.composite.components)
-          case ec: ElementComponent => writer.writeBlank(ec.element.typeFormat.maxLength)
-        }
-        skipComponentList(t)
-      case _ =>
+    def skipComponentList(comps: List[SegmentComponent]): Unit = comps foreach { comp =>
+      comp match {
+        case cc: CompositeComponent => skipComponentList(cc.composite.components)
+        case ec: ElementComponent => writer.writeBlank(ec.element.typeFormat.maxLength)
+      }
     }
 
     comp match {
