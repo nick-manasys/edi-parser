@@ -27,7 +27,7 @@ segments:
     - name: 'PRESIDENT'
       values: 
       - { name: 'LAST-NAME', type: String, length: 15 }
-      - { name: 'FIRST-NAME', type: String, length: 8 }
+      - { name: 'FIRST-NAME', type: String, length: 8, value: 'George' }
     - name: 'VP-MARKETING'
       values: 
       - { name: 'LAST-NAME', type: String, length: 15 }

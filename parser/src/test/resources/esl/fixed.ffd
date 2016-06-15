@@ -2,7 +2,7 @@ form: FIXEDWIDTH
 id: 'CR0'
 name: 'CUSTOMER-RECORD'
 values: 
-- { name: 'TYPE-OF-NAME', type: String, length: 1 }
+- { name: 'TYPE-OF-NAME', type: String, length: 1, tagValue: '1' }
 - name: 'CUSTOMER-NAME'
   values: 
   - { name: 'LAST-NAME', type: String, length: 15 }

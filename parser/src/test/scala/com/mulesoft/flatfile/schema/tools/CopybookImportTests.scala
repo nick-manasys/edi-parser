@@ -101,6 +101,7 @@ class CopybookImportTests extends FlatSpec with Matchers {
                10  ZIP                 PIC 9(5)."""
   
   val trailDef = """
+           05  TEXT_FIELD              PIC X(8) VALUE "GEORGE".
            05  PRESIDENT.
                10  LAST-NAME           PIC X(15).
                10  FIRST-NAME          PIC X(8)."""
@@ -214,7 +215,9 @@ class CopybookImportTests extends FlatSpec with Matchers {
       case Some(segment) =>
         segment.ident should be ("OTHER-RECORD")
         val comps = segment.components
-        comps.length should be (5)
+        comps.length should be (6)
+        val txtcomp = comps(4)
+        txtcomp should be (ElementComponent(Element("", "TEXT_FIELD", StringFormat(8, FillMode.LEFT)), None, "TEXT_FIELD", -1, OptionalUsage, 1, false, Some("GEORGE")))
       case None => fail
     }    
   }
