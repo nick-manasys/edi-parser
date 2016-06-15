@@ -229,6 +229,10 @@ object YamlWriter extends YamlDefs {
         if (!schema.ediVersion.ediForm.fixed || ecomp.usage != OptionalUsage) formatter.keyValuePair(usageKey, ecomp.usage.code toString)
         formatter.keyCountOptionalPair(countKey, ecomp.count)
         if (elem.ident.isEmpty) writeElementDetails(elem)
+        ecomp.value.map { v =>
+          if (ecomp.tagPart) formatter.keyValueQuote(tagValueKey, v)
+          else formatter.keyValueQuote(valueKey, v)
+        }
         formatter.closeGrouping
       }
       def writeComposite(ccomp: CompositeComponent, dfltpos: Int) = {

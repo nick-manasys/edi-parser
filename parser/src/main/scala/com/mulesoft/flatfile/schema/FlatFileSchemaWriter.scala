@@ -14,11 +14,18 @@ import com.mulesoft.flatfile.lexical.EdiConstants.ItemType
 import com.mulesoft.flatfile.lexical.EdiConstants.ItemType._
 import EdiSchema._
 import SchemaJavaValues._
+import com.mulesoft.flatfile.lexical.IBM037
 
-/**
- * Configuration parameters for flat file schema writer.
- */
+/** Configuration parameters for flat file schema writer.
+  */
 case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset)
+
+object CharsetConverter {
+  def convertCharset(config: Charset) = {
+    if (config.displayName == "IBM037") new IBM037("IBM037", Array[String]())
+    else config
+  }
+}
 
 /** Base writer for flat file documents. */
 abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfig)
@@ -26,12 +33,12 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
 
   /** Typed writer, for access to format-specific conversions and support. */
   val writer = baseWriter.asInstanceOf[FlatFileWriter]
-  
+
   def userValue(usage: Usage) = usage match {
     case UnusedUsage | IgnoredUsage => false
-    case _ => true
+    case _                          => true
   }
-  
+
   override def startSegment(segment: Segment) = Unit
 
   /** Write a value from map. */
@@ -48,7 +55,7 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
     def skipComponentList(comps: List[SegmentComponent]): Unit = comps foreach { comp =>
       comp match {
         case cc: CompositeComponent => skipComponentList(cc.composite.components)
-        case ec: ElementComponent => writer.writeBlank(ec.element.typeFormat.maxLength)
+        case ec: ElementComponent   => writeSimple(null, ec)
       }
     }
 
@@ -73,7 +80,7 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
 
   /** Check if an envelope segment (handled directly, outside of structure). */
   def isEnvelopeSegment(segment: Segment) = false
-  
+
   /** Write the output message. */
   def write(map: ValueMap): Try[Unit]
 }

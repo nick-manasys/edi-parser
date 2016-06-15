@@ -433,7 +433,13 @@ class CopybookImport(in: InputStream, enc: String) {
 
                       def buildElementComp(form: UsageFormat) = {
                         val element = convertPic(name, picture, form, false, map)
-                        ElementComponent(element, None, name, -1, usage, count(map), false)
+                        val value = map.get(DataDescriptionParser.valueKey) map { v =>
+                          val first = v(0)
+                          val end = v.length - 1
+                          if (end > 0 && first == v(end) && (first == '\'' || first == '"')) v.substring(1, end)
+                          else v
+                      }
+                        ElementComponent(element, None, name, -1, usage, count(map), false, value)
                       }
 
                       map.get(DataDescriptionParser.usageKey) match {
