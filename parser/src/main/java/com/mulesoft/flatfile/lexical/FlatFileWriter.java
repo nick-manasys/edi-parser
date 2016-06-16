@@ -229,10 +229,12 @@ public class FlatFileWriter extends WriterBase
             super.write(str, off, len);
         }
     }
-//    
+    
 //    public static void main(String[] args) throws IOException {
-//        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-//        FlatFileWriter writer = new FlatFileWriter(bos, Charset.forName("Cp1047"));
+//        java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+//        Charset charset = new IBM037("IBM037", new String[0]);
+//        System.out.println(charset.name());
+//        FlatFileWriter writer = new FlatFileWriter(bos, charset);
 //        byte[] ibytes = new byte[256];
 //        for (int i = 0; i < 256; i++) {
 //            ibytes[i] = (byte)i;

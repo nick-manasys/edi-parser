@@ -9,27 +9,20 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import scala.collection.immutable.TreeMap
 import scala.util.Try
-import com.mulesoft.flatfile.lexical.{ FlatFileWriter, WriteException }
+import com.mulesoft.flatfile.lexical.{ FlatFileWriter, IBM037, WriteException }
 import com.mulesoft.flatfile.lexical.EdiConstants.ItemType
 import com.mulesoft.flatfile.lexical.EdiConstants.ItemType._
 import EdiSchema._
 import SchemaJavaValues._
-import com.mulesoft.flatfile.lexical.IBM037
 
 /** Configuration parameters for flat file schema writer.
   */
 case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset)
 
-object CharsetConverter {
-  def convertCharset(config: Charset) = {
-    if (config.displayName == "IBM037") new IBM037("IBM037", Array[String]())
-    else config
-  }
-}
-
 /** Base writer for flat file documents. */
 abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfig)
-  extends SchemaWriter(new FlatFileWriter(out, config.charSet), config.enforceRequires) with UtilityBase {
+  extends SchemaWriter(new FlatFileWriter(out, IBM037.replaceCharset(config.charSet)), config.enforceRequires)
+  with UtilityBase {
 
   /** Typed writer, for access to format-specific conversions and support. */
   val writer = baseWriter.asInstanceOf[FlatFileWriter]

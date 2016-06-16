@@ -7,11 +7,21 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 
+/**
+ * Adapted from Apache Harmony source.
+ */
 public class IBM037 extends Charset
 {
-    
     public IBM037(String csName, String[] aliases) {
         super(csName, aliases);
+    }
+    
+    public static Charset replaceCharset(Charset cs) {
+        if ("IBM037".equals(cs.displayName())) {
+            return new IBM037("IBM037", new String[0]);
+        } else {
+            return cs;
+        }
     }
     
     public boolean contains(Charset cs) {

@@ -8,7 +8,7 @@ import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.{ util => ju }
 
-import com.mulesoft.flatfile.lexical.{ EdiConstants, ErrorHandler, LexerBase, LexicalException, FlatFileLexer }
+import com.mulesoft.flatfile.lexical.{ EdiConstants, ErrorHandler, IBM037, LexerBase, LexicalException, FlatFileLexer }
 import com.mulesoft.flatfile.lexical.EdiConstants.ItemType
 import com.mulesoft.flatfile.lexical.EdiConstants.ItemType._
 import com.mulesoft.flatfile.lexical.ErrorHandler.ErrorCondition
@@ -19,7 +19,7 @@ import com.mulesoft.ltmdata.StorageContext
 
 /** Base parser for flat file documents. */
 abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: Option[Structure])
-extends SchemaParser(new FlatFileLexer(in, charSet, true), StorageContext.workingContext) {
+extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true), StorageContext.workingContext) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
