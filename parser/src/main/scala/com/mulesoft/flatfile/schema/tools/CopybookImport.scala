@@ -317,7 +317,8 @@ class CopybookImport(in: InputStream, enc: String) {
 
     def convertImplicitDisplay(pic: Seq[Char], lead: Int, sign: NumberSign): Element = {
       val (fract, rem) = convertReps('9', pic, 0)
-      val length = lead + fract
+      val signSize = if (zoned) 0 else 1
+      val length = lead + fract + signSize
       if (rem.isEmpty) Element("", name, DecimalFormat(length, sign, fract, mode, zoned && signed))
       else dataError("Invalid expression in PIC clause")
     }
@@ -360,7 +361,7 @@ class CopybookImport(in: InputStream, enc: String) {
             }
           case Nil =>
             form match {
-              case DisplayUsage       => Element("", name, IntegerFormat(lead, sign, mode, zoned && signed))
+              case DisplayUsage       => convertImplicitDisplay(Nil, lead, sign)
               case PackedDecimalUsage => convertImplicitPacked(Nil, lead)
               case BinaryUsage        => convertImplicitBinary(Nil, lead)
             }
