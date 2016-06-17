@@ -319,8 +319,13 @@ class CopybookImport(in: InputStream, enc: String) {
       val (fract, rem) = convertReps('9', pic, 0)
       val signSize = if (zoned) 0 else 1
       val length = lead + fract + signSize
-      if (rem.isEmpty) Element("", name, DecimalFormat(length, sign, fract, mode, zoned && signed))
-      else dataError("Invalid expression in PIC clause")
+      if (rem.nonEmpty) dataError("Invalid expression in PIC clause")
+      else {
+        val format =
+          if (fract == 0) IntegerFormat(length, sign, mode, zoned && signed)
+          else DecimalFormat(length, sign, fract, mode, zoned && signed)
+        Element("", name, format)
+      }
     }
 
     def convertImplicitPacked(pic: Seq[Char], lead: Int): Element = {
