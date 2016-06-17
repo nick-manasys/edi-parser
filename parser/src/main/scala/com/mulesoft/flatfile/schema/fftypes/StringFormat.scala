@@ -21,7 +21,8 @@ object StringFormat extends FormatFactory {
     override def genericType = GenericType.STRING
 
     override def parseToken(lexer: LexerBase): Object = {
-      lexer.token
+      val nullch: Char = 0
+      lexer.token.replace(nullch, ' ')
     }
 
     override def buildToken(value: Object, writer: WriterBase): String = {

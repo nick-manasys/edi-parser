@@ -72,3 +72,16 @@ segments:
     - { name: 'SR-NAICSRISKCODE-RS', type: String, length: 5 }
     - { name: 'SR-NAICSRISKSETNUM-F-RS', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
     - { name: 'SR-NAICSRISKSETNUM-RS', type: Binary, length: 8, format: { signed: TRUE, digits: 10 } }
+- id: 'SCB-CUST-BASE-ADD-RS'
+  values: 
+  - name: 'SCB-STATUS-RS'
+    values: 
+    - { name: 'SCB-STATUSCODE-RS', type: Integer, length: 11, format: { justify: LEFT, sign: 'ALWAYS_LEFT' } }
+    - { name: 'SCB-SEVERITY-RS', type: String, length: 80 }
+    - { name: 'SCB-STATUSDESC-RS', type: String, length: 255 }
+    - { name: 'SCB-REASONCODE-RS', type: String, length: 80 }
+  - { name: 'SCB-CUSTIDREC-F-RS', type: Binary, length: 2, format: { signed: TRUE, digits: 1 } }
+  - name: 'SCB-CUSTIDREC-RS'
+    values: 
+    - { name: 'SCB-SPNAME-RS', type: String, length: 36 }
+    - { name: 'SCB-CUSTPERMID-RS', type: String, length: 32 }

@@ -1,6 +1,6 @@
 package com.mulesoft.flatfile.schema
 
-import java.{ io => jio }
+import java.{ io => jio, lang => jl }
 import java.math.BigDecimal
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers
@@ -17,6 +17,7 @@ import javax.xml.datatype.XMLGregorianCalendar
 import org.threeten.bp.{ LocalDate, LocalTime }
 import scala.collection.mutable.ListBuffer
 import com.mulesoft.flatfile.lexical.WriteException
+import com.mulesoft.flatfile.lexical.IBM037
 
 class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with SchemaJavaDefs {
   
@@ -44,10 +45,62 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
   
   val testStructure = testSchema.structures("QBRequest")
 
+  val fixedSchemaText = """form: FIXEDWIDTH
+values: 
+- { name: 'field_0', type: Integer, format: { justify: zeroes }, length: 10 }
+- { name: 'field_1', type: String, length: 10 }
+- { name: 'field_2', type: String, length: 10 }"""
+  val fixedDataText = "0004567891QAZWSX    0987654   "
+  val fixedShort1Text = "1234567891QAZWSXEDCR098765432"
+  val fixedShort2Text = "1234567891QAZWSXEDCR09876543"
+  
+  val fixedSchema = new YamlReader().loadYaml(new jio.StringReader(fixedSchemaText), Array())
+  val fixedSegment = fixedSchema.segments.values.head
+
+  val altSchema1 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/CompanyContacts.esl"), "UTF-8"), Array())
+  
+  val altStructure1 = altSchema1.structures("CompanyContacts")
+
+  val altSchema2 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/CompanyContactsCompact.esl"), "UTF-8"), Array())
+  
+  val altStructure2 = altSchema2.structures("CompanyContacts")
+
+  val altSchema3 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/luis-working.ffd"), "UTF-8"), Array())
+  
+  val altStructure3 = altSchema3.structures("Check")
+
+  val copybookSchema1 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/cb837-unordered.ffd"), "UTF-8"), Array())
+
+  val copybookSchema2 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/cb837-structure.ffd"), "UTF-8"), Array())
+  
+  val copybookStructure2 = copybookSchema2.structures("CB837")
+
+  val copybookSchema3 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
+    getClassLoader.getResourceAsStream("esl/ECSRNAIC_v3.ffd"), "UTF-8"), Array())
+  
+  val copybookSegment3a = copybookSchema3.segments("SR-CONTAINER-WRAPPER-RQ")
+  val copybookSegment3b = copybookSchema3.segments("SR-CONTAINER-WRAPPER-ALT")
+  val copybookSegment3c = copybookSchema3.segments("SCB-CUST-BASE-ADD-RS")
+
   def parseDoc(doc: String) = {
     val ins = new jio.ByteArrayInputStream(doc.getBytes(ASCII_CHARSET))
     val parser = new FlatFileStructureParser(ins, EdiConstants.ISO88591_CHARSET, testSchema.structures.values.head)
     parser.parse.get
+  }
+
+  def streamBytes(is: jio.InputStream): Array[Byte] = {
+    val buf = ListBuffer[Byte]()
+    var b = is.read()
+    while (b != -1) {
+        buf.append(b.byteValue)
+        b = is.read()
+    }
+    buf.toArray
   }
 
   behavior of "FlatFileSchemaParser"
@@ -81,18 +134,6 @@ class FlatFileSchemaParserWriterTests extends FlatSpec with Matchers with Schema
     seg2 get("ClientName") should be ("MISSIONAUSTRALIA")
     seg2 get("FileId") should be ("2009110401")
   }
-
-  val fixedSchemaText = """form: FIXEDWIDTH
-values: 
-- { name: 'field_0', type: Integer, format: { justify: zeroes }, length: 10 }
-- { name: 'field_1', type: String, length: 10 }
-- { name: 'field_2', type: String, length: 10 }"""
-  val fixedDataText = "0004567891QAZWSX    0987654   "
-  val fixedShort1Text = "1234567891QAZWSXEDCR098765432"
-  val fixedShort2Text = "1234567891QAZWSXEDCR09876543"
-  
-  val fixedSchema = new YamlReader().loadYaml(new jio.StringReader(fixedSchemaText), Array())
-  val fixedSegment = fixedSchema.segments.values.head
   
   it should "report an error on input too short" in {
     val in1 = new jio.ByteArrayInputStream(fixedShort1Text.getBytes())
@@ -101,6 +142,24 @@ values:
     val in2 = new jio.ByteArrayInputStream(fixedShort2Text.getBytes())
     val parser2 = new FlatFileSegmentParser(in2, EdiConstants.ISO88591_CHARSET, fixedSegment)
     intercept[LexicalException] { parser2.parse.get }
+  }
+  
+  it should "read a copybook document with null characters" in {
+    val in = getClass.getClassLoader.getResourceAsStream("edi/callCustBaseResp.out")
+    val parser = new FlatFileSegmentParser(in, IBM037.charsetInstance, copybookSegment3c)
+    val result = parser.parse
+    result.isSuccess should be (true)
+    val input = result.get
+    val data = input.get("Data").asInstanceOf[MapList]
+    data.size should be (1)
+    val seg1 = data.iterator.next.asInstanceOf[ValueMap]
+    val status = seg1.get("SCB-STATUS-RS").asInstanceOf[ValueMap]
+    status.get("SCB-STATUSCODE-RS") should be (jl.Integer.valueOf(300))
+    status.get("SCB-SEVERITY-RS").asInstanceOf[String].startsWith("Error") should be (true)
+    seg1.get("SCB-CUSTIDREC-F-RS") should be (jl.Integer.valueOf(0))
+    val idrec = seg1.get("SCB-CUSTIDREC-RS").asInstanceOf[ValueMap]
+    idrec.get("SCB-SPNAME-RS") should be ("                                    ")
+    idrec.get("SCB-CUSTPERMID-RS") should be ("                                ")
   }
 
   behavior of "FlatFileSchemaWriter"
@@ -134,11 +193,6 @@ values:
 0Ardvark Enterprises 1341335 Pikes Place       Seattle     WA980262065552341
 1Jane      Jones          CEO            janiejones@ardvark.co                                 0000000000000000000020140812"""
 
-  val altSchema1 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
-    getClassLoader.getResourceAsStream("esl/CompanyContacts.esl"), "UTF-8"), Array())
-  
-  val altStructure1 = altSchema1.structures("CompanyContacts")
-
   it should "roundtrip document with flatfile schema using references" in {
     val in = new jio.ByteArrayInputStream(altMessage.getBytes())
     val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, altStructure1)
@@ -159,11 +213,6 @@ values:
     text should be (altMessage)
   }
 
-  val altSchema2 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
-    getClassLoader.getResourceAsStream("esl/CompanyContactsCompact.esl"), "UTF-8"), Array())
-  
-  val altStructure2 = altSchema2.structures("CompanyContacts")
-
   it should "roundtrip document with flatfile schema using inlining" in {
     val in = new jio.ByteArrayInputStream(altMessage.getBytes())
     val parser = new FlatFileStructureParser(in, EdiConstants.ISO88591_CHARSET, altStructure2)
@@ -183,11 +232,6 @@ values:
 //    println("returned text:\n" + text + "\n")
     text should be (altMessage)
   }
-
-  val altSchema3 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
-    getClassLoader.getResourceAsStream("esl/luis-working.ffd"), "UTF-8"), Array())
-  
-  val altStructure3 = altSchema3.structures("Check")
   
   it should "roundtrip documentation sample flatfile document" in {
     val doc = readDoc("edi/luis-data.txt")
@@ -239,9 +283,6 @@ values:
 //    YamlSupport.writeMap(input, swriter)
     text should be (fixedMultiText)
   }
-
-  val copybookSchema1 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
-    getClassLoader.getResourceAsStream("esl/cb837-unordered.ffd"), "UTF-8"), Array())
   
   it should "read unstructured copybook document with multi-part tags" in {
     val msg = readDoc("edi/cb837-sample.txt")
@@ -254,11 +295,6 @@ values:
 //    YamlSupport.writeMap(input, swriter)
 //    println(swriter.toString)
   }
-
-  val copybookSchema2 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
-    getClassLoader.getResourceAsStream("esl/cb837-structure.ffd"), "UTF-8"), Array())
-  
-  val copybookStructure2 = copybookSchema2.structures("CB837")
   
   it should "read structured copybook document with multi-part tags" in {
     val msg = readDoc("edi/cb837-sample.txt")
@@ -271,33 +307,17 @@ values:
 //    YamlSupport.writeMap(input, swriter)
 //    println(swriter.toString)
   }
-
-  val copybookSchema3 = new YamlReader().loadYaml(new jio.InputStreamReader(getClass.
-    getClassLoader.getResourceAsStream("esl/ECSRNAIC_v3.ffd"), "UTF-8"), Array())
-  
-  val copybookSegment3 = copybookSchema3.segments("SR-CONTAINER-WRAPPER-RQ")
-  val copybookSegment3Alt = copybookSchema3.segments("SR-CONTAINER-WRAPPER-ALT")
-
-  def streamBytes(is: jio.InputStream): Array[Byte] = {
-    val buf = ListBuffer[Byte]()
-    var b = is.read()
-    while (b != -1) {
-        buf.append(b.byteValue)
-        b = is.read()
-    }
-    buf.toArray
-  }
   
   it should "roundtrip copybook document with BINARY data" in {
     val srcin = getClass.getClassLoader.getResourceAsStream("edi/ECSRNAIC_v3.txt")
     val bytes = streamBytes(srcin)
     val in = new jio.ByteArrayInputStream(bytes)
-    val parser = new FlatFileSegmentParser(in, EdiConstants.ISO88591_CHARSET, copybookSegment3)
+    val parser = new FlatFileSegmentParser(in, EdiConstants.ISO88591_CHARSET, copybookSegment3a)
     val result = parser.parse
     result.isSuccess should be (true)
     val input = result.get
     val out = new jio.ByteArrayOutputStream
-    val writer = new FlatFileSegmentWriter(out, copybookSegment3,
+    val writer = new FlatFileSegmentWriter(out, copybookSegment3a,
       FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
     writer.write(input).get //isSuccess should be (true)
 //    val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
@@ -319,7 +339,7 @@ values:
     val rqdata = new ValueMapImpl
     segdata.put("SR-NAICSINQ-RQ", rqdata)
     val out = new jio.ByteArrayOutputStream
-    val writer = new FlatFileSegmentWriter(out, copybookSegment3,
+    val writer = new FlatFileSegmentWriter(out, copybookSegment3a,
       FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
@@ -337,20 +357,20 @@ values:
     val userdata = new ValueMapImpl
     rqdata.put("SR-USERINFO-RQ", userdata)
     val out1 = new jio.ByteArrayOutputStream
-    val writer1 = new FlatFileSegmentWriter(out1, copybookSegment3Alt,
+    val writer1 = new FlatFileSegmentWriter(out1, copybookSegment3b,
       FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
     val thrown1 = intercept[WriteException] { writer1.write(input).get }
     thrown1.getMessage.contains("SR-CONTAINERHEADER") should be (true)
     val headdata = new ValueMapImpl
     segdata.put("SR-CONTAINERHEADER", headdata)
     val out2 = new jio.ByteArrayOutputStream
-    val writer2 = new FlatFileSegmentWriter(out2, copybookSegment3Alt,
+    val writer2 = new FlatFileSegmentWriter(out2, copybookSegment3b,
       FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
     val thrown2 = intercept[WriteException] { writer2.write(input).get }
     thrown2.getMessage.contains("SR-CHANNEL-CH") should be (true)
     headdata.put("SR-CHANNEL-CH", "ABC")
     val out3 = new jio.ByteArrayOutputStream
-    val writer3 = new FlatFileSegmentWriter(out3, copybookSegment3Alt,
+    val writer3 = new FlatFileSegmentWriter(out3, copybookSegment3b,
       FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET))
     writer3.write(input).get
     val text = new String(out3.toByteArray, EdiConstants.ISO88591_CHARSET)
