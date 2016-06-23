@@ -309,11 +309,26 @@ class CopybookImport(in: InputStream, enc: String) {
     }
     else NumberSign.UNSIGNED
   }
+  
+  def convertValue(length: Int, map: StringMap): Option[String] = {
+    map.get(DataDescriptionParser.valueKey) map { v =>
+      if (v == "SPACE") " " * length
+      else {
+        val delim = v.charAt(0)
+        val last = v.charAt(v.length - 1)
+        if (delim == last && (delim == '\'' || delim == '"')) {
+          val body = v.substring(1, v.length - 1)
+          if (body.size > length) dataError("VALUE longer than field")
+          else body
+        } else dataError("Unsupported VALUE clause expression")
+      }
+    }
+  }
 
-  def convertPic(name: String, pic: String, form: UsageFormat, signed: Boolean, map: StringMap): Element = {
+  def convertPic(name: String, pic: String, form: UsageFormat, signed: Boolean, parseMap: StringMap): Element = {
 
-    val mode = fillMode(map)
-    val zoned = !(map.contains(DataDescriptionParser.separateKey))
+    val mode = fillMode(parseMap)
+    val zoned = !(parseMap.contains(DataDescriptionParser.separateKey))
 
     def convertImplicitDisplay(pic: Seq[Char], lead: Int, sign: NumberSign): Element = {
       val (fract, rem) = convertReps('9', pic, 0)
@@ -346,40 +361,31 @@ class CopybookImport(in: InputStream, enc: String) {
       if (rem.isEmpty) Element("", name, BinaryFormat(width, digits, fract, signed))
       else dataError("Invalid expression in PIC clause")
     }
-
+    
+    def convertForm(rem: Seq[Char], lead: Int): Element = {
+      form match {
+        case DisplayUsage       => convertImplicitDisplay(rem, lead, numberSign(signed, parseMap))
+        case PackedDecimalUsage => convertImplicitPacked(rem, lead)
+        case BinaryUsage        => convertImplicitBinary(rem, lead)
+      }
+    }
+    
     pic.head match {
       case 'X' =>
-        val (lead, rem) = convertReps('X', pic.tail, 1)
-        val format = StringFormat(lead, mode)
-        Element("", name, format)
+        val (lead, rest) = convertReps('X', pic.tail, 1)
+        if (rest.nonEmpty) dataError("Invalid expression in PIC clause")
+        else Element("", name, StringFormat(lead, mode))
       case 'S' =>
-        convertPic(name, pic.tail, form, true, map)
+        convertPic(name, pic.tail, form, true, parseMap)
       case '9' =>
-        val (lead, rem) = convertReps('9', pic.tail, 1)
-        val sign = numberSign(signed, map)
-        rem.toList match {
-          case 'V' :: t =>
-            form match {
-              case DisplayUsage       => convertImplicitDisplay(t, lead, sign)
-              case PackedDecimalUsage => convertImplicitPacked(t, lead)
-              case BinaryUsage        => convertImplicitBinary(t, lead)
-            }
-          case Nil =>
-            form match {
-              case DisplayUsage       => convertImplicitDisplay(Nil, lead, sign)
-              case PackedDecimalUsage => convertImplicitPacked(Nil, lead)
-              case BinaryUsage        => convertImplicitBinary(Nil, lead)
-            }
-          case _ =>
-            dataError("Invalid expression in PIC clause")
+        val (lead, rest) = convertReps('9', pic.tail, 1)
+        rest.toList match {
+          case 'V' :: t => convertForm(t, lead)
+          case Nil => convertForm(Nil, lead)
+          case _ => dataError("Invalid expression in PIC clause")
         }
       case 'V' =>
-        val tail = pic.tail
-        form match {
-          case DisplayUsage       => convertImplicitDisplay(tail, 0, numberSign(signed, map))
-          case PackedDecimalUsage => convertImplicitPacked(tail, 0)
-          case BinaryUsage        => convertImplicitBinary(tail, 0)
-        }
+        convertForm(pic.tail, 0)
       case _ => dataError("Invalid expression in PIC clause")
     }
   }
@@ -416,39 +422,34 @@ class CopybookImport(in: InputStream, enc: String) {
           else {
             try {
               val definition = input.next
-              val (problist, map) = DataDescriptionParser(input.lineNumber, definition)
+              val (problist, parseMap) = DataDescriptionParser(input.lineNumber, definition)
               problems ++= problist
               if (problist.forall { !_.error }) {
                 if (definition.size == 2) {
-                  val nested = buildCompositeComp(definition(1), count(map), definition(0))
+                  val nested = buildCompositeComp(definition(1), count(parseMap), definition(0))
                   buildr(nested :: acc)
-                } else if (map.isDefinedAt(DataDescriptionParser.redefinesKey)) {
+                } else if (parseMap.isDefinedAt(DataDescriptionParser.redefinesKey)) {
                   problems += CopybookImportError(false, input.lineNumber, "Ignoring unsupported REDEFINE", "")
                   buildNested(definition(0))
                   buildr(acc)
                 } else {
                   val (name, usage) =
-                    if (map.contains(DataDescriptionParser.nameKey)) {
-                      (map(DataDescriptionParser.nameKey), OptionalUsage)
+                    if (parseMap.contains(DataDescriptionParser.nameKey)) {
+                      (parseMap(DataDescriptionParser.nameKey), OptionalUsage)
                     } else {
                       fillCount += 1
                       ("FILLER" + fillCount, UnusedUsage)
                     }
-                  map.get(DataDescriptionParser.pictureKey) match {
+                  parseMap.get(DataDescriptionParser.pictureKey) match {
                     case Some(picture) =>
 
                       def buildElementComp(form: UsageFormat) = {
-                        val element = convertPic(name, picture, form, false, map)
-                        val value = map.get(DataDescriptionParser.valueKey) map { v =>
-                          val first = v(0)
-                          val end = v.length - 1
-                          if (end > 0 && first == v(end) && (first == '\'' || first == '"')) v.substring(1, end)
-                          else v
-                      }
-                        ElementComponent(element, None, name, -1, usage, count(map), false, value)
+                        val element = convertPic(name, picture, form, false, parseMap)
+                        val value = convertValue(element.typeFormat.maxLength, parseMap)
+                        ElementComponent(element, None, name, -1, usage, count(parseMap), false, value)
                       }
 
-                      map.get(DataDescriptionParser.usageKey) match {
+                      parseMap.get(DataDescriptionParser.usageKey) match {
                         case Some("DISPLAY") | None =>
                           buildr(buildElementComp(DisplayUsage) :: acc)
                         case Some("COMP-3") | Some("COMPUTATIONAL-3") | Some("PACKED-DECIMAL") =>
@@ -460,7 +461,7 @@ class CopybookImport(in: InputStream, enc: String) {
                           buildr(acc)
                       }
                     case _ =>
-                      val nested = buildCompositeComp(definition(1), count(map), definition(0))
+                      val nested = buildCompositeComp(definition(1), count(parseMap), definition(0))
                       buildr(nested :: acc)
                   }
                 }
