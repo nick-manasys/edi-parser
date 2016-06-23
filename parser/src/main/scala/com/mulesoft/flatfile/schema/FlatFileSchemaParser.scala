@@ -37,7 +37,11 @@ extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true)
           case Some(t) => lookupSegment(t)
           case _ => None
         }
+      case TagChoice(left, right) => lookupChoice(left, right)
     }
+  }
+  final def lookupChoice(left: TagTarget, right: TagTarget) = {
+    lookupSegment(left).orElse(lookupSegment(right))
   }
   
   override def segmentIdent = {
@@ -186,6 +190,10 @@ extends FlatFileParserBase(in, cs, Some(struct)) {
     map put (structureName, struct.name)
     map put (dataKey, parseStructure(struct, true, new ValueMapImpl))
     map
+//  } catch {
+//    case t: Throwable =>
+//      t.printStackTrace()
+//      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
@@ -202,6 +210,10 @@ class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment) exte
     map put (dataKey, data)
     while (lexer.currentType != END) data.add(parseSegment(segment, StartPosition))
     map
+//  } catch {
+//    case t: Throwable =>
+//      t.printStackTrace()
+//      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
@@ -229,6 +241,10 @@ extends FlatFileParserBase(in, cs, None) {
       }
     }
     map
+//  } catch {
+//    case t: Throwable =>
+//      t.printStackTrace()
+//      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })

@@ -526,25 +526,44 @@ object EdiSchema {
 
   /** Base class for target associated with a fixed width segment tag component. */
   sealed abstract class TagTarget {
-    def size: Int
+    val size: Int
   }
 
   /** Segment identified by fixed width segment tag component. */
   case class TagSegment(val segment: Segment) extends TagTarget {
-    def size = 1
+    override val size = 1
+    override def toString: String = s"TagSegment(${segment.ident})"
   }
 
   /** Next fixed width segment tag component. */
   case class TagNext(val offset: Int, val length: Int, val targets: Map[String, TagTarget]) extends TagTarget {
-    def size = targets.foldLeft(0) { case (acc, (k, v)) => acc + v.size }
+    override val size = targets.foldLeft(0) { case (acc, (k, v)) => acc + v.size }
+    override def toString: String = {
+      val builder = new StringBuilder
+      builder.append(s"TagNext($offset, $length):")
+      targets.foreach { case (k, v) => builder.append(s" $k -> $v") }
+      builder.toString
+    }
+  }
+  
+  /** Choice between sets of segment tags at different positions in lines. */
+  case class TagChoice(val left: TagTarget, right: TagTarget) extends TagTarget {
+    override val size = left.size + right.size
+    override def toString: String = s"TagChoice($left, $right)"
   }
 
   /** Build tag structure for a set of segments. */
   def buildTagTarget(segments: Set[Segment]): TagTarget = {
+    
+    case class TagField(val start: Int, val length: Int, val value: String)
+    
+    def sameField(f0: TagField, f1: TagField) = {
+      f0.start == f1.start && f0.length == f1.length
+    }
 
     /** Build list of tag values for segment (start offset, length, value). */
-    def segmentTags(s: Segment): List[(Int, Int, String)] = {
-      val buffer = sm.Buffer[(Int, Int, String)]()
+    def segmentTags(s: Segment): List[TagField] = {
+      val buffer = sm.Buffer[TagField]()
       def compr(offset: Int, allowTag: Boolean, comp: CompositeComponent): Int = {
         val count = comp.count
         if (count == 1) tagr(offset, allowTag, comp.composite.components)
@@ -553,6 +572,7 @@ object EdiSchema {
           offset + length * count
         }
       }
+      
       @tailrec
       def tagr(offset: Int, allowTag: Boolean, comps: List[SegmentComponent]): Int = {
         comps match {
@@ -566,10 +586,7 @@ object EdiSchema {
                   else {
                     val value = e.value.get
                     if (value.size > length) throw new IllegalArgumentException(s"Tag value too long for element ${e.name}")
-                    else {
-                      val item = (offset, length, value)
-                      buffer += item
-                    }
+                    else buffer += TagField(offset, length, value)
                   }
                 }
                 tagr(offset + length * e.count, true, t)
@@ -584,37 +601,51 @@ object EdiSchema {
       tagr(0, true, s.components)
       buffer.toList
     }
+    
+    /** List of segments paired with the ordered list of tag fields. */
+    type SegTags = List[(Segment, List[TagField])]
 
-    def buildTarget(segTags: List[(Segment, List[(Int, Int, String)])]): TagTarget = {
+    /** Build target information for a list of segment details ordered by increasing tag list size. */
+    def buildTarget(segTags: SegTags): TagTarget = {
+      
+      def buildSegmentTarget(seg: Segment, tags: List[TagField]): TagTarget = {
+        @tailrec
+        def buildr(rem: List[TagField], acc: TagTarget): TagTarget = {
+          rem match {
+            case Nil => acc
+            case TagField(start, length, value) :: t => buildr(t, TagNext(start, length, Map(value -> acc)))
+          }
+        }
+        buildr(tags.reverse, TagSegment(seg))
+      }
+      
       segTags match {
-        case (seg, Nil) :: Nil => TagSegment(seg)
-        case (seg, tag0 :: tags) :: Nil =>
-          val rest = buildTarget((seg, tags) :: Nil)
-          TagNext(tag0._1, tag0._2, Map(tag0._3 -> rest))
-        case (seg0, tags) :: t =>
-          if (tags.isEmpty) throw new IllegalArgumentException(s"Segment ${seg0.ident} conflicts with ${t.head._1.ident}")
+        case (seg, tags) :: Nil => buildSegmentTarget(seg, tags)
+        case (seg0, Nil) :: ((seg1, _) :: _) => throw new IllegalArgumentException(s"Segment ${seg0.ident} conflicts with ${seg1.ident}")
+        case (seg0, tags) :: _ =>
+          val tag0 = tags.head
+          // (alternatives to this segment using same tag field, segments not using this tag field)
+          val (alts, others) = segTags.partition { case (_, (f0 :: _)) => sameField(tag0, f0) }
+          if (alts.isEmpty) TagChoice(buildSegmentTarget(seg0, tags), buildTarget(others))
           else {
-            val tag0 = tags.head
-            t.foreach {
-              case (seg1, tag1 :: _) =>
-                if (tag0._1 != tag1._1 || tag0._2 != tag1._2) throw new IllegalArgumentException(s"Segment ${seg0.ident} tag fields conflict with ${seg1.ident}")
-              case (seg1, Nil) => throw new IllegalArgumentException(s"Segment ${seg1.ident} tags conflict with ${seg0.ident}")
-            }
-            val map = segTags.groupBy {
-              case (_, tagHead :: _) => tagHead._3
+            val valueMap = alts.groupBy {
+              case (_, tagHead :: _) => tagHead.value
             }.map {
               case (key, list) =>
                 val pruned = list.map { case (s, l) => (s, l.tail) }
                 (key, buildTarget(pruned))
             }
-            TagNext(tag0._1, tag0._2, map)
+            val fanOut = TagNext(tag0.start, tag0.length, valueMap)
+            if (others.isEmpty) fanOut
+            else TagChoice(fanOut, buildTarget(others))
           }
         case Nil => TagNext(0, 0, Map())
       }
     }
 
-    val segTags: List[(Segment, List[(Int, Int, String)])] = segments.map { s => (s, segmentTags(s)) }.filter { case (s, l) => l.nonEmpty }.toList
-    val target = buildTarget(segTags)
+    val segTags = segments.map { s => (s, segmentTags(s)) }.filter { case (s, l) => l.nonEmpty }.toList
+    val sortedTags = segTags.sortBy { case (s, l) => l.size }
+    val target = buildTarget(sortedTags)
     val count = target.size
     if (count > 0 && count < segments.size) throw new IllegalArgumentException(s"All segments must define tags if any do (found $count of ${segments.size} tags)")
     target

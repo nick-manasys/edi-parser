@@ -3,6 +3,7 @@ structures:
 - id: 'CB837'
   name: EDI GATEWAY COPYBOOK USED TO PASS PROFESSIONAL CLAIMS
   data:
+  - { idRef: U837P-IHA-REC }
   - { idRef: U837P-ST-REC }
   - groupId: '2000A'
     usage: O
@@ -69,10 +70,37 @@ structures:
         - { idRef: 'U837P-SV1-PROF-SERV-LINE-REC' }
         - { idRef: 'U837P-DTP-SERVICE-DATE-REC' }
   - { idRef: U837P-SE-REC }
+  - { idRef: U837P-ITA-REC }
 segments: 
+- id: 'U837P-IHA-REC'
+  values: 
+  - { name: 'U837P-IHA-REC-ID', type: String, length: 3, tagValue: "IHA" }
+  - { name: 'U837P-IHA-SUBMTR-ID', type: String, length: 15 }
+  - { name: 'U837P-IHA-RECVER-ID', type: String, length: 15 }
+  - { name: 'U837P-IHA-RECVER-SUBID', type: String, length: 4 }
+  - { name: 'U837P-IHA-CREATE-DT', type: String, length: 8 }
+  - { name: 'U837P-IHA-CREATE-TM', type: String, length: 6 }
+  - { name: 'U837P-IHA-FILE-NBR', type: String, length: 6 }
+  - { name: 'U837P-IHA-VERSION-NBR', type: String, length: 12 }
+  - { name: 'U837P-IHA-TEST-PROD-IND', type: String, length: 1 }
+  - { name: 'U837P-IHA-SUBMTR-NAME', type: String, length: 35 }
+  - { name: 'U837P-IHA-SUBMTR-ADDR', type: String, length: 55 }
+  - { name: 'U837P-IHA-SUBMTR-CITY', type: String, length: 30 }
+  - { name: 'U837P-IHA-SUBMTR-ST', type: String, length: 2 }
+  - { name: 'U837P-IHA-SUBMTR-ZIP', type: String, length: 15 }
+  - { name: 'U837P-IHA-SUBMTR-CONTACT', type: String, length: 35 }
+  - { name: 'U837P-IHA-SUBMTR-PHONE', type: String, length: 10 }
+  - { name: 'U837P-IHA-RETRANS-ST', type: String, length: 1 }
+  - { name: 'FILLER1', usage: U, type: String, length: 50 }
+- id: 'U837P-ITA-REC'
+  values: 
+  - { name: 'U837P-ITA-REC-ID', type: String, length: 3, tagValue: "ITA" }
+  - { name: 'U837P-ITA-TRANS-SET-TOTAL', type: Integer, length: 12, format: { justify: LEFT, sign: UNSIGNED } }
+  - { name: 'U837P-ITA-SEG-TOTAL', type: Integer, length: 12, format: { justify: LEFT, sign: UNSIGNED } }
+  - { name: 'U837P-ITA-TOTAL-CLMS', type: Integer, length: 6, format: { justify: LEFT, sign: UNSIGNED } }
+  - { name: 'FILLER1', usage: U, type: String, length: 50 }
 - id: 'U837P-CLM-REC'
   name: 'U837P-CLM-REC'
-  compPrefix: 'UCR0'
   values: 
   - name: 'U837P-CLM-REC-KEY'
     values: 
@@ -104,7 +132,6 @@ segments:
   - { name: 'U837P-CLM-DELAY-RSN-CD', type: String, length: 2 }
 - id: 'U837P-DTP-SERVICE-DATE-REC'
   name: 'U837P-DTP-SERVICE-DATE-REC'
-  compPrefix: 'UDSDR0'
   values: 
   - name: 'U837P-DTP-SERVICE-DATE-KEY'
     values: 
@@ -117,7 +144,6 @@ segments:
   - { name: 'U837P-DTP-SERV-DATE', type: String, length: 16 }
 - id: 'U837P-DMG-SUBSCRIBER-REC'
   name: 'U837P-DMG-SUBSCRIBER-REC'
-  compPrefix: 'UDSR0'
   values: 
   - name: 'U837P-DMG-SBR-REC-KEY'
     values: 
@@ -130,7 +156,6 @@ segments:
   - { name: 'U837P-DMG-SBR-SEX', type: String, length: 1 }
 - id: 'U837P-HL-BILL-PROV-REC'
   name: 'U837P-HL-BILL-PROV-REC'
-  compPrefix: 'UHBPR0'
   values: 
   - name: 'U837P-HL-BILL-PROV-REC-KEY'
     values: 
@@ -144,7 +169,6 @@ segments:
   - { name: 'U837P-HL-BILL-VERSION-ID-CD', type: String, length: 12 }
 - id: 'U837P-HI-CLM-DIAG-CODE-REC'
   name: 'U837P-HI-CLM-DIAG-CODE-REC'
-  compPrefix: 'UHCDCR0'
   values: 
   - name: 'U837P-HI-CLM-DIAG-CODE-KEY'
     values: 
@@ -163,7 +187,6 @@ segments:
     - { name: 'U837P-HI-CLM-DIAG-CD', type: String, length: 30 }
 - id: 'U837P-HL-SUBSCRIBER-REC'
   name: 'U837P-HL-SUBSCRIBER-REC'
-  compPrefix: 'UHSR0'
   values: 
   - name: 'U837P-HL-SUBSCR-REC-KEY'
     values: 
@@ -177,7 +200,6 @@ segments:
   - { name: 'U837P-HL-SUBSCR-HCHILD-CD', type: String, length: 1 }
 - id: 'U837P-LX-SERVICE-LINE-REC'
   name: 'U837P-LX-SERVICE-LINE-REC'
-  compPrefix: 'ULSLR0'
   values: 
   - name: 'U837P-LX-SERVICE-LINE-KEY'
     values: 
@@ -188,7 +210,6 @@ segments:
   - { name: 'U837P-LX-LINE-NBR', type: Integer, length: 6, format: { justify: LEFT, sign: 'ALWAYS_RIGHT', zoned: TRUE } }
 - id: 'U837P-NM1-BILL-PROVIDER-REC'
   name: 'U837P-NM1-BILL-PROVIDER-REC'
-  compPrefix: 'UNBPR0'
   values: 
   - name: 'U837P-NM1-BILL-PROV-REC-KEY'
     values: 
@@ -206,7 +227,6 @@ segments:
   - { name: 'U837P-NM1-BILL-PROV-ID', type: String, length: 80 }
 - id: 'U837P-N3-BILL-PROV-REC'
   name: 'U837P-N3-BILL-PROV-REC'
-  compPrefix: 'UNBPR2'
   values: 
   - name: 'U837P-N3-BILL-PROV-REC-KEY'
     values: 
@@ -218,7 +238,6 @@ segments:
   - { name: 'U837P-N3-BILL-PROV-ADDR2', type: String, length: 55 }
 - id: 'U837P-N4-BILL-PROV-REC'
   name: 'U837P-N4-BILL-PROV-REC'
-  compPrefix: 'UNBPR3'
   values: 
   - name: 'U837P-N4-BILL-PROV-REC-KEY'
     values: 
@@ -233,7 +252,6 @@ segments:
   - { name: 'U837P-N4-BILL-PROV-CNTRY-SUBD', type: String, length: 3 }
 - id: 'U837P-NTE-CLM-NOTE-REC'
   name: 'U837P-NTE-CLM-NOTE-REC'
-  compPrefix: 'UNCNR0'
   values: 
   - name: 'U837P-NTE-CLM-NOTE-KEY'
     values: 
@@ -245,7 +263,6 @@ segments:
   - { name: 'U837P-NTE-CLM-CLMNOTE', type: String, length: 80 }
 - id: 'U837P-NM1-CLM-PSRV-PROV-NM-REC'
   name: 'U837P-NM1-CLM-PSRV-PROV-NM-REC'
-  compPrefix: 'UNCPPNR0'
   values: 
   - name: 'U837P-NM1-CLM-PSRV-PRV-NM-KEY'
     values: 
@@ -262,7 +279,6 @@ segments:
   - { name: 'U837P-NM1-CLM-PSRVPRV-ID', type: String, length: 80 }
 - id: 'U837P-NM1-CLM-REND-PROV-NM-REC'
   name: 'U837P-NM1-CLM-REND-PROV-NM-REC'
-  compPrefix: 'UNCRPNR1'
   values: 
   - name: 'U837P-NM1-CLM-REND-PRV-NM-KEY'
     values: 
@@ -280,7 +296,6 @@ segments:
   - { name: 'U837P-NM1-CLM-RENPRV-ID', type: String, length: 80 }
 - id: 'U837P-N3-CLM-SERV-FACIL-REC'
   name: 'U837P-N3-CLM-SERV-FACIL-REC'
-  compPrefix: 'UNCSFR2'
   values: 
   - name: 'U837P-N3-CLM-SERV-FACIL-KEY'
     values: 
@@ -292,7 +307,6 @@ segments:
   - { name: 'U837P-N3-CLM-SRVFAC-ADDR2', type: String, length: 55 }
 - id: 'U837P-N4-CLM-SERV-FACIL-REC'
   name: 'U837P-N4-CLM-SERV-FACIL-REC'
-  compPrefix: 'UNCSFR3'
   values: 
   - name: 'U837P-N4-CLM-SERV-FACIL-KEY'
     values: 
@@ -307,7 +321,6 @@ segments:
   - { name: 'U837P-N4-CLM-SRVFAC-CNTRY-SUBD', type: String, length: 3 }
 - id: 'U837P-NM1-SUBSCRIBER-PAYER-REC'
   name: 'U837P-NM1-SUBSCRIBER-PAYER-REC'
-  compPrefix: 'UNSPR0'
   values: 
   - name: 'U837P-NM1-SBR-PYR-REC-KEY'
     values: 
@@ -322,7 +335,6 @@ segments:
   - { name: 'U837P-NM1-SBR-PYR-ID', type: String, length: 80 }
 - id: 'U837P-N3-SUBSCRIBER-PAYER-REC'
   name: 'U837P-N3-SUBSCRIBER-PAYER-REC'
-  compPrefix: 'UNSPR2'
   values: 
   - name: 'U837P-N3-SBR-PYR-REC-KEY'
     values: 
@@ -334,7 +346,6 @@ segments:
   - { name: 'U837P-N3-SBR-PYR-ADDR2', type: String, length: 55 }
 - id: 'U837P-N4-SUBSCRIBER-PAYER-REC'
   name: 'U837P-N4-SUBSCRIBER-PAYER-REC'
-  compPrefix: 'UNSPR3'
   values: 
   - name: 'U837P-N4-SBR-PYR-REC-KEY'
     values: 
@@ -349,7 +360,6 @@ segments:
   - { name: 'U837P-N4-SBR-PYR-CNTRY-SUBD', type: String, length: 3 }
 - id: 'U837P-NM1-SUBSCRIBER-REC'
   name: 'U837P-NM1-SUBSCRIBER-REC'
-  compPrefix: 'UNSR2'
   values: 
   - name: 'U837P-NM1-SBR-REC-KEY'
     values: 
@@ -367,7 +377,6 @@ segments:
   - { name: 'U837P-NM1-SBR-ID', type: String, length: 80 }
 - id: 'U837P-N3-SUBSCRIBER-REC'
   name: 'U837P-N3-SUBSCRIBER-REC'
-  compPrefix: 'UNSR4'
   values: 
   - name: 'U837P-N3-SBR-REC-KEY'
     values: 
@@ -379,7 +388,6 @@ segments:
   - { name: 'U837P-N3-SBR-ADDR2', type: String, length: 55 }
 - id: 'U837P-N4-SUBSCRIBER-REC'
   name: 'U837P-N4-SUBSCRIBER-REC'
-  compPrefix: 'UNSR5'
   values: 
   - name: 'U837P-N4-SBR-REC-KEY'
     values: 
@@ -394,7 +402,6 @@ segments:
   - { name: 'U837P-N4-SBR-CNTRY-SUBD', type: String, length: 3 }
 - id: 'U837P-PER-BILL-PROV-REC'
   name: 'U837P-PER-BILL-PROV-REC'
-  compPrefix: 'UPBPR1'
   values: 
   - name: 'U837P-PER-BPRV-REC-KEY'
     values: 
@@ -411,7 +418,6 @@ segments:
     - { name: 'U837P-PER-BPRV-COMM-NBR', type: String, length: 256 }
 - id: 'U837P-REF-BILL-PROV-SID-REC'
   name: 'U837P-REF-BILL-PROV-SID-REC'
-  compPrefix: 'URBPSR0'
   values: 
   - name: 'U837P-REF-BPRV-SID-REC-KEY'
     values: 
@@ -423,7 +429,6 @@ segments:
   - { name: 'U837P-REF-BPRV-SEC-ID', type: String, length: 50 }
 - id: 'U837P-REF-CLM-SRV-AUTH-EXC-REC'
   name: 'U837P-REF-CLM-SRV-AUTH-EXC-REC'
-  compPrefix: 'URCSAER0'
   values: 
   - name: 'U837P-REF-CLM-SVAUTH-EXC-KEY'
     values: 
@@ -435,7 +440,6 @@ segments:
   - { name: 'U837P-REF-CLM-SAE-CD', type: String, length: 50 }
 - id: 'U837P-REF-SUBSCRIBER-SID-REC'
   name: 'U837P-REF-SUBSCRIBER-SID-REC'
-  compPrefix: 'URSSR0'
   values: 
   - name: 'U837P-REF-SBR-SID-REC-KEY'
     values: 
@@ -447,7 +451,6 @@ segments:
   - { name: 'U837P-REF-SBR-SEC-ID', type: String, length: 50 }
 - id: 'U837P-SV1-PROF-SERV-LINE-REC'
   name: 'U837P-SV1-PROF-SERV-LINE-REC'
-  compPrefix: 'USPSLR0'
   values: 
   - name: 'U837P-SV1-PROF-SERV-LINE-KEY'
     values: 
@@ -480,7 +483,6 @@ segments:
   - { name: 'U837P-SV1-COPAY-STATUS-CD', type: String, length: 1 }
 - id: 'U837P-ST-REC'
   name: 'U837P-ST-REC'
-  compPrefix: 'USR0'
   values: 
   - name: 'U837P-ST-REC-KEY'
     values: 
@@ -493,7 +495,6 @@ segments:
   - { name: 'U837P-ST-IMPLE-GUIDE-VER', type: String, length: 35 }
 - id: 'U837P-SE-REC'
   name: 'U837P-SE-REC'
-  compPrefix: 'USR1'
   values: 
   - name: 'U837P-SE-REC-KEY'
     values: 
@@ -505,7 +506,6 @@ segments:
   - { name: 'U837P-SE-TRANS-CONTRL-NO', type: String, length: 9 }
 - id: 'U837P-SBR-SUBSCRIBER-REC'
   name: 'U837P-SBR-SUBSCRIBER-REC'
-  compPrefix: 'USSR0'
   values: 
   - name: 'U837P-SBR-SBR-REC-KEY'
     values: 
@@ -521,7 +521,6 @@ segments:
   - { name: 'U837P-SBR-SBR-CLM-FIL-IND', type: String, length: 2 }
 - id: 'U837P-UFE-REC'
   name: 'U837P-UFE-REC'
-  compPrefix: 'UUR0'
   values: 
   - name: 'U837P-UFE-REC-KEY'
     values: 

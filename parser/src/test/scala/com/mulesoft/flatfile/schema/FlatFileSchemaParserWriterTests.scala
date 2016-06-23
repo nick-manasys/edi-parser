@@ -285,7 +285,7 @@ values:
   }
   
   it should "read unstructured copybook document with multi-part tags" in {
-    val msg = readDoc("edi/cb837-sample.txt")
+    val msg = readDoc("edi/cb837-unordered.txt")
     val in = new jio.ByteArrayInputStream(msg.getBytes())
     val parser = new FlatFileUnorderedParser(in, EdiConstants.ISO88591_CHARSET, copybookSchema1)
     val result = parser.parse
