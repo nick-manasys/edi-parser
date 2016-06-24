@@ -137,19 +137,19 @@ trait ImplicitDecimal {
 object ImplicitDecimalConstants {
 
   // powers 0 to 9
-  val intPowers = (1 to 9).foldLeft(List(1)) { (acc, _) => acc.head * 10 :: acc }.toArray
+  val intPowers = (1 to 9).foldLeft(List(1)) { (acc, _) => acc.head * 10 :: acc }.reverse.toArray
   val intBigPowers = intPowers.map { jm.BigInteger.valueOf(_) }
 
-  // powers 10 to 19
+  // powers 10 to 18
   val longBias = intPowers.length
-  val longPowers = (1 to 9).foldLeft(List(10000000000L)) { (acc, _) => acc.head * 10 :: acc }.toArray
+  val longPowers = (1 to 8).foldLeft(List(10000000000L)) { (acc, _) => acc.head * 10 :: acc }.reverse.toArray
   val longBigPowers = longPowers.map { jm.BigInteger.valueOf(_) }
 
-  // powers 20 to 31
+  // powers 19 to 31
   private val big10 = jm.BigInteger.valueOf(10)
-  private val bigBase = new jm.BigInteger("100000000000000000000")
+  private val bigBase = longBigPowers(longPowers.length - 1).multiply(big10)
   val bigBias = longBias + longPowers.length
-  val bigBigPowers = (1 to 11).foldLeft(List(bigBase)) { (acc, _) => acc.head.multiply(big10) :: acc }.toArray
+  val bigBigPowers = (1 to 11).foldLeft(List(bigBase)) { (acc, _) => acc.head.multiply(big10) :: acc }.reverse.toArray
 
   val implicitLimit = bigBias + bigBigPowers.length
 }

@@ -5,6 +5,7 @@ import com.mulesoft.flatfile.lexical.TypeFormatConstants._
 import com.mulesoft.flatfile.lexical.formats.TypeFormatBase
 import java.{ lang => jl, math => jm, text => jt }
 import spire.math.Number
+import com.mulesoft.flatfile.lexical.ErrorHandler.ErrorCondition
 
 object BinaryFormat extends FormatFactory {
 
@@ -30,8 +31,21 @@ object BinaryFormat extends FormatFactory {
       lexer match {
         case l: FlatFileLexer =>
           val bytes = l.rawToken
-          if (width <= 4) jl.Integer.valueOf(bytes.foldLeft(0) { (i, b) => (i << 8) + b })
-          else jl.Long.valueOf(bytes.foldLeft(0L) { (l, b) => (l << 8) + b })
+          if (width <= 4) {
+            val value = jl.Integer.valueOf(bytes.foldLeft(0) { (i, b) => (i << 8) + b })
+            val limit = intPowers(digits)
+            if (value.intValue.abs > limit) {
+              lexer.error(this, ErrorCondition.INVALID_FORMAT, "too many digits in input")
+              jl.Integer.valueOf(value % limit)
+            } else value
+          } else {
+            val value = jl.Long.valueOf(bytes.foldLeft(0L) { (l, b) => (l << 8) + b })
+            val limit = if (digits < longBias) intPowers(digits) else longPowers(digits - longBias)
+            if (value.longValue.abs > limit) {
+              lexer.error(this, ErrorCondition.INVALID_FORMAT, "too many digits in input")
+              jl.Long.valueOf(value % limit)
+            } else value
+          }
         case _ => throw new IllegalStateException("PackedDecimalFormat requires FlatFileLexer")
       }
     }
