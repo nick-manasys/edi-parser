@@ -158,9 +158,12 @@ case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config
                 openGroup(groupCode, groupProps)
                 writer.countGroup
                 transList foreach (transet => try {
+                  transet.put(interchangeKey, interProps)
+                  transet.put(groupKey, groupProps)
                   val setProps =
                     if (transet.containsKey(setKey)) new ValueMapImpl(getAsMap(setKey, transet))
                     else new ValueMapImpl
+                  transet.put(setKey, setProps)
                   setProps put (setControlNumberHeaderKey, zeroPad(numprov nextSet (providerId, senderGroup, receiverGroup), 4))
                   val ident = getAsString(structureId, transet)
                   openSet(ident, setProps)

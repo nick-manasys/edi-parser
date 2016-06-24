@@ -171,9 +171,11 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
     
     def sendList(msgs: List[ValueMap], context: String, inter: ValueMap) = {
       msgs foreach (msgData => try {
+        msgData.put(interchangeKey, inter)
         val setProps =
           if (msgData.containsKey(messageHeaderKey))  new ValueMapImpl(getAsMap(messageHeaderKey, msgData))
           else  new ValueMapImpl
+        msgData.put(messageHeaderKey, setProps)
         val struct = getAsRequired[Structure](structureSchema, msgData)
         val msgType = getRequiredString(structureId, msgData)
         setProps put (msgHeadMessageTypeKey, msgType)
