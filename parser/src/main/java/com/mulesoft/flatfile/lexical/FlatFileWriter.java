@@ -22,6 +22,7 @@ public class FlatFileWriter extends WriterBase
     
     private static final char[] SPACES =
         "                                                                                               ".toCharArray();
+    private static final char[] NULLS = new char[32];
     
     /** Character encoding used for writing. */
     private final Charset encoding;
@@ -154,6 +155,17 @@ public class FlatFileWriter extends WriterBase
         }
     }
     
+    private void writeFill(int size, char[] chrs) throws IOException {
+        int rem = size;
+        while (rem >= chrs.length) {
+            writer.write(chrs);
+            rem -= chrs.length;
+        }
+        if (rem > 0) {
+            writer.write(chrs, 0, rem);
+        }
+    }
+    
     /**
      * Write blank value.
      * 
@@ -161,14 +173,17 @@ public class FlatFileWriter extends WriterBase
      * @throws IOException
      */
     public void writeBlank(int size) throws IOException {
-        int rem = size;
-        while (rem >= SPACES.length) {
-            writer.write(SPACES);
-            rem -= SPACES.length;
-        }
-        if (rem > 0) {
-            writer.write(SPACES, 0, rem);
-        }
+        writeFill(size, SPACES);
+    }
+    
+    /**
+     * Write null value.
+     * 
+     * @param size
+     * @throws IOException
+     */
+    public void writeNull(int size) throws IOException {
+        writeFill(size, NULLS);
     }
     
     /* (non-Javadoc)
