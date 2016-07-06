@@ -217,6 +217,7 @@ public class EdifactLexer extends DelimiterLexer
         // turn stream into reader with appropriate character set
         allowedChars = enforceCharacterSet ? syntax.flags() : null;
         reader = new BufferedReader(new InputStreamReader(stream, charset));
+        elementNumber++;
         advance(ItemType.DATA_ELEMENT);
         return version;
     }

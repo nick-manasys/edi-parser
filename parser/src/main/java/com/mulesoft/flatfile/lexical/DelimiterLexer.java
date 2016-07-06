@@ -174,7 +174,7 @@ public abstract class DelimiterLexer extends LexerBase
      */
     public void error(TypeFormat typ, ErrorCondition err, String explain) throws LexicalException {
         boolean abort = false;
-        String position = "element " + Integer.toString(elementNumber + 1);
+        String position = "element " + Integer.toString(elementNumber);
         if (repetitionNumber > 0) {
             position = "repetition " + Integer.toString(repetitionNumber + 1) + " of " + position;
         }
