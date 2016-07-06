@@ -64,7 +64,9 @@ object EdiSchema {
     * @param count maximum repetition count
     */
   sealed abstract class SegmentComponent(val name: String, val key: String, val position: Int, val usage: Usage,
-    val count: Int)
+    val count: Int) {
+    def ident: String
+  }
 
   /** Element segment (or composite) component.
     * @param element
@@ -79,7 +81,9 @@ object EdiSchema {
     */
   case class ElementComponent(val element: Element, nm: Option[String], ky: String, pos: Int, use: Usage, cnt: Int,
     val tagPart: Boolean = false, val value: Option[String] = None)
-    extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt)
+    extends SegmentComponent(nm.getOrElse(element.name), ky, pos, use, cnt) {
+    def ident = element.ident
+  }
 
   /** Composite segment component.
     * @param composite
@@ -92,6 +96,7 @@ object EdiSchema {
   case class CompositeComponent(val composite: Composite, nm: Option[String], ky: String, pos: Int, use: Usage,
     cnt: Int) extends SegmentComponent(nm.getOrElse(composite.name), ky, pos, use, cnt) {
     val itemType = if (composite.isSimple) ItemType.DATA_ELEMENT else ItemType.SUB_COMPONENT
+    def ident = composite.ident
   }
 
   /** Occurrence rule definition. Subclasses define the actual rule checking.
@@ -228,12 +233,14 @@ object EdiSchema {
     * @param count maximum repetition count (0 for unlimited)
     */
   sealed abstract class StructureComponent(val key: String, val position: SegmentPosition, val usage: Usage,
-    val count: Int)
+    val count: Int) {
+    val ident: String
+  }
 
   private def segmentIdent(seg: Segment) =
     if (seg.ident.nonEmpty) seg.ident
     else seg.name
-    
+
   private def compIdent(comp: StructureComponent) = comp match {
     case r: ReferenceComponent   => segmentIdent(r.segment)
     case g: GroupBase            => segmentIdent(g.leadSegmentRef.segment)
@@ -438,7 +445,9 @@ object EdiSchema {
     * @param cnt
     */
   case class ReferenceComponent(val segment: Segment, pos: SegmentPosition, use: Usage, cnt: Int)
-    extends StructureComponent(componentKey(segmentId(segment), pos), pos, use, cnt)
+    extends StructureComponent(componentKey(segmentId(segment), pos), pos, use, cnt) {
+    override val ident = segmentId(segment)
+  }
 
   /** Any segment reference.
     * @param ident
@@ -447,7 +456,7 @@ object EdiSchema {
     * @param cnt
     * @param possibles segments usable with wildcard
     */
-  case class WildcardComponent(val ident: String, pos: SegmentPosition, use: Usage, cnt: Int,
+  case class WildcardComponent(override val ident: String, pos: SegmentPosition, use: Usage, cnt: Int,
     val possibles: List[Segment]) extends StructureComponent(componentKey(ident, pos), pos, use, cnt)
 
   /** Loop wrapper component.
@@ -465,6 +474,7 @@ object EdiSchema {
     val startCode = open.ident + groupId
     val endCode = close.ident + groupId
     val groupTerms = Terminations(1, Set(endCode, wrapped.leadSegmentRef.segment.ident))
+    override val ident = groupId
   }
 
   private def collectKeys(seq: StructureSequence): Array[String] = {
@@ -494,6 +504,15 @@ object EdiSchema {
     val keys = collectKeys(seq)
   }
 
+  /** Key for a group component. X12 loop idents are sometimes based on numbers, while their positions match the first
+    * component of the loop. This leads to strange keys like "0130_2300_Loop", so this key derivation checks if the base
+    * ident starts with a numeric value and if so uses it as-is.
+    */
+  def componentGroupKey(ident: String, pos: SegmentPosition) =
+    if (ident.isEmpty) throw new IllegalArgumentException(s"ident required for component at postion $pos")
+    else if (!ident.head.isDigit && pos.defined) pos.position + "_" + ident.replace(' ', '_')
+    else ident.replace(' ', '_')
+
   /** Variant of a group component. The items in a variant must be a subset of the items in the group.
     * @param baseid base identifier for all variants of the group
     * @param use
@@ -501,8 +520,9 @@ object EdiSchema {
     * @param itms
     */
   case class VariantGroup(val baseid: String, val elemval: String, pos: SegmentPosition, use: Usage, cnt: Int,
-    ssq: StructureSequence)
-    extends GroupBase(componentKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, ssq)
+    ssq: StructureSequence) extends GroupBase(componentGroupKey(s"$baseid[$elemval]", pos), pos, use, cnt, false, ssq) {
+    override val ident = baseid + ":" + elemval
+  }
 
   /** Group component consisting of one or more nested components.
     * @param ident group identifier
@@ -514,10 +534,10 @@ object EdiSchema {
     * @param ky explicit key value (ident used by default)
     * @param ch choice group flag
     */
-  case class GroupComponent(val ident: String, use: Usage, cnt: Int, ssq: StructureSequence, val varkey: Option[String],
-    val variants: List[VariantGroup], ky: Option[String] = None, pos: Option[SegmentPosition] = None,
-    ch: Boolean = false)
-    extends GroupBase(ky.getOrElse(componentKey(ident, pos.getOrElse(ssq.startPos))),
+  case class GroupComponent(override val ident: String, use: Usage, cnt: Int, ssq: StructureSequence,
+    val varkey: Option[String], val variants: List[VariantGroup], ky: Option[String] = None,
+    pos: Option[SegmentPosition] = None, ch: Boolean = false)
+    extends GroupBase(ky.getOrElse(componentGroupKey(ident, pos.getOrElse(ssq.startPos))),
       pos.getOrElse(ssq.startPos), use, cnt, ch, ssq) {
 
     /** Group variants by key value. */
@@ -545,7 +565,7 @@ object EdiSchema {
       builder.toString
     }
   }
-  
+
   /** Choice between sets of segment tags at different positions in lines. */
   case class TagChoice(val left: TagTarget, right: TagTarget) extends TagTarget {
     override val size = left.size + right.size
@@ -554,9 +574,9 @@ object EdiSchema {
 
   /** Build tag structure for a set of segments. */
   def buildTagTarget(segments: Set[Segment]): TagTarget = {
-    
+
     case class TagField(val start: Int, val length: Int, val value: String)
-    
+
     def sameField(f0: TagField, f1: TagField) = {
       f0.start == f1.start && f0.length == f1.length
     }
@@ -572,7 +592,7 @@ object EdiSchema {
           offset + length * count
         }
       }
-      
+
       @tailrec
       def tagr(offset: Int, allowTag: Boolean, comps: List[SegmentComponent]): Int = {
         comps match {
@@ -601,26 +621,26 @@ object EdiSchema {
       tagr(0, true, s.components)
       buffer.toList
     }
-    
+
     /** List of segments paired with the ordered list of tag fields. */
     type SegTags = List[(Segment, List[TagField])]
 
     /** Build target information for a list of segment details ordered by increasing tag list size. */
     def buildTarget(segTags: SegTags): TagTarget = {
-      
+
       def buildSegmentTarget(seg: Segment, tags: List[TagField]): TagTarget = {
         @tailrec
         def buildr(rem: List[TagField], acc: TagTarget): TagTarget = {
           rem match {
-            case Nil => acc
+            case Nil                                 => acc
             case TagField(start, length, value) :: t => buildr(t, TagNext(start, length, Map(value -> acc)))
           }
         }
         buildr(tags.reverse, TagSegment(seg))
       }
-      
+
       segTags match {
-        case (seg, tags) :: Nil => buildSegmentTarget(seg, tags)
+        case (seg, tags) :: Nil              => buildSegmentTarget(seg, tags)
         case (seg0, Nil) :: ((seg1, _) :: _) => throw new IllegalArgumentException(s"Segment ${seg0.ident} conflicts with ${seg1.ident}")
         case (seg0, tags) :: _ =>
           val tag0 = tags.head
