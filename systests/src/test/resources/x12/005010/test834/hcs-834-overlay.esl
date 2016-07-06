@@ -1,0 +1,24 @@
+form: X12
+version: '005010'
+imports: [ '/x12/005010/834.esl' ]
+structures:
+- idRef: '834'
+  detail:
+  - groupIdRef: '2000_Loop'
+    position: '0100'
+    items: 
+    - groupIdRef: '2100_Loop'
+      position: '0300'
+      items:
+      - { idRef: 'PER', position: '0400', usage: M }
+segments:
+- idRef: 'PER'
+  name: Administrative Communications Contact
+  values:
+  - { position: 1, usage: O }
+  - { position: 3, usage: M }
+  - { position: 4, usage: M }
+  - { position: 5, usage: M }
+  - { position: 6, usage: M }
+  - { position: 7, usage: M }
+  - { idRef: '365', position: 8, usage: M }
