@@ -24,8 +24,8 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
 
   val logger = Logger.getLogger(getClass.getName)
 
-  /** Stack of loop nestings currently active in parse. */
-  val loopStack = Stack[GroupComponent]()
+  /** Stack of wrapped loop nestings currently active in parse. */
+  val loopStack = Stack[LoopWrapperComponent]()
   
   def userValue(usage: Usage) = usage match {
     case UnusedUsage | IgnoredUsage => false
@@ -149,7 +149,6 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
           def parseComponent(position: String): Boolean = {
 
             def parseLoop(loop: GroupComponent, groupTerm: Terminations): Unit = {
-              loopStack.push(loop)
               val ident = segmentIdent
               val data = storageContext.newMap(loop.keys)
               val number = segmentNumber
@@ -168,7 +167,6 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
                   list add data
                 }
               }
-              loopStack.pop
             }
 
             /**
@@ -178,7 +176,9 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
             def parseWrappedLoop(wrap: LoopWrapperComponent): Unit = {
               @tailrec
               def parser: String = {
+                loopStack.push(wrap)
                 parseLoop(wrap.wrapped, wrap.groupTerms)
+                loopStack.pop
                 val ident = convertLoop.getOrElse(segmentIdent)
                 if (ident == wrap.wrapped.leadSegmentRef.segment.ident) parser
                 else ident
