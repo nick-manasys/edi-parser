@@ -83,11 +83,14 @@ case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config:
 
   def describeComponent(incomp: Boolean) =
     if (incomp) {
-      val index = 0 max (lexer.getElementNumber - 1)
-      if (index < currentSegment.components.size) {
-        val comp = currentSegment.components(index)
-        s" for component ${comp.key}: '${comp.name}'"
-      } else ""
+      if (lexer.getElementNumber == 0) " past end of segment"
+      else {
+        val index = lexer.getElementNumber - 1
+        if (index < currentSegment.components.size) {
+          val comp = currentSegment.components(index)
+          s" for component ${comp.key}: '${comp.name}'"
+        } else " past end of data"
+      }
     } else ""
 
   def logErrorInMessage(fatal: Boolean, incomp: Boolean, text: String) =

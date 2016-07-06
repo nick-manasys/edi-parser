@@ -213,8 +213,14 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
 
   def describeComponent(incomp: Boolean) =
     if (incomp) {
-      val index = 0 max (lexer.getElementNumber - 1)
-      if (index < currentSegment.components.size) s" for component '${currentSegment.components(index).name}'" else ""
+      if (lexer.getElementNumber == 0) " past end of segment"
+      else {
+        val index = lexer.getElementNumber - 1
+        if (index < currentSegment.components.size) {
+          val comp = currentSegment.components(index)
+          s" for component ${comp.key}: '${comp.name}'"
+        } else " past end of data"
+      }
     } else ""
 
   def logErrorInMessage(fatal: Boolean, incomp: Boolean, segNum: Int, text: String) =
@@ -652,17 +658,15 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
           segUCI.components(2).asInstanceOf[CompositeComponent].composite, interack)
         ackhead put (contrl.heading.get.items(1).key, interack)
 
-        def parseMessage(group: Option[ValueMap]) = {
+        def parseMessage(group: Option[ValueMap], dfltCfg: EdifactParserConfig) = {
           interchangeMessageCount = interchangeMessageCount + 1
           val (setid, setprops) = openSet
           if (setid == "CONTRL") ackGeneratedList remove ackroot
           handler.handleUnh(setprops) match {
             case s: SyntaxError => messageError(s)
             case EdifactStructureConfig(struct, cfg) => {
-              if (cfg != null) {
-                config = cfg
-                lexer.asInstanceOf[EdifactLexer].configure(config.substitutionChar, config.enforceChars)
-              }
+              config = if (cfg == null) dfltCfg else cfg
+              lexer.asInstanceOf[EdifactLexer].configure(config.substitutionChar, config.enforceChars)
               messageMap = storageContext.newMap(structureDescriptor)
               parseStructure(struct, false, messageMap)
               if (isSetClose) {
@@ -709,12 +713,12 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
                 case EdifactHandlerError(error, text) => groupError(error, text)
                 case null =>
                   while (!isGroupClose) {
-                    if (isSetOpen) parseMessage(Some(groupmap))
+                    if (isSetOpen) parseMessage(Some(groupmap), config)
                     else groupError(InvalidOccurrence)
                   }
               }
             } else if (isSetOpen) {
-              parseMessage(None)
+              parseMessage(None, config)
             } else {
               val text = s"Unexpected segment ${lexer.segmentTag} at ${lexer.getSegmentNumber}"
               interchangeError(InvalidOccurrence, text)
