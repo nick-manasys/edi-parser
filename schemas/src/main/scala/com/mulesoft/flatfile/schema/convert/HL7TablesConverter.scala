@@ -223,10 +223,29 @@ object HL7TablesConverter {
   def buildStructures(grouped: Map[String, LineFields], segs: Map[String, Segment], version: EdiSchemaVersion) = {
     @tailrec
     def zeroPad(value: String, length: Int): String = if (value.length < length) zeroPad("0" + value, length) else value
-    def buildGroup(lines: LineFields, close: String) = {
+    def buildGroup(id: String, lines: LineFields, close: String, use: Usage, count: Int, choice: Boolean):
+      (LineFields, StructureComponent) = {
       val (remain, nested) = buildr(lines, Nil)
       remain match {
-        case close :: t => (t, StructureSequence(true, nested))
+        case close :: t =>
+          val ident = if (id.nonEmpty) id else nested.head.ident
+          val group =
+            if (nested.size == 1) {
+              val comp = nested.head
+              val mrguse = (use, comp.usage) match {
+                case (OptionalUsage, _) | (_, OptionalUsage) => OptionalUsage
+                case _ => use
+              }
+              val mrgcnt = (count, comp.count) match {
+                case (0, _) | (_, 0) => 0
+                case _ => count
+              }
+              comp match {
+                case r: ReferenceComponent => new ReferenceComponent(r.segment, r.position, mrguse, mrgcnt)
+                case g: GroupComponent => new GroupComponent(ident, mrguse, 0, g.seq, None, Nil, ch = choice)
+              }
+            } else new GroupComponent(ident, use, count, StructureSequence(true, nested), None, Nil, ch = choice)
+          (t, group)
         case _ => throw new IllegalArgumentException(s"Missing expected segment group close '$close'")
       }
     }
@@ -249,20 +268,20 @@ object HL7TablesConverter {
             }
             case None => code match {
               case "{" => {
-                val (rest, nested) = buildGroup(t, "}")
-                buildr(rest, new GroupComponent(h(3), MandatoryUsage, 0, nested, None, Nil) :: comps)
+                val (rest, group) = buildGroup(h(3), t, "}", MandatoryUsage, 0, false)
+                buildr(rest, group :: comps)
               }
               case "[" => {
-                val (rest, nested) = buildGroup(t, "]")
-                buildr(rest, new GroupComponent(h(3), OptionalUsage, 1, nested, None, Nil) :: comps)
+                val (rest, group) = buildGroup(h(3), t, "]", OptionalUsage, 1, false)
+                buildr(rest, group :: comps)
               }
               case "[{" => {
-                val (rest, nested) = buildGroup(t, "}]")
-                buildr(rest, new GroupComponent(h(3), OptionalUsage, 0, nested, None, Nil) :: comps)
+                val (rest, group) = buildGroup(h(3), t, "}]", OptionalUsage, 0, false)
+                buildr(rest, group :: comps)
               }
               case "<" => {
-                val (rest, nested) = buildGroup(t, "}")
-                buildr(rest, new GroupComponent(h(3), MandatoryUsage, 0, nested, None, Nil, ch = true) :: comps)
+                val (rest, group) = buildGroup(h(3), t, "}", MandatoryUsage, 0, true)
+                buildr(rest, group :: comps)
               }
               case "|" => buildr(t, comps)
               case "}" | "]" | "}]" | ">" => (remain, comps.reverse)
