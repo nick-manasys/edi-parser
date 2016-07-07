@@ -45,10 +45,10 @@ case class HL7SchemaWriter(out: OutputStream, struct: Structure, numprov: HL7Num
 
   /** Lexical error handler. */
   case object HL7WriterErrorHandler extends ErrorHandler {
-    // replace this with actual error accumlation
+    // replace this with actual error accumulation
     def error(typ: TypeFormat, error: ErrorCondition, explain: java.lang.String): Unit = {
       error match {
-        case WRONG_TYPE => throw new WriteException(explain)
+        case TOO_LONG | TOO_SHORT | WRONG_TYPE | INVALID_VALUE => throw new WriteException(explain)
         case _ =>
       }
     }

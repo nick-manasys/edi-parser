@@ -320,7 +320,8 @@ class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12Envelo
         if (loopStack.nonEmpty) xk3data put (xk3Comps(2) key, loopId)
         xk3data put (xk3Comps(3) key, DataErrorsSegment.code.toString)
         xk3 put (xk3Keys(0), xk3data)
-        xk3 put (xk3Keys(1), dataErrors.toList.asJava)
+        val details = dataErrors.toList.asJava
+        if (config generate999) xk3 put (groupIK4.key, details) else xk3 put (xk3Keys(1), details)
         segmentErrors += xk3
         oneOrMoreSegmentsInError = true
       }

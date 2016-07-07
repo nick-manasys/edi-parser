@@ -48,10 +48,10 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
 
   /** Lexical error handler. */
   case object EdifactWriterErrorHandler extends ErrorHandler {
-    // replace this with actual error accumlation
+    // replace this with actual error accumulation
     def error(typ: TypeFormat, error: ErrorCondition, explain: java.lang.String): Unit = {
       error match {
-        case WRONG_TYPE => throw new WriteException(explain)
+        case TOO_LONG | TOO_SHORT | WRONG_TYPE | INVALID_VALUE => throw new WriteException(explain)
         case _ =>
       }
     }
@@ -195,9 +195,9 @@ case class EdifactSchemaWriter(out: OutputStream, numprov: EdifactNumberProvider
         closeSet(setProps)
         setCount += 1
       } catch {
-        case e: Throwable => {
+        case e: WriteException => throw e
+        case e: Throwable =>
           logAndThrow(s"${e.getMessage} in ${msgData.get(structureId)} at index ${msgData.get(msgIndexKey)}", e)
-        }
       })
     }
     

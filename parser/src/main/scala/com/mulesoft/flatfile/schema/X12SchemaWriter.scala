@@ -48,10 +48,10 @@ case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config
 
   /** Lexical error handler. */
   case object X12WriterErrorHandler extends ErrorHandler {
-    // replace this with actual error accumlation
+    // replace this with actual error accumulation
     def error(typ: TypeFormat, error: ErrorCondition, explain: java.lang.String): Unit = {
       error match {
-        case WRONG_TYPE => throw new WriteException(explain)
+        case TOO_LONG | TOO_SHORT | WRONG_TYPE | INVALID_VALUE => throw new WriteException(explain)
         case _ =>
       }
     }
@@ -170,12 +170,13 @@ case class X12SchemaWriter(out: OutputStream, numprov: X12NumberProvider, config
                   writeStructure(transet, getAsRequired[Structure](structureSchema, transet))
                   closeSet(setProps)
                 } catch {
-                  case e: Throwable => {
+                  case e: WriteException => throw e
+                  case e: Throwable =>
                     logAndThrow(s"${e.getMessage} in transaction ${getAsString(structureId, transet)} at index ${getAsInt(transIndexKey, transet)}", e)
-                  }
                 })
                 closeGroup(groupProps)
               } catch {
+                case e: WriteException => throw e
                 case e: Throwable => logAndThrow(s"group $groupCode ${e.getMessage}", e)
               }
             }
