@@ -7,7 +7,7 @@ import org.junit.Test;
 
 public class StandardD95bTest extends EdifactTestBase {
     
-    // TODO: fix this (broken with value type changes)
+    // TODO: check handling of this - the current code reports different errors from the old code
     @Test
     @Ignore
     public void verifyBAPLIE() throws Exception {

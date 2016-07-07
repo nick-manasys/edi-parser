@@ -55,7 +55,7 @@ public class MalformedInputTest extends X12TestBase {
         // TODO: restore tests broken by UHG changes
 //        System.out.println(text);
 //        System.out.println("matching '" + expected997 + "'");
-//        assertTrue(text.contains(expected997));
+        assertTrue(text.contains(expected997));
 	}
 
 	@Parameters

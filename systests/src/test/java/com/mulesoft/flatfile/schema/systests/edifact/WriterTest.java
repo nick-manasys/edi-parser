@@ -4,16 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.List;
 import java.util.Map;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
-import com.mulesoft.flatfile.schema.EdiSchema;
-import com.mulesoft.flatfile.schema.EdiSchema.Structure;
-import com.mulesoft.flatfile.schema.EdifactSchemaDefs;
-import com.mulesoft.flatfile.schema.SchemaJavaValues;
 import com.mulesoft.flatfile.schema.tools.YamlSupport;
 
 public class WriterTest extends EdifactTestBase {
@@ -40,9 +34,7 @@ public class WriterTest extends EdifactTestBase {
         }
     }
     
-    // TODO: fix this (broken with value type changes)
     @Test
-    @Ignore
     public void testORDERS() throws Exception {
         loadSchema("/edifact/d96a/ORDERS.esl");
         YamlSupport yaml = new YamlSupport(schema);
@@ -59,7 +51,7 @@ public class WriterTest extends EdifactTestBase {
             testWrite(map);
             fail();
         } catch (Exception e) {
-            assertTrue(matchWriteException(e, "length outside of allowed range"));
+            assertTrue(matchWriteException(e, "effective length 40 is greater than 35"));
         }
         text = readAsString("/edifact/write/ORDERS96a-empty-rff-and-dtm.yaml");
         map = yaml.readMap(text);

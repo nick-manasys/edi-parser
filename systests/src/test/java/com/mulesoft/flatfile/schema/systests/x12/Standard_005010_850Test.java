@@ -19,11 +19,9 @@ public class Standard_005010_850Test extends X12TestBase {
         parseAndCheckWrite("/x12/005010/biztalk-interop/850-biztalk.edi");
     }
     
-    // TODO: restore tests broken by UHG changes
     @Test
-    @Ignore
     public void verifyGeneratedAcks() {
-        assertEquals("ISA*00*          *00*          *ZZ*MULESOFT       *ZZ*MODUS          *XXXXXX*XXXX*U*00501*XXXXXXXXX*X*P*>~GS*FA*MULESOFT*MODUS*XXXXXXXX*XXXX**T*00501~ST*997*0001~AK1*PO*4*00501~AK9*A*1*1*1~SE*4*0001~GE*1*1~IEA*1*000000001~",
+        assertEquals("ISA*00*          *00*          *ZZ*MULESOFT       *ZZ*MODUS          *XXXXXX*XXXX*U*00501*XXXXXXXXX*X*P*>~GS*FA*MULESOFT*MODUS*XXXXXXXX*XXXX**T*00501~ST*997*0001~AK1*PO*4*00501~AK2*850*0004~AK3*LDT*134*LDT*8~AK4*1*345*1~AK3*QTY*135*LDT*8~AK4*1*673*1~AK5*R*5~AK9*R*1*1*0~SE*10*0001~GE*1*1~IEA*1*000000001~",
             stripAckDates(parseAndReturnAck("/x12/005010/biztalk-interop/850-badbiztalk.edi", false)));
         assertEquals("ISA*00*          *00*          *ZZ*MULESOFT       *ZZ*MODUS          *XXXXXX*XXXX*U*00501*XXXXXXXXX*X*P*>~GS*FA*MULESOFT*MODUS*XXXXXXXX*XXXX**X*005010~ST*997*0001~AK1*PO*123456789*005010~AK9*A*1*1*1~SE*4*0001~GE*1*1~IEA*1*000000001~",
             stripAckDates(parseAndReturnAck("/x12/005010/biztalk-interop/850x1.edi", false)));
