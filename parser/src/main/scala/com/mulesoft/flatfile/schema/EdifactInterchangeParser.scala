@@ -630,7 +630,7 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
       try {
 
         // parse the interchange header segment(s)
-        lexer.asInstanceOf[EdifactLexer].configure(-1, true)
+        lexer.configure(-1, true)
         interchangeMap = openInterchange
         interchangeSegmentNumber = lexer.getSegmentNumber
         interchangeGroupCount = 0
@@ -758,9 +758,9 @@ case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, hand
           if (interchangeGoodCount == 0) mergeToList(errorListKey, interchangeMap, rootMap)
         }
       } catch {
-        case e: EdifactInterchangeException => {
-          discardInterchange
-        }
+        case e: EdifactInterchangeException =>
+          if (lexer.isInitialized) discardInterchange
+          else throw e
       }
     }
     rootMap

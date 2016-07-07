@@ -276,6 +276,16 @@ public class EdifactLexer extends DelimiterLexer
     }
     
     /**
+     * Check if reader initialized. If a error occurs before the reader has been initialized no recovery is possible,
+     * and the parser code needs to abort processing.
+     * 
+     * @return <code>true</code> if initialized, <code>false</code> if not
+     */
+    public boolean isInitialized() {
+        return reader != null;
+    }
+    
+    /**
      * Initialize document parse. This checks the start of the document to find the separator characters used in
      * parsing, along with the character encoding. Returns with the parser positioned past the first component of the
      * UNB Interchange Header segment.
