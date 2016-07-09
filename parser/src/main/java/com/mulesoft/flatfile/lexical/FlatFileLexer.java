@@ -26,6 +26,15 @@ public class FlatFileLexer extends LexerBase
     /** Allow raw access to data (disables end-of-line checks). */
     private final boolean allowRaw;
     
+    /** Discard line past end of data used. */
+    private final boolean discardExtra;
+    
+    /** Fill character for short line (-1 if no fill). */
+    private final int fillShort;
+    
+    /** Character used for missing values in line (-1 if no missing). */
+    private final int missingChar;
+    
     /** Flag for raw data writing supported (meaning symmetrical conversions used). */
     private Boolean supportsRaw;
     
@@ -38,11 +47,17 @@ public class FlatFileLexer extends LexerBase
      * @param is input
      * @param enc character set for reading stream
      * @param raw support reading raw values
+     * @param discard trailing data on line ignored (to end of line)
+     * @param fill character used as fill for short line (-1 if no fill)
+     * @param miss character used for fields with no value (-1 if all fields present)
      */
-    public FlatFileLexer(InputStream is, Charset enc, boolean raw) {
+    public FlatFileLexer(InputStream is, Charset enc, boolean raw, boolean discard, int fill, int miss) {
         super(is, -1);
         encoding = enc;
         allowRaw = raw;
+        discardExtra = discard;
+        fillShort = fill;
+        missingChar = miss;
         reader = typedReader = new LineBasedReader(stream, enc);
     }
     
@@ -61,14 +76,14 @@ public class FlatFileLexer extends LexerBase
     }
     
     /**
-     * Advance to next line of input. This checks for an expected line break as the next input and advances to the next
-     * line, taking the lead characters of the line as the segment tag.
+     * Advance to next line of input. This checks for an expected line break as the next input (unless discarding extra
+     * characters in line) and advances to the next line.
      * 
      * @return <code>true</code> if line present, <code>false</code> if end of input
      * @throws IOException 
      */
     public boolean nextLine() throws IOException {
-        return typedReader.nextLine(false);
+        return typedReader.nextLine(discardExtra);
     }
     
     /**
@@ -100,12 +115,14 @@ public class FlatFileLexer extends LexerBase
      * Load next input field with specified number of characters.
      * 
      * @param width
+     * @return <code>true</code> if token present, <code>false</code> if not
      * @throws IOException 
      */
-    public void load(int width) throws IOException {
+    public boolean load(int width) throws IOException {
         tokenBuilder.setLength(0);
-        typedReader.readToken(width);
+        boolean result = typedReader.readToken(width);
         currentType = ItemType.DATA_ELEMENT;
+        return result;
     }
     
     /**
@@ -191,6 +208,9 @@ public class FlatFileLexer extends LexerBase
      */
     private class LineBasedReader extends FilterReader
     {
+        /** At end of line flag. */
+        private boolean lineEnd;
+        
         /** Number of buffered characters. */
         private int leadCount;
         
@@ -238,6 +258,7 @@ public class FlatFileLexer extends LexerBase
          * @param chr
          */
         protected void startLine(int chr) {
+            lineEnd = false;
             leadBuffer[0] = (char)chr;
             leadCount = 1;
             leadOffset = 0;
@@ -255,10 +276,12 @@ public class FlatFileLexer extends LexerBase
          * @throws IOException 
          */
         protected boolean nextLine(boolean force) throws IOException {
-            int chr = 0;
-            while ((chr = read()) != -1) {
-                if (!force || chr == '\n' || chr == '\r') {
-                    break;
+            int chr = '\n';
+            if (!lineEnd) {
+                while ((chr = read()) != -1) {
+                    if (!force || chr == '\n' || chr == '\r') {
+                        break;
+                    }
                 }
             }
             if (chr == -1) {
@@ -281,19 +304,38 @@ public class FlatFileLexer extends LexerBase
          * Read token characters.
          * 
          * @param length
+         * @return <code>true</code> if token present, <code>false</code> if not
          * @throws IOException
          */
-        protected void readToken(int length) throws IOException {
+        protected boolean readToken(int length) throws IOException {
+            boolean hasData = false;
             for (int i = 0; i < length; i++) {
-                int chr = read();
-                if (chr == -1) {
-                    throw new LexicalException("Unexpected end of file in line " + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
-                } else if (!allowRaw && (chr == '\r' || chr == '\n')) {
-                    throw new LexicalException("Unexpected end of line" + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
+                int chr = fillShort;
+                if (!lineEnd) {
+                    chr = read();
+                    if (chr == -1) {
+                        if (fillShort >= 0) {
+                            lineEnd = true;
+                            chr = fillShort;
+                        } else {
+                            throw new LexicalException("Unexpected end of file in line " + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
+                        }
+                    } else if (!allowRaw && (chr == '\r' || chr == '\n')) {
+                        if (fillShort >= 0) {
+                            lineEnd = true;
+                            chr = fillShort;
+                        } else {
+                            throw new LexicalException("Unexpected end of line" + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
+                        }
+                    }
+                }
+                if (chr != missingChar) {
+                    hasData = true;
                 }
                 tokenBuilder.append((char)chr);
             }
             elementNumber++;
+            return hasData;
         }
 
         @Override

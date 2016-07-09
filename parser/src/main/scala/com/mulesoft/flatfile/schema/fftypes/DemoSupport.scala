@@ -8,7 +8,7 @@ import com.mulesoft.flatfile.lexical.{ EdiConstants, FlatFileLexer, FlatFileWrit
 object DemoSupport {
 
   def parseString(text: String, format: TypeFormat, encoding: Charset, raw: Boolean): Object = {
-    val lexer = new FlatFileLexer(new ByteArrayInputStream(text.getBytes(encoding)), encoding, raw)
+    val lexer = new FlatFileLexer(new ByteArrayInputStream(text.getBytes(encoding)), encoding, raw, false, -1, -1)
     lexer.load(format.maxLength)
     format.parse(lexer)
   }

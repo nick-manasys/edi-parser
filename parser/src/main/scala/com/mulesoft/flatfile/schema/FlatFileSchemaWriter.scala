@@ -17,7 +17,10 @@ import SchemaJavaValues._
 
 /** Configuration parameters for flat file schema writer.
   */
-case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset, val nullFill: Boolean)
+case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset, val missChar: Char) {
+  def this(enforceRequires: Boolean, charSet: Charset, nullFill: Boolean) =
+    this(enforceRequires, charSet, (if (nullFill) 0.toChar else ' '))
+}
 
 /** Base writer for flat file documents. */
 abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfig)
@@ -42,8 +45,7 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
       val format = element.typeFormat
       if (value != null) format.write(value, writer)
       else if (ec.value.isDefined) format.write(ec.value.get, writer)
-      else if (config.nullFill) writer.writeNull(format.maxLength)
-      else writer.writeBlank(format.maxLength)
+      else writer.writeChar(format.maxLength, config.missChar)
     }
 
     def skipComponentList(comps: List[SegmentComponent]): Unit = comps foreach { comp =>

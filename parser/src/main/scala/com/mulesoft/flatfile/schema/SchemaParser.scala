@@ -35,9 +35,6 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
   /** Report a repetition error on a composite component. This can probably be generalized in the future. */
   def repetitionError(comp: CompositeComponent): Unit
 
-  /** Parse data element value (and if appropriate, advance to the next element). */
-  def parseElement(elem: Element): Object
-
   /** Parse a segment component, which is either an element or a composite. */
   def parseComponent(comp: SegmentComponent, first: ItemType, rest: ItemType, map: ValueMap): Unit
 
@@ -313,6 +310,9 @@ abstract class SchemaParser(val baseLexer: LexerBase, val storageContext: Storag
 
 abstract class DelimiterSchemaParser(val delimLexer: DelimiterLexer, sc: StorageContext)
 extends SchemaParser(delimLexer, sc) {
+
+  /** Parse data element value (and if appropriate, advance to the next element). */
+  def parseElement(elem: Element): Object
   
   override def findSegment = Unit
   

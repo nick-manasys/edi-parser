@@ -186,6 +186,25 @@ public class FlatFileWriter extends WriterBase
         writeFill(size, NULLS);
     }
     
+    /**
+     * Write repeated character value.
+     * 
+     * @param size
+     * @param chr
+     * @throws IOException
+     */
+    public void writeChar(int size, char chr) throws IOException {
+        if (chr == 0) {
+            writeNull(size);
+        } else if (chr == ' ') {
+            writeBlank(size);
+        } else {
+            for (int i = 0; i < size; i++) {
+                writer.write(chr);
+            }
+        }
+    }
+    
     /* (non-Javadoc)
      * @see com.mulesoft.flatfile.lexical.WriterBase#writeSegmentTerminator()
      */

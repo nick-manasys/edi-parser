@@ -18,15 +18,17 @@ import SchemaJavaValues._
 import com.mulesoft.ltmdata.StorageContext
 
 /** Base parser for flat file documents. */
-abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: Option[Structure])
-extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true), StorageContext.workingContext) {
+abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: Option[Structure],
+  discardExcess: Boolean, fillChar: Int, missChar: Int)
+    extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), fillChar == -1, discardExcess, fillChar,
+      missChar), StorageContext.workingContext) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
 
   /** Current segment reference, used in error reporting. */
   var currentSegment: Segment = null
-  
+
   @tailrec
   final def lookupSegment(target: TagTarget): Option[Segment] = {
     target match {
@@ -43,13 +45,13 @@ extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true)
   final def lookupChoice(left: TagTarget, right: TagTarget) = {
     lookupSegment(left).orElse(lookupSegment(right))
   }
-  
+
   override def segmentIdent = {
     if (currentSegment == null) throw new IllegalStateException("Segment not defined")
     else if (currentSegment.ident.nonEmpty) currentSegment.ident
     else currentSegment.name
   }
-  
+
   override def findSegment = {
     structOpt match {
       case Some(struct) =>
@@ -81,18 +83,12 @@ extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true)
 
   /** Report a repetition error on a composite component. */
   override def repetitionError(comp: CompositeComponent) = {}
-  
+
   def segmentError(fatal: Boolean, text: String) = {
     logErrorInMessage(fatal, false, text)
   }
-  
-  override def isEnvelopeSegment(ident: String) = false
 
-  /** Parse data element value. */
-  override def parseElement(elem: Element) = {
-    lexer.load(elem.typeFormat.maxLength)
-    elem.typeFormat.parse(lexer)
-  }
+  override def isEnvelopeSegment(ident: String) = false
 
   override def parseComponent(comp: SegmentComponent, first: ItemType, rest: ItemType, map: ValueMap): Unit = {
     def storeValue(value: Object) = {
@@ -103,15 +99,16 @@ extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true)
         val elem = elemComp.element
         if (comp.count != 1) {
           val complist = storageContext.newValueSeq
-          (1 to comp.count).foreach(_ => complist.add(parseElement(elem)))
-          storeValue(complist)
-        } else storeValue(parseElement(elem))
+          (1 to comp.count).foreach(_ =>
+            if (lexer.load(elem.typeFormat.maxLength)) complist.add(elem.typeFormat.parse(lexer)))
+          if (complist.size > 0) storeValue(complist)
+        } else if (lexer.load(elem.typeFormat.maxLength)) storeValue(elem.typeFormat.parse(lexer))
       case compComp: CompositeComponent => {
         val composite = compComp.composite
         val descript = storageContext.addDescriptor(composite.keys)
         if (comp.count != 1) {
           val complist = storageContext.newMapSeq
-          (1 to comp.count).foreach { _ => 
+          (1 to comp.count).foreach { _ =>
             val compmap: ju.Map[String, Object] = storageContext.newMap(descript)
             parseCompList(composite.components, first, rest, compmap)
             complist.add(compmap)
@@ -125,7 +122,7 @@ extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true)
       }
     }
   }
-  
+
   /** Parse a list of components (which may be the segment itself, a repeated set of values, or a composite). */
   override def parseCompList(comps: List[SegmentComponent], first: ItemType, rest: ItemType, map: ValueMap) = {
     @tailrec
@@ -141,7 +138,8 @@ extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true)
   }
 
   /** Parse a segment to a map of values. The base parser must be positioned at the start of the segment when this is
-   * called. */
+    * called.
+    */
   override def parseSegment(segment: Segment, position: SegmentPosition): ValueMap = {
     if (logger.isTraceEnabled && position.defined) logger.trace(s"parsing segment ${segment.ident} at position $position")
     val map = storageContext.newMap(segment.keys)
@@ -172,15 +170,17 @@ extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), true)
   override def convertLoop = None
 
   /** Discard input past end of current message. */
-  override def discardStructure = while (lexer.currentType != END) lexer.discardSegment 
-  
+  override def discardStructure = while (lexer.currentType != END) lexer.discardSegment
+
   /** Parse the input message. */
   def parse: Try[ValueMap]
 }
 
 /** Parser for structured flat file documents. */
-class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure)
-extends FlatFileParserBase(in, cs, Some(struct)) {
+class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure, discardExcess: Boolean, fillChar: Int,
+    missChar: Int) extends FlatFileParserBase(in, cs, Some(struct), discardExcess, fillChar, missChar) {
+  
+  def this(in: InputStream, cs: Charset, struct: Structure) = this(in, cs, struct, false, -1, 0)
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {
@@ -190,17 +190,20 @@ extends FlatFileParserBase(in, cs, Some(struct)) {
     map put (structureName, struct.name)
     map put (dataKey, parseStructure(struct, true, new ValueMapImpl))
     map
-//  } catch {
-//    case t: Throwable =>
-//      t.printStackTrace()
-//      throw t
+    //  } catch {
+    //    case t: Throwable =>
+    //      t.printStackTrace()
+    //      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
 }
 
 /** Parser for single repeated segment documents. */
-class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment) extends FlatFileParserBase(in, cs, None) {
+class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment, discardExcess: Boolean, fillChar: Int,
+    missChar: Int) extends FlatFileParserBase(in, cs, None, discardExcess, fillChar, missChar) {
+  
+  def this(in: InputStream, cs: Charset, segment: Segment) = this(in, cs, segment, false, -1, 0)
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {
@@ -210,19 +213,20 @@ class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment) exte
     map put (dataKey, data)
     while (lexer.currentType != END) data.add(parseSegment(segment, StartPosition))
     map
-//  } catch {
-//    case t: Throwable =>
-//      t.printStackTrace()
-//      throw t
+    //  } catch {
+    //    case t: Throwable =>
+    //      t.printStackTrace()
+    //      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
 }
 
-
 /** Parser for documents containing any defined segments in any order. */
-class FlatFileUnorderedParser(in: InputStream, cs: Charset, schema: EdiSchema)
-extends FlatFileParserBase(in, cs, None) {
+class FlatFileUnorderedParser(in: InputStream, cs: Charset, schema: EdiSchema, discardExcess: Boolean, fillChar: Int,
+  missChar: Int) extends FlatFileParserBase(in, cs, None, discardExcess, fillChar, missChar) {
+  
+  def this(in: InputStream, cs: Charset, schema: EdiSchema) = this(in, cs, schema, false, -1, 0)
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {
@@ -241,10 +245,10 @@ extends FlatFileParserBase(in, cs, None) {
       }
     }
     map
-//  } catch {
-//    case t: Throwable =>
-//      t.printStackTrace()
-//      throw t
+    //  } catch {
+    //    case t: Throwable =>
+    //      t.printStackTrace()
+    //      throw t
   } finally {
     try { lexer close } catch { case e: Throwable => }
   })
