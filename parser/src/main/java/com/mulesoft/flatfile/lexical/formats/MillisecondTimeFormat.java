@@ -2,10 +2,14 @@ package com.mulesoft.flatfile.lexical.formats;
 
 import java.io.IOException;
 
+import org.threeten.bp.LocalTime;
+import org.threeten.bp.OffsetDateTime;
+import org.threeten.bp.OffsetTime;
+
 import com.mulesoft.flatfile.lexical.ErrorHandler.ErrorCondition;
-import com.mulesoft.flatfile.lexical.TypeFormatConstants.GenericType;
 import com.mulesoft.flatfile.lexical.LexerBase;
 import com.mulesoft.flatfile.lexical.LexicalException;
+import com.mulesoft.flatfile.lexical.TypeFormatConstants.GenericType;
 import com.mulesoft.flatfile.lexical.WriterBase;
 
 /**
@@ -68,45 +72,58 @@ public class MillisecondTimeFormat extends TypeFormatBase {
         }
         return Integer.valueOf(((hour * 60 + minute) * 60 + second) * 1000 + milli);
     }
+    
+    private void writeMilliseconds(int millis, WriterBase writer) throws IOException {
+        
+        // start with required component values
+        int remain = millis;
+        StringBuilder builder = new StringBuilder();
+        int hour = remain / MILLIS_PER_HOUR;
+        remain = remain % MILLIS_PER_HOUR;
+        appendTwoDigit(hour, builder);
+        int minute = remain / MILLIS_PER_MINUTE;
+        remain = remain % MILLIS_PER_MINUTE;
+        appendTwoDigit(minute, builder);
+        if (maxLength > 4 && remain > 0) {
+            
+            // append optional components
+            int second = remain / MILLIS_PER_SECOND;
+            remain = remain % MILLIS_PER_SECOND;
+            appendTwoDigit(second, builder);
+            
+            // avoid trailing zeroes in decimal seconds
+            if (maxLength > 7 && remain > 10) {
+                appendTwoDigit(remain / 10, builder);
+            } else if (maxLength == 7 && remain > 100) {
+                builder.append(remain / 100);
+            } else if (minLength > 7) {
+                builder.append("00");
+            } else if (minLength > 6) {
+                builder.append('0');
+            }
+            
+        }
+        writer.startToken();
+        while (builder.length() < minLength) {
+            builder.append('0');
+        }
+        writer.writeUnchecked(builder.toString());
+        
+    }
 
     @Override
     public void write(Object value, WriterBase writer) throws IOException {
         if (value instanceof Integer) {
-            
-            // start with required component values
-            int remain = ((Integer)value).intValue();
-            StringBuilder builder = new StringBuilder();
-            int hour = remain / MILLIS_PER_HOUR;
-            remain = remain % MILLIS_PER_HOUR;
-            appendTwoDigit(hour, builder);
-            int minute = remain / MILLIS_PER_MINUTE;
-            remain = remain % MILLIS_PER_MINUTE;
-            appendTwoDigit(minute, builder);
-            if (maxLength > 4 && remain > 0) {
-                
-                // append optional components
-                int second = remain / MILLIS_PER_SECOND;
-                remain = remain % MILLIS_PER_SECOND;
-                appendTwoDigit(second, builder);
-                
-                // avoid trailing zeroes in decimal seconds
-                if (maxLength > 7 && remain > 10) {
-                    appendTwoDigit(remain / 10, builder);
-                } else if (maxLength == 7 && remain > 100) {
-                    builder.append(remain / 100);
-                } else if (minLength > 7) {
-                    builder.append("00");
-                } else if (minLength > 6) {
-                    builder.append('0');
-                }
-                
-            }
-            writer.startToken();
-            while (builder.length() < minLength) {
-                builder.append('0');
-            }
-            writer.writeUnchecked(builder.toString());
-            
+            writeMilliseconds(((Integer)value).intValue(), writer);
+        } else if (value instanceof LocalTime) {
+            LocalTime localTime = (LocalTime)value;
+            writeMilliseconds((int)(localTime.toNanoOfDay() / 1000000), writer);
+        } else if (value instanceof OffsetTime) {
+            OffsetTime offsetTime = (OffsetTime)value;
+            writeMilliseconds((int)(offsetTime.toLocalTime().toNanoOfDay() / 1000000), writer);
+        } else if (value instanceof OffsetDateTime) {
+            OffsetDateTime dateTime = (OffsetDateTime)value;
+            writeMilliseconds((int)(dateTime.toLocalTime().toNanoOfDay() / 1000000), writer);
         } else {
             wrongType(value, writer);
         }

@@ -7,10 +7,15 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
+import org.threeten.bp.Instant;
+import org.threeten.bp.LocalDate;
+import org.threeten.bp.ZoneId;
+import org.threeten.bp.ZonedDateTime;
+
 import com.mulesoft.flatfile.lexical.ErrorHandler.ErrorCondition;
-import com.mulesoft.flatfile.lexical.TypeFormatConstants.GenericType;
 import com.mulesoft.flatfile.lexical.LexerBase;
 import com.mulesoft.flatfile.lexical.LexicalException;
+import com.mulesoft.flatfile.lexical.TypeFormatConstants.GenericType;
 import com.mulesoft.flatfile.lexical.WriteException;
 import com.mulesoft.flatfile.lexical.WriterBase;
 
@@ -101,6 +106,20 @@ public class X12DateFormat extends TypeFormatBase {
         } else if (value instanceof Date) {
             GregorianCalendar calendar = new GregorianCalendar();
             calendar.setTime((Date)value);
+            writeDate(calendar, writer);
+        } else if (value instanceof Instant) {
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTimeInMillis(((Instant)value).toEpochMilli());
+            writeDate(calendar, writer);
+        } else if (value instanceof LocalDate) {
+            LocalDate localDate = (LocalDate)value;
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTimeInMillis(localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
+            writeDate(calendar, writer);
+        } else if (value instanceof ZonedDateTime) {
+            ZonedDateTime zoned = (ZonedDateTime)value;
+            GregorianCalendar calendar = new GregorianCalendar();
+            calendar.setTimeInMillis(zoned.toInstant().toEpochMilli());
             writeDate(calendar, writer);
         } else {
             wrongType(value, writer);

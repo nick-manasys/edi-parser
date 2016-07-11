@@ -1,7 +1,6 @@
 package com.mulesoft.flatfile.schema
 
-import java.math.{ BigDecimal, BigInteger }
-import java.util.{ Calendar, Date }
+import java.{ lang => jl, math => jm, util => ju }
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters.asScalaBufferConverter
@@ -214,7 +213,20 @@ abstract class DelimiterSchemaWriter(val delimWriter: DelimiterWriter, enforceRe
   /** Write a value from map. */
   override def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
-    def writeSimple(value: Any, element: Element) = element.typeFormat.write(value, delimWriter)
+    /** Write a simple value. The type formats used with EDI delimited formats are not compatible with the spire numeric
+     * values used by DataWeave, so this converts them before calling the format.
+     */
+    def writeSimple(value: Any, element: Element) = {
+      value match {
+        case n: spire.math.Number =>
+          val numval = if (n.canBeInt) n.toInt
+            else if (n.canBeLong) jl.Long.valueOf(n.toLong)
+            else if (n.isWhole) n.toBigInt.bigInteger
+            else n.toBigDecimal.bigDecimal
+          element.typeFormat.write(numval, delimWriter)
+        case _ => element.typeFormat.write(value, delimWriter)
+      }
+    }
     
     def writeSeparator(repeat: Boolean) =
       if (repeat) delimWriter.writeRepetitionSeparator
