@@ -191,7 +191,7 @@ public abstract class EdifactTestBase extends TestBase {
             String key = ((CompositeComponent)EdifactSchemaDefs.segUNBv4().components().head()).composite().components().apply(1).key();
             for (Map<String, Object> ack : acks) {
                 ((Map<String, Object>)ack.get(SchemaJavaValues.interchangeKey())).put(key, "4");
-//                System.out.println(DecodeContrl.decode(ack));
+                System.out.println(DecodeContrl.decode(ack));
             }
         }
     }

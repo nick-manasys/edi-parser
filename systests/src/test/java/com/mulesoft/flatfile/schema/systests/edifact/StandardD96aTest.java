@@ -82,6 +82,8 @@ public class StandardD96aTest extends EdifactTestBase {
             stripAckDates(parseAndReturnAck("/edifact/d96a/ORDERS_D96A_repeated-ALI.edi")));
         assertEquals("UNB+UNOA:3+MODUS:ZZZ+MULESOFT:ZZZ+XXXXXXXXXXX+++ORDERS'UNH++CONTRL:3:1:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UCM+6424+ORDERS:D:96A:UN:EAN008+4'UCS+3+35'UCS+10+35'UNT+6+1'UNZ+1+1'",
             stripAckDates(parseAndReturnAck("/edifact/d96a/ORDERS_D96A-too-many-segments-repetitions.edi")));
+        assertEquals("UNB+UNOA:3+MODUS:ZZZ+MULESOFT:ZZZ+XXXXXXXXXXX+++ORDERS'UNH++CONTRL:3:1:UN'UCI+582+MULESOFT:ZZZ+MODUS:ZZZ+7'UCM+6424+ORDERS:D:96A:UN:EAN008+4'UCS+4'UCD+39+2:2'UNT+6+1'UNZ+1+1'",
+            stripAckDates(parseAndReturnAck("/edifact/d96a/ORDERS_D96A-element-too-long.edi")));
     }
     
     @Test
