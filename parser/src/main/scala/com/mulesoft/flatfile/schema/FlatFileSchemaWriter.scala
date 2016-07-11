@@ -17,9 +17,10 @@ import SchemaJavaValues._
 
 /** Configuration parameters for flat file schema writer.
   */
-case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset, val missChar: Char) {
-  def this(enforceRequires: Boolean, charSet: Charset, nullFill: Boolean) =
-    this(enforceRequires, charSet, (if (nullFill) 0.toChar else ' '))
+case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset, val nullFill: Boolean) {
+  def this(enforceRequires: Boolean, charSet: Charset, useChar: Char) =
+    this(enforceRequires, charSet, (if (useChar == 0) true else false))
+  val missChar: Char = if (nullFill) 0.toChar else ' '
 }
 
 /** Base writer for flat file documents. */

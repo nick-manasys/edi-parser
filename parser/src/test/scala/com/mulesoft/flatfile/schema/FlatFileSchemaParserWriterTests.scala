@@ -212,7 +212,7 @@ values:
 //    YamlSupport.writeMap(input, ywriter)
 //    println(ywriter.toString)
     val out = new jio.ByteArrayOutputStream
-    val writer = new FlatFileStructureWriter(out, testStructure, FlatFileWriterConfig(true, ASCII_CHARSET, ' '))
+    val writer = new FlatFileStructureWriter(out, testStructure, new FlatFileWriterConfig(true, ASCII_CHARSET, ' '))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
 //    println(text)
@@ -240,7 +240,7 @@ values:
 //    YamlSupport.writeMap(input, ywriter)
 //    println(ywriter.toString)
     val out = new jio.ByteArrayOutputStream
-    val writer = new FlatFileStructureWriter(out, altStructure1, FlatFileWriterConfig(true, ASCII_CHARSET, ' '))
+    val writer = new FlatFileStructureWriter(out, altStructure1, new FlatFileWriterConfig(true, ASCII_CHARSET, ' '))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
@@ -260,7 +260,7 @@ values:
 //    YamlSupport.writeMap(input, ywriter)
 //    println(ywriter.toString)
     val out = new jio.ByteArrayOutputStream
-    val writer = new FlatFileStructureWriter(out, altStructure2, FlatFileWriterConfig(true, ASCII_CHARSET, ' '))
+    val writer = new FlatFileStructureWriter(out, altStructure2, new FlatFileWriterConfig(true, ASCII_CHARSET, ' '))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
@@ -278,7 +278,7 @@ values:
     result.isSuccess should be (true)
     val input = result.get
     val out = new jio.ByteArrayOutputStream
-    val writer = new FlatFileStructureWriter(out, altStructure3, FlatFileWriterConfig(true, ASCII_CHARSET, ' '))
+    val writer = new FlatFileStructureWriter(out, altStructure3, new FlatFileWriterConfig(true, ASCII_CHARSET, ' '))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
@@ -294,7 +294,7 @@ values:
     result.isSuccess should be (true)
     val input = result.get
     val out = new jio.ByteArrayOutputStream
-    val writer = new FlatFileSegmentWriter(out, fixedSegment, FlatFileWriterConfig(true, ASCII_CHARSET, true))
+    val writer = new FlatFileSegmentWriter(out, fixedSegment, new FlatFileWriterConfig(true, ASCII_CHARSET, true))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
@@ -315,7 +315,7 @@ values:
     result.isSuccess should be (true)
     val input = result.get
     val out = new jio.ByteArrayOutputStream
-    val writer = new FlatFileSegmentWriter(out, fixedSegment, FlatFileWriterConfig(true, ASCII_CHARSET, true))
+    val writer = new FlatFileSegmentWriter(out, fixedSegment, new FlatFileWriterConfig(true, ASCII_CHARSET, true))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray)
 //    val swriter = new StringWriter
@@ -358,7 +358,7 @@ values:
     val input = result.get
     val out = new jio.ByteArrayOutputStream
     val writer = new FlatFileSegmentWriter(out, copybookSegment3a,
-      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, false))
+      new FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, false))
     writer.write(input).get //isSuccess should be (true)
 //    val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
 //    println(text)
@@ -380,7 +380,7 @@ values:
     segdata.put("SR-NAICSINQ-RQ", rqdata)
     val out = new jio.ByteArrayOutputStream
     val writer = new FlatFileSegmentWriter(out, copybookSegment3a,
-      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
+      new FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
     writer.write(input).get //isSuccess should be (true)
     val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
     text.length should be (408)
@@ -398,20 +398,20 @@ values:
     rqdata.put("SR-USERINFO-RQ", userdata)
     val out1 = new jio.ByteArrayOutputStream
     val writer1 = new FlatFileSegmentWriter(out1, copybookSegment3b,
-      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
+      new FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
     val thrown1 = intercept[WriteException] { writer1.write(input).get }
     thrown1.getMessage.contains("SR-CONTAINERHEADER") should be (true)
     val headdata = new ValueMapImpl
     segdata.put("SR-CONTAINERHEADER", headdata)
     val out2 = new jio.ByteArrayOutputStream
     val writer2 = new FlatFileSegmentWriter(out2, copybookSegment3b,
-      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
+      new FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
     val thrown2 = intercept[WriteException] { writer2.write(input).get }
     thrown2.getMessage.contains("SR-CHANNEL-CH") should be (true)
     headdata.put("SR-CHANNEL-CH", "ABC")
     val out3 = new jio.ByteArrayOutputStream
     val writer3 = new FlatFileSegmentWriter(out3, copybookSegment3b,
-      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
+      new FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
     writer3.write(input).get
     val text = new String(out3.toByteArray, EdiConstants.ISO88591_CHARSET)
     text.length should be (410)
@@ -462,7 +462,7 @@ values:
   it should "should write and read correctly using spaces" in {
     val out = new jio.ByteArrayOutputStream
     val writer = new FlatFileSegmentWriter(out, copybookSegment3a,
-      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
+      new FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, ' '))
     writer.write(buildSegment3aData).get //isSuccess should be (true)
     val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
     text.length should be (408)
@@ -477,7 +477,7 @@ values:
   it should "should write and read correctly using zeroes" in {
     val out = new jio.ByteArrayOutputStream
     val writer = new FlatFileSegmentWriter(out, copybookSegment3a,
-      FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, 0))
+      new FlatFileWriterConfig(true, EdiConstants.ISO88591_CHARSET, 0.toChar))
     writer.write(buildSegment3aData).get //isSuccess should be (true)
     val text = new String(out.toByteArray, EdiConstants.ISO88591_CHARSET)
     text.length should be (408)

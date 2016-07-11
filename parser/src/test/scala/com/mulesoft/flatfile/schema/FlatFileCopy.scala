@@ -25,7 +25,7 @@ object FlatFileCopy {
     outFile.createNewFile()
     val out = new FileOutputStream(outFile)
     val writer = new FlatFileStructureWriter(out, testSchema.structures.values.head,
-      FlatFileWriterConfig(true, Charset.forName("US-ASCII"), ' '))
+      new FlatFileWriterConfig(true, Charset.forName("US-ASCII"), ' '))
     writer.write(data).get //isSuccess should be (true)
     println(s"Copy completed in total time of ${(System.currentTimeMillis - start) / 1000} seconds")
   }
