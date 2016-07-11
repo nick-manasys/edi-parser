@@ -65,7 +65,7 @@ case class EdifactError(@BeanProperty val segment: Int, @BeanProperty val fatal:
 }
 
 case class EdifactInterchangeParser(in: InputStream, defaultDelims: String, handler: EdifactEnvelopeHandler)
-  extends DelimiterSchemaParser(new EdifactLexer(in, defaultDelims), StorageContext.workingContext) {
+  extends DelimiterSchemaParser(new EdifactLexer(in, defaultDelims), StorageContext.workingContext("edifact")) {
 
   /** Exception reporting problem in interchange. */
   case class EdifactInterchangeException(error: SyntaxError, text: String, cause: Throwable = null)

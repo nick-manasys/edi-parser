@@ -63,7 +63,7 @@ case class X12Error(@BeanProperty val segment: Int, @BeanProperty val fatal: Boo
 
 class X12InterchangeParser(in: InputStream, charSet: Charset, handler: X12EnvelopeHandler) extends SchemaJavaDefs {
 
-  val storageContext = StorageContext.workingContext
+  val storageContext = StorageContext.workingContext("x12")
 
   // keys in message map (excludes structure key)
   val structureDescriptor =

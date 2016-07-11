@@ -8,11 +8,11 @@ import java.{ lang => jl, util => ju }
 /** Storage context, used to track all map descriptors and assign indexes.
   */
 abstract class StorageContext {
-  
+
   var mapNumber = 0
 
   val maximumMemory: Option[Long]
-  
+
   val emptyDescriptor: MapDescriptor
 
   def newMap(desc: MapDescriptor): ju.Map[String, Object]
@@ -22,7 +22,7 @@ abstract class StorageContext {
   def newValueSeq: ju.List[Object]
 
   def newMapSeq: ju.List[ju.Map[String, Object]]
-  
+
   def newOut: File
 
   def getDescriptor(index: Int): MapDescriptor
@@ -44,7 +44,7 @@ abstract class StorageContext {
 class MemoryStorageContext extends StorageContext {
 
   val maximumMemory = None
-  
+
   def newMap(desc: MapDescriptor) = new ju.HashMap[String, Object].asInstanceOf[ju.Map[String, Object]]
 
   def newValueSeq = new ju.ArrayList[Object]
@@ -93,7 +93,7 @@ class StorableStorageContext(val maxMemory: Long) extends StorageContext {
 trait MemoryResident {
   def memoryId: String
 }
-  
+
 class MemoryResidentMap(id: String) extends ju.HashMap with MemoryResident {
   def memoryId = id
 }
@@ -103,8 +103,15 @@ case class MapDescriptor(index: Int, keys: IndexedSeq[String]) {
 }
 
 object StorageContext {
-  def workingContext = sys.props.get("com.mulesoft.ltmdata.memoryLimit") match {
-    case Some(v) => new StorableStorageContext(v.toLong)
-    case None => new MemoryStorageContext
+
+  val baseMemoryLimit = "com.mulesoft.ltmdata.memoryLimit"
+
+  def workingContext(suffix: String): StorageContext = {
+    val key = if (suffix.isEmpty) baseMemoryLimit else baseMemoryLimit + '.' + suffix
+    sys.props.get(key) match {
+      case Some(v) => new StorableStorageContext(v.toLong)
+      case None => new MemoryStorageContext
+    }
   }
+  def workingContext: StorageContext = workingContext("")
 }

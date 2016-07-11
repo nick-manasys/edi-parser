@@ -21,7 +21,7 @@ import com.mulesoft.ltmdata.StorageContext
 abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: Option[Structure],
   discardExcess: Boolean, fillChar: Int, missChar: Int)
     extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), fillChar == -1, discardExcess, fillChar,
-      missChar), StorageContext.workingContext) {
+      missChar), StorageContext.workingContext("flatfile")) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]

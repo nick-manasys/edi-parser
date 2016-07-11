@@ -41,7 +41,7 @@ trait HL7EnvelopeHandler {
 
 /** Parser for HL7 EDI documents. */
 case class HL7SchemaParser(in: InputStream, evnhand: HL7EnvelopeHandler, config: HL7ParserConfig)
-    extends DelimiterSchemaParser(new HL7Lexer(in, config.substitutionChar), StorageContext.workingContext) {
+    extends DelimiterSchemaParser(new HL7Lexer(in, config.substitutionChar), StorageContext.workingContext("hl7")) {
 
   import HL7SchemaDefs._
   import HL7Acknowledgment._
