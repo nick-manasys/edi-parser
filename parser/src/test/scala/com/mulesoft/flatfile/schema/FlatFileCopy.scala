@@ -17,15 +17,16 @@ object FlatFileCopy {
   def main(args: Array[String]): Unit = {
     val start = System.currentTimeMillis
     val ins = new FileInputStream(new File(args(0)))
+    val config = FlatFileParserConfig(false, true, false, false, -1)
     val parser = new FlatFileStructureParser(ins, EdiConstants.ISO88591_CHARSET, testSchema.structures.values.head,
-      false, -1, -1)
+      config)
     val data = parser.parse.get
     println(s"Input took ${(System.currentTimeMillis - start) / 1000} seconds")
     val outFile = new File(args(1))
     outFile.createNewFile()
     val out = new FileOutputStream(outFile)
     val writer = new FlatFileStructureWriter(out, testSchema.structures.values.head,
-      new FlatFileWriterConfig(true, Charset.forName("US-ASCII"), ' '))
+      new FlatFileWriterConfig(true, Charset.forName("US-ASCII"), "\n", ' '))
     writer.write(data).get //isSuccess should be (true)
     println(s"Copy completed in total time of ${(System.currentTimeMillis - start) / 1000} seconds")
   }

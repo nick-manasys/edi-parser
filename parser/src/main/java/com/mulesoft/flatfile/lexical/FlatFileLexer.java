@@ -26,11 +26,14 @@ public class FlatFileLexer extends LexerBase
     /** Allow raw access to data (disables end-of-line checks). */
     private final boolean allowRaw;
     
-    /** Discard line past end of data used. */
-    private final boolean discardExtra;
+    /** Records are terminated (CR and/or LF) lines. */
+    private final boolean terminatedLines;
     
-    /** Fill character for short line (-1 if no fill). */
-    private final int fillShort;
+    /** Discard line past end of data used. */
+    private final boolean allowLong;
+    
+    /** Allow short line (reporting values missing). */
+    private final boolean allowShort;
     
     /** Character used for missing values in line (-1 if no missing). */
     private final int missingChar;
@@ -47,16 +50,19 @@ public class FlatFileLexer extends LexerBase
      * @param is input
      * @param enc character set for reading stream
      * @param raw support reading raw values
-     * @param discard trailing data on line ignored (to end of line)
-     * @param fill character used as fill for short line (-1 if no fill)
+     * @param terminated input structured as terminated lines flag
+     * @param longOk trailing data on line ignored (to end of line)
+     * @param shortOk lines with missing trailing values allowed (reported missing)
      * @param miss character used for fields with no value (-1 if all fields present)
      */
-    public FlatFileLexer(InputStream is, Charset enc, boolean raw, boolean discard, int fill, int miss) {
+    public FlatFileLexer(InputStream is, Charset enc, boolean raw, boolean terminated, boolean longOk, boolean shortOk,
+        int miss) {
         super(is, -1);
         encoding = enc;
         allowRaw = raw;
-        discardExtra = discard;
-        fillShort = fill;
+        terminatedLines = terminated;
+        allowLong = longOk;
+        allowShort = shortOk;
         missingChar = miss;
         reader = typedReader = new LineBasedReader(stream, enc);
     }
@@ -83,7 +89,7 @@ public class FlatFileLexer extends LexerBase
      * @throws IOException 
      */
     public boolean nextLine() throws IOException {
-        return typedReader.nextLine(discardExtra);
+        return typedReader.nextLine(allowLong);
     }
     
     /**
@@ -167,6 +173,15 @@ public class FlatFileLexer extends LexerBase
         } else {
             throw new IllegalStateException("Raw data is not supported for character encoding " + encoding.name());
         }
+    }
+    
+    /**
+     * Check if at end of line.
+     * 
+     * @return <code>true</code> if at end of line, <code>false</code> if not
+     */
+    public boolean atEnd() {
+        return typedReader.lineEnd;
     }
     
     /**
@@ -279,7 +294,7 @@ public class FlatFileLexer extends LexerBase
             int chr = '\n';
             if (!lineEnd) {
                 while ((chr = read()) != -1) {
-                    if (!force || chr == '\n' || chr == '\r') {
+                    if (!force || (terminatedLines && (chr == '\n' || chr == '\r'))) {
                         break;
                     }
                 }
@@ -288,10 +303,12 @@ public class FlatFileLexer extends LexerBase
                 currentType = ItemType.END;
                 return false;
             }
-            if (chr != '\n' && chr != '\r') {
-                throw new LexicalException("Missing expected line break after line " + segmentNumber);
+            if (terminatedLines) {
+                if (chr != '\n' && chr != '\r') {
+                    throw new LexicalException("Missing expected line break after line " + segmentNumber);
+                }
+                while ((chr = reader.read()) == '\n' || chr == '\r');
             }
-            while ((chr = reader.read()) == '\n' || chr == '\r');
             if (chr == -1) {
                 currentType = ItemType.END;
                 return false;
@@ -310,23 +327,20 @@ public class FlatFileLexer extends LexerBase
         protected boolean readToken(int length) throws IOException {
             boolean hasData = false;
             for (int i = 0; i < length; i++) {
-                int chr = fillShort;
-                if (!lineEnd) {
-                    chr = read();
-                    if (chr == -1) {
-                        if (fillShort >= 0) {
-                            lineEnd = true;
-                            chr = fillShort;
-                        } else {
-                            throw new LexicalException("Unexpected end of file in line " + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
-                        }
-                    } else if (!allowRaw && (chr == '\r' || chr == '\n')) {
-                        if (fillShort >= 0) {
-                            lineEnd = true;
-                            chr = fillShort;
-                        } else {
-                            throw new LexicalException("Unexpected end of line" + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
-                        }
+                int chr = read();
+                if (chr == -1) {
+                    if (allowShort && tokenBuilder.length() == 0) {
+                        lineEnd = true;
+                        break;
+                    } else {
+                        throw new LexicalException("Unexpected end of file in line " + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
+                    }
+                } else if (!allowRaw && terminatedLines && (chr == '\r' || chr == '\n')) {
+                    if (allowShort && tokenBuilder.length() == 0) {
+                        lineEnd = true;
+                        break;
+                    } else {
+                        throw new LexicalException("Unexpected end of line" + segmentNumber + " (read " + i + " of expected " + length + " characters in field)");
                     }
                 }
                 if (chr != missingChar) {

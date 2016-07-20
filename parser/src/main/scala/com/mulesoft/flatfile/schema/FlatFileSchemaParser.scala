@@ -3,12 +3,10 @@ package com.mulesoft.flatfile.schema
 import scala.annotation.tailrec
 import scala.collection.mutable.Buffer
 import scala.util.{ Success, Try }
-
 import java.io.{ InputStream, IOException }
 import java.nio.charset.Charset
 import java.{ util => ju }
-
-import com.mulesoft.flatfile.lexical.{ EdiConstants, ErrorHandler, IBM037, LexerBase, LexicalException, FlatFileLexer }
+import com.mulesoft.flatfile.lexical.{ EdiConstants, ErrorHandler, FlatFileLexer, IBM037, LexerBase, LexicalException, TypeFormat }
 import com.mulesoft.flatfile.lexical.EdiConstants.ItemType
 import com.mulesoft.flatfile.lexical.EdiConstants.ItemType._
 import com.mulesoft.flatfile.lexical.ErrorHandler.ErrorCondition
@@ -17,11 +15,15 @@ import EdiSchema._
 import SchemaJavaValues._
 import com.mulesoft.ltmdata.StorageContext
 
+/** Configuration parameters for flat file schema parser. */
+case class FlatFileParserConfig(enforceRequires: Boolean, terminated: Boolean, longOk: Boolean, shortOk: Boolean,
+  missChar: Int)
+
 /** Base parser for flat file documents. */
-abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: Option[Structure],
-  discardExcess: Boolean, fillChar: Int, missChar: Int)
-    extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), fillChar == -1, discardExcess, fillChar,
-      missChar), StorageContext.workingContext("flatfile")) {
+abstract class FlatFileParserBase(in: InputStream, charSet: Charset, binary: Boolean, structOpt: Option[Structure],
+  config: FlatFileParserConfig)
+  extends SchemaParser(new FlatFileLexer(in, IBM037.replaceCharset(charSet), binary, config.terminated, config.longOk,
+    config.shortOk, config.missChar), StorageContext.workingContext("flatfile")) {
 
   /** Typed lexer, for access to format-specific conversions and support. */
   val lexer = baseLexer.asInstanceOf[FlatFileLexer]
@@ -37,7 +39,7 @@ abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: 
         val tag = lexer.loadTagField(offset, length)
         targets.get(tag) match {
           case Some(t) => lookupSegment(t)
-          case _ => None
+          case _       => None
         }
       case TagChoice(left, right) => lookupChoice(left, right)
     }
@@ -57,13 +59,13 @@ abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: 
       case Some(struct) =>
         lookupSegment(struct.tagLookup) match {
           case Some(s) => currentSegment = s
-          case _ =>
+          case _       =>
         }
       case _ => throw new IllegalStateException("Not in a structure")
     }
   }
 
-  def describeSegment = if (currentSegment == null) "" else s" ('${currentSegment.ident}')"
+  def describeSegment = if (currentSegment == null || currentSegment.ident == "") "" else s" ('${currentSegment.ident}')"
 
   def describeError(fatal: Boolean) = if (fatal) "fatal" else "recoverable"
 
@@ -86,6 +88,7 @@ abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: 
 
   def segmentError(fatal: Boolean, text: String) = {
     logErrorInMessage(fatal, false, text)
+    if (fatal) throw new LexicalException(s"$text (at $positionInMessage)")
   }
 
   override def isEnvelopeSegment(ident: String) = false
@@ -94,15 +97,24 @@ abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: 
     def storeValue(value: Object) = {
       if (userValue(comp.usage)) map put (comp.key, value)
     }
+    /** Handle loading the input for a field. This is a bit ugly, but by special-casing binary values it avoids missing
+      * values in the parse map when the value is zero but we're not at the end of the line.
+      */
+    def load(format: TypeFormat) = lexer.load(format.maxLength) || (!lexer.atEnd && format.typeCode == "Binary")
     comp match {
       case elemComp: ElementComponent =>
         val elem = elemComp.element
+        val format = elem.typeFormat
         if (comp.count != 1) {
           val complist = storageContext.newValueSeq
           (1 to comp.count).foreach(_ =>
-            if (lexer.load(elem.typeFormat.maxLength)) complist.add(elem.typeFormat.parse(lexer)))
+            if (load(format)) complist.add(format.parse(lexer)))
           if (complist.size > 0) storeValue(complist)
-        } else if (lexer.load(elem.typeFormat.maxLength)) storeValue(elem.typeFormat.parse(lexer))
+          else if (config.enforceRequires) segmentError(true, s"Missing required value ${elemComp.key}")
+        } else {
+          if (load(format)) storeValue(format.parse(lexer))
+          else if (config.enforceRequires) segmentError(true, s"Missing required value ${elemComp.key}")
+        }
       case compComp: CompositeComponent => {
         val composite = compComp.composite
         val descript = storageContext.addDescriptor(composite.keys)
@@ -155,12 +167,12 @@ abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: 
   /** Report segment error. */
   override def segmentError(ident: String, error: ComponentErrors.ComponentError, state: ErrorStates.ErrorState, num: Int) = {
     error match {
-      case ComponentErrors.TooManyLoops => segmentError(true, s"too many loop instances $ident")
+      case ComponentErrors.TooManyLoops       => segmentError(true, s"too many loop instances $ident")
       case ComponentErrors.TooManyRepetitions => segmentError(true, s"too many segment repetitions $ident")
-      case ComponentErrors.MissingRequired => segmentError(true, s"missing required segment $ident")
-      case ComponentErrors.UnknownSegment => segmentError(false, s"unknown segment $ident")
-      case ComponentErrors.OutOfOrderSegment => segmentError(true, s"out of order segment $ident")
-      case ComponentErrors.UnusedSegment => segmentError(false, s"unused segment $ident")
+      case ComponentErrors.MissingRequired    => segmentError(true, s"missing required segment $ident")
+      case ComponentErrors.UnknownSegment     => segmentError(false, s"unknown segment $ident")
+      case ComponentErrors.OutOfOrderSegment  => segmentError(true, s"out of order segment $ident")
+      case ComponentErrors.UnusedSegment      => segmentError(false, s"unused segment $ident")
     }
     lexer.discardSegment
   }
@@ -176,11 +188,13 @@ abstract class FlatFileParserBase(in: InputStream, charSet: Charset, structOpt: 
   def parse: Try[ValueMap]
 }
 
+object FlatFileSchemaParser {
+  def hasBinary(typeCodes: Set[String]) = typeCodes.contains("Binary") || typeCodes.contains("Packed")
+}
+
 /** Parser for structured flat file documents. */
-class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure, discardExcess: Boolean, fillChar: Int,
-    missChar: Int) extends FlatFileParserBase(in, cs, Some(struct), discardExcess, fillChar, missChar) {
-  
-  def this(in: InputStream, cs: Charset, struct: Structure) = this(in, cs, struct, false, -1, 0)
+class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure, config: FlatFileParserConfig)
+  extends FlatFileParserBase(in, cs, FlatFileSchemaParser.hasBinary(struct.typeCodes), Some(struct), config) {
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {
@@ -200,10 +214,8 @@ class FlatFileStructureParser(in: InputStream, cs: Charset, struct: Structure, d
 }
 
 /** Parser for single repeated segment documents. */
-class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment, discardExcess: Boolean, fillChar: Int,
-    missChar: Int) extends FlatFileParserBase(in, cs, None, discardExcess, fillChar, missChar) {
-  
-  def this(in: InputStream, cs: Charset, segment: Segment) = this(in, cs, segment, false, -1, 0)
+class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment, config: FlatFileParserConfig)
+  extends FlatFileParserBase(in, cs, FlatFileSchemaParser.hasBinary(segment.typeCodes), None, config) {
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {
@@ -223,10 +235,9 @@ class FlatFileSegmentParser(in: InputStream, cs: Charset, segment: Segment, disc
 }
 
 /** Parser for documents containing any defined segments in any order. */
-class FlatFileUnorderedParser(in: InputStream, cs: Charset, schema: EdiSchema, discardExcess: Boolean, fillChar: Int,
-  missChar: Int) extends FlatFileParserBase(in, cs, None, discardExcess, fillChar, missChar) {
-  
-  def this(in: InputStream, cs: Charset, schema: EdiSchema) = this(in, cs, schema, false, -1, 0)
+class FlatFileUnorderedParser(in: InputStream, cs: Charset, schema: EdiSchema, config: FlatFileParserConfig)
+  extends FlatFileParserBase(in, cs, schema.segments.values.exists { s => FlatFileSchemaParser.hasBinary(s.typeCodes) },
+    None, config) {
 
   /** Parse the input message. */
   override def parse: Try[ValueMap] = Try(try {

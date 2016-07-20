@@ -17,16 +17,13 @@ import SchemaJavaValues._
 
 /** Configuration parameters for flat file schema writer.
   */
-case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset, val nullFill: Boolean) {
-  def this(enforceRequires: Boolean, charSet: Charset, useChar: Char) =
-    this(enforceRequires, charSet, (if (useChar == 0) true else false))
-  val missChar: Char = if (nullFill) 0.toChar else ' '
-}
+case class FlatFileWriterConfig(val enforceRequires: Boolean, val charSet: Charset, val segTerm: String,
+  val missChar: Char)
 
 /** Base writer for flat file documents. */
 abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfig)
-  extends SchemaWriter(new FlatFileWriter(out, IBM037.replaceCharset(config.charSet)), config.enforceRequires)
-  with UtilityBase {
+  extends SchemaWriter(new FlatFileWriter(out, IBM037.replaceCharset(config.charSet), config.segTerm),
+    config.enforceRequires) with UtilityBase {
 
   /** Typed writer, for access to format-specific conversions and support. */
   val writer = baseWriter.asInstanceOf[FlatFileWriter]

@@ -158,14 +158,22 @@ object EdiSchema {
       } else true
   }
 
-  private def collectKeys(comps: List[SegmentComponent], keys: List[String]): Array[String] =
-    comps.foldLeft(keys) { (acc, comp) =>
+  private def collectKeys(comps: List[SegmentComponent], prior: List[String]): Array[String] =
+    comps.foldLeft(prior) { (acc, comp) =>
       if (comp.count == 1) comp match {
         case ec: ElementComponent   => ec.key :: acc
         case cc: CompositeComponent => cc.composite.keys.toList ::: acc
       }
       else comp.key :: acc
     }.reverse.toArray
+
+  private def collectTypeCodes(comps: List[SegmentComponent], prior: Set[String]): Set[String] =
+    comps.foldLeft(prior) { (acc, comp) =>
+      comp match {
+        case ec: ElementComponent   => acc + ec.element.typeFormat.typeCode
+        case cc: CompositeComponent => collectTypeCodes(cc.composite.components, acc)
+      }
+    }
 
   /** Composite definition.
     * @param id unique identifier (empty string if inlined)
@@ -207,6 +215,7 @@ object EdiSchema {
   case class Segment(val ident: String, val name: String, val components: List[SegmentComponent],
     val rules: List[OccurrenceRule]) {
     val keys = collectKeys(components, Nil)
+    val typeCodes = collectTypeCodes(components, Set[String]())
   }
 
   /** Segment position within a structure. Position numbers are reused across different tables of a structure
@@ -722,6 +731,8 @@ object EdiSchema {
         })
       segmentsUsed.foldLeft(Set[Element]())((acc, seg) => referencer(seg.components, acc))
     }
+    
+    val typeCodes = segmentsUsed.foldLeft(Set[String]())((acc, s) => acc ++ s.typeCodes)
 
     /** Ids of all segments used in structure at any level. */
     val segmentIds = segmentsUsed.map(segment => segment.ident)

@@ -38,9 +38,10 @@ public class FlatFileWriter extends WriterBase
      *
      * @param os output
      * @param enc character set encoding
+     * @param segsep inter-segment separator (<code>null</code> if none)
      */
-    public FlatFileWriter(OutputStream os, Charset enc) {
-        super(new LineBasedWriter(os, enc), '.');
+    public FlatFileWriter(OutputStream os, Charset enc, String segsep) {
+        super(new LineBasedWriter(os, enc, segsep), '.');
         encoding = enc;
     }
 
@@ -219,11 +220,15 @@ public class FlatFileWriter extends WriterBase
      */
     private static class LineBasedWriter extends FilterWriter {
         
+        /** Separator between segments (<code>null</code> if none). */
+        private final String segmentSeparator;
+        
         /** Positioned at end of segment flag. */
         private boolean atEnd;
 
-        protected LineBasedWriter(OutputStream os, Charset encoding) {
+        protected LineBasedWriter(OutputStream os, Charset encoding, String segsep) {
             super(new BufferedWriter(new OutputStreamWriter(os, encoding)));
+            segmentSeparator = segsep;
         }
         
         /**
@@ -241,7 +246,7 @@ public class FlatFileWriter extends WriterBase
         private void checkEnd() throws IOException {
             if (atEnd) {
                 atEnd = false;
-                super.write('\n');
+                super.write(segmentSeparator);
             }
         }
 
