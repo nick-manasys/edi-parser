@@ -44,16 +44,16 @@ class CopybookImportTests extends FlatSpec with Matchers {
     cbi.convertPic("E0", "XXXXX", DisplayUsage, false, map) should be (Element("", "E0", StringFormat(5, FillMode.LEFT)))
     cbi.convertPic("E0", "X(3)", DisplayUsage, false, map) should be (Element("", "E0", StringFormat(3, FillMode.LEFT)))
     cbi.convertPic("E0", "X(5)", DisplayUsage, false, map) should be (Element("", "E0", StringFormat(5, FillMode.LEFT)))
-    cbi.convertPic("E0", "999", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(3, NumberSign.UNSIGNED, FillMode.LEFT)))
-    cbi.convertPic("E0", "99999", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(5, NumberSign.UNSIGNED, FillMode.LEFT)))
-    cbi.convertPic("E0", "9(3)", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(3, NumberSign.UNSIGNED, FillMode.LEFT)))
-    cbi.convertPic("E0", "9(5)", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(5, NumberSign.UNSIGNED, FillMode.LEFT)))
-    cbi.convertPic("E0", "999V9", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(4, NumberSign.UNSIGNED, 1, FillMode.LEFT, false)))
-    cbi.convertPic("E0", "99V9999", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.LEFT, false)))
-    cbi.convertPic("E0", "9(3)V9", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(4, NumberSign.UNSIGNED, 1, FillMode.LEFT, false)))
-    cbi.convertPic("E0", "9(2)V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.LEFT, false)))
-    cbi.convertPic("E0", "99V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.LEFT, false)))
-    cbi.convertPic("E0", "S99V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 4, FillMode.LEFT, true)))
+    cbi.convertPic("E0", "999", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(3, NumberSign.UNSIGNED, FillMode.ZEROES)))
+    cbi.convertPic("E0", "99999", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(5, NumberSign.UNSIGNED, FillMode.ZEROES)))
+    cbi.convertPic("E0", "9(3)", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(3, NumberSign.UNSIGNED, FillMode.ZEROES)))
+    cbi.convertPic("E0", "9(5)", DisplayUsage, false, map) should be (Element("", "E0", IntegerFormat(5, NumberSign.UNSIGNED, FillMode.ZEROES)))
+    cbi.convertPic("E0", "999V9", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(4, NumberSign.UNSIGNED, 1, FillMode.ZEROES, false)))
+    cbi.convertPic("E0", "99V9999", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.ZEROES, false)))
+    cbi.convertPic("E0", "9(3)V9", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(4, NumberSign.UNSIGNED, 1, FillMode.ZEROES, false)))
+    cbi.convertPic("E0", "9(2)V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.ZEROES, false)))
+    cbi.convertPic("E0", "99V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.UNSIGNED, 4, FillMode.ZEROES, false)))
+    cbi.convertPic("E0", "S99V9(4)", DisplayUsage, false, map) should be (Element("", "E0", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 4, FillMode.ZEROES, true)))
   }
   
   it should "throw exception on error in pattern" in {
@@ -192,13 +192,13 @@ class CopybookImportTests extends FlatSpec with Matchers {
         val comps = segment.components
         comps.length should be (4)
         val comp1 = comps(0)
-        comp1 should be (ElementComponent(Element("", "UNSIGNED-INTEGER", IntegerFormat(4, NumberSign.UNSIGNED, FillMode.LEFT, false)), None, "UNSIGNED-INTEGER", -1, OptionalUsage, 1))
+        comp1 should be (ElementComponent(Element("", "UNSIGNED-INTEGER", IntegerFormat(4, NumberSign.UNSIGNED, FillMode.ZEROES, false)), None, "UNSIGNED-INTEGER", -1, OptionalUsage, 1))
         val comp2 = comps(1)
-        comp2 should be (ElementComponent(Element("", "SIGNED-INTEGER", IntegerFormat(4, NumberSign.ALWAYS_RIGHT, FillMode.LEFT, true)), None, "SIGNED-INTEGER", -1, OptionalUsage, 1))
+        comp2 should be (ElementComponent(Element("", "SIGNED-INTEGER", IntegerFormat(4, NumberSign.ALWAYS_RIGHT, FillMode.ZEROES, true)), None, "SIGNED-INTEGER", -1, OptionalUsage, 1))
         val comp3 = comps(2)
         comp3 should be (ElementComponent(Element("", "SIGNED-DECIMAL", PackedDecimalFormat(4, 0, true)), None, "SIGNED-DECIMAL", -1, OptionalUsage, 1))
         val comp4 = comps(3)
-        comp4 should be (ElementComponent(Element("", "SIGNED-IMPLICIT", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 2, FillMode.LEFT, true)), None, "SIGNED-IMPLICIT", -1, OptionalUsage, 1))
+        comp4 should be (ElementComponent(Element("", "SIGNED-IMPLICIT", DecimalFormat(6, NumberSign.ALWAYS_RIGHT, 2, FillMode.ZEROES, true)), None, "SIGNED-IMPLICIT", -1, OptionalUsage, 1))
       case None => fail
     }
   }

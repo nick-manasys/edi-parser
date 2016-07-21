@@ -295,13 +295,6 @@ class CopybookImport(in: InputStream, enc: String) {
     convrunr(pattern, count)
   }
 
-  def fillMode(map: StringMap): FillMode = {
-    map.get(DataDescriptionParser.justifiedKey) match {
-      case Some(_) => FillMode.RIGHT
-      case None    => FillMode.LEFT
-    }
-  }
-
   def numberSign(signed: Boolean, map: StringMap): NumberSign = {
     if (signed) map.get(DataDescriptionParser.signKey) match {
       case Some("LEADING") => NumberSign.ALWAYS_LEFT
@@ -326,8 +319,14 @@ class CopybookImport(in: InputStream, enc: String) {
   }
 
   def convertPic(name: String, pic: String, form: UsageFormat, signed: Boolean, parseMap: StringMap): Element = {
+  
+    def fillMode: FillMode = {
+      parseMap.get(DataDescriptionParser.justifiedKey) match {
+        case Some(_) => FillMode.RIGHT
+        case None    => FillMode.LEFT
+      }
+    }
 
-    val mode = fillMode(parseMap)
     val zoned = !(parseMap.contains(DataDescriptionParser.separateKey))
 
     def convertImplicitDisplay(pic: Seq[Char], lead: Int, sign: NumberSign): Element = {
@@ -337,8 +336,8 @@ class CopybookImport(in: InputStream, enc: String) {
       if (rem.nonEmpty) dataError("Invalid expression in PIC clause")
       else {
         val format =
-          if (fract == 0) IntegerFormat(length, sign, mode, zoned && signed)
-          else DecimalFormat(length, sign, fract, mode, zoned && signed)
+          if (fract == 0) IntegerFormat(length, sign, FillMode.ZEROES, zoned && signed)
+          else DecimalFormat(length, sign, fract, FillMode.ZEROES, zoned && signed)
         Element("", name, format)
       }
     }
@@ -374,7 +373,7 @@ class CopybookImport(in: InputStream, enc: String) {
       case 'X' =>
         val (lead, rest) = convertReps('X', pic.tail, 1)
         if (rest.nonEmpty) dataError("Invalid expression in PIC clause")
-        else Element("", name, StringFormat(lead, mode))
+        else Element("", name, StringFormat(lead, fillMode))
       case 'S' =>
         convertPic(name, pic.tail, form, true, parseMap)
       case '9' =>
