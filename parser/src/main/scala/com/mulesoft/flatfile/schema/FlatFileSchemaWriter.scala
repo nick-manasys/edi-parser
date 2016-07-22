@@ -38,11 +38,14 @@ abstract class FlatFileWriterBase(out: OutputStream, config: FlatFileWriterConfi
   /** Write a value from map. */
   override def writeValue(map: ValueMap, typ: ItemType, skip: Boolean, comp: SegmentComponent): Unit = {
 
+    /** Handle writing the output for a field. It special-cases binary values to avoid writing invalid fill characters.
+      */
     def writeSimple(value: Any, ec: ElementComponent) = {
       val element = ec.element
       val format = element.typeFormat
       if (value != null) format.write(value, writer)
       else if (ec.value.isDefined) format.write(ec.value.get, writer)
+      else if (format.typeCode == "Binary") format.write(Integer.valueOf(0), writer)
       else writer.writeChar(format.maxLength, config.missChar)
     }
 
