@@ -325,6 +325,9 @@ public class FlatFileLexer extends LexerBase
          * @throws IOException
          */
         protected boolean readToken(int length) throws IOException {
+            if (lineEnd) {
+                return false;
+            }
             boolean hasData = false;
             for (int i = 0; i < length; i++) {
                 int chr = read();
