@@ -62,7 +62,7 @@ class YamlReader extends YamlDefs with SchemaJavaDefs {
       if (values.containsKey(usageKey)) {
         val usage = convertUsage(getRequiredString(usageKey, values))
         usage match {
-          case MandatoryUsage | UnusedUsage | IgnoredUsage => usage
+          case MandatoryUsage | UnusedUsage | IgnoredUsage | OptionalUsage => usage
           case _ => throw new IllegalArgumentException(s"Invalid usage value ${usage.code} for fixed width format")
         }
       } else OptionalUsage
