@@ -1,0 +1,38 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'ORU_R01'
+name: 'ORU_R01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- groupId: 'PATIENT_RESULT'
+  count: '>1'
+  usage: M
+  items: 
+  - groupId: 'PATIENT'
+    usage: O
+    items: 
+    - { idRef: 'PID', position: '04', usage: M }
+    - { idRef: 'PD1', position: '06', usage: O }
+    - { idRef: 'NK1', position: '10', usage: O, count: '>1' }
+    - { idRef: 'NTE', position: '15', usage: O, count: '>1' }
+    - groupId: 'VISIT'
+      usage: O
+      items: 
+      - { idRef: 'PV1', position: '19', usage: M }
+      - { idRef: 'PV2', position: '21', usage: O }
+  - groupId: 'ORDER_OBSERVATION'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'ORC', position: '27', usage: O }
+    - { idRef: 'OBR', position: '29', usage: M }
+    - { idRef: 'NTE', position: '32', usage: O, count: '>1' }
+    - groupId: 'OBSERVATION'
+      count: '>1'
+      usage: M
+      items: 
+      - { idRef: 'OBX', position: '37', usage: O }
+      - { idRef: 'NTE', position: '41', usage: O, count: '>1' }
+    - { idRef: 'CTI', position: '47', usage: O, count: '>1' }
+- { idRef: 'DSC', position: '53', usage: O }

@@ -1,0 +1,36 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'ORF_R04'
+name: 'ORF_R04'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'QRD', position: '03', usage: M }
+- { idRef: 'QRF', position: '05', usage: O }
+- groupId: 'QUERY_RESPONSE'
+  count: '>1'
+  usage: M
+  items: 
+  - groupId: 'PATIENT'
+    usage: O
+    items: 
+    - { idRef: 'PID', position: '09', usage: M }
+    - { idRef: 'NTE', position: '12', usage: O, count: '>1' }
+  - groupId: 'ORDER'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'ORC', position: '18', usage: O }
+    - { idRef: 'OBR', position: '20', usage: M }
+    - { idRef: 'NTE', position: '23', usage: O, count: '>1' }
+    - groupId: 'OBSERVATION'
+      count: '>1'
+      usage: M
+      items: 
+      - { idRef: 'OBX', position: '28', usage: O }
+      - { idRef: 'NTE', position: '32', usage: O, count: '>1' }
+    - { idRef: 'CTI', position: '38', usage: O, count: '>1' }
+- { idRef: 'ERR', position: '44', usage: O }
+- { idRef: 'QAK', position: '47', usage: O }
+- { idRef: 'DSC', position: '50', usage: O }

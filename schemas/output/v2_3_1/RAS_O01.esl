@@ -1,0 +1,54 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'RAS_O01'
+name: 'RAS_O01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'NTE', position: '04', usage: O, count: '>1' }
+- groupId: 'PATIENT'
+  usage: O
+  items: 
+  - { idRef: 'PID', position: '08', usage: M }
+  - { idRef: 'PD1', position: '10', usage: O }
+  - { idRef: 'NTE', position: '14', usage: O, count: '>1' }
+  - { idRef: 'AL1', position: '19', usage: O, count: '>1' }
+  - groupId: 'PATIENT_VISIT'
+    usage: O
+    items: 
+    - { idRef: 'PV1', position: '23', usage: M }
+    - { idRef: 'PV2', position: '25', usage: O }
+- groupId: 'ORDER'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'ORC', position: '30', usage: M }
+  - groupId: 'ORDER_DETAIL'
+    usage: O
+    items: 
+    - { idRef: 'RXO', position: '32', usage: M }
+    - groupId: 'ORDER_DETAIL_SUPPLEMENT'
+      usage: O
+      items: 
+      - { idRef: 'NTE', position: '35', usage: M, count: '>1' }
+      - { idRef: 'RXR', position: '38', usage: M, count: '>1' }
+      - groupId: 'COMPONENTS'
+        usage: O
+        items: 
+        - { idRef: 'RXC', position: '42', usage: M, count: '>1' }
+        - { idRef: 'NTE', position: '46', usage: O, count: '>1' }
+  - groupId: 'ENCODING'
+    usage: O
+    items: 
+    - { idRef: 'RXE', position: '53', usage: M }
+    - { idRef: 'RXR', position: '55', usage: M, count: '>1' }
+    - { idRef: 'RXC', position: '59', usage: O, count: '>1' }
+  - { idRef: 'RXA', position: '64', usage: M, count: '>1' }
+  - { idRef: 'RXR', position: '66', usage: M }
+  - groupId: 'OBSERVATION'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'OBX', position: '69', usage: M }
+    - { idRef: 'NTE', position: '72', usage: O, count: '>1' }
+  - { idRef: 'CTI', position: '79', usage: O, count: '>1' }

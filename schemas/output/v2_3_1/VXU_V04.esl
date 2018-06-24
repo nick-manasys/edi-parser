@@ -1,0 +1,35 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'VXU_V04'
+name: 'VXU_V04'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'PID', position: '02', usage: M }
+- { idRef: 'PD1', position: '04', usage: O }
+- { idRef: 'NK1', position: '08', usage: O, count: '>1' }
+- groupId: 'PATIENT'
+  usage: O
+  items: 
+  - { idRef: 'PV1', position: '12', usage: M }
+  - { idRef: 'PV2', position: '14', usage: O }
+- groupId: 'INSURANCE'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'IN1', position: '19', usage: M }
+  - { idRef: 'IN2', position: '21', usage: O }
+  - { idRef: 'IN3', position: '24', usage: O }
+- groupId: 'ORDER'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'ORC', position: '31', usage: O }
+  - { idRef: 'RXA', position: '33', usage: M }
+  - { idRef: 'RXR', position: '35', usage: O }
+  - groupId: 'OBSERVATION'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'OBX', position: '39', usage: M }
+    - { idRef: 'NTE', position: '42', usage: O, count: '>1' }

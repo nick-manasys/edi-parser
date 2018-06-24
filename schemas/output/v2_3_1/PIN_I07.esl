@@ -1,0 +1,27 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'PIN_I07'
+name: 'PIN_I07'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- groupId: 'PROVIDER'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PRD', position: '03', usage: M }
+  - { idRef: 'CTD', position: '06', usage: O, count: '>1' }
+- { idRef: 'PID', position: '10', usage: M }
+- { idRef: 'NK1', position: '13', usage: O, count: '>1' }
+- groupId: 'GUARANTOR_INSURANCE'
+  usage: O
+  items: 
+  - { idRef: 'GT1', position: '19', usage: O, count: '>1' }
+  - groupId: 'INSURANCE'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'IN1', position: '23', usage: M }
+    - { idRef: 'IN2', position: '25', usage: O }
+    - { idRef: 'IN3', position: '28', usage: O }
+- { idRef: 'NTE', position: '34', usage: O, count: '>1' }

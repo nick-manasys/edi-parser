@@ -1,0 +1,11 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'UDM_Q05'
+name: 'UDM_Q05'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'URD', position: '02', usage: M }
+- { idRef: 'URS', position: '04', usage: O }
+- { idRef: 'DSP', position: '07', usage: M, count: '>1' }
+- { idRef: 'DSC', position: '10', usage: O }

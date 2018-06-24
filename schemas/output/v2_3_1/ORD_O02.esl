@@ -1,0 +1,32 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'ORD_O02'
+name: 'ORD_O02'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- { idRef: 'NTE', position: '08', usage: O, count: '>1' }
+- groupId: 'RESPONSE'
+  usage: O
+  items: 
+  - groupId: 'PATIENT'
+    usage: O
+    items: 
+    - { idRef: 'PID', position: '13', usage: M }
+    - { idRef: 'NTE', position: '16', usage: O, count: '>1' }
+  - groupId: 'ORDER_DIET'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'ORC', position: '21', usage: M }
+    - { idRef: 'ODS', position: '24', usage: O, count: '>1' }
+    - { idRef: 'NTE', position: '29', usage: O, count: '>1' }
+  - groupId: 'ORDER_TRAY'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'ORC', position: '35', usage: M }
+    - { idRef: 'ODT', position: '38', usage: O, count: '>1' }
+    - { idRef: 'NTE', position: '43', usage: O, count: '>1' }

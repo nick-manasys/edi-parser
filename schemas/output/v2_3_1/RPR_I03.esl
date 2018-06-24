@@ -1,0 +1,16 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'RPR_I03'
+name: 'RPR_I03'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- groupId: 'PROVIDER'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PRD', position: '04', usage: M }
+  - { idRef: 'CTD', position: '07', usage: O, count: '>1' }
+- { idRef: 'PID', position: '13', usage: O, count: '>1' }
+- { idRef: 'NTE', position: '18', usage: O, count: '>1' }

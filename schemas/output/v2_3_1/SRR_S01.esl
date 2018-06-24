@@ -1,0 +1,51 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'SRR_S01'
+name: 'SRR_S01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- groupId: 'SCHEDULE'
+  usage: O
+  items: 
+  - { idRef: 'SCH', position: '07', usage: M }
+  - { idRef: 'NTE', position: '10', usage: O, count: '>1' }
+  - groupId: 'PATIENT'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'PID', position: '15', usage: M }
+    - { idRef: 'PV1', position: '17', usage: O }
+    - { idRef: 'PV2', position: '20', usage: O }
+    - { idRef: 'DG1', position: '24', usage: O, count: '>1' }
+  - groupId: 'RESOURCES'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'RGS', position: '30', usage: M }
+    - groupId: 'SERVICE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'AIS', position: '33', usage: M }
+      - { idRef: 'NTE', position: '36', usage: O, count: '>1' }
+    - groupId: 'GENERAL_RESOURCE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'AIG', position: '43', usage: M }
+      - { idRef: 'NTE', position: '46', usage: O, count: '>1' }
+    - groupId: 'LOCATION_RESOURCE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'AIL', position: '53', usage: M }
+      - { idRef: 'NTE', position: '56', usage: O, count: '>1' }
+    - groupId: 'PERSONNEL_RESOURCE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'AIP', position: '63', usage: M }
+      - { idRef: 'NTE', position: '66', usage: O, count: '>1' }

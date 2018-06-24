@@ -1,0 +1,53 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'RRI_I12'
+name: 'RRI_I12'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '03', usage: O }
+- { idRef: 'RF1', position: '06', usage: O }
+- groupId: 'AUTHORIZATION_CONTACT'
+  usage: O
+  items: 
+  - { idRef: 'AUT', position: '09', usage: M }
+  - { idRef: 'CTD', position: '11', usage: O }
+- groupId: 'PROVIDER_CONTACT'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PRD', position: '15', usage: M }
+  - { idRef: 'CTD', position: '18', usage: O, count: '>1' }
+- { idRef: 'PID', position: '22', usage: M }
+- { idRef: 'ACC', position: '24', usage: O }
+- { idRef: 'DG1', position: '28', usage: O, count: '>1' }
+- { idRef: 'DRG', position: '33', usage: O, count: '>1' }
+- { idRef: 'AL1', position: '38', usage: O, count: '>1' }
+- groupId: 'PROCEDURE'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'PR1', position: '43', usage: M }
+  - groupId: 'AUTHORIZATION_CONTACT'
+    usage: O
+    items: 
+    - { idRef: 'AUT', position: '45', usage: M }
+    - { idRef: 'CTD', position: '47', usage: O }
+- groupId: 'OBSERVATION'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'OBR', position: '53', usage: M }
+  - { idRef: 'NTE', position: '56', usage: O, count: '>1' }
+  - groupId: 'RESULTS_NOTES'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'OBX', position: '61', usage: M }
+    - { idRef: 'NTE', position: '64', usage: O, count: '>1' }
+- groupId: 'PATIENT_VISIT'
+  usage: O
+  items: 
+  - { idRef: 'PV1', position: '72', usage: M }
+  - { idRef: 'PV2', position: '74', usage: O }
+- { idRef: 'NTE', position: '79', usage: O, count: '>1' }

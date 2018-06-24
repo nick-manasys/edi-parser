@@ -1,0 +1,36 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'ADT_A07'
+name: 'ADT_A07'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'EVN', position: '02', usage: M }
+- { idRef: 'PID', position: '03', usage: M }
+- { idRef: 'PD1', position: '05', usage: O }
+- { idRef: 'MRG', position: '08', usage: O }
+- { idRef: 'NK1', position: '12', usage: O, count: '>1' }
+- { idRef: 'PV1', position: '15', usage: M }
+- { idRef: 'PV2', position: '17', usage: O }
+- { idRef: 'DB1', position: '21', usage: O, count: '>1' }
+- { idRef: 'OBX', position: '26', usage: O, count: '>1' }
+- { idRef: 'AL1', position: '31', usage: O, count: '>1' }
+- { idRef: 'DG1', position: '36', usage: O, count: '>1' }
+- { idRef: 'DRG', position: '40', usage: O }
+- groupId: 'PROCEDURE'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'PR1', position: '44', usage: M }
+  - { idRef: 'ROL', position: '47', usage: O, count: '>1' }
+- { idRef: 'GT1', position: '54', usage: O, count: '>1' }
+- groupId: 'INSURANCE'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'IN1', position: '59', usage: M }
+  - { idRef: 'IN2', position: '61', usage: O }
+  - { idRef: 'IN3', position: '65', usage: O, count: '>1' }
+- { idRef: 'ACC', position: '71', usage: O }
+- { idRef: 'UB1', position: '74', usage: O }
+- { idRef: 'UB2', position: '77', usage: O }

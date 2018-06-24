@@ -1,0 +1,26 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'NMD_N02'
+name: 'NMD_N02'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- groupId: 'CLOCK_AND_STATS_WITH_NOTES'
+  count: '>1'
+  usage: M
+  items: 
+  - groupId: 'CLOCK'
+    usage: O
+    items: 
+    - { idRef: 'NCK', position: '05', usage: M }
+    - { idRef: 'NTE', position: '06', usage: O, count: '>1' }
+  - groupId: 'APP_STATS'
+    usage: O
+    items: 
+    - { idRef: 'NST', position: '09', usage: M }
+    - { idRef: 'NTE', position: '10', usage: O, count: '>1' }
+  - groupId: 'APP_STATUS'
+    usage: O
+    items: 
+    - { idRef: 'NSC', position: '13', usage: M }
+    - { idRef: 'NTE', position: '14', usage: O, count: '>1' }

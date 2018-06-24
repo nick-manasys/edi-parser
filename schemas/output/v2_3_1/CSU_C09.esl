@@ -1,0 +1,48 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'CSU_C09'
+name: 'CSU_C09'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- groupId: 'PATIENT'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PID', position: '03', usage: M }
+  - { idRef: 'PD1', position: '05', usage: O }
+  - { idRef: 'NTE', position: '09', usage: O, count: '>1' }
+  - groupId: 'VISIT'
+    usage: O
+    items: 
+    - { idRef: 'PV1', position: '13', usage: M }
+    - { idRef: 'PV2', position: '15', usage: O }
+  - { idRef: 'CSR', position: '18', usage: M }
+  - groupId: 'STUDY_PHASE'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'CSP', position: '21', usage: O }
+    - groupId: 'STUDY_SCHEDULE'
+      count: '>1'
+      usage: M
+      items: 
+      - { idRef: 'CSS', position: '25', usage: O }
+      - groupId: 'STUDY_OBSERVATION'
+        count: '>1'
+        usage: M
+        items: 
+        - { idRef: 'ORC', position: '29', usage: O }
+        - { idRef: 'OBR', position: '31', usage: M }
+        - { idRef: 'OBX', position: '33', usage: M, count: '>1' }
+      - groupId: 'STUDY_PHARM'
+        count: '>1'
+        usage: M
+        items: 
+        - { idRef: 'ORC', position: '38', usage: O }
+        - groupId: 'RX_ADMIN'
+          count: '>1'
+          usage: M
+          items: 
+          - { idRef: 'RXA', position: '41', usage: M }
+          - { idRef: 'RXR', position: '42', usage: M }

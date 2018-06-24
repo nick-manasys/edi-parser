@@ -1,0 +1,9 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'QRY_A19'
+name: 'QRY_A19'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'QRD', position: '02', usage: M }
+- { idRef: 'QRF', position: '04', usage: O }

@@ -1,0 +1,15 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'MFN_M02'
+name: 'MFN_M02'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MFI', position: '02', usage: M }
+- groupId: 'MF_STAFF'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'MFE', position: '04', usage: M }
+  - { idRef: 'STF', position: '05', usage: M }
+  - { idRef: 'PRA', position: '06', usage: O }

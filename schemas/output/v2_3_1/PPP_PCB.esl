@@ -1,0 +1,87 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'PPP_PCB'
+name: 'PPP_PCB'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'PID', position: '02', usage: M }
+- groupId: 'PATIENT_VISIT'
+  usage: O
+  items: 
+  - { idRef: 'PV1', position: '04', usage: M }
+  - { idRef: 'PV2', position: '06', usage: O }
+- groupId: 'PATHWAY'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PTH', position: '10', usage: M }
+  - { idRef: 'NTE', position: '13', usage: O, count: '>1' }
+  - { idRef: 'VAR', position: '18', usage: O, count: '>1' }
+  - groupId: 'PATHWAY_ROLE'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'ROL', position: '23', usage: M }
+    - { idRef: 'VAR', position: '26', usage: O, count: '>1' }
+  - groupId: 'PROBLEM'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'PRB', position: '33', usage: M }
+    - { idRef: 'NTE', position: '36', usage: O, count: '>1' }
+    - { idRef: 'VAR', position: '41', usage: O, count: '>1' }
+    - groupId: 'PROBLEM_ROLE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'ROL', position: '46', usage: M }
+      - { idRef: 'VAR', position: '49', usage: O, count: '>1' }
+    - groupId: 'PROBLEM_OBSERVATION'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'OBX', position: '56', usage: M }
+      - { idRef: 'NTE', position: '59', usage: O, count: '>1' }
+    - groupId: 'GOAL'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'GOL', position: '66', usage: M }
+      - { idRef: 'NTE', position: '69', usage: O, count: '>1' }
+      - { idRef: 'VAR', position: '74', usage: O, count: '>1' }
+      - groupId: 'GOAL_ROLE'
+        count: '>1'
+        usage: O
+        items: 
+        - { idRef: 'ROL', position: '79', usage: M }
+        - { idRef: 'VAR', position: '82', usage: O, count: '>1' }
+      - groupId: 'GOAL_OBSERVATION'
+        count: '>1'
+        usage: O
+        items: 
+        - { idRef: 'OBX', position: '89', usage: M }
+        - { idRef: 'NTE', position: '92', usage: O, count: '>1' }
+    - groupId: 'ORDER'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'ORC', position: '101', usage: M }
+      - groupId: 'ORDER_DETAIL'
+        usage: O
+        items: 
+        - groupId: 'CHOICE'
+          count: '>1'
+          usage: M
+          items: 
+          - { idRef: 'OBR', position: '104', usage: M }
+          - { idRef: 'RXO', position: '106', usage: M }
+        - { idRef: 'NTE', position: '111', usage: O, count: '>1' }
+        - { idRef: 'VAR', position: '112', usage: O, count: '>1' }
+        - groupId: 'ORDER_OBSERVATION'
+          count: '>1'
+          usage: O
+          items: 
+          - { idRef: 'OBX', position: '117', usage: M }
+          - { idRef: 'NTE', position: '120', usage: O, count: '>1' }
+          - { idRef: 'VAR', position: '125', usage: O, count: '>1' }

@@ -1,0 +1,68 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'PEX_P07'
+name: 'PEX_P07'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'EVN', position: '02', usage: M }
+- { idRef: 'PID', position: '03', usage: M }
+- { idRef: 'PD1', position: '05', usage: O }
+- { idRef: 'NTE', position: '09', usage: O, count: '>1' }
+- groupId: 'VISIT'
+  usage: O
+  items: 
+  - { idRef: 'PV1', position: '13', usage: M }
+  - { idRef: 'PV2', position: '15', usage: O }
+- groupId: 'EXPERIENCE'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PES', position: '19', usage: M }
+  - groupId: 'PEX_OBSERVATION'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'PEO', position: '21', usage: M }
+    - groupId: 'PEX_CAUSE'
+      count: '>1'
+      usage: M
+      items: 
+      - { idRef: 'PCR', position: '23', usage: M }
+      - groupId: 'RX_ORDER'
+        usage: O
+        items: 
+        - { idRef: 'RXE', position: '25', usage: M }
+        - { idRef: 'RXR', position: '28', usage: O, count: '>1' }
+      - groupId: 'RX_ADMINISTRATION'
+        count: '>1'
+        usage: O
+        items: 
+        - { idRef: 'RXA', position: '34', usage: M }
+        - { idRef: 'RXR', position: '36', usage: O }
+      - { idRef: 'PRB', position: '42', usage: O, count: '>1' }
+      - { idRef: 'OBX', position: '47', usage: O, count: '>1' }
+      - { idRef: 'NTE', position: '52', usage: O, count: '>1' }
+      - groupId: 'ASSOCIATED_PERSON'
+        usage: O
+        items: 
+        - { idRef: 'NK1', position: '56', usage: M }
+        - groupId: 'ASSOCIATED_RX_ORDER'
+          usage: O
+          items: 
+          - { idRef: 'RXE', position: '58', usage: M }
+          - { idRef: 'RXR', position: '61', usage: O, count: '>1' }
+        - groupId: 'ASSOCIATED_RX_ADMIN'
+          count: '>1'
+          usage: O
+          items: 
+          - { idRef: 'RXA', position: '67', usage: M }
+          - { idRef: 'RXR', position: '69', usage: O }
+        - { idRef: 'PRB', position: '75', usage: O, count: '>1' }
+        - { idRef: 'OBX', position: '80', usage: O, count: '>1' }
+      - groupId: 'STUDY'
+        count: '>1'
+        usage: O
+        items: 
+        - { idRef: 'CSR', position: '86', usage: M }
+        - { idRef: 'CSP', position: '89', usage: O, count: '>1' }

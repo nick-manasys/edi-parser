@@ -1,0 +1,10 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'MFK_M05'
+name: 'MFK_M05'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'MFI', position: '03', usage: M }
+- { idRef: 'MFA', position: '06', usage: O, count: '>1' }

@@ -1,0 +1,20 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'NMR_N01'
+name: 'NMR_N01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '04', usage: M }
+- { idRef: 'ERR', position: '05', usage: O, count: '>1' }
+- { idRef: 'QRD', position: '06', usage: O }
+- groupId: 'CLOCK_AND_STATS_WITH_NOTES_ALT'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'NCK', position: '08', usage: O }
+  - { idRef: 'NTE', position: '09', usage: O, count: '>1' }
+  - { idRef: 'NST', position: '10', usage: O }
+  - { idRef: 'NTE', position: '11', usage: O, count: '>1' }
+  - { idRef: 'NSC', position: '12', usage: O }
+  - { idRef: 'NTE', position: '13', usage: O, count: '>1' }

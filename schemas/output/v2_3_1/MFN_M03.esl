@@ -1,0 +1,15 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'MFN_M03'
+name: 'MFN_M03'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MFI', position: '02', usage: M }
+- groupId: 'MF_TEST'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'MFE', position: '04', usage: M }
+  - { idRef: 'OM1', position: '05', usage: M }
+  - { idRef: 'Hxx', position: '07', usage: O }

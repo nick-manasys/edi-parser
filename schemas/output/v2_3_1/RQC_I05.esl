@@ -1,0 +1,19 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'RQC_I05'
+name: 'RQC_I05'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'QRD', position: '02', usage: M }
+- { idRef: 'QRF', position: '04', usage: O }
+- groupId: 'PROVIDER'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PRD', position: '07', usage: M }
+  - { idRef: 'CTD', position: '10', usage: O, count: '>1' }
+- { idRef: 'PID', position: '14', usage: M }
+- { idRef: 'NK1', position: '17', usage: O, count: '>1' }
+- { idRef: 'GT1', position: '22', usage: O, count: '>1' }
+- { idRef: 'NTE', position: '27', usage: O, count: '>1' }

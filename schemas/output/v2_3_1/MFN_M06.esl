@@ -1,0 +1,20 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'MFN_M06'
+name: 'MFN_M06'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MFI', position: '02', usage: M }
+- groupId: 'MF_CLIN_STUDY'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'MFE', position: '04', usage: M }
+  - { idRef: 'CM0', position: '05', usage: M }
+  - groupId: 'MF_PHASE_SCHED_DETAIL'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'CM1', position: '08', usage: M }
+    - { idRef: 'CM2', position: '11', usage: O, count: '>1' }

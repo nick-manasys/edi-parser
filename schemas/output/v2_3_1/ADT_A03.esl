@@ -1,0 +1,22 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'ADT_A03'
+name: 'ADT_A03'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'EVN', position: '02', usage: M }
+- { idRef: 'PID', position: '03', usage: M }
+- { idRef: 'PD1', position: '05', usage: O }
+- { idRef: 'PV1', position: '07', usage: M }
+- { idRef: 'PV2', position: '09', usage: O }
+- { idRef: 'DB1', position: '13', usage: O, count: '>1' }
+- { idRef: 'DG1', position: '18', usage: O, count: '>1' }
+- { idRef: 'DRG', position: '22', usage: O }
+- groupId: 'PROCEDURE'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'PR1', position: '26', usage: M }
+  - { idRef: 'ROL', position: '29', usage: O, count: '>1' }
+- { idRef: 'OBX', position: '36', usage: O, count: '>1' }

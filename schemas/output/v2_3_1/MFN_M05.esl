@@ -1,0 +1,23 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'MFN_M05'
+name: 'MFN_M05'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MFI', position: '02', usage: M }
+- groupId: 'MF_LOCATION'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'MFE', position: '04', usage: M }
+  - { idRef: 'LOC', position: '05', usage: M }
+  - { idRef: 'LCH', position: '08', usage: O, count: '>1' }
+  - { idRef: 'LRL', position: '13', usage: O, count: '>1' }
+  - groupId: 'MF_LOC_DEPT'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'LDP', position: '17', usage: M }
+    - { idRef: 'LCH', position: '20', usage: O, count: '>1' }
+    - { idRef: 'LCC', position: '25', usage: O, count: '>1' }

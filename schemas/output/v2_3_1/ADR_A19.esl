@@ -1,0 +1,45 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'ADR_A19'
+name: 'ADR_A19'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- { idRef: 'QAK', position: '07', usage: O }
+- { idRef: 'QRD', position: '09', usage: M }
+- { idRef: 'QRF', position: '11', usage: O }
+- groupId: 'QUERY_RESPONSE'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'EVN', position: '15', usage: O }
+  - { idRef: 'PID', position: '17', usage: M }
+  - { idRef: 'PD1', position: '19', usage: O }
+  - { idRef: 'NK1', position: '23', usage: O, count: '>1' }
+  - { idRef: 'PV1', position: '26', usage: M }
+  - { idRef: 'PV2', position: '28', usage: O }
+  - { idRef: 'DB1', position: '32', usage: O, count: '>1' }
+  - { idRef: 'OBX', position: '37', usage: O, count: '>1' }
+  - { idRef: 'AL1', position: '42', usage: O, count: '>1' }
+  - { idRef: 'DG1', position: '47', usage: O, count: '>1' }
+  - { idRef: 'DRG', position: '51', usage: O }
+  - groupId: 'PROCEDURE'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'PR1', position: '55', usage: M }
+    - { idRef: 'ROL', position: '58', usage: O, count: '>1' }
+  - { idRef: 'GT1', position: '65', usage: O, count: '>1' }
+  - groupId: 'INSURANCE'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'IN1', position: '70', usage: M }
+    - { idRef: 'IN2', position: '72', usage: O }
+    - { idRef: 'IN3', position: '76', usage: O, count: '>1' }
+  - { idRef: 'ACC', position: '82', usage: O }
+  - { idRef: 'UB1', position: '85', usage: O }
+  - { idRef: 'UB2', position: '88', usage: O }
+- { idRef: 'DSC', position: '92', usage: O }

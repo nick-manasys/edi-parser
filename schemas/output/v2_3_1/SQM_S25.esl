@@ -1,0 +1,45 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'SQM_S25'
+name: 'SQM_S25'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'QRD', position: '02', usage: M }
+- { idRef: 'QRF', position: '04', usage: O }
+- groupId: 'REQUEST'
+  usage: O
+  items: 
+  - { idRef: 'ARQ', position: '07', usage: M }
+  - { idRef: 'APR', position: '09', usage: O }
+  - { idRef: 'PID', position: '12', usage: O }
+  - groupId: 'RESOURCES'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'RGS', position: '15', usage: M }
+    - groupId: 'SERVICE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'AIS', position: '18', usage: M }
+      - { idRef: 'APR', position: '20', usage: O }
+    - groupId: 'GENERAL_RESOURCE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'AIG', position: '26', usage: M }
+      - { idRef: 'APR', position: '28', usage: O }
+    - groupId: 'PERSONNEL_RESOURCE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'AIP', position: '34', usage: M }
+      - { idRef: 'APR', position: '36', usage: O }
+    - groupId: 'LOCATION_RESOURCE'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'AIL', position: '42', usage: M }
+      - { idRef: 'APR', position: '44', usage: O }
+- { idRef: 'DSC', position: '51', usage: O }

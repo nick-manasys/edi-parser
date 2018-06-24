@@ -1,0 +1,31 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'RRO_O02'
+name: 'RRO_O02'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- { idRef: 'NTE', position: '08', usage: O, count: '>1' }
+- groupId: 'RESPONSE'
+  usage: O
+  items: 
+  - groupId: 'PATIENT'
+    usage: O
+    items: 
+    - { idRef: 'PID', position: '13', usage: M }
+    - { idRef: 'NTE', position: '16', usage: O, count: '>1' }
+  - groupId: 'ORDER'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'ORC', position: '21', usage: M }
+    - groupId: 'ORDER_DETAIL'
+      usage: O
+      items: 
+      - { idRef: 'RXO', position: '23', usage: M }
+      - { idRef: 'NTE', position: '26', usage: O, count: '>1' }
+      - { idRef: 'RXR', position: '30', usage: M, count: '>1' }
+      - { idRef: 'RXC', position: '34', usage: O, count: '>1' }
+      - { idRef: 'NTE', position: '39', usage: O, count: '>1' }

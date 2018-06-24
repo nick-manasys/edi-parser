@@ -1,0 +1,56 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'ORM_O01'
+name: 'ORM_O01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'NTE', position: '04', usage: O, count: '>1' }
+- groupId: 'PATIENT'
+  usage: O
+  items: 
+  - { idRef: 'PID', position: '08', usage: M }
+  - { idRef: 'PD1', position: '10', usage: O }
+  - { idRef: 'NTE', position: '14', usage: O, count: '>1' }
+  - groupId: 'PATIENT_VISIT'
+    usage: O
+    items: 
+    - { idRef: 'PV1', position: '18', usage: M }
+    - { idRef: 'PV2', position: '20', usage: O }
+  - groupId: 'INSURANCE'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'IN1', position: '25', usage: M }
+    - { idRef: 'IN2', position: '27', usage: O }
+    - { idRef: 'IN3', position: '30', usage: O, count: '>1' }
+  - { idRef: 'GT1', position: '35', usage: O }
+  - { idRef: 'AL1', position: '39', usage: O, count: '>1' }
+- groupId: 'ORDER'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'ORC', position: '42', usage: M }
+  - groupId: 'ORDER_DETAIL'
+    usage: O
+    items: 
+    - groupId: 'CHOICE'
+      count: '>1'
+      usage: M
+      items: 
+      - { idRef: 'OBR', position: '45', usage: M }
+      - { idRef: 'RQD', position: '47', usage: M }
+      - { idRef: 'RQ1', position: '49', usage: M }
+      - { idRef: 'ODS', position: '53', usage: M }
+      - { idRef: 'ODT', position: '55', usage: M }
+      - { idRef: 'RXO', position: '57', usage: M }
+    - { idRef: 'NTE', position: '61', usage: O, count: '>1' }
+    - { idRef: 'DG1', position: '62', usage: O, count: '>1' }
+    - groupId: 'OBSERVATION'
+      count: '>1'
+      usage: O
+      items: 
+      - { idRef: 'OBX', position: '78', usage: M }
+      - { idRef: 'NTE', position: '81', usage: O, count: '>1' }
+  - { idRef: 'CTI', position: '89', usage: O, count: '>1' }
+  - { idRef: 'BLG', position: '93', usage: O }

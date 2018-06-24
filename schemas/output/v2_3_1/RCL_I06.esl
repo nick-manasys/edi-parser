@@ -1,0 +1,23 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'RCL_I06'
+name: 'RCL_I06'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'QRD', position: '03', usage: M }
+- { idRef: 'QRF', position: '05', usage: O }
+- groupId: 'PROVIDER'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PRD', position: '08', usage: M }
+  - { idRef: 'CTD', position: '11', usage: O, count: '>1' }
+- { idRef: 'PID', position: '15', usage: M }
+- { idRef: 'DG1', position: '18', usage: O, count: '>1' }
+- { idRef: 'DRG', position: '23', usage: O, count: '>1' }
+- { idRef: 'AL1', position: '28', usage: O, count: '>1' }
+- { idRef: 'NTE', position: '33', usage: O, count: '>1' }
+- { idRef: 'DSP', position: '38', usage: O, count: '>1' }
+- { idRef: 'DSC', position: '42', usage: O }

@@ -1,0 +1,26 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'SUR_P09'
+name: 'SUR_P09'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- groupId: 'FACILITY'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'FAC', position: '03', usage: M }
+  - groupId: 'PRODUCT'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'PSH', position: '05', usage: M }
+    - { idRef: 'PDC', position: '06', usage: M }
+  - { idRef: 'PSH', position: '08', usage: M }
+  - groupId: 'FACILITY_DETAIL'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'FAC', position: '10', usage: M }
+    - { idRef: 'PDC', position: '11', usage: M }
+    - { idRef: 'NTE', position: '12', usage: M }

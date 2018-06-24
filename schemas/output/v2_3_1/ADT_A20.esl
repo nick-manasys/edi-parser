@@ -1,0 +1,9 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'ADT_A20'
+name: 'ADT_A20'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'EVN', position: '02', usage: M }
+- { idRef: 'NPU', position: '03', usage: M }

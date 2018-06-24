@@ -1,0 +1,9 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'RQQ_Q09'
+name: 'RQQ_Q09'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'ERQ', position: '02', usage: M }
+- { idRef: 'DSC', position: '04', usage: O }

@@ -1,0 +1,15 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'CRM_C01'
+name: 'CRM_C01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- groupId: 'PATIENT'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PID', position: '03', usage: M }
+  - { idRef: 'PV1', position: '05', usage: O }
+  - { idRef: 'CSR', position: '07', usage: M }
+  - { idRef: 'CSP', position: '10', usage: O, count: '>1' }

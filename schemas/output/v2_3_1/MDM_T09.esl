@@ -1,0 +1,11 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'MDM_T09'
+name: 'MDM_T09'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'EVN', position: '02', usage: M }
+- { idRef: 'PID', position: '03', usage: M }
+- { idRef: 'PV1', position: '04', usage: M }
+- { idRef: 'TXA', position: '05', usage: M }

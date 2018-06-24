@@ -1,0 +1,38 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'OSR_Q06'
+name: 'OSR_Q06'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- { idRef: 'NTE', position: '08', usage: O, count: '>1' }
+- { idRef: 'QRD', position: '11', usage: M }
+- { idRef: 'QRF', position: '13', usage: O }
+- groupId: 'RESPONSE'
+  usage: O
+  items: 
+  - groupId: 'PATIENT'
+    usage: O
+    items: 
+    - { idRef: 'PID', position: '17', usage: M }
+    - { idRef: 'NTE', position: '20', usage: O, count: '>1' }
+  - groupId: 'OBSERVATION'
+    count: '>1'
+    usage: M
+    items: 
+    - { idRef: 'ORC', position: '25', usage: M }
+    - groupId: 'CHOICE'
+      count: '>1'
+      usage: M
+      items: 
+      - { idRef: 'OBR', position: '27', usage: M }
+      - { idRef: 'RXO', position: '29', usage: M }
+      - { idRef: 'RQD', position: '31', usage: M }
+      - { idRef: 'RQ1', position: '33', usage: M }
+      - { idRef: 'ODS', position: '35', usage: M }
+      - { idRef: 'ODT', position: '37', usage: M }
+    - { idRef: 'NTE', position: '41', usage: O, count: '>1' }
+    - { idRef: 'CTI', position: '42', usage: O, count: '>1' }
+- { idRef: 'DSC', position: '45', usage: O }

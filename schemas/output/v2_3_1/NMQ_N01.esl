@@ -1,0 +1,19 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'NMQ_N01'
+name: 'NMQ_N01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- groupId: 'QRY_WITH_DETAIL'
+  usage: O
+  items: 
+  - { idRef: 'QRD', position: '04', usage: M }
+  - { idRef: 'QRF', position: '05', usage: O }
+- groupId: 'CLOCK_AND_STATISTICS'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'NCK', position: '08', usage: O }
+  - { idRef: 'NST', position: '09', usage: O }
+  - { idRef: 'NSC', position: '10', usage: O }

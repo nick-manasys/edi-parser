@@ -1,0 +1,21 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'DOC_T12'
+name: 'DOC_T12'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- { idRef: 'QAK', position: '07', usage: O }
+- { idRef: 'QRD', position: '09', usage: M }
+- groupId: 'RESULT'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'EVN', position: '12', usage: O }
+  - { idRef: 'PID', position: '14', usage: M }
+  - { idRef: 'PV1', position: '15', usage: M }
+  - { idRef: 'TXA', position: '16', usage: M }
+  - { idRef: 'OBX', position: '19', usage: O, count: '>1' }
+- { idRef: 'DSC', position: '24', usage: O }

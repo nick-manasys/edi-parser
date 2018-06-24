@@ -1,0 +1,38 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'VXR_V03'
+name: 'VXR_V03'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'QRD', position: '03', usage: M }
+- { idRef: 'QRF', position: '05', usage: O }
+- { idRef: 'PID', position: '07', usage: M }
+- { idRef: 'PD1', position: '09', usage: O }
+- { idRef: 'NK1', position: '13', usage: O, count: '>1' }
+- groupId: 'PATIENT_VISIT'
+  usage: O
+  items: 
+  - { idRef: 'PV1', position: '17', usage: M }
+  - { idRef: 'PV2', position: '19', usage: O }
+- groupId: 'INSURANCE'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'IN1', position: '24', usage: M }
+  - { idRef: 'IN2', position: '26', usage: O }
+  - { idRef: 'IN3', position: '29', usage: O }
+- groupId: 'ORDER'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'ORC', position: '36', usage: O }
+  - { idRef: 'RXA', position: '38', usage: M }
+  - { idRef: 'RXR', position: '40', usage: O }
+  - groupId: 'OBSERVATION'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'OBX', position: '44', usage: M }
+    - { idRef: 'NTE', position: '47', usage: O, count: '>1' }

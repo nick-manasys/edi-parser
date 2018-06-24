@@ -1,0 +1,20 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'MFN_M08'
+name: 'MFN_M08'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MFI', position: '02', usage: M }
+- groupId: 'MF_TEST_NUMERIC'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'MFE', position: '04', usage: M }
+  - { idRef: 'OM1', position: '05', usage: O }
+  - groupId: 'MF_NUMERIC_OBSERVATION'
+    usage: O
+    items: 
+    - { idRef: 'OM2', position: '07', usage: O }
+    - { idRef: 'OM3', position: '08', usage: O }
+    - { idRef: 'OM4', position: '09', usage: O }

@@ -1,0 +1,62 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'RPA_I08'
+name: 'RPA_I08'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'RF1', position: '04', usage: O }
+- groupId: 'AUTHORIZATION'
+  usage: O
+  items: 
+  - { idRef: 'AUT', position: '07', usage: M }
+  - { idRef: 'CTD', position: '09', usage: O }
+- groupId: 'PROVIDER'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PRD', position: '13', usage: M }
+  - { idRef: 'CTD', position: '16', usage: O, count: '>1' }
+- { idRef: 'PID', position: '20', usage: M }
+- { idRef: 'NK1', position: '23', usage: O, count: '>1' }
+- { idRef: 'GT1', position: '28', usage: O, count: '>1' }
+- groupId: 'INSURANCE'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'IN1', position: '33', usage: M }
+  - { idRef: 'IN2', position: '35', usage: O }
+  - { idRef: 'IN3', position: '38', usage: O }
+- { idRef: 'ACC', position: '43', usage: O }
+- { idRef: 'DG1', position: '47', usage: O, count: '>1' }
+- { idRef: 'DRG', position: '52', usage: O, count: '>1' }
+- { idRef: 'AL1', position: '57', usage: O, count: '>1' }
+- groupId: 'PROCEDURE'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PR1', position: '61', usage: M }
+  - groupId: 'AUTHORIZATION'
+    usage: O
+    items: 
+    - { idRef: 'AUT', position: '63', usage: M }
+    - { idRef: 'CTD', position: '65', usage: O }
+- groupId: 'OBSERVATION'
+  count: '>1'
+  usage: O
+  items: 
+  - { idRef: 'OBR', position: '71', usage: M }
+  - { idRef: 'NTE', position: '74', usage: O, count: '>1' }
+  - groupId: 'RESULTS'
+    count: '>1'
+    usage: O
+    items: 
+    - { idRef: 'OBX', position: '79', usage: M }
+    - { idRef: 'NTE', position: '82', usage: O, count: '>1' }
+- groupId: 'VISIT'
+  usage: O
+  items: 
+  - { idRef: 'PV1', position: '90', usage: M }
+  - { idRef: 'PV2', position: '92', usage: O }
+- { idRef: 'NTE', position: '97', usage: O, count: '>1' }

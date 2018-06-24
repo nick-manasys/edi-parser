@@ -1,0 +1,20 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'MFR_M01'
+name: 'MFR_M01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- { idRef: 'QAK', position: '07', usage: O }
+- { idRef: 'QRD', position: '09', usage: M }
+- { idRef: 'QRF', position: '11', usage: O }
+- { idRef: 'MFI', position: '13', usage: M }
+- groupId: 'MF_QUERY'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'MFE', position: '15', usage: M }
+  - { idRef: 'Zxx', position: '17', usage: O }
+- { idRef: 'DSC', position: '21', usage: O }

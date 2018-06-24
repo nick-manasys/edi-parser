@@ -1,0 +1,13 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'TBR_R08'
+name: 'TBR_R08'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- { idRef: 'QAK', position: '06', usage: M }
+- { idRef: 'RDF', position: '07', usage: M }
+- { idRef: 'RDT', position: '09', usage: M, count: '>1' }
+- { idRef: 'DSC', position: '12', usage: O }

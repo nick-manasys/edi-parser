@@ -31,8 +31,11 @@ import com.mulesoft.flatfile.schema.EdiSchema.Usage
 import com.mulesoft.flatfile.schema.EdiSchemaVersion
 import com.mulesoft.flatfile.schema.YamlReader
 import com.mulesoft.flatfile.schema.YamlWriter
+import scala.collection.mutable.MutableList
+import scala.collection.mutable.HashMap
 
-/** Application to generate HL7 message schemas from table data.
+/**
+ * Application to generate HL7 message schemas from table data.
  */
 object HL7TablesConverter {
 
@@ -78,7 +81,8 @@ object HL7TablesConverter {
   /** Get input stream for file in directory. */
   def fileInput(dir: File, name: String) = new FileInputStream(new File(dir, name))
 
-  /** Accumulate the result of applying an operation to the lists of values for each line in input. Note that the result
+  /**
+   * Accumulate the result of applying an operation to the lists of values for each line in input. Note that the result
    * will be in reversed order (if ordered).
    */
   def foldInput[T](in: InputStream, z: T)(f: (T, List[String]) => T) =
@@ -100,7 +104,8 @@ object HL7TablesConverter {
   type ListOfKeyedLists = List[(String, List[List[String]])]
   val emptyListOfKeyedLists = Nil.asInstanceOf[ListOfKeyedLists]
 
-  /** Gather list of values into list of lists based on the first column value. This supports the detail file formats
+  /**
+   * Gather list of values into list of lists based on the first column value. This supports the detail file formats
    * where the first column is a repeating ID value. The output is in the form of a list of pairs, with the first item
    * the common first column value and the second item a list of the remaining column values. Input order is preserved
    * in the output, and the column count is verified.
@@ -247,8 +252,7 @@ object HL7TablesConverter {
   def buildStructures(grouped: Map[String, LineFields], segs: Map[String, Segment], version: EdiSchemaVersion) = {
     @tailrec
     def zeroPad(value: String, length: Int): String = if (value.length < length) zeroPad("0" + value, length) else value
-    def buildGroup(id: String, lines: LineFields, close: String, use: Usage, count: Int, choice: Boolean):
-      (LineFields, StructureComponent) = {
+    def buildGroup(id: String, lines: LineFields, close: String, use: Usage, count: Int, choice: Boolean): (LineFields, StructureComponent) = {
       val (remain, nested) = buildr(lines, Nil)
       remain match {
         case close :: t =>
@@ -323,7 +327,8 @@ object HL7TablesConverter {
     }
   }
 
-  /** Builds schemas from HL7 table data and outputs the schemas in YAML form. The arguments are 1) path to the
+  /**
+   * Builds schemas from HL7 table data and outputs the schemas in YAML form. The arguments are 1) path to the
    * directory containing the HL7 table data files, and 2) path to the directory for the YAML output files. All
    * existing files are deleted from the output directory before writing any output files. Each message is output
    * as a separate file, with the structure ID used as the file name (with extension ".yaml").
@@ -339,7 +344,7 @@ object HL7TablesConverter {
     }
     else yamldir.mkdirs
     val yamlrdr = new YamlReader()
-    hl7dir.listFiles.filter { x => x.getAbsoluteFile().getName.contains("2_3_1") }.foreach(version => {
+    hl7dir.listFiles.filter { x => true || x.getAbsoluteFile().getName.contains("2_3_1") }.foreach(version => {
       println(s"Processing ${version.getName}")
       val vernum = version.getName.drop(1).replace('_', '.')
       val schemaVersion = EdiSchemaVersion(HL7, vernum)
@@ -470,7 +475,21 @@ object HL7TablesConverter {
       structsMap.put(key, structure)
     }
 
+    // compute similarities/differences
+    var mapForAllVersion = new HashMap[String, String]
+    var mapForEachVersion = new HashMap[String, String]
+
+    // display results
+
   }
+
+  /**
+   *
+   */
+  def compareStructures() {
+
+  }
+
   /**
    * Construct a structure from a list of lines
    */
@@ -490,7 +509,7 @@ object HL7TablesConverter {
       } else
         message.add(new HL7Segment(line.segmentName, "1".equals(line.cardinality), "1".equals(line.optional)))
     }
-    //  println(message)
+    println(message)
     message
   }
 

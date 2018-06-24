@@ -1,0 +1,14 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'DSR_Q01'
+name: 'DSR_Q01'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'ERR', position: '04', usage: O }
+- { idRef: 'QAK', position: '07', usage: O }
+- { idRef: 'QRD', position: '09', usage: M }
+- { idRef: 'QRF', position: '11', usage: O }
+- { idRef: 'DSP', position: '14', usage: M, count: '>1' }
+- { idRef: 'DSC', position: '17', usage: O }

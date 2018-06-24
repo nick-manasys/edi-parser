@@ -1,0 +1,16 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'VXX_V02'
+name: 'VXX_V02'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'MSA', position: '02', usage: M }
+- { idRef: 'QRD', position: '03', usage: M }
+- { idRef: 'QRF', position: '05', usage: O }
+- groupId: 'PATIENT'
+  count: '>1'
+  usage: M
+  items: 
+  - { idRef: 'PID', position: '08', usage: M }
+  - { idRef: 'NK1', position: '11', usage: O, count: '>1' }

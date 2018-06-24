@@ -1,0 +1,10 @@
+form: HL7
+version: '2.3.1'
+imports: [ '/hl7/v2_3_1/basedefs.esl' ]
+id: 'SPQ_Q08'
+name: 'SPQ_Q08'
+data: 
+- { idRef: 'MSH', position: '01', usage: M }
+- { idRef: 'SPR', position: '02', usage: M }
+- { idRef: 'RDF', position: '04', usage: O }
+- { idRef: 'DSC', position: '07', usage: O }
